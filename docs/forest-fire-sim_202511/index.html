@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <title>Симулация на горски пожари</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-container">
+    <h1>Симулация на горски пожари</h1>
+    <div class="controls">
+      <div class="control-group">
+        <label>Размер на клетка (px): <span id="cellSizeValue">10</span></label>
+        <input type="range" id="cellSize" min="4" max="40" value="10" />
+      </div>
+      <div class="control-group">
+        <label>Брой клетки (N x N): <span id="gridSizeValue">50</span></label>
+        <input type="range" id="gridSize" min="10" max="100" value="50" />
+      </div>
+      <div class="control-group">
+        <label>Шанс за растеж на дърво на секунда (%): <span id="growthProbValue">5</span></label>
+        <input type="range" id="growthProb" min="0" max="100" value="5" />
+      </div>
+      <div class="control-group">
+        <label>Шанс за светкавица на секунда (%): <span id="lightningProbValue">2</span></label>
+        <input type="range" id="lightningProb" min="0" max="100" value="2" />
+      </div>
+      <div class="control-group">
+        <label>Закъснение на пожарникарите (s): <span id="firefighterDelayValue">5</span></label>
+        <input type="range" id="firefighterDelay" min="1" max="30" value="5" />
+      </div>
+      <div class="control-group">
+        <label>Време на престой на пожарникар (s): <span id="firefighterDurationValue">5</span></label>
+        <input type="range" id="firefighterDuration" min="1" max="30" value="5" />
+      </div>
+      <div class="control-group">
+        <label>Радиус на защита на пожарникар (клетки): <span id="firefighterRangeValue">3</span></label>
+        <input type="range" id="firefighterRange" min="1" max="20" value="3" />
+      </div>
+      <div class="buttons">
+        <button id="startBtn">Старт</button>
+        <button id="stopBtn" disabled>Стоп</button>
+        <button id="resetBtn">Рестарт</button>
+      </div>
+    </div>
+
+    <canvas id="forestCanvas"></canvas>
+
+    <div class="legend">
+      <span class="legend-item"><span class="color-box empty"></span> Няма дърво</span>
+      <span class="legend-item"><span class="color-box tree"></span> Дърво</span>
+      <span class="legend-item"><span class="color-box burning"></span> Горящо дърво (жълто)</span>
+      <span class="legend-item"><span class="color-box firefighter"></span> Пожарникар</span>
+    </div>
+
+    <div class="stats">
+      <span>Дървета: <span id="treesCount">0</span></span>
+      <span>Последен удар от светкавица: <span id="lastLightning">няма</span></span>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
