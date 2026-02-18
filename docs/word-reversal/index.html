@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Reversal</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background: #f0f4f8;
+    }
+    h1 { color: #333; }
+    input {
+      padding: 10px 14px;
+      font-size: 1.2rem;
+      border: 2px solid #aaa;
+      border-radius: 6px;
+      outline: none;
+    }
+    input:focus { border-color: #555; }
+    #result {
+      margin-top: 20px;
+      font-size: 1.5rem;
+      color: #222;
+      min-height: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tell me a word</h1>
+  <input type="text" id="wordInput" placeholder="Type a word..." autofocus>
+  <div id="result"></div>
+
+  <script>
+    document.getElementById('wordInput').addEventListener('input', function () {
+      const word = this.value;
+      document.getElementById('result').textContent =
+        word ? word.split('').reverse().join('') : '';
+    });
+  </script>
+</body>
+</html>
