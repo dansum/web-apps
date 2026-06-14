@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Bus Traffic Manager</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0d1117;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  user-select: none;
+  overflow: hidden;
+}
+h1 {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: #ff6b35;
+  text-transform: uppercase;
+  text-shadow: 0 0 18px rgba(255,107,53,0.5);
+  margin-bottom: 6px;
+}
+canvas {
+  border-radius: 6px;
+  border: 2px solid rgba(255,107,53,0.3);
+  box-shadow: 0 0 40px rgba(0,0,0,0.9), 0 0 20px rgba(255,107,53,0.1);
+  cursor: pointer;
+  touch-action: none;
+  display: block;
+  /* Scale canvas on small screens while keeping logical 600x600 */
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 80px);
+  width: 600px;
+  height: 600px;
+  object-fit: contain;
+}
+footer {
+  margin-top: 8px;
+  font-size: 11px;
+  color: #333;
+  letter-spacing: 0.5px;
+}
+</style>
+</head>
+<body>
+<h1>Bus Traffic Manager</h1>
+<canvas id="c" width="600" height="600"></canvas>
+<footer>Click/tap a bus to stop it &bull; Click again to go &bull; Prevent crashes!</footer>
+
+<script>
+'use strict';
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+const W = 600, H = 600;
+const RH = 14;          // road half-width (total = 28px)
+const BUS_LEN = 36;     // bus length (along direction of travel)
+const BUS_WID = 18;     // bus width (perpendicular)
+
+// Road center positions
+const ROADS_Y = [150, 300, 450];
+const ROADS_X = [150, 300, 450];
+
+// Each horizontal road has a fixed direction (alternating)
+const H_ROADS = [
+  { y: 150, dir: 'right' },
+  { y: 300, dir: 'left'  },
+  { y: 450, dir: 'right' },
+];
+// Each vertical road has a fixed direction (alternating)
+const V_ROADS = [
+  { x: 150, dir: 'down' },
+  { x: 300, dir: 'up'   },
+  { x: 450, dir: 'down' },
+];
+
+const BUS_PALETTE = [
+  '#e74c3c','#3498db','#2ecc71','#9b59b6',
+  '#f39c12','#1abc9c','#e67e22','#e91e63',
+];
+
+// ─── Seeded RNG ───────────────────────────────────────────────────────────────
+function makeRng(seed) {
+  let s = seed | 0;
+  return () => {
+    s = (Math.imul(s, 1664525) + 1013904223) | 0;
+    return (s >>> 0) / 0xFFFFFFFF;
+  };
+}
+
+// ─── Pre-generate city block data (deterministic) ─────────────────────────────
+const CITY_DATA = (() => {
+  const rand = makeRng(0xC0FFEE);
+
+  // Block boundaries between roads (every other segment is a road)
+  const xs = [0, 150-RH, 150+RH, 300-RH, 300+RH, 450-RH, 450+RH, 600];
+  const ys = [0, 150-RH, 150+RH, 300-RH, 300+RH, 450-RH, 450+RH, 600];
+
+  const blocks = [];
+  for (let ci = 0; ci < xs.length - 1; ci += 2) {
+    for (let cj = 0; cj < ys.length - 1; cj += 2) {
+      const bx = xs[ci], bw = xs[ci+1] - bx;
+      const by = ys[cj], bh = ys[cj+1] - by;
+      if (bw < 8 || bh < 8) continue;
+
+      const gv = 42 + Math.floor(rand() * 18);
+      const groundColor = `rgb(${gv-4},${gv+7},${gv-6})`;
+
+      const buildings = [];
+      const numBldgs = 2 + Math.floor(rand() * 3);
+      const mg = 5;
+      for (let b = 0; b < numBldgs; b++) {
+        const maxBW = Math.max(10, (bw - mg * 2) * 0.72);
+        const maxBH = Math.max(10, (bh - mg * 2) * 0.72);
+        if (maxBW < 8 || maxBH < 8) continue;
+        const bldW = 8 + Math.floor(rand() * maxBW);
+        const bldH = 8 + Math.floor(rand() * maxBH);
+        const bldX = bx + mg + Math.floor(rand() * Math.max(0, bw - bldW - mg * 2));
+        const bldY = by + mg + Math.floor(rand() * Math.max(0, bh - bldH - mg * 2));
+        const hue = Math.floor(rand() * 360);
+        const sat = 18 + Math.floor(rand() * 35);
+        const lit = 22 + Math.floor(rand() * 18);
+        const color = `hsl(${hue},${sat}%,${lit}%)`;
+        const roof  = `hsl(${hue},${sat}%,${lit+12}%)`;
+        const windows = [];
+        for (let wx = bldX + 3; wx < bldX + bldW - 2; wx += 5) {
+          for (let wy = bldY + 5; wy < bldY + bldH - 2; wy += 5) {
+            windows.push({ x: wx, y: wy, on: rand() > 0.38 });
+          }
+        }
+        buildings.push({ x: bldX, y: bldY, w: bldW, h: bldH, color, roof, windows });
+      }
+      blocks.push({ x: bx, y: by, w: bw, h: bh, groundColor, buildings });
+    }
+  }
+  return blocks;
+})();
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function roundRect(ctx, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function arrow(ctx, x, y, dir) {
+  ctx.save();
+  ctx.translate(x, y);
+  if (dir === 'down')  ctx.rotate(Math.PI / 2);
+  else if (dir === 'left') ctx.rotate(Math.PI);
+  else if (dir === 'up')   ctx.rotate(-Math.PI / 2);
+  ctx.beginPath();
+  ctx.moveTo(7, 0);
+  ctx.lineTo(-4, -5);
+  ctx.lineTo(-2, 0);
+  ctx.lineTo(-4, 5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+// ─── Bus ──────────────────────────────────────────────────────────────────────
+class Bus {
+  constructor(id, x, y, dir, color) {
+    this.id    = id;
+    this.x     = x;
+    this.y     = y;
+    this.dir   = dir;   // 'left' | 'right' | 'up' | 'down'
+    this.color = color;
+    this.stopped = false;
+    this.speed   = 2;
+    this.num     = 1 + Math.floor(Math.random() * 99);
+  }
+
+  get hw() { return (this.dir === 'left' || this.dir === 'right') ? BUS_LEN / 2 : BUS_WID / 2; }
+  get hh() { return (this.dir === 'left' || this.dir === 'right') ? BUS_WID / 2 : BUS_LEN / 2; }
+
+  step() {
+    if (this.stopped) return;
+    const v = this.speed;
+    if      (this.dir === 'right') this.x += v;
+    else if (this.dir === 'left')  this.x -= v;
+    else if (this.dir === 'down')  this.y += v;
+    else                           this.y -= v;
+  }
+
+  isOffScreen() {
+    const pad = 55;
+    return this.x > W + pad || this.x < -pad || this.y > H + pad || this.y < -pad;
+  }
+
+  overlaps(other) {
+    // AABB overlap with 3px shrink to avoid hair-trigger on adjacent lanes
+    return Math.abs(this.x - other.x) < (this.hw + other.hw - 3) &&
+           Math.abs(this.y - other.y) < (this.hh + other.hh - 3);
+  }
+
+  containsPoint(px, py) {
+    return Math.abs(px - this.x) <= this.hw + 5 &&
+           Math.abs(py - this.y) <= this.hh + 5;
+  }
+
+  draw(ctx) {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+
+    let angle = 0;
+    if      (this.dir === 'down')  angle =  Math.PI / 2;
+    else if (this.dir === 'left')  angle =  Math.PI;
+    else if (this.dir === 'up')    angle = -Math.PI / 2;
+    ctx.rotate(angle);
+
+    const hw = BUS_LEN / 2, hh = BUS_WID / 2;
+
+    // Drop shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.28)';
+    roundRect(ctx, -hw + 2, -hh + 2, BUS_LEN, BUS_WID, 4);
+    ctx.fill();
+
+    // Body
+    ctx.fillStyle = this.color;
+    roundRect(ctx, -hw, -hh, BUS_LEN, BUS_WID, 4);
+    ctx.fill();
+
+    // Outline
+    ctx.strokeStyle = this.stopped ? '#ff3030' : 'rgba(0,0,0,0.45)';
+    ctx.lineWidth   = this.stopped ? 2.5 : 1.5;
+    ctx.stroke();
+
+    // Windows
+    ctx.fillStyle = 'rgba(200,230,255,0.8)';
+    ctx.fillRect(-hw + 3,  -hh + 3, 8, BUS_WID - 6);
+    ctx.fillRect(-hw + 13, -hh + 3, 8, BUS_WID - 6);
+
+    // Front headlight strip
+    ctx.fillStyle = 'rgba(255,255,140,0.9)';
+    ctx.fillRect(hw - 5, -hh + 3, 4, BUS_WID - 6);
+
+    // Roof ridge
+    ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-hw + 2, -hh + 1);
+    ctx.lineTo( hw - 2, -hh + 1);
+    ctx.stroke();
+
+    ctx.restore();
+
+    // Bus number (drawn in screen space so it stays upright)
+    ctx.save();
+    ctx.font = 'bold 9px Arial';
+    ctx.fillStyle = 'rgba(255,255,255,0.88)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(this.num, this.x, this.y);
+    ctx.restore();
+
+    // Stop icon above bus (screen space)
+    if (this.stopped) {
+      ctx.save();
+      ctx.font = '13px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('⛔', this.x, this.y - this.hh - 5);
+      ctx.restore();
+    }
+  }
+}
+
+// ─── Particle ─────────────────────────────────────────────────────────────────
+class Particle {
+  constructor(x, y) {
+    const a = Math.random() * Math.PI * 2;
+    const s = 1.5 + Math.random() * 4.5;
+    this.x  = x; this.y = y;
+    this.vx = Math.cos(a) * s;
+    this.vy = Math.sin(a) * s - 1;
+    this.life  = 1;
+    this.decay = 0.022 + Math.random() * 0.018;
+    this.color = BUS_PALETTE[Math.floor(Math.random() * BUS_PALETTE.length)];
+    this.size  = 3 + Math.random() * 5;
+  }
+  step() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.vy += 0.13;
+    this.life -= this.decay;
+  }
+  draw(ctx) {
+    ctx.globalAlpha = Math.max(0, this.life);
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size * this.life, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+}
+
+// ─── Game ─────────────────────────────────────────────────────────────────────
+class Game {
+  constructor(canvas) {
+    this.canvas    = canvas;
+    this.ctx       = canvas.getContext('2d');
+    this.highScore = 0;
+    this.frame     = 0;   // always-running frame counter for animations
+
+    // Build static background once
+    this.bgCanvas = document.createElement('canvas');
+    this.bgCanvas.width = W; this.bgCanvas.height = H;
+    this._renderBg();
+
+    this._bindInput();
+    this._init();
+  }
+
+  _init() {
+    this.buses     = [];
+    this.particles = [];
+    this.score     = 0;
+    this.lives     = 3;
+    this.phase     = 'start';   // 'start' | 'play' | 'over'
+    this.nextId    = 0;
+    this.spawnTimer    = 0;
+    this.spawnInterval = 145;   // frames between spawns
+    this.flashFrames   = 0;
+  }
+
+  _bindInput() {
+    const handle = (e) => {
+      e.preventDefault();
+      const r  = this.canvas.getBoundingClientRect();
+      const sx = W / r.width, sy = H / r.height;
+      let cx, cy;
+      if (e.touches) {
+        cx = (e.touches[0].clientX - r.left) * sx;
+        cy = (e.touches[0].clientY - r.top)  * sy;
+      } else {
+        cx = (e.clientX - r.left) * sx;
+        cy = (e.clientY - r.top)  * sy;
+      }
+      this._handleClick(cx, cy);
+    };
+    this.canvas.addEventListener('click',      handle);
+    this.canvas.addEventListener('touchstart', handle, { passive: false });
+  }
+
+  _handleClick(x, y) {
+    if (this.phase === 'start') { this.phase = 'play'; return; }
+    if (this.phase === 'over') {
+      this.highScore = Math.max(this.highScore, this.score);
+      this._init();
+      this.phase = 'play';
+      return;
+    }
+    // Toggle stop/go on topmost hit bus
+    for (let i = this.buses.length - 1; i >= 0; i--) {
+      if (this.buses[i].containsPoint(x, y)) {
+        this.buses[i].stopped = !this.buses[i].stopped;
+        return;
+      }
+    }
+  }
+
+  _spawnBus() {
+    const allRoads = [
+      ...H_ROADS.map(r => ({ ...r, type: 'h' })),
+      ...V_ROADS.map(r => ({ ...r, type: 'v' })),
+    ];
+
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const road = allRoads[Math.floor(Math.random() * allRoads.length)];
+      let sx, sy;
+      if (road.type === 'h') {
+        sy = road.y;
+        sx = road.dir === 'right' ? -BUS_LEN : W + BUS_LEN;
+      } else {
+        sx = road.x;
+        sy = road.dir === 'down' ? -BUS_LEN : H + BUS_LEN;
+      }
+
+      // Skip if another bus is too close to the spawn edge
+      const blocked = this.buses.some(b =>
+        Math.abs(b.x - sx) < BUS_LEN * 2.4 && Math.abs(b.y - sy) < BUS_LEN * 2.4
+      );
+      if (blocked) continue;
+
+      const color = BUS_PALETTE[Math.floor(Math.random() * BUS_PALETTE.length)];
+      const bus   = new Bus(this.nextId++, sx, sy, road.dir, color);
+      const level = Math.floor(this.score / 8);
+      bus.speed   = 1.6 + Math.min(level * 0.12, 1.7) + Math.random() * 0.4;
+      this.buses.push(bus);
+      return;
+    }
+  }
+
+  _explode(x, y) {
+    for (let i = 0; i < 28; i++) this.particles.push(new Particle(x, y));
+  }
+
+  update() {
+    this.frame++;
+    if (this.phase !== 'play') return;
+
+    // Spawning
+    this.spawnTimer--;
+    if (this.spawnTimer <= 0) {
+      this._spawnBus();
+      const level = Math.floor(this.score / 8);
+      this.spawnInterval = Math.max(55, 145 - level * 10);
+      this.spawnTimer = this.spawnInterval + Math.floor(Math.random() * 30 - 15);
+    }
+
+    // Move all buses
+    for (const b of this.buses) b.step();
+
+    // Score buses that exit
+    this.buses = this.buses.filter(b => {
+      if (b.isOffScreen()) { this.score++; return false; }
+      return true;
+    });
+
+    // Collision detection (all pairs)
+    outer: for (let i = 0; i < this.buses.length; i++) {
+      for (let j = i + 1; j < this.buses.length; j++) {
+        if (this.buses[i].overlaps(this.buses[j])) {
+          const cx = (this.buses[i].x + this.buses[j].x) / 2;
+          const cy = (this.buses[i].y + this.buses[j].y) / 2;
+          this._explode(cx, cy);
+          this.buses.splice(j, 1);
+          this.buses.splice(i, 1);
+          this.lives--;
+          this.flashFrames = 50;
+          if (this.lives <= 0) {
+            this.phase = 'over';
+            this.highScore = Math.max(this.highScore, this.score);
+          }
+          break outer;
+        }
+      }
+    }
+
+    // Particles
+    for (const p of this.particles) p.step();
+    this.particles = this.particles.filter(p => p.life > 0);
+
+    if (this.flashFrames > 0) this.flashFrames--;
+  }
+
+  // ── Static background (rendered once to offscreen canvas) ──────────────────
+  _renderBg() {
+    const ctx = this.bgCanvas.getContext('2d');
+
+    // Grass base
+    ctx.fillStyle = '#3a5c3a';
+    ctx.fillRect(0, 0, W, H);
+
+    // City blocks
+    for (const blk of CITY_DATA) {
+      ctx.fillStyle = blk.groundColor;
+      ctx.fillRect(blk.x, blk.y, blk.w, blk.h);
+
+      for (const b of blk.buildings) {
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.22)';
+        ctx.fillRect(b.x + 3, b.y + 3, b.w, b.h);
+        // Body
+        ctx.fillStyle = b.color;
+        ctx.fillRect(b.x, b.y, b.w, b.h);
+        // Roof edge
+        ctx.fillStyle = b.roof;
+        ctx.fillRect(b.x, b.y, b.w, 3);
+        // Windows
+        ctx.fillStyle = 'rgba(255,255,150,0.5)';
+        for (const w of b.windows) {
+          if (w.on) ctx.fillRect(w.x, w.y, 2, 2);
+        }
+      }
+    }
+
+    // Horizontal roads
+    for (const r of H_ROADS) {
+      const y0 = r.y - RH, rh = RH * 2;
+      // Asphalt
+      ctx.fillStyle = '#484848';
+      ctx.fillRect(0, y0, W, rh);
+      // Edge lines
+      ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, y0 + 0.5);   ctx.lineTo(W, y0 + 0.5);
+      ctx.moveTo(0, y0 + rh - 0.5); ctx.lineTo(W, y0 + rh - 0.5);
+      ctx.stroke();
+      // Centre dashes
+      ctx.strokeStyle = 'rgba(255,210,0,0.45)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([10, 10]);
+      ctx.beginPath();
+      ctx.moveTo(0, r.y); ctx.lineTo(W, r.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // Direction arrows
+      ctx.fillStyle = 'rgba(255,255,255,0.1)';
+      for (let ax = 55; ax < W; ax += 95) arrow(ctx, ax, r.y, r.dir);
+    }
+
+    // Vertical roads
+    for (const r of V_ROADS) {
+      const x0 = r.x - RH, rw = RH * 2;
+      ctx.fillStyle = '#484848';
+      ctx.fillRect(x0, 0, rw, H);
+      ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x0 + 0.5, 0);   ctx.lineTo(x0 + 0.5, H);
+      ctx.moveTo(x0 + rw - 0.5, 0); ctx.lineTo(x0 + rw - 0.5, H);
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,210,0,0.45)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([10, 10]);
+      ctx.beginPath();
+      ctx.moveTo(r.x, 0); ctx.lineTo(r.x, H);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(255,255,255,0.1)';
+      for (let ay = 55; ay < H; ay += 95) arrow(ctx, r.x, ay, r.dir);
+    }
+
+    // Intersections
+    for (const hr of H_ROADS) {
+      for (const vr of V_ROADS) {
+        const ix = vr.x - RH, iy = hr.y - RH, iw = RH * 2, ih = RH * 2;
+        ctx.fillStyle = '#4c4c4c';
+        ctx.fillRect(ix, iy, iw, ih);
+        // Subtle zebra
+        ctx.fillStyle = 'rgba(255,255,255,0.06)';
+        for (let s = 0; s < iw; s += 4) {
+          ctx.fillRect(ix + s, iy, 2, ih);
+          ctx.fillRect(ix, iy + s, iw, 2);
+        }
+      }
+    }
+  }
+
+  // ── HUD ────────────────────────────────────────────────────────────────────
+  _drawHUD() {
+    const ctx = this.ctx;
+    ctx.save();
+
+    ctx.fillStyle = 'rgba(0,0,0,0.78)';
+    ctx.fillRect(0, 0, W, 42);
+
+    ctx.textBaseline = 'middle';
+
+    // Score
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 18px "Segoe UI",Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText(`Score: ${this.score}`, 12, 21);
+
+    // Lives (hearts)
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = i < this.lives ? '#e74c3c' : '#333';
+      ctx.font = '20px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('♥', W / 2 - 22 + i * 22, 21);
+    }
+
+    // High score + level
+    ctx.textAlign = 'right';
+    ctx.font = '12px Arial';
+    ctx.fillStyle = '#666';
+    ctx.fillText(`Best: ${this.highScore}`, W - 10, 14);
+    const level = Math.floor(this.score / 8) + 1;
+    ctx.fillStyle = '#f39c12';
+    ctx.font = 'bold 13px Arial';
+    ctx.fillText(`LV ${level}`, W - 10, 31);
+
+    ctx.restore();
+  }
+
+  // ── Screens ────────────────────────────────────────────────────────────────
+  _drawStart() {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,0.76)';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    ctx.font = 'bold 50px "Segoe UI",Arial';
+    ctx.fillStyle = '#ff6b35';
+    ctx.shadowColor = '#ff6b35'; ctx.shadowBlur = 22;
+    ctx.fillText('BUS TRAFFIC', W / 2, H / 2 - 82);
+    ctx.fillText('MANAGER', W / 2, H / 2 - 28);
+    ctx.shadowBlur = 0;
+
+    ctx.font = '17px Arial';
+    ctx.fillStyle = '#ccc';
+    ctx.fillText('🚌  Click a bus to STOP it', W / 2, H / 2 + 34);
+    ctx.fillText('⛔  Click again to GO', W / 2, H / 2 + 60);
+    ctx.fillText('💥  Prevent crashes to survive!', W / 2, H / 2 + 86);
+
+    const p = 0.68 + 0.32 * Math.sin(this.frame * 0.09);
+    ctx.globalAlpha = p;
+    ctx.font = 'bold 21px Arial';
+    ctx.fillStyle = '#f39c12';
+    ctx.fillText('TAP ANYWHERE TO START', W / 2, H / 2 + 145);
+    ctx.globalAlpha = 1;
+
+    ctx.restore();
+  }
+
+  _drawGameOver() {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,0.82)';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    ctx.font = 'bold 58px Arial';
+    ctx.fillStyle = '#e74c3c';
+    ctx.shadowColor = '#e74c3c'; ctx.shadowBlur = 18;
+    ctx.fillText('CRASH!', W / 2, H / 2 - 82);
+    ctx.shadowBlur = 0;
+
+    ctx.font = 'bold 30px Arial';
+    ctx.fillStyle = '#fff';
+    ctx.fillText(`Score: ${this.score}`, W / 2, H / 2 - 26);
+
+    if (this.score > 0 && this.score >= this.highScore) {
+      ctx.font = 'bold 18px Arial';
+      ctx.fillStyle = '#f39c12';
+      ctx.fillText('🏆  NEW HIGH SCORE!  🏆', W / 2, H / 2 + 18);
+    } else {
+      ctx.font = '16px Arial';
+      ctx.fillStyle = '#777';
+      ctx.fillText(`Best: ${this.highScore}`, W / 2, H / 2 + 18);
+    }
+
+    const p = 0.68 + 0.32 * Math.sin(this.frame * 0.09);
+    ctx.globalAlpha = p;
+    ctx.font = 'bold 20px Arial';
+    ctx.fillStyle = '#3498db';
+    ctx.fillText('TAP TO PLAY AGAIN', W / 2, H / 2 + 76);
+    ctx.globalAlpha = 1;
+
+    ctx.restore();
+  }
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+  render() {
+    const ctx = this.ctx;
+
+    // Static background
+    ctx.drawImage(this.bgCanvas, 0, 0);
+
+    // Buses
+    for (const b of this.buses) b.draw(ctx);
+
+    // Particles
+    for (const p of this.particles) p.draw(ctx);
+    ctx.globalAlpha = 1;
+
+    // Collision flash
+    if (this.flashFrames > 0) {
+      ctx.fillStyle = `rgba(255,40,40,${(this.flashFrames / 50) * 0.42})`;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // HUD always on top
+    this._drawHUD();
+
+    if (this.phase === 'start') this._drawStart();
+    if (this.phase === 'over')  this._drawGameOver();
+  }
+
+  // ── Main loop ──────────────────────────────────────────────────────────────
+  loop() {
+    this.update();
+    this.render();
+    requestAnimationFrame(() => this.loop());
+  }
+
+  start() {
+    requestAnimationFrame(() => this.loop());
+  }
+}
+
+// Boot
+const game = new Game(document.getElementById('c'));
+game.start();
+</script>
+</body>
+</html>
