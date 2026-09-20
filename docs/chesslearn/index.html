@@ -19,6 +19,7 @@
     <span data-i18n="app.title">Chess Playground</span>
   </div>
   <div class="topbar-right">
+    <button id="recordsBtn" class="icon-btn" aria-label="Records"><span aria-hidden="true">&#127942;</span></button>
     <button id="soundBtn" class="icon-btn" aria-label="Sound"><span id="soundIcon" aria-hidden="true">&#128266;</span></button>
     <button id="langBtn" class="lang-btn"><span id="langLabel">БГ</span></button>
   </div>
@@ -39,6 +40,20 @@
     <div class="setup-actions">
       <button id="playBtn" class="big-btn"><span aria-hidden="true">&#9654;</span> <span data-i18n="setup.play">Play!</span></button>
     </div>
+  </section>
+
+  <!-- ============ RECORDS ============ -->
+  <section id="screen-records" class="screen" hidden>
+    <h2 class="screen-title" data-i18n="records.title">Records</h2>
+    <p class="lead small" data-i18n="records.hint"></p>
+    <div id="recordsList" class="records-list"></div>
+    <p id="recordsMsg" class="records-msg" hidden></p>
+    <div class="records-actions">
+      <button id="saveRecordsBtn" class="tool-btn"><span aria-hidden="true">&#11015;</span><span data-i18n="records.download">Save to a file</span></button>
+      <button id="loadRecordsBtn" class="tool-btn"><span aria-hidden="true">&#11014;</span><span data-i18n="records.upload">Load from a file</span></button>
+      <button id="clearRecordsBtn" class="tool-btn danger"><span aria-hidden="true">&#128465;</span><span data-i18n="records.clear">Delete all</span></button>
+    </div>
+    <input id="recordsFile" type="file" accept=".txt,text/plain" hidden />
   </section>
 
   <!-- ============ GAME ============ -->
@@ -81,6 +96,7 @@
 
 <script src="js/i18n.js"></script>
 <script src="js/store.js"></script>
+<script src="js/scores.js"></script>
 <script src="js/sound.js"></script>
 <script src="js/pieces.js"></script>
 <script src="js/rules.js"></script>

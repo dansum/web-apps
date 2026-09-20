@@ -13,7 +13,7 @@
   /* ---------------- screens ---------------- */
 
   function show(name) {
-    ['menu', 'setup', 'game'].forEach(function (s) {
+    ['menu', 'setup', 'records', 'game'].forEach(function (s) {
       $('screen-' + s).hidden = (s !== name);
     });
     el.homeBtn.hidden = (name === 'menu');
@@ -55,6 +55,80 @@
       card.addEventListener('click', function () { openSetup(mode); });
       el.modeGrid.appendChild(card);
     });
+  }
+
+  /* ---------------- records ---------------- */
+
+  function goRecords() {
+    stopGame();
+    renderRecords();
+    show('records');
+  }
+
+  function renderRecords() {
+    var entries = Scores.list();
+    el.recordsList.innerHTML = '';
+    el.recordsMsg.hidden = true;
+    if (!entries.length) {
+      el.recordsList.innerHTML = '<p class="records-empty">' + t('records.empty') + '</p>';
+      return;
+    }
+    var currentGame = null, group = null;
+    entries.forEach(function (e) {
+      if (e.meta.game !== currentGame) {
+        currentGame = e.meta.game;
+        group = document.createElement('div');
+        group.className = 'record-group';
+        group.innerHTML = '<h3>' + t(currentGame) + '</h3>';
+        el.recordsList.appendChild(group);
+      }
+      var row = document.createElement('div');
+      row.className = 'record-row';
+      row.innerHTML =
+        '<span class="record-what">' + Scores.label(e, t) + '</span>' +
+        '<b class="record-value">' + e.value + '</b>' +
+        '<span class="record-date">' + t('records.on', { date: e.date }) + '</span>';
+      group.appendChild(row);
+    });
+  }
+
+  function message(text) {
+    el.recordsMsg.textContent = text;
+    el.recordsMsg.hidden = false;
+  }
+
+  function downloadRecords() {
+    var name = 'chess-playground-records.txt';
+    var blob = new Blob([Scores.toText(t)], { type: 'text/plain;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    Sound.play('select');
+    message(t('records.saved', { name: name }));
+  }
+
+  function uploadRecords(file) {
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var res = Scores.importText(String(reader.result || ''));
+      var known = res.added + res.improved + res.skipped;
+      renderRecords();
+      if (!known) {
+        Sound.play('error');
+        message(t('records.badfile'));
+      } else {
+        Sound.play(res.added || res.improved ? 'star' : 'select');
+        message(t('records.imported', { a: res.added, b: res.improved, c: res.skipped }));
+      }
+    };
+    reader.onerror = function () { message(t('records.badfile')); };
+    reader.readAsText(file);
   }
 
   /* ---------------- setup ---------------- */
@@ -189,6 +263,7 @@
       el.setupDesc.textContent = t(pendingMode.descKey);
       renderOptions();
     }
+    if (!$('screen-records').hidden) renderRecords();
     if (!$('screen-game').hidden && current) {
       el.helpText.textContent = current.mode.helpKey ? t(current.mode.helpKey) : '';
       if (current.relabel) current.relabel();
@@ -208,6 +283,8 @@
 
   function init() {
     ['homeBtn', 'soundBtn', 'soundIcon', 'langBtn', 'langLabel', 'modeGrid',
+     'recordsBtn', 'recordsList', 'recordsMsg', 'saveRecordsBtn', 'loadRecordsBtn',
+     'clearRecordsBtn', 'recordsFile',
      'setupTitle', 'setupDesc', 'setupOptions', 'playBtn', 'statusCard', 'statusText',
      'scoreCard', 'helpText', 'hintBtn', 'undoBtn', 'restartBtn', 'overlay',
      'dlgEmoji', 'dlgTitle', 'dlgText', 'dlgStars', 'dlgAgain', 'dlgMenu'
@@ -231,6 +308,17 @@
       Sound.play('select');
     });
     el.soundBtn.addEventListener('click', toggleSound);
+    el.recordsBtn.addEventListener('click', goRecords);
+    el.saveRecordsBtn.addEventListener('click', downloadRecords);
+    el.loadRecordsBtn.addEventListener('click', function () { el.recordsFile.click(); });
+    el.recordsFile.addEventListener('change', function (ev) {
+      uploadRecords(ev.target.files && ev.target.files[0]);
+      ev.target.value = '';
+    });
+    el.clearRecordsBtn.addEventListener('click', function () {
+      if (!Scores.count()) return;
+      if (window.confirm(t('records.confirm'))) { Scores.clear(); renderRecords(); }
+    });
     el.homeBtn.addEventListener('click', goMenu);
     el.playBtn.addEventListener('click', function () { startGame(pendingMode, pendingCfg); });
     el.restartBtn.addEventListener('click', function () {
@@ -256,6 +344,7 @@
   global.App = {
     registerMode: function (mode) { modes.push(mode); },
     goMenu: goMenu,
+    goRecords: goRecords,
     init: init
   };
 

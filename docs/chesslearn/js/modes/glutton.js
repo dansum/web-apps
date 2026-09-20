@@ -90,7 +90,7 @@
     function refresh(msg) {
       if (dead) return;
       ctx.setStatus(msg || ctx.t('game.yourturn'), 'white-turn');
-      var best = Store.getBest(bestKey);
+      var best = Scores.get(bestKey);
       ctx.setScore(
         '<div class="score-row"><span class="chip-piece b">' + Pieces.svg('p', 'b') + '</span>' +
         '<span class="score-name">' + ctx.t('game.left') + '</span><b>' + pawnsLeft() + '</b></div>' +
@@ -190,7 +190,7 @@
       var escaped = state.scored.b;
       var stars = escaped ? Math.max(1, starsFor(moves) - escaped) : starsFor(moves);
       var record = false;
-      if (!escaped) record = Store.setBest(bestKey, moves, false);
+      if (!escaped) record = Scores.submit(bestKey, moves).isRecord;
       ctx.finish({
         win: true, emoji: escaped ? '😊' : '🍽️',
         title: ctx.t(escaped ? 'result.done' : 'result.win'),

@@ -43,7 +43,7 @@
     function refresh(msg) {
       if (dead) return;
       var total = size * size;
-      var best = Store.getBest(bestKey);
+      var best = Scores.get(bestKey);
       ctx.setStatus(msg || ctx.t('game.yourturn'), 'white-turn');
       ctx.setScore(
         '<div class="score-row"><span class="chip-icon">👣</span>' +
@@ -76,7 +76,7 @@
 
     function win() {
       dead = true;
-      Store.setBest(bestKey, order.length, true);
+      Scores.submit(bestKey, order.length);
       ctx.finish({
         win: true, emoji: '🐎',
         title: ctx.t('result.win'),
@@ -88,7 +88,7 @@
     function stuck() {
       dead = true;
       var total = size * size;
-      Store.setBest(bestKey, order.length, true);
+      Scores.submit(bestKey, order.length);
       ctx.finish({
         win: false, emoji: '😓', sound: 'lose',
         title: ctx.t('result.stuck'),

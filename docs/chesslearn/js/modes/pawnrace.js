@@ -51,6 +51,7 @@
     var human = vsCpu ? cfg.side : null;      // null === both sides are human
     var cpu = vsCpu ? Rules.other(human) : null;
     var state = buildState(size);
+    var bestKey = 'pawnrace.best.' + cfg.board + '.' + cfg.level;
     var history = [];
     var sel = null, dead = false, busy = false, timer = null;
 
@@ -82,9 +83,12 @@
       else if (vsCpu) text = state.turn === human ? ctx.t('game.yourturn') : ctx.t('game.cputurn');
       else text = ctx.t(state.turn === 'w' ? 'game.turn.w' : 'game.turn.b');
       ctx.setStatus(text, state.turn === 'w' ? 'white-turn' : 'black-turn');
+      var best = vsCpu ? Scores.get(bestKey) : undefined;
       ctx.setScore(
         scoreRow('w') + scoreRow('b') +
-        '<div class="score-note">' + ctx.t('game.through') + '</div>'
+        '<div class="score-note">' + ctx.t('game.through') + '</div>' +
+        (best !== undefined ? '<div class="score-row"><span class="chip-icon">\uD83C\uDFC5</span>' +
+          '<span class="score-name">' + ctx.t('game.best') + '</span><b>' + best + '</b></div>' : '')
       );
     }
 
@@ -187,6 +191,10 @@
       res.text = vsCpu
         ? ctx.t('result.score', { a: a, b: b })
         : ctx.t('result.score2', { a: state.scored.w, b: state.scored.b });
+      if (vsCpu) {
+        if (Scores.submit(bestKey, a).isRecord) res.text += '  ' + ctx.t('result.newbest');
+        if (res.win) Scores.submit('pawnrace.wins.' + cfg.level, 1);
+      }
       dead = true;
       ctx.finish(res);
     }

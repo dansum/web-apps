@@ -76,6 +76,7 @@
     var at = level.start;
     var hero = Rules.place(state, at, 'k', 'w');
     var moves = 0, lives = LIVES, reveals = 3, dead = false, revealTimer = null;
+    var bestKey = 'safe.' + guards;
 
     Board.setup({ size: SIZE, flipped: false });
     Board.render(state);
@@ -104,6 +105,10 @@
         '<span class="score-name">' + ctx.t('game.lives') + '</span><b>' + hearts + '</b></div>' +
         '<div class="score-row"><span class="chip-icon">👣</span>' +
         '<span class="score-name">' + ctx.t('game.moves') + '</span><b>' + moves + '</b></div>' +
+        (Scores.get(bestKey) !== undefined
+          ? '<div class="score-row"><span class="chip-icon">\uD83C\uDFC5</span>' +
+            '<span class="score-name">' + ctx.t('game.best') + '</span><b>' +
+            Scores.get(bestKey) + '</b></div>' : '') +
         '<button id="revealBtn" class="tool-btn wide">👁️ ' +
         ctx.t('game.reveal') + ' (' + reveals + ')</button>'
       );

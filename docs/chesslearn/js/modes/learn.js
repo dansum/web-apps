@@ -45,7 +45,8 @@
           '<span class="chip-piece w">' + Pieces.svg(tp, 'w') + '</span>' +
           '<span>' + ctx.t('piece.' + tp) + '</span></button>';
       });
-      html += '</div><div class="picker-label small">' + ctx.t('learn.star') + '</div>';
+      html += '</div><div class="picker-label small">' + ctx.t('learn.star') +
+        ' <b>\u2B50 ' + (Scores.get('learn.stars') || 0) + '</b></div>';
       ctx.setScore(html);
       Array.prototype.forEach.call(document.querySelectorAll('#scoreCard .pick'), function (btn) {
         btn.addEventListener('click', function () {
@@ -90,6 +91,8 @@
       Board.render(state);
       if (move.to === starAt) {
         gotStar++;
+        Scores.submit('learn.stars', 1);
+        drawPicker();
         Sound.play('star');
         ctx.confetti();
         status(ctx.t('learn.gotstar'));

@@ -32,13 +32,39 @@ plays something else on purpose, so a beginner can win:
 | Clever | 3 | 15% |
 | Champion | 4 | 0% |
 
+## Records
+
+Each game keeps the record where one makes sense — fewest moves, most pawns
+through, most squares visited, wins, stars caught — per setting, so a knight on
+an easy level and a queen on a hard one have their own entries. The trophy
+button in the top bar opens the list.
+
+Records live in this browser's `localStorage` and nowhere else: no server, no
+account, nothing leaves the device. Clearing the browser data clears them.
+To carry them to another computer, **Save to a file** writes a plain, readable
+text file and **Load from a file** merges one back, keeping whichever result is
+better:
+
+```
+# Chess Playground / Шах игрище — records
+# key<TAB>value<TAB>date   (lines starting with # are ignored)
+glutton.n	14	2026-09-20	The Glutton / Knight · fewest moves
+knight.5	25	2026-09-20	Knight's Tour / 5x5 (easier) · most squares
+```
+
+Only the first three columns are read; the fourth is a human-readable comment.
+Unknown keys and broken lines are ignored, so an edited or truncated file can
+never break the app. A hand-edited number is taken at face value — the file is
+the child's own scorecard, not an authority.
+
 ## Files
 
 ```
 index.html          the single page
 css/style.css       the whole theme
 js/i18n.js          every user-visible string, EN + BG
-js/store.js         localStorage (language, sound, records)
+js/store.js         localStorage (language, sound)
+js/scores.js        records: keys, comparison, text export and import
 js/sound.js         short WebAudio blips, no audio files
 js/pieces.js        the pieces, drawn as inline SVG
 js/rules.js         move generation (no castling, no check — none of the games need it)

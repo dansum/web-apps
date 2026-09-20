@@ -76,6 +76,7 @@
     var state = buildState();
     var history = [];
     var claim = null;                 // { c: colour, sq: index }
+    var played = { w: 0, b: 0 };
     var sel = null, dead = false, busy = false, timer = null;
 
     Board.setup({ size: SIZE, flipped: vsCpu && human === 'b' });
@@ -100,8 +101,14 @@
       else if (vsCpu) text = state.turn === human ? ctx.t('game.yourturn') : ctx.t('game.cputurn');
       else text = ctx.t(state.turn === 'w' ? 'game.turn.w' : 'game.turn.b');
       ctx.setStatus(text, state.turn === 'w' ? 'white-turn' : 'black-turn');
+      var best = vsCpu ? Scores.get('center.fast.' + cfg.level) : undefined;
       ctx.setScore(row('w') + row('b') +
-        '<div class="score-note">' + ctx.t('game.pieces') + '</div>');
+        '<div class="score-note">' + ctx.t('game.pieces') + '</div>' +
+        '<div class="score-row"><span class="chip-icon">\uD83D\uDC63</span>' +
+        '<span class="score-name">' + ctx.t('game.moves') + '</span><b>' +
+        (vsCpu ? played[human] : played.w + played.b) + '</b></div>' +
+        (best !== undefined ? '<div class="score-row"><span class="chip-icon">\uD83C\uDFC5</span>' +
+          '<span class="score-name">' + ctx.t('game.best') + '</span><b>' + best + '</b></div>' : ''));
     }
 
     function row(color) {
@@ -140,7 +147,9 @@
 
     function play(move) {
       var mover = state.turn;
-      history.push({ state: Rules.clone(state), claim: claim ? { c: claim.c, sq: claim.sq } : null });
+      history.push({ state: Rules.clone(state), claim: claim ? { c: claim.c, sq: claim.sq } : null,
+        played: { w: played.w, b: played.b } });
+      played[mover]++;
       var res = Rules.apply(state, move);
       state = res.state;
       Board.clearMarks('last');
@@ -202,6 +211,12 @@
         res.title = ctx.t(winner === 'w' ? 'result.wwin' : 'result.bwin');
       }
       res.text = ctx.t(byCapture ? 'result.captured' : 'result.center');
+      if (vsCpu && winner === human) {
+        Scores.submit('center.wins.' + cfg.level, 1);
+        if (Scores.submit('center.fast.' + cfg.level, played[human]).isRecord) {
+          res.text += '  ' + ctx.t('result.newbest');
+        }
+      }
       ctx.finish(res);
     }
 
@@ -231,6 +246,7 @@
       } while (history.length && vsCpu && prev.state.turn !== human);
       state = prev.state;
       claim = prev.claim;
+      played = prev.played;
       if (claim) Board.mark(claim.sq, 'claim');
       Board.render(state);
       refresh();

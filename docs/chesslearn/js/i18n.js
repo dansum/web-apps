@@ -5,6 +5,25 @@
   var STRINGS = {
     en: {
       'app.title': 'Chess Playground',
+      'records.title': 'Records',
+      'records.open': 'Records',
+      'records.empty': 'No records yet — go and play!',
+      'records.hint': 'Records are kept in this browser only. Save them to a file to carry them to another computer.',
+      'records.download': 'Save to a file',
+      'records.upload': 'Load from a file',
+      'records.clear': 'Delete all',
+      'records.confirm': 'Delete all records?',
+      'records.imported': 'Loaded: {a} new, {b} improved, {c} skipped.',
+      'records.badfile': 'No records found in that file.',
+      'records.saved': 'Saved as {name}',
+      'records.on': 'on {date}',
+
+      'metric.moves': 'fewest moves',
+      'metric.visited': 'most squares',
+      'metric.through': 'most pawns through',
+      'metric.wins': 'wins',
+      'metric.stars': 'stars caught',
+
       'menu.lead': 'Pick a game!',
 
       'mode.learn.title': 'Meet the Pieces',
@@ -121,6 +140,25 @@
 
     bg: {
       'app.title': 'Шах игрище',
+      'records.title': 'Рекорди',
+      'records.open': 'Рекорди',
+      'records.empty': 'Още няма рекорди — хайде на игра!',
+      'records.hint': 'Рекордите се пазят само в този браузър. Запази ги във файл, за да ги пренесеш на друг компютър.',
+      'records.download': 'Запази във файл',
+      'records.upload': 'Зареди от файл',
+      'records.clear': 'Изтрий всички',
+      'records.confirm': 'Да изтрия ли всички рекорди?',
+      'records.imported': 'Заредени: {a} нови, {b} подобрени, {c} пропуснати.',
+      'records.badfile': 'В този файл няма рекорди.',
+      'records.saved': 'Записано като {name}',
+      'records.on': 'на {date}',
+
+      'metric.moves': 'най-малко ходове',
+      'metric.visited': 'най-много полета',
+      'metric.through': 'най-много прекарани пешки',
+      'metric.wins': 'победи',
+      'metric.stars': 'хванати звезди',
+
       'menu.lead': 'Избери игра!',
 
       'mode.learn.title': 'Запознай се с фигурите',
