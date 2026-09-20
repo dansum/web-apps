@@ -265,6 +265,8 @@
 
   App.registerMode({
     id: 'center',
+    order: 6,
+    group: 'learning',
     icon: '<span class="ic-pair">' + Pieces.svg('n', 'w') + Pieces.svg('b', 'b') + '</span>',
     titleKey: 'mode.center.title',
     descKey: 'mode.center.desc',

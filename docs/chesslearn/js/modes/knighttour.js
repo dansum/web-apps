@@ -145,6 +145,8 @@
 
   App.registerMode({
     id: 'knight',
+    order: 2,
+    group: 'learning',
     icon: '<span class="ic-pair">' + Pieces.svg('n', 'w') + '<span class="ic-star">⭐</span></span>',
     titleKey: 'mode.knight.title',
     descKey: 'mode.knight.desc',

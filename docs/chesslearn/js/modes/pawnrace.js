@@ -238,6 +238,8 @@
 
   App.registerMode({
     id: 'pawnrace',
+    order: 5,
+    group: 'beginner',
     icon: '<span class="ic-pair">' + Pieces.svg('p', 'w') + Pieces.svg('p', 'b') + '</span>',
     titleKey: 'mode.pawnrace.title',
     descKey: 'mode.pawnrace.desc',

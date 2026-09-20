@@ -41,19 +41,33 @@
 
   /* ---------------- menu ---------------- */
 
+  var GROUPS = ['beginner', 'learning', 'advanced'];
+
   function renderMenu() {
     el.modeGrid.innerHTML = '';
-    modes.forEach(function (mode) {
-      var card = document.createElement('button');
-      card.className = 'mode-card';
-      card.innerHTML =
-        '<div class="mode-icon">' + mode.icon + '</div>' +
-        '<div class="mode-text">' +
-        '<span class="mode-title">' + t(mode.titleKey) + '</span>' +
-        '<span class="mode-desc">' + t(mode.descKey) + '</span>' +
-        '</div>';
-      card.addEventListener('click', function () { openSetup(mode); });
-      el.modeGrid.appendChild(card);
+    GROUPS.forEach(function (group) {
+      var inGroup = modes.filter(function (m) { return (m.group || 'beginner') === group; })
+        .sort(function (a, b) { return (a.order || 99) - (b.order || 99); });
+      if (!inGroup.length) return;
+      var head = document.createElement('h2');
+      head.className = 'group-head ' + group;
+      head.innerHTML = '<span class="group-dot"></span>' + t('group.' + group);
+      el.modeGrid.appendChild(head);
+      var grid = document.createElement('div');
+      grid.className = 'group-grid';
+      inGroup.forEach(function (mode) {
+        var card = document.createElement('button');
+        card.className = 'mode-card';
+        card.innerHTML =
+          '<div class="mode-icon">' + mode.icon + '</div>' +
+          '<div class="mode-text">' +
+          '<span class="mode-title">' + t(mode.titleKey) + '</span>' +
+          '<span class="mode-desc">' + t(mode.descKey) + '</span>' +
+          '</div>';
+        card.addEventListener('click', function () { openSetup(mode); });
+        grid.appendChild(card);
+      });
+      el.modeGrid.appendChild(grid);
     });
   }
 
@@ -188,6 +202,7 @@
     el.helpText.textContent = mode.helpKey ? t(mode.helpKey) : '';
     setTools({ hint: false, undo: false, restart: true });
     Board.setLocked(false);
+    Board.setLabels(Store.getLabels());
     current.controller = mode.start(cfg, makeCtx(mode, current));
   }
 
@@ -283,7 +298,7 @@
 
   function init() {
     ['homeBtn', 'soundBtn', 'soundIcon', 'langBtn', 'langLabel', 'modeGrid',
-     'recordsBtn', 'recordsList', 'recordsMsg', 'saveRecordsBtn', 'loadRecordsBtn',
+     'coordsBtn', 'recordsBtn', 'recordsList', 'recordsMsg', 'saveRecordsBtn', 'loadRecordsBtn',
      'clearRecordsBtn', 'recordsFile',
      'setupTitle', 'setupDesc', 'setupOptions', 'playBtn', 'statusCard', 'statusText',
      'scoreCard', 'helpText', 'hintBtn', 'undoBtn', 'restartBtn', 'overlay',
@@ -298,6 +313,8 @@
     }
     I18N.setLang(savedLang);
     Sound.setEnabled(Store.getSound());
+    Board.setLabels(Store.getLabels());
+    el.coordsBtn.classList.toggle('off', !Store.getLabels());
     el.soundIcon.textContent = Sound.isEnabled() ? '🔊' : '🔇';
     el.soundBtn.classList.toggle('off', !Sound.isEnabled());
 
@@ -309,6 +326,13 @@
     });
     el.soundBtn.addEventListener('click', toggleSound);
     el.recordsBtn.addEventListener('click', goRecords);
+    el.coordsBtn.addEventListener('click', function () {
+      var on = !Store.getLabels();
+      Store.setLabels(on);
+      Board.setLabels(on);
+      el.coordsBtn.classList.toggle('off', !on);
+      Sound.play('select');
+    });
     el.saveRecordsBtn.addEventListener('click', downloadRecords);
     el.loadRecordsBtn.addEventListener('click', function () { el.recordsFile.click(); });
     el.recordsFile.addEventListener('change', function (ev) {

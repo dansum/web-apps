@@ -195,6 +195,8 @@
 
   App.registerMode({
     id: 'safe',
+    order: 6,
+    group: 'beginner',
     icon: '<span class="ic-pair">' + Pieces.svg('k', 'w') + '<span class="ic-star">🧀</span></span>',
     titleKey: 'mode.safe.title',
     descKey: 'mode.safe.desc',

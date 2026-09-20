@@ -113,6 +113,8 @@
 
   App.registerMode({
     id: 'learn',
+    order: 1,
+    group: 'beginner',
     icon: '<span class="ic-pair">' + Pieces.svg('n', 'w') + Pieces.svg('q', 'w') + '</span>',
     titleKey: 'mode.learn.title',
     descKey: 'mode.learn.desc',

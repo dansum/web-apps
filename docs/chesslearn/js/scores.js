@@ -54,6 +54,40 @@
             variants: ['opt.level.' + p[2]] };
         }
         return null;
+      case 'findsquare':
+        if (['plain', 'help'].indexOf(p[1]) < 0) return null;
+        return { dir: 'max', game: 'mode.findsquare.title', metric: 'metric.correct',
+          variants: [p[1] === 'help' ? 'opt.help.on' : 'opt.help.off'] };
+      case 'bishop':
+        return { dir: 'max', game: 'mode.bishop.title', metric: 'metric.solved', variants: [] };
+      case 'knighttaxi':
+        if (['6', '8'].indexOf(p[1]) < 0) return null;
+        return { dir: 'max', game: 'mode.knighttaxi.title', metric: 'metric.perfect',
+          variants: ['opt.size.' + p[1]] };
+      case 'knightrace':
+        if (p[1] === 'wins') {
+          return { dir: 'sum', game: 'mode.knightrace.title', metric: 'metric.wins',
+            variants: ['opt.level.' + p[2]] };
+        }
+        if (p[1] === 'fast') {
+          return { dir: 'min', game: 'mode.knightrace.title', metric: 'metric.moves',
+            variants: ['opt.level.' + p[2]] };
+        }
+        return null;
+      case 'ischeck':
+        return { dir: 'max', game: 'mode.ischeck.title', metric: 'metric.correct', variants: [] };
+      case 'rescue':
+        return { dir: 'max', game: 'mode.rescue.title', metric: 'metric.solved', variants: [] };
+      case 'fork':
+        return { dir: 'max', game: 'mode.fork.title', metric: 'metric.solved', variants: [] };
+      case 'mate1':
+        return { dir: 'max', game: 'mode.mate1.title', metric: 'metric.solved', variants: [] };
+      case 'queens':
+        if (['4', '5', '6'].indexOf(p[1]) < 0) return null;
+        return { dir: 'min', game: 'mode.queens.title', metric: 'metric.taps',
+          variants: ['opt.size.' + p[1]] };
+      case 'krk':
+        return { dir: 'min', game: 'mode.krk.title', metric: 'metric.moves', variants: [] };
       case 'center':
         if (p[1] === 'wins') {
           return { dir: 'sum', game: 'mode.center.title', metric: 'metric.wins',
@@ -106,8 +140,11 @@
       if (!m) return;
       out.push({ key: key, value: records[key].v, date: records[key].d, meta: m });
     });
-    var order = ['mode.learn.title', 'mode.pawnrace.title', 'mode.glutton.title',
-      'mode.center.title', 'mode.knight.title', 'mode.safe.title'];
+    var order = ['mode.learn.title', 'mode.findsquare.title', 'mode.bishop.title',
+      'mode.glutton.title', 'mode.pawnrace.title', 'mode.safe.title',
+      'mode.knighttaxi.title', 'mode.knight.title', 'mode.knightrace.title',
+      'mode.ischeck.title', 'mode.rescue.title', 'mode.center.title',
+      'mode.fork.title', 'mode.mate1.title', 'mode.queens.title', 'mode.krk.title'];
     out.sort(function (a, b) {
       var d = order.indexOf(a.meta.game) - order.indexOf(b.meta.game);
       return d !== 0 ? d : a.key.localeCompare(b.key);

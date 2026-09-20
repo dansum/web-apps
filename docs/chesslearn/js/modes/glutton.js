@@ -231,6 +231,8 @@
 
   App.registerMode({
     id: 'glutton',
+    order: 4,
+    group: 'beginner',
     icon: '<span class="ic-pair">' + Pieces.svg('n', 'w') + Pieces.svg('p', 'b') + '</span>',
     titleKey: 'mode.glutton.title',
     descKey: 'mode.glutton.desc',

@@ -48,7 +48,8 @@
 
   /* Returns a move, or null when the side to move has nothing to play. */
   function pickMove(state, color, cfg) {
-    var level = LEVELS[cfg.level] || LEVELS[2];
+    var level = cfg.depth ? { depth: cfg.depth, blunder: cfg.blunder || 0 }
+      : (LEVELS[cfg.level] || LEVELS[2]);
     var moves = cfg.genMoves(state, color);
     if (!moves.length) return null;
     if (moves.length === 1) return moves[0];

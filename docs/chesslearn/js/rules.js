@@ -164,6 +164,80 @@
     return { state: ns, captured: captured, scored: scored, mover: p };
   }
 
+  /* Squares a colour controls. Unlike movesFrom this counts squares occupied
+     by its own pieces too — a king may not capture a defended piece. */
+  function controls(s, color) {
+    var set = new Set();
+    for (var i = 0; i < s.sq.length; i++) {
+      var p = s.sq[i];
+      if (!p || p.c !== color) continue;
+      var r = rowOf(s, i), c = colOf(s, i);
+      if (p.t === 'p') {
+        var pr = r + forward(p.c);
+        [-1, 1].forEach(function (dc) {
+          if (inside(s, pr, c + dc)) set.add(idx(s, pr, c + dc));
+        });
+        continue;
+      }
+      var dirs = OFFSETS[p.t] || [];
+      var sliding = (p.t === 'b' || p.t === 'r' || p.t === 'q');
+      for (var d = 0; d < dirs.length; d++) {
+        var rr = r + dirs[d][0], cc = c + dirs[d][1];
+        while (inside(s, rr, cc)) {
+          set.add(idx(s, rr, cc));
+          if (s.sq[idx(s, rr, cc)] || !sliding) break;
+          rr += dirs[d][0]; cc += dirs[d][1];
+        }
+      }
+    }
+    return set;
+  }
+
+  function kingSquare(s, color) {
+    for (var i = 0; i < s.sq.length; i++) {
+      var p = s.sq[i];
+      if (p && p.c === color && p.t === 'k') return i;
+    }
+    return -1;
+  }
+
+  function inCheck(s, color) {
+    var k = kingSquare(s, color);
+    return k >= 0 && controls(s, other(color)).has(k);
+  }
+
+  /* Moves that do not leave (or put) your own king in check. */
+  function legalMoves(s, color) {
+    return allMoves(s, color).filter(function (m) {
+      return !inCheck(apply(s, m).state, color);
+    });
+  }
+
+  function isMate(s, color) { return inCheck(s, color) && legalMoves(s, color).length === 0; }
+  function isStalemate(s, color) { return !inCheck(s, color) && legalMoves(s, color).length === 0; }
+
+  /* Knight distance between two squares on an empty board (-1 if unreachable). */
+  function knightDistance(s, from, to) {
+    if (from === to) return 0;
+    var seen = {}, queue = [from], dist = {}, offs = OFFSETS.n;
+    seen[from] = true; dist[from] = 0;
+    while (queue.length) {
+      var cur = queue.shift();
+      var r = rowOf(s, cur), c = colOf(s, cur);
+      for (var i = 0; i < offs.length; i++) {
+        var rr = r + offs[i][0], cc = c + offs[i][1];
+        if (!inside(s, rr, cc)) continue;
+        var n = idx(s, rr, cc);
+        if (seen[n]) continue;
+        seen[n] = true;
+        dist[n] = dist[cur] + 1;
+        if (n === to) return dist[n];
+        queue.push(n);
+      }
+    }
+    return -1;
+  }
+
   function count(s, color, type) {
     var n = 0;
     for (var i = 0; i < s.sq.length; i++) {
@@ -184,6 +258,9 @@
     rowOf: rowOf, colOf: colOf, idx: idx, inside: inside, other: other,
     forward: forward, homeRow: homeRow, lastRow: lastRow, squareName: squareName,
     movesFrom: movesFrom, allMoves: allMoves, attacked: attacked,
+    controls: controls, kingSquare: kingSquare, inCheck: inCheck,
+    legalMoves: legalMoves, isMate: isMate, isStalemate: isStalemate,
+    knightDistance: knightDistance,
     apply: apply, count: count
   };
 })(window);

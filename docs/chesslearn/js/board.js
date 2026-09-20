@@ -4,8 +4,8 @@
 (function (global) {
   'use strict';
 
-  var root = null, squaresEl = null, decorEl = null, piecesEl = null;
-  var size = 8, flipped = false;
+  var root = null, squaresEl = null, decorEl = null, piecesEl = null, coordsEl = null;
+  var size = 8, flipped = false, labels = false;
   var pieceEls = {};        // piece id -> element
   var marked = [];
   var tapHandler = null;
@@ -15,10 +15,12 @@
     root.innerHTML =
       '<div class="layer squares"></div>' +
       '<div class="layer decor"></div>' +
-      '<div class="layer pieces"></div>';
+      '<div class="layer pieces"></div>' +
+      '<div class="coords"><div class="files"></div><div class="ranks"></div></div>';
     squaresEl = root.querySelector('.squares');
     decorEl = root.querySelector('.decor');
     piecesEl = root.querySelector('.pieces');
+    coordsEl = root.querySelector('.coords');
     root.addEventListener('click', function (ev) {
       if (!tapHandler) return;
       var sq = ev.target.closest ? ev.target.closest('.sq') : null;
@@ -27,9 +29,28 @@
     });
   }
 
+  function buildCoords() {
+    var files = '', ranks = '';
+    for (var d = 0; d < size; d++) {
+      var col = flipped ? size - 1 - d : d;
+      var row = flipped ? size - 1 - d : d;
+      files += '<span>' + 'abcdefgh'.charAt(col) + '</span>';
+      ranks += '<span>' + (size - row) + '</span>';
+    }
+    coordsEl.querySelector('.files').innerHTML = files;
+    coordsEl.querySelector('.ranks').innerHTML = ranks;
+  }
+
+  function setLabels(on) {
+    labels = !!on;
+    root.classList.toggle('with-coords', labels);
+    if (labels) buildCoords();
+  }
+
   function setup(opts) {
     size = opts.size;
     flipped = !!opts.flipped;
+    setLabels(opts.labels === undefined ? labels : opts.labels);
     pieceEls = {};
     marked = [];
     piecesEl.innerHTML = '';
@@ -136,7 +157,7 @@
     mount: mount, setup: setup, render: render,
     clearMarks: clearMarks, mark: mark, markAll: markAll,
     shake: shake, decor: decor, clearDecor: clearDecor,
-    onTap: onTap, setLocked: setLocked,
+    onTap: onTap, setLocked: setLocked, setLabels: setLabels,
     squareEl: squareEl,
     getSize: function () { return size; }
   };
