@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Chess Playground — chess games for kids</title>
+<meta name="description" content="Six tiny chess games for young children. Works offline, in the browser, in English and Bulgarian." />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9822;</text></svg>" />
+</head>
+<body>
+
+<header class="topbar">
+  <button id="homeBtn" class="icon-btn" hidden aria-label="Home">
+    <span aria-hidden="true">&#8592;</span>
+  </button>
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">&#9822;</span>
+    <span data-i18n="app.title">Chess Playground</span>
+  </div>
+  <div class="topbar-right">
+    <button id="soundBtn" class="icon-btn" aria-label="Sound"><span id="soundIcon" aria-hidden="true">&#128266;</span></button>
+    <button id="langBtn" class="lang-btn"><span id="langLabel">БГ</span></button>
+  </div>
+</header>
+
+<main>
+  <!-- ============ MENU ============ -->
+  <section id="screen-menu" class="screen">
+    <p class="lead" data-i18n="menu.lead">Pick a game!</p>
+    <div id="modeGrid" class="mode-grid"></div>
+  </section>
+
+  <!-- ============ SETUP ============ -->
+  <section id="screen-setup" class="screen" hidden>
+    <h2 id="setupTitle" class="screen-title"></h2>
+    <p id="setupDesc" class="lead small"></p>
+    <div id="setupOptions" class="setup-options"></div>
+    <div class="setup-actions">
+      <button id="playBtn" class="big-btn"><span aria-hidden="true">&#9654;</span> <span data-i18n="setup.play">Play!</span></button>
+    </div>
+  </section>
+
+  <!-- ============ GAME ============ -->
+  <section id="screen-game" class="screen" hidden>
+    <div class="game-wrap">
+      <div class="board-area">
+        <div id="capturedTop" class="captured-row"></div>
+        <div id="board" class="board" role="grid" aria-label="Chess board"></div>
+        <div id="capturedBottom" class="captured-row"></div>
+      </div>
+      <aside class="panel">
+        <div id="statusCard" class="status-card"><span id="statusText"></span></div>
+        <div id="scoreCard" class="score-card"></div>
+        <div class="panel-buttons">
+          <button id="hintBtn" class="tool-btn"><span aria-hidden="true">&#128161;</span><span data-i18n="game.hint">Hint</span></button>
+          <button id="undoBtn" class="tool-btn"><span aria-hidden="true">&#8630;</span><span data-i18n="game.undo">Undo</span></button>
+          <button id="restartBtn" class="tool-btn"><span aria-hidden="true">&#8635;</span><span data-i18n="game.restart">Again</span></button>
+        </div>
+        <p id="helpText" class="help"></p>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<!-- ============ RESULT OVERLAY ============ -->
+<div id="overlay" class="overlay" hidden>
+  <div class="dialog">
+    <div id="dlgEmoji" class="dlg-emoji" aria-hidden="true">&#127881;</div>
+    <h2 id="dlgTitle"></h2>
+    <p id="dlgText"></p>
+    <div id="dlgStars" class="stars"></div>
+    <div class="dlg-buttons">
+      <button id="dlgAgain" class="big-btn" data-i18n="result.again">Play again</button>
+      <button id="dlgMenu" class="ghost-btn" data-i18n="result.menu">Other games</button>
+    </div>
+  </div>
+</div>
+
+<div id="confetti" class="confetti" aria-hidden="true"></div>
+
+<script src="js/i18n.js"></script>
+<script src="js/store.js"></script>
+<script src="js/sound.js"></script>
+<script src="js/pieces.js"></script>
+<script src="js/rules.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/board.js"></script>
+<script src="js/app.js"></script>
+<script src="js/modes/learn.js"></script>
+<script src="js/modes/pawnrace.js"></script>
+<script src="js/modes/glutton.js"></script>
+<script src="js/modes/center.js"></script>
+<script src="js/modes/knighttour.js"></script>
+<script src="js/modes/safepath.js"></script>
+</body>
+</html>
