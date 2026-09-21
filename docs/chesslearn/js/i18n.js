@@ -125,6 +125,7 @@
       'mode.safe.desc': 'Walk to the cheese without being caught.',
 
       'setup.play': 'Play!',
+      'setup.settings': 'Settings',
 
       'opt.opponent': 'Who is playing?',
       'opt.opponent.two': '2 players',
@@ -345,6 +346,7 @@
       'mode.safe.desc': 'Стигни до сиренето, без да те хванат.',
 
       'setup.play': 'Играй!',
+      'setup.settings': 'Настройки',
 
       'opt.opponent': 'Кой играе?',
       'opt.opponent.two': '2 играчи',

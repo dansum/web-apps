@@ -147,7 +147,7 @@
 
   /* ---------------- setup ---------------- */
 
-  var pendingCfg = null, pendingMode = null;
+  var pendingCfg = null, pendingMode = null, optionsOpen = false;
 
   function openSetup(mode) {
     stopGame();
@@ -157,11 +157,30 @@
     if (!mode.options || !mode.options.length) { startGame(mode, pendingCfg); return; }
     el.setupTitle.textContent = t(mode.titleKey);
     el.setupDesc.textContent = t(mode.descKey);
+    applyOptionsOpen();
     renderOptions();
     show('setup');
   }
 
+  function applyOptionsOpen() {
+    el.setupOptions.hidden = !optionsOpen;
+    el.settingsToggle.setAttribute('aria-expanded', optionsOpen ? 'true' : 'false');
+    el.settingsToggle.classList.toggle('open', optionsOpen);
+  }
+
+  /* What the game will start with, in a line: "Computer · White · Learning" */
+  function summarise() {
+    if (!pendingMode) return '';
+    return (pendingMode.options || []).filter(function (opt) {
+      return !opt.showIf || opt.showIf(pendingCfg);
+    }).map(function (opt) {
+      var chosen = opt.choices.filter(function (c) { return c.v === pendingCfg[opt.key]; })[0];
+      return chosen ? t(chosen.labelKey) : '';
+    }).filter(Boolean).join(' \u00B7 ');
+  }
+
   function renderOptions() {
+    el.setupSummary.textContent = summarise();
     el.setupOptions.innerHTML = '';
     pendingMode.options.forEach(function (opt) {
       if (opt.showIf && !opt.showIf(pendingCfg)) return;
@@ -300,7 +319,7 @@
     ['homeBtn', 'soundBtn', 'soundIcon', 'langBtn', 'langLabel', 'modeGrid',
      'coordsBtn', 'recordsBtn', 'recordsList', 'recordsMsg', 'saveRecordsBtn', 'loadRecordsBtn',
      'clearRecordsBtn', 'recordsFile',
-     'setupTitle', 'setupDesc', 'setupOptions', 'playBtn', 'statusCard', 'statusText',
+     'setupTitle', 'setupDesc', 'setupOptions', 'settingsToggle', 'setupSummary', 'playBtn', 'statusCard', 'statusText',
      'scoreCard', 'helpText', 'hintBtn', 'undoBtn', 'restartBtn', 'overlay',
      'dlgEmoji', 'dlgTitle', 'dlgText', 'dlgStars', 'dlgAgain', 'dlgMenu'
     ].forEach(function (id) { el[id] = $(id); });
@@ -345,6 +364,11 @@
     });
     el.homeBtn.addEventListener('click', goMenu);
     el.playBtn.addEventListener('click', function () { startGame(pendingMode, pendingCfg); });
+    el.settingsToggle.addEventListener('click', function () {
+      optionsOpen = !optionsOpen;
+      applyOptionsOpen();
+      Sound.play('select');
+    });
     el.restartBtn.addEventListener('click', function () {
       if (current) startGame(current.mode, current.cfg);
     });

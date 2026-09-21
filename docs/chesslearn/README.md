@@ -112,6 +112,11 @@ screen; `start(cfg, ctx)` returns `{ hint, undo, destroy }`.
 
 ## Notes for grown-ups
 
+* A game with settings opens on its **Play** button, with the settings folded
+  away under a **Settings** row that shows the current choices in one line. A
+  child can start straight away; a grown-up opens the row to change the level,
+  the side or the board. Whether the row is open is remembered until the page
+  is reloaded.
 * Moves are made by tapping (tap the piece, then tap a green dot) — easier for
   small hands than dragging, and it works the same with a mouse or a finger.
 * There is no losing screen with a red cross anywhere; the worst outcome is a

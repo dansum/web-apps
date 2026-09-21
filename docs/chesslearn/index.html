@@ -37,10 +37,18 @@
   <section id="screen-setup" class="screen" hidden>
     <h2 id="setupTitle" class="screen-title"></h2>
     <p id="setupDesc" class="lead small"></p>
-    <div id="setupOptions" class="setup-options"></div>
     <div class="setup-actions">
       <button id="playBtn" class="big-btn"><span aria-hidden="true">&#9654;</span> <span data-i18n="setup.play">Play!</span></button>
     </div>
+    <button id="settingsToggle" class="settings-toggle" aria-expanded="false" aria-controls="setupOptions">
+      <span class="gear" aria-hidden="true">&#9881;</span>
+      <span class="settings-text">
+        <span class="settings-label" data-i18n="setup.settings">Settings</span>
+        <span id="setupSummary" class="settings-summary"></span>
+      </span>
+      <span class="chev" aria-hidden="true">&#9662;</span>
+    </button>
+    <div id="setupOptions" class="setup-options" hidden></div>
   </section>
 
   <!-- ============ RECORDS ============ -->
