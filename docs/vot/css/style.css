@@ -12,6 +12,7 @@
   --down: #e8746c;
   --plot: #161b25;
   --btn-text: #12151d;
+  --text-soft: #d3d9e5;   /* дългите текстове: новината, фактът, изводите */
   --radius: 16px;
 }
 
@@ -27,6 +28,7 @@
   --down: #c8443c;
   --plot: #f7f9fc;
   --btn-text: #ffffff;
+  --text-soft: #2f3852;
 }
 
 * { box-sizing: border-box; }
@@ -146,7 +148,7 @@ main { max-width: 1040px; margin: 0 auto; padding: 1.2rem max(1rem, env(safe-are
   text-transform: uppercase; letter-spacing: .5px; border-radius: 999px; padding: .2rem .7rem;
 }
 .news-emoji { font-size: 1.8rem; }
-.news-card p { color: #d3d9e5; }
+.news-card p { color: var(--text-soft); }
 
 .options { display: grid; gap: .55rem; margin-top: 1rem; }
 .option {
@@ -171,7 +173,7 @@ main { max-width: 1040px; margin: 0 auto; padding: 1.2rem max(1rem, env(safe-are
 .delta.flat { color: var(--muted); }
 .fact {
   background: var(--bg-soft); border-left: 3px solid var(--accent);
-  border-radius: 0 10px 10px 0; padding: .7rem .9rem; margin-bottom: 1rem; font-size: .93rem; color: #cfd6e4;
+  border-radius: 0 10px 10px 0; padding: .7rem .9rem; margin-bottom: 1rem; font-size: .93rem; color: var(--text-soft);
 }
 
 /* ---------- табло ---------- */
@@ -219,7 +221,7 @@ main { max-width: 1040px; margin: 0 auto; padding: 1.2rem max(1rem, env(safe-are
 .ending h3 { color: var(--accent); font-size: 1.3rem; }
 .learned { background: var(--bg-soft); border-radius: 12px; padding: .8rem 1rem; margin: 1rem 0; }
 .learned h4 { margin: 0 0 .4rem; font-size: .85rem; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
-.learned ul { margin: 0; padding-left: 1.1rem; color: #cfd6e4; }
+.learned ul { margin: 0; padding-left: 1.1rem; color: var(--text-soft); }
 .learned li { margin-bottom: .35rem; }
 .end-buttons { display: flex; flex-wrap: wrap; gap: .6rem; }
 .log { margin-top: 1rem; display: grid; gap: .4rem; }
