@@ -99,7 +99,7 @@
     id: 'bishop',
     order: 3,
     group: 'beginner',
-    icon: '<span class="ic-pair">' + Pieces.svg('b', 'w') + '<span class="ic-star">?</span></span>',
+    icon: function () { return '<span class="ic-pair">' + Pieces.svg('b', 'w') + '<span class="ic-star">?</span></span>'; },
     titleKey: 'mode.bishop.title',
     descKey: 'mode.bishop.desc',
     helpKey: 'help.bishop',

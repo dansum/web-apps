@@ -99,7 +99,7 @@
     id: 'knighttaxi',
     order: 1,
     group: 'learning',
-    icon: '<span class="ic-pair">' + Pieces.svg('n', 'w') + '<span class="ic-star">🚩</span></span>',
+    icon: function () { return '<span class="ic-pair">' + Pieces.svg('n', 'w') + '<span class="ic-star">🚩</span></span>'; },
     titleKey: 'mode.knighttaxi.title',
     descKey: 'mode.knighttaxi.desc',
     helpKey: 'help.knighttaxi',

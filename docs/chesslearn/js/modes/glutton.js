@@ -233,17 +233,17 @@
     id: 'glutton',
     order: 4,
     group: 'beginner',
-    icon: '<span class="ic-pair">' + Pieces.svg('n', 'w') + Pieces.svg('p', 'b') + '</span>',
+    icon: function () { return '<span class="ic-pair">' + Pieces.svg('n', 'w') + Pieces.svg('p', 'b') + '</span>'; },
     titleKey: 'mode.glutton.title',
     descKey: 'mode.glutton.desc',
     helpKey: 'help.glutton',
     options: [
       { key: 'piece', labelKey: 'opt.piece', def: 'n', choices: [
-        { v: 'n', labelKey: 'piece.n', icon: Pieces.svg('n', 'w') },
-        { v: 'b', labelKey: 'piece.b', icon: Pieces.svg('b', 'w') },
-        { v: 'r', labelKey: 'piece.r', icon: Pieces.svg('r', 'w') },
-        { v: 'q', labelKey: 'piece.q', icon: Pieces.svg('q', 'w') },
-        { v: 'k', labelKey: 'piece.k', icon: Pieces.svg('k', 'w') }
+        { v: 'n', labelKey: 'piece.n', icon: function () { return Pieces.svg('n', 'w'); } },
+        { v: 'b', labelKey: 'piece.b', icon: function () { return Pieces.svg('b', 'w'); } },
+        { v: 'r', labelKey: 'piece.r', icon: function () { return Pieces.svg('r', 'w'); } },
+        { v: 'q', labelKey: 'piece.q', icon: function () { return Pieces.svg('q', 'w'); } },
+        { v: 'k', labelKey: 'piece.k', icon: function () { return Pieces.svg('k', 'w'); } }
       ] },
       { key: 'fight', labelKey: 'opt.fight', def: 'off', choices: [
         { v: 'off', labelKey: 'opt.fight.off', icon: '😴' },

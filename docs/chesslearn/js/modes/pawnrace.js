@@ -240,7 +240,7 @@
     id: 'pawnrace',
     order: 5,
     group: 'beginner',
-    icon: '<span class="ic-pair">' + Pieces.svg('p', 'w') + Pieces.svg('p', 'b') + '</span>',
+    icon: function () { return '<span class="ic-pair">' + Pieces.svg('p', 'w') + Pieces.svg('p', 'b') + '</span>'; },
     titleKey: 'mode.pawnrace.title',
     descKey: 'mode.pawnrace.desc',
     helpKey: 'help.pawnrace',
@@ -252,8 +252,8 @@
       { key: 'side', labelKey: 'opt.side', def: 'w',
         showIf: function (c) { return c.opponent === 'cpu'; },
         choices: [
-          { v: 'w', labelKey: 'opt.side.w', icon: Pieces.svg('p', 'w') },
-          { v: 'b', labelKey: 'opt.side.b', icon: Pieces.svg('p', 'b') }
+          { v: 'w', labelKey: 'opt.side.w', icon: function () { return Pieces.svg('p', 'w'); } },
+          { v: 'b', labelKey: 'opt.side.b', icon: function () { return Pieces.svg('p', 'b'); } }
         ] },
       { key: 'level', labelKey: 'opt.level', def: '2',
         showIf: function (c) { return c.opponent === 'cpu'; },

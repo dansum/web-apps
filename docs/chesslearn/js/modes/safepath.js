@@ -197,15 +197,15 @@
     id: 'safe',
     order: 6,
     group: 'beginner',
-    icon: '<span class="ic-pair">' + Pieces.svg('k', 'w') + '<span class="ic-star">🧀</span></span>',
+    icon: function () { return '<span class="ic-pair">' + Pieces.svg('k', 'w') + '<span class="ic-star">🧀</span></span>'; },
     titleKey: 'mode.safe.title',
     descKey: 'mode.safe.desc',
     helpKey: 'help.safe',
     options: [
       { key: 'guards', labelKey: 'opt.guards', def: '2', choices: [
-        { v: '2', labelKey: 'opt.guards.2', icon: Pieces.svg('r', 'b') },
-        { v: '3', labelKey: 'opt.guards.3', icon: Pieces.svg('b', 'b') },
-        { v: '4', labelKey: 'opt.guards.4', icon: Pieces.svg('q', 'b') }
+        { v: '2', labelKey: 'opt.guards.2', icon: function () { return Pieces.svg('r', 'b'); } },
+        { v: '3', labelKey: 'opt.guards.3', icon: function () { return Pieces.svg('b', 'b'); } },
+        { v: '4', labelKey: 'opt.guards.4', icon: function () { return Pieces.svg('q', 'b'); } }
       ] },
     ],
     start: start

@@ -158,7 +158,7 @@
     id: 'rescue',
     order: 5,
     group: 'learning',
-    icon: '<span class="ic-pair">' + Pieces.svg('r', 'w') + '<span class="ic-star">🆘</span></span>',
+    icon: function () { return '<span class="ic-pair">' + Pieces.svg('r', 'w') + '<span class="ic-star">🆘</span></span>'; },
     titleKey: 'mode.rescue.title',
     descKey: 'mode.rescue.desc',
     helpKey: 'help.rescue',

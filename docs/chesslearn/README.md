@@ -39,11 +39,31 @@ Sixteen of them, in three steps on the menu: **Beginner**, **Learning** and
 | Game | What it teaches |
 | --- | --- |
 | **Fork!** | The first tactic. Find the one safe square from which the knight attacks two pieces at once. |
-| **Mate in One** | What mate actually is. Random positions, kept only when exactly one move mates. |
+| **Mate in One** | What mate actually is. Eight puzzles a game, one from each material set — the lone queen, queen and rook, the two-rook ladder, the lone rook, rook and knight, queen and bishop, the two bishops, and the back rank with the king boxed in by its own pawns. Positions are made at random and kept only when exactly one move mates; the hint shows the piece first and the square on a second press. |
 | **Queens Without a Quarrel** | Lines and diagonals. Place 4, 5 or 6 queens so that none attacks another; the hint extends what is already on the board. |
 | **Rook and King** | The first endgame. Mate a lonely king with king and rook inside forty moves; the hint plays a three-ply search. |
 
 The `a1` button in the top bar shows or hides the coordinates around the board.
+
+## Two sets of pieces
+
+The **Pieces** switch on the menu swaps the classic chess set for modern
+soldiers, with the names changing along with the shapes:
+
+| Chess | Soldiers |
+| --- | --- |
+| Pawn | Infantryman |
+| Knight | Tank |
+| Bishop | Humvee |
+| Rook | Artillery |
+| Queen | Rocket |
+| King | President |
+
+Both sets are inline SVG in the same 100x100 box, so nothing else changes: the
+rules, the records and every game stay exactly the same. The choice is
+remembered on the device. The names follow the set wherever the app names a
+piece — the picker in Meet the Pieces, its tips, and the piece choice in The
+Glutton. The *game* titles stay chess titles.
 
 ## How the computer opponent works
 

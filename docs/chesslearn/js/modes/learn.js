@@ -35,7 +35,7 @@
 
     function status(msg) {
       if (dead) return;
-      ctx.setStatus(msg || ctx.t('learn.tip.' + type), 'white-turn');
+      ctx.setStatus(msg || ctx.t(Pieces.tipKey(type)), 'white-turn');
     }
 
     function drawPicker() {
@@ -43,7 +43,7 @@
       Pieces.types.forEach(function (tp) {
         html += '<button class="pick' + (tp === type ? ' on' : '') + '" data-t="' + tp + '">' +
           '<span class="chip-piece w">' + Pieces.svg(tp, 'w') + '</span>' +
-          '<span>' + ctx.t('piece.' + tp) + '</span></button>';
+          '<span>' + ctx.t(Pieces.nameKey(tp)) + '</span></button>';
       });
       html += '</div><div class="picker-label small">' + ctx.t('learn.star') +
         ' <b>\u2B50 ' + (Scores.get('learn.stars') || 0) + '</b></div>';
@@ -115,7 +115,7 @@
     id: 'learn',
     order: 1,
     group: 'beginner',
-    icon: '<span class="ic-pair">' + Pieces.svg('n', 'w') + Pieces.svg('q', 'w') + '</span>',
+    icon: function () { return '<span class="ic-pair">' + Pieces.svg('n', 'w') + Pieces.svg('q', 'w') + '</span>'; },
     titleKey: 'mode.learn.title',
     descKey: 'mode.learn.desc',
     helpKey: 'help.learn',

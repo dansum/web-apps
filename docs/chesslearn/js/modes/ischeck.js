@@ -108,7 +108,7 @@
     id: 'ischeck',
     order: 4,
     group: 'learning',
-    icon: '<span class="ic-pair">' + Pieces.svg('k', 'b') + '<span class="ic-star">?</span></span>',
+    icon: function () { return '<span class="ic-pair">' + Pieces.svg('k', 'b') + '<span class="ic-star">?</span></span>'; },
     titleKey: 'mode.ischeck.title',
     descKey: 'mode.ischeck.desc',
     helpKey: 'help.ischeck',

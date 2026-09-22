@@ -10,6 +10,11 @@
   function $(id) { return document.getElementById(id); }
   function t(key, vars) { return I18N.t(key, vars); }
 
+  /* A piece label reads "Knight" or "Tank" depending on the chosen style. */
+  function tLabel(key) {
+    return key.indexOf('piece.') === 0 ? t(Pieces.nameKey(key.slice(6))) : t(key);
+  }
+
   /* ---------------- screens ---------------- */
 
   function show(name) {
@@ -43,7 +48,31 @@
 
   var GROUPS = ['beginner', 'learning', 'advanced'];
 
+  function renderStyleSwitch() {
+    var html = '<span class="style-label">' + t('style.title') + '</span><div class="style-chips">';
+    Pieces.styles.forEach(function (name) {
+      var on = Pieces.getStyle() === name;
+      html += '<button class="style-chip' + (on ? ' on' : '') + '" data-style="' + name + '">' +
+        '<span class="chip-piece w">' + Pieces.svgIn(name, 'n', 'w') + '</span>' +
+        '<span>' + t('style.' + name) + '</span></button>';
+    });
+    el.styleSwitch.innerHTML = html + '</div>';
+    Array.prototype.forEach.call(el.styleSwitch.querySelectorAll('.style-chip'), function (btn) {
+      btn.addEventListener('click', function () {
+        Pieces.setStyle(btn.getAttribute('data-style'));
+        Store.setPieces(Pieces.getStyle());
+        Sound.play('select');
+        renderMenu();
+      });
+    });
+  }
+
+  function iconOf(thing) {
+    return typeof thing === 'function' ? thing() : (thing || '');
+  }
+
   function renderMenu() {
+    renderStyleSwitch();
     el.modeGrid.innerHTML = '';
     GROUPS.forEach(function (group) {
       var inGroup = modes.filter(function (m) { return (m.group || 'beginner') === group; })
@@ -59,7 +88,7 @@
         var card = document.createElement('button');
         card.className = 'mode-card';
         card.innerHTML =
-          '<div class="mode-icon">' + mode.icon + '</div>' +
+          '<div class="mode-icon">' + iconOf(mode.icon) + '</div>' +
           '<div class="mode-text">' +
           '<span class="mode-title">' + t(mode.titleKey) + '</span>' +
           '<span class="mode-desc">' + t(mode.descKey) + '</span>' +
@@ -175,7 +204,7 @@
       return !opt.showIf || opt.showIf(pendingCfg);
     }).map(function (opt) {
       var chosen = opt.choices.filter(function (c) { return c.v === pendingCfg[opt.key]; })[0];
-      return chosen ? t(chosen.labelKey) : '';
+      return chosen ? tLabel(chosen.labelKey) : '';
     }).filter(Boolean).join(' \u00B7 ');
   }
 
@@ -196,8 +225,8 @@
       opt.choices.forEach(function (choice) {
         var b = document.createElement('button');
         b.className = 'chip' + (pendingCfg[opt.key] === choice.v ? ' on' : '');
-        b.innerHTML = (choice.icon ? '<span class="chip-icon">' + choice.icon + '</span>' : '') +
-          '<span>' + t(choice.labelKey) + '</span>';
+        b.innerHTML = (choice.icon ? '<span class="chip-icon">' + iconOf(choice.icon) + '</span>' : '') +
+          '<span>' + tLabel(choice.labelKey) + '</span>';
         b.addEventListener('click', function () {
           pendingCfg[opt.key] = choice.v;
           Sound.play('select');
@@ -317,7 +346,7 @@
 
   function init() {
     ['homeBtn', 'soundBtn', 'soundIcon', 'langBtn', 'langLabel', 'modeGrid',
-     'coordsBtn', 'recordsBtn', 'recordsList', 'recordsMsg', 'saveRecordsBtn', 'loadRecordsBtn',
+     'styleSwitch', 'coordsBtn', 'recordsBtn', 'recordsList', 'recordsMsg', 'saveRecordsBtn', 'loadRecordsBtn',
      'clearRecordsBtn', 'recordsFile',
      'setupTitle', 'setupDesc', 'setupOptions', 'settingsToggle', 'setupSummary', 'playBtn', 'statusCard', 'statusText',
      'scoreCard', 'helpText', 'hintBtn', 'undoBtn', 'restartBtn', 'overlay',
@@ -332,6 +361,7 @@
     }
     I18N.setLang(savedLang);
     Sound.setEnabled(Store.getSound());
+    Pieces.setStyle(Store.getPieces());
     Board.setLabels(Store.getLabels());
     el.coordsBtn.classList.toggle('off', !Store.getLabels());
     el.soundIcon.textContent = Sound.isEnabled() ? '🔊' : '🔇';

@@ -5,6 +5,24 @@
   var STRINGS = {
     en: {
       'app.title': 'Chess Playground',
+      'style.title': 'Pieces',
+      'style.classic': 'Classic',
+      'style.army': 'Soldiers',
+
+      'army.p': 'Infantryman',
+      'army.n': 'Tank',
+      'army.b': 'Humvee',
+      'army.r': 'Artillery',
+      'army.q': 'Rocket',
+      'army.k': 'President',
+
+      'army.tip.p': 'The infantryman walks one step forward (two on his first move) and takes sideways-forward.',
+      'army.tip.n': 'The tank jumps in an L: two squares, then one to the side. It can drive over everyone!',
+      'army.tip.b': 'The humvee drives along the diagonals and never leaves its own colour.',
+      'army.tip.r': 'The artillery fires straight: up, down, left and right.',
+      'army.tip.q': 'The rocket is the strongest: straight AND diagonal, as far as it likes.',
+      'army.tip.k': 'The president is slow — one step in any direction, and everyone guards him.',
+
       'group.beginner': 'Beginner',
       'group.learning': 'Learning',
       'group.advanced': 'Getting good',
@@ -226,6 +244,24 @@
 
     bg: {
       'app.title': 'Шах игрище',
+      'style.title': 'Фигури',
+      'style.classic': 'Класически',
+      'style.army': 'Войници',
+
+      'army.p': 'Пехотинец',
+      'army.n': 'Танк',
+      'army.b': 'Хъмви',
+      'army.r': 'Артилерия',
+      'army.q': 'Ракета',
+      'army.k': 'Президент',
+
+      'army.tip.p': 'Пехотинецът върви една стъпка напред (две при първия си ход) и напада по диагонал напред.',
+      'army.tip.n': 'Танкът скача буквата Г: две полета, после едно настрани. Минава над всички!',
+      'army.tip.b': 'Хъмвито се движи по диагонал и никога не напуска своя цвят.',
+      'army.tip.r': 'Артилерията стреля право: нагоре, надолу, наляво и надясно.',
+      'army.tip.q': 'Ракетата е най-силна: и право, и по диагонал, докъдето поиска.',
+      'army.tip.k': 'Президентът е бавен — една стъпка във всяка посока, а всички го пазят.',
+
       'group.beginner': 'Начинаещ',
       'group.learning': 'Учещ',
       'group.advanced': 'Напредващ',

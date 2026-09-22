@@ -267,7 +267,7 @@
     id: 'center',
     order: 6,
     group: 'learning',
-    icon: '<span class="ic-pair">' + Pieces.svg('n', 'w') + Pieces.svg('b', 'b') + '</span>',
+    icon: function () { return '<span class="ic-pair">' + Pieces.svg('n', 'w') + Pieces.svg('b', 'b') + '</span>'; },
     titleKey: 'mode.center.title',
     descKey: 'mode.center.desc',
     helpKey: 'help.center',
@@ -279,8 +279,8 @@
       { key: 'side', labelKey: 'opt.side', def: 'w',
         showIf: function (c) { return c.opponent === 'cpu'; },
         choices: [
-          { v: 'w', labelKey: 'opt.side.w', icon: Pieces.svg('n', 'w') },
-          { v: 'b', labelKey: 'opt.side.b', icon: Pieces.svg('n', 'b') }
+          { v: 'w', labelKey: 'opt.side.w', icon: function () { return Pieces.svg('n', 'w'); } },
+          { v: 'b', labelKey: 'opt.side.b', icon: function () { return Pieces.svg('n', 'b'); } }
         ] },
       { key: 'level', labelKey: 'opt.level', def: '2',
         showIf: function (c) { return c.opponent === 'cpu'; },

@@ -128,7 +128,7 @@
     id: 'queens',
     order: 3,
     group: 'advanced',
-    icon: '<span class="ic-pair">' + Pieces.svg('q', 'w') + Pieces.svg('q', 'w') + '</span>',
+    icon: function () { return '<span class="ic-pair">' + Pieces.svg('q', 'w') + Pieces.svg('q', 'w') + '</span>'; },
     titleKey: 'mode.queens.title',
     descKey: 'mode.queens.desc',
     helpKey: 'help.queens',

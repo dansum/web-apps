@@ -132,7 +132,7 @@
     id: 'fork',
     order: 1,
     group: 'advanced',
-    icon: '<span class="ic-pair">' + Pieces.svg('n', 'w') + '<span class="ic-star">⚡</span></span>',
+    icon: function () { return '<span class="ic-pair">' + Pieces.svg('n', 'w') + '<span class="ic-star">⚡</span></span>'; },
     titleKey: 'mode.fork.title',
     descKey: 'mode.fork.desc',
     helpKey: 'help.fork',

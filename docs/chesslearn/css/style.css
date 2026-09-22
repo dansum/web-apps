@@ -686,3 +686,50 @@ main { padding: 16px 14px 40px; max-width: 1100px; margin: 0 auto; }
 .answer-btn.yes { border-color: #ffd0cf; color: #c0392b; }
 .answer-btn.no { border-color: #cfe9d4; color: #2c7a3f; }
 .answer-btn:active { transform: translateY(2px); }
+
+/* ---------------- piece style switch on the menu ---------------- */
+
+.menu-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin-bottom: 18px;
+}
+
+.menu-head .lead { margin: 0; }
+
+.style-switch {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 7px 12px;
+}
+
+.style-label { font-weight: 800; font-size: 14px; color: var(--ink-soft); }
+.style-chips { display: flex; gap: 6px; }
+
+.style-chip {
+  border: 3px solid #eee6f5;
+  background: #fbf8ff;
+  border-radius: 12px;
+  padding: 5px 10px 5px 6px;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+}
+
+.style-chip .chip-piece { width: 26px; height: 26px; }
+.style-chip.on { border-color: var(--accent); background: #fff2e4; }
+.style-chip:active { transform: translateY(2px); }
+
+@media (max-width: 500px) {
+  .style-switch { margin-left: 0; width: 100%; justify-content: space-between; }
+}

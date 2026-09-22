@@ -2,7 +2,7 @@
 (function (global) {
   'use strict';
   var KEY = 'chesslearn.v1';
-  var data = { lang: null, sound: true, labels: false };
+  var data = { lang: null, sound: true, labels: false, pieces: 'classic' };
 
   try {
     var raw = global.localStorage.getItem(KEY);
@@ -12,6 +12,7 @@
         data.lang = parsed.lang || null;
         data.sound = parsed.sound !== false;
         data.labels = parsed.labels === true;
+        if (parsed.pieces === 'army') data.pieces = 'army';
       }
     }
   } catch (e) { /* storage blocked — stay with defaults */ }
@@ -26,6 +27,8 @@
     getSound: function () { return data.sound; },
     setSound: function (v) { data.sound = !!v; save(); },
     getLabels: function () { return data.labels; },
-    setLabels: function (v) { data.labels = !!v; save(); }
+    setLabels: function (v) { data.labels = !!v; save(); },
+    getPieces: function () { return data.pieces; },
+    setPieces: function (v) { data.pieces = v === 'army' ? 'army' : 'classic'; save(); }
   };
 })(window);
