@@ -14,6 +14,10 @@
   <button id="backBtn" class="icon-btn" hidden aria-label="Назад към началото">←</button>
   <div class="brand"><span aria-hidden="true">🗳️</span> Твоята партия</div>
   <div id="turnBadge" class="turn-badge" hidden>Ход <span id="turnNow">1</span>/10</div>
+  <div class="topbar-right">
+    <button id="statsBtn" class="text-btn" hidden aria-label="Статистика"><span aria-hidden="true">📊</span> Статистика</button>
+    <button id="themeBtn" class="icon-btn" aria-label="Светла тема"><span id="themeIcon" aria-hidden="true">☀️</span></button>
+  </div>
 </header>
 
 <main>
@@ -29,7 +33,9 @@
   <div class="intro-cards">
     <div class="intro-card"><span aria-hidden="true">👥</span><h3>Шест групи избиратели</h3><p>Пенсионери, млади, семейства, бизнес, учители и лекари, малките градове. Всяка тежи различно.</p></div>
     <div class="intro-card"><span aria-hidden="true">🤝</span><h3>Доверие</h3><p>Отделна мярка. Ако го загубиш, хората просто не излизат да гласуват за теб.</p></div>
-    <div class="intro-card"><span aria-hidden="true">🏛️</span><h3>240 места</h3><p>На финала се броят гласове, прагът е 4%, а после започват преговорите за мнозинство.</p></div>
+    <div class="intro-card"><span aria-hidden="true">🧭</span><h3>Компас</h3><p>Бутонът „Статистика“ показва къде са ви извели решенията: повече пазар или повече държава, повече свободи или повече ред.</p></div>
+    <div class="intro-card"><span aria-hidden="true">🏛️</span><h3>240 места</h3><p>На финала се броят гласове, прагът е 4%, а после започват истинските преговори за мнозинство.</p></div>
+    <div class="intro-card"><span aria-hidden="true">📰</span><h3>50 ситуации</h3><p>Двайсет от тях са истински истории от последните пет години в България. Избирате с какви да играете.</p></div>
   </div>
   <p id="bestLine" class="best-line" hidden></p>
   <button id="startBtn" class="big-btn">Да започваме</button>
@@ -61,6 +67,11 @@
   </fieldset>
 
   <fieldset class="field">
+    <legend>Какви истории да играеш?</legend>
+    <div id="modeRow" class="cause-row" role="radiogroup" aria-label="Вид на ситуациите"></div>
+  </fieldset>
+
+  <fieldset class="field">
     <legend>Основна кауза <em>— с нея започваш по-силно при две групи</em></legend>
     <div id="causeRow" class="cause-row" role="radiogroup" aria-label="Основна кауза"></div>
   </fieldset>
@@ -75,7 +86,10 @@
     <div class="news-col">
       <article id="newsCard" class="news-card">
         <div class="news-head">
-          <span id="newsTag" class="tag">Новини</span>
+          <span class="tag-row">
+            <span id="newsTag" class="tag">Новини</span>
+            <span id="realBadge" class="real-badge" hidden>истинска история</span>
+          </span>
           <span id="newsEmoji" class="news-emoji" aria-hidden="true">📰</span>
         </div>
         <h2 id="newsHead">Заглавие</h2>
@@ -87,7 +101,7 @@
         <h3 id="outcomeTitle">Какво се случи</h3>
         <p id="outcomeText"></p>
         <div id="deltaList" class="deltas"></div>
-        <div class="fact"><strong>Знаеш ли?</strong> <span id="factText"></span></div>
+        <div class="fact"><strong id="factLabel">Знаеш ли?</strong> <span id="factText"></span></div>
         <button id="nextBtn" class="big-btn">Следваща новина</button>
       </article>
     </div>
@@ -115,13 +129,14 @@
   <p id="resultLead" class="lead"></p>
   <div id="resultTable" class="results"></div>
   <div id="coalitionBox" class="coalition" hidden>
-    <h3>Мандатът е ваш. Сега трябва мнозинство: 121 места.</h3>
+    <h3 id="coalitionTitle">Преговори</h3>
     <p id="coalitionLead"></p>
-    <div id="coalitionOptions" class="options"></div>
+    <div id="coalitionOptions" class="offers"></div>
   </div>
   <div id="endingBox" class="ending" hidden>
     <h3 id="endingTitle"></h3>
     <p id="endingText"></p>
+    <div id="finalCompass" class="final-compass"></div>
     <div class="learned">
       <h4>Какво показа тази игра</h4>
       <ul id="learnedList"></ul>
@@ -135,6 +150,17 @@
 </section>
 
 </main>
+
+<!-- ============ СТАТИСТИКА ============ -->
+<div id="statsOverlay" class="overlay" hidden role="dialog" aria-modal="true" aria-label="Статистика">
+  <div class="overlay-card">
+    <div class="overlay-head">
+      <h2>Статистика</h2>
+      <button id="closeStats" class="icon-btn" aria-label="Затвори">✕</button>
+    </div>
+    <div id="statsBody"></div>
+  </div>
+</div>
 
 <script src="js/data.js"></script>
 <script src="js/game.js"></script>

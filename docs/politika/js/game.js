@@ -8,7 +8,25 @@ var TURNS = 10;
 var SEATS = 240;
 var MAJORITY = 121;
 var THRESHOLD = 4;
+var SOFT_CAP = 95;      /* мек таван: последните проценти се свиват най-силно */
+var SILENT = 20;        /* частта от рейтинга, която никога не става бюлетина */
+var GAIN = 1.6;         /* колко бързо се изчерпва растежът нагоре */
+var AXIS_RANGE = 20;    /* докъде стига компасът по всяка ос */
 var STORE_KEY = 'tvoyata-partiya.best';
+var THEME_KEY = 'tvoyata-partiya.theme';
+
+var MODES = [
+  { id: 'mix', icon: '🔀', name: 'Микс', line: 'Истински и измислени ситуации заедно — всичките 50.' },
+  { id: 'real', icon: '📰', name: 'Само истински', line: '20 истории от последните пет години в България.' },
+  { id: 'fiction', icon: '🎭', name: 'Само измислени', line: '30 ситуации, които спокойно биха могли да се случат.' }
+];
+
+var QUADRANTS = [
+  { x: -1, y: -1, name: 'Силна държава' },
+  { x: 1, y: -1, name: 'Пазар и ред' },
+  { x: -1, y: 1, name: 'Социална свобода' },
+  { x: 1, y: 1, name: 'Свободен избор' }
+];
 
 var el = function (id) { return document.getElementById(id); };
 var state = null;
@@ -16,6 +34,15 @@ var state = null;
 /* ---------------- помощни ---------------- */
 
 function clamp(n, lo, hi) { return n < lo ? lo : n > hi ? hi : n; }
+
+/* Върху светъл цвят пишем тъмно, върху тъмен — светло. */
+function setAccent(color) {
+  var r = parseInt(color.substr(1, 2), 16), g = parseInt(color.substr(3, 2), 16), b = parseInt(color.substr(5, 2), 16);
+  var lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  var root = document.documentElement.style;
+  root.setProperty('--accent', color);
+  root.setProperty('--btn-text', lum > 0.62 ? '#12151d' : '#ffffff');
+}
 
 function groupById(id) {
   for (var i = 0; i < GROUPS.length; i++) if (GROUPS[i].id === id) return GROUPS[i];
@@ -29,6 +56,10 @@ function shuffle(arr) {
     var t = a[i]; a[i] = a[j]; a[j] = t;
   }
   return a;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 var REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -53,25 +84,75 @@ function writeBest(obj) {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(obj)); } catch (e) { /* без запис е също игра */ }
 }
 
-/* Среден рейтинг, претеглен с дела на всяка група. */
+/* ---------------- тема ---------------- */
+
+function applyTheme(name) {
+  document.documentElement.setAttribute('data-theme', name);
+  el('themeIcon').textContent = name === 'light' ? '🌙' : '☀️';
+  el('themeBtn').setAttribute('aria-label', name === 'light' ? 'Тъмна тема' : 'Светла тема');
+  try { localStorage.setItem(THEME_KEY, name); } catch (e) { /* няма страшно */ }
+}
+
+function initTheme() {
+  var saved = null;
+  try { saved = localStorage.getItem(THEME_KEY); } catch (e) { /* няма страшно */ }
+  if (!saved) {
+    var light = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+    saved = light ? 'light' : 'dark';
+  }
+  applyTheme(saved);
+}
+
+/* ---------------- сметките ---------------- */
+
+/* Растежът се забавя нагоре: колкото повече хора вече са с теб в една група,
+   толкова по-малко носи следващото добро решение. Загубите се броят изцяло. */
+function applyRating(cur, d) {
+  if (d <= 0) return clamp(cur + d, 0, 100);
+  return clamp(cur + d * Math.min(1, (1 - cur / 100) * GAIN), 0, 100);
+}
+
 function weighted() {
   var sum = 0;
   for (var i = 0; i < GROUPS.length; i++) sum += state.ratings[GROUPS[i].id] * GROUPS[i].weight;
   return sum / 100;
 }
 
-/* Прогнозен резултат: рейтингът решава колко харесват партията,
-   доверието решава колко от тях наистина отиват да гласуват.
-   Изваждането на 8 е „мълчаливата“ част от рейтинга — симпатия,
-   която никога не се превръща в бюлетина. */
+/* Рейтингът показва колко харесват партията, доверието — колко от тях наистина
+   отиват до урната. Накрая всичко минава през мек таван: първите проценти се
+   печелят лесно, всеки следващ — все по-трудно. */
 function projectedShare() {
   var turnout = 0.7 + 0.6 * (state.trust / 100);
-  return clamp((weighted() - 8) * 0.5 * turnout, 0, 48);
+  var raw = Math.max(0, (weighted() - SILENT) * turnout);
+  return SOFT_CAP * Math.tanh(raw / SOFT_CAP);
+}
+
+function positionWords(e, p) {
+  var econ = Math.abs(e) < 3 ? 'по средата по икономика'
+    : (e > 0 ? (e > 11 ? 'силно за пазарна свобода' : 'по-скоро за пазарна свобода')
+             : (e < -11 ? 'силно за държавна намеса' : 'по-скоро за държавна намеса'));
+  var pers = Math.abs(p) < 3 ? 'по средата по лични свободи'
+    : (p > 0 ? (p > 11 ? 'силно за лични свободи' : 'по-скоро за лични свободи')
+             : (p < -11 ? 'силно за ред и ограничения' : 'по-скоро за ред и ограничения'));
+  return econ + ', ' + pers;
 }
 
 /* ---------------- създаване на партия ---------------- */
 
-var draft = { name: '', slogan: '', emoji: EMOJIS[0], color: COLORS[0], cause: null };
+var draft = { name: '', slogan: '', emoji: EMOJIS[0], color: COLORS[0], cause: null, mode: 'mix' };
+
+function radioRow(host, items, current, onPick, render) {
+  host.innerHTML = '';
+  items.forEach(function (it) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('role', 'radio');
+    b.setAttribute('aria-checked', current === it.id ? 'true' : 'false');
+    render(b, it, current === it.id);
+    b.onclick = function () { onPick(it); };
+    host.appendChild(b);
+  });
+}
 
 function buildCreateScreen() {
   var row = el('emojiRow');
@@ -100,39 +181,41 @@ function buildCreateScreen() {
     b.setAttribute('aria-label', 'Цвят ' + (i + 1));
     b.onclick = function () {
       draft.color = c;
-      document.documentElement.style.setProperty('--accent', c); /* цветът се вижда веднага */
+      setAccent(c); /* цветът се вижда веднага */
       buildCreateScreen();
     };
     crow.appendChild(b);
   });
 
-  var urow = el('causeRow');
-  urow.innerHTML = '';
-  CAUSES.forEach(function (c) {
-    var b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'cause' + (draft.cause === c.id ? ' on' : '');
-    b.setAttribute('role', 'radio');
-    b.setAttribute('aria-checked', draft.cause === c.id ? 'true' : 'false');
-    var bonus = Object.keys(c.eff).map(function (g) {
-      var sign = c.eff[g] > 0 ? '+' : '';
-      return groupById(g).icon + ' ' + sign + c.eff[g];
-    }).join('  ');
-    b.innerHTML = '<span class="cause-icon" aria-hidden="true">' + c.icon + '</span>' +
-      '<span class="cause-body"><b>' + c.name + '</b><em>' + c.line + '</em>' +
-      '<span class="cause-bonus">' + bonus + '</span></span>';
-    b.onclick = function () { draft.cause = c.id; buildCreateScreen(); };
-    urow.appendChild(b);
-  });
+  radioRow(el('causeRow'), CAUSES, draft.cause, function (c) { draft.cause = c.id; buildCreateScreen(); },
+    function (b, c, on) {
+      b.className = 'cause' + (on ? ' on' : '');
+      var bonus = Object.keys(c.eff).map(function (g) {
+        return groupById(g).icon + ' ' + (c.eff[g] > 0 ? '+' : '') + c.eff[g];
+      }).join('  ');
+      b.innerHTML = '<span class="cause-icon" aria-hidden="true">' + c.icon + '</span>' +
+        '<span class="cause-body"><b>' + esc(c.name) + '</b><em>' + esc(c.line) + '</em>' +
+        '<span class="cause-bonus">' + bonus + '</span></span>';
+    });
+
+  radioRow(el('modeRow'), MODES, draft.mode, function (m) { draft.mode = m.id; buildCreateScreen(); },
+    function (b, m, on) {
+      b.className = 'cause' + (on ? ' on' : '');
+      b.innerHTML = '<span class="cause-icon" aria-hidden="true">' + m.icon + '</span>' +
+        '<span class="cause-body"><b>' + esc(m.name) + '</b><em>' + esc(m.line) + '</em></span>';
+    });
 
   el('foundBtn').disabled = !(el('pName').value.trim() && draft.cause);
 }
 
 /* ---------------- начало на игра ---------------- */
 
-function pickEvents() {
+function pickEvents(mode) {
+  var pool = EVENTS.filter(function (e) {
+    return mode === 'mix' || (mode === 'real' ? e.real : !e.real);
+  });
   var by = { early: [], mid: [], late: [] };
-  EVENTS.forEach(function (e) { by[e.pool].push(e); });
+  pool.forEach(function (e) { by[e.pool].push(e); });
   return shuffle(by.early).slice(0, 3)
     .concat(shuffle(by.mid).slice(0, 4))
     .concat(shuffle(by.late).slice(0, 3));
@@ -146,14 +229,18 @@ function startGame() {
       slogan: el('pSlogan').value.trim(),
       emoji: draft.emoji, color: draft.color, cause: cause
     },
-    ratings: {}, trust: 50, turn: 0, events: pickEvents(), log: []
+    mode: draft.mode,
+    ratings: {}, trust: 50, turn: 0,
+    econ: 0, pers: 0, path: [{ e: 0, p: 0, label: 'учредяване' }],
+    events: pickEvents(draft.mode), log: []
   };
   GROUPS.forEach(function (g) {
     state.ratings[g.id] = clamp(START_RATING + (cause.eff[g.id] || 0), 0, 100);
   });
-  document.documentElement.style.setProperty('--accent', state.party.color);
+  setAccent(state.party.color);
   el('backBtn').hidden = false;
   el('turnBadge').hidden = false;
+  el('statsBtn').hidden = false;
   renderStats();
   show('screen-play');
   renderEvent();
@@ -169,6 +256,10 @@ function renderEvent() {
   el('newsHead').textContent = ev.headline;
   el('newsBody').textContent = ev.body;
 
+  var badge = el('realBadge');
+  badge.hidden = !ev.real;
+  if (ev.real) badge.textContent = 'истинска история · ' + ev.when;
+
   var list = el('optionList');
   list.innerHTML = '';
   ev.options.forEach(function (opt, i) {
@@ -176,7 +267,7 @@ function renderEvent() {
     b.type = 'button';
     b.className = 'option' + (i === ev.options.length - 1 ? ' option-skip' : '');
     b.innerHTML = '<span class="option-key" aria-hidden="true">' + (i === ev.options.length - 1 ? '–' : i + 1) + '</span>' +
-      '<span>' + opt.label + '</span>';
+      '<span>' + esc(opt.label) + '</span>';
     b.onclick = function () { choose(ev, opt, i); };
     list.appendChild(b);
   });
@@ -190,16 +281,22 @@ function choose(ev, opt, index) {
   var deltas = [];
   Object.keys(opt.eff || {}).forEach(function (gid) {
     var before = state.ratings[gid];
-    state.ratings[gid] = clamp(before + opt.eff[gid], 0, 100);
-    deltas.push({ group: groupById(gid), value: state.ratings[gid] - before });
+    state.ratings[gid] = applyRating(before, opt.eff[gid]);
+    deltas.push({ group: groupById(gid), value: Math.round(state.ratings[gid] - before) });
   });
   var trustBefore = state.trust;
   state.trust = clamp(state.trust + (opt.trust || 0), 0, 100);
   var trustDelta = state.trust - trustBefore;
 
+  var ax = opt.ax || [0, 0];
+  state.econ = clamp(state.econ + ax[0], -AXIS_RANGE, AXIS_RANGE);
+  state.pers = clamp(state.pers + ax[1], -AXIS_RANGE, AXIS_RANGE);
+  state.path.push({ e: state.econ, p: state.pers, label: ev.headline });
+
   state.log.push({
     headline: ev.headline,
     choice: opt.label,
+    real: !!ev.real,
     skipped: index === ev.options.length - 1
   });
 
@@ -207,6 +304,8 @@ function choose(ev, opt, index) {
 
   el('outcomeText').textContent = opt.result;
   el('factText').textContent = ev.fact;
+  el('factLabel').textContent = ev.real ? 'Какво стана наистина' : 'Знаеш ли?';
+  el('factText').textContent = ev.real ? ev.fact.replace(/^Какво стана наистина:\s*/, '') : ev.fact;
   el('outcomeTitle').textContent = index === ev.options.length - 1 ? 'Не реагирахте' : 'Какво се случи';
 
   var dl = el('deltaList');
@@ -224,9 +323,14 @@ function choose(ev, opt, index) {
     t.textContent = '🤝 Доверие ' + (trustDelta > 0 ? '+' : '') + trustDelta;
     dl.appendChild(t);
   }
-  if (!dl.children.length) {
-    dl.innerHTML = '<span class="delta flat">Нищо не се промени</span>';
+  if (ax[0] || ax[1]) {
+    var c = document.createElement('span');
+    c.className = 'delta axis';
+    c.textContent = '🧭 ' + (ax[0] ? (ax[0] > 0 ? 'пазар ' : 'държава ') : '') +
+      (ax[1] ? (ax[1] > 0 ? 'свободи' : 'ред') : '');
+    dl.appendChild(c);
   }
+  if (!dl.children.length) dl.innerHTML = '<span class="delta flat">Нищо не се промени</span>';
 
   state.turn++;
   el('nextBtn').textContent = state.turn >= TURNS ? 'Изборна нощ' : 'Следваща новина';
@@ -246,10 +350,10 @@ function nextTurn() {
 function renderStats() {
   var head = el('partyHead');
   head.innerHTML = '<span class="party-emoji" aria-hidden="true">' + state.party.emoji + '</span>' +
-    '<span><b>' + state.party.name + '</b>' +
-    (state.party.slogan ? '<em>„' + state.party.slogan + '“</em>' : '') + '</span>';
+    '<span><b>' + esc(state.party.name) + '</b>' +
+    (state.party.slogan ? '<em>„' + esc(state.party.slogan) + '“</em>' : '') + '</span>';
 
-  el('trustVal').textContent = state.trust;
+  el('trustVal').textContent = Math.round(state.trust);
   el('trustBar').style.width = state.trust + '%';
 
   var box = el('groupBars');
@@ -258,8 +362,8 @@ function renderStats() {
     var v = state.ratings[g.id];
     var d = document.createElement('div');
     d.className = 'meter';
-    d.innerHTML = '<div class="meter-top"><span title="' + g.about + '">' + g.icon + ' ' + g.name +
-      ' <i class="wt">' + g.weight + '%</i></span><b>' + v + '</b></div>' +
+    d.innerHTML = '<div class="meter-top"><span title="' + esc(g.about) + '">' + g.icon + ' ' + g.name +
+      ' <i class="wt">' + g.weight + '%</i></span><b>' + Math.round(v) + '</b></div>' +
       '<div class="bar"><i style="width:' + v + '%"></i></div>';
     box.appendChild(d);
   });
@@ -267,13 +371,115 @@ function renderStats() {
   el('pollVal').textContent = projectedShare().toFixed(1) + '%';
 }
 
+/* ---------------- компасът ---------------- */
+
+function compassSVG(opts) {
+  var S = 320, C = 160, R = 130;
+  var k = R / AXIS_RANGE;
+  var px = function (v) { return C + v * k; };
+  var py = function (v) { return C + v * k; };   /* надолу = повече лични свободи */
+  var out = ['<svg viewBox="0 0 ' + S + ' ' + S + '" class="compass" role="img" ' +
+    'aria-label="Компас: икономическа свобода и лични свободи">'];
+
+  out.push('<rect x="' + (C - R) + '" y="' + (C - R) + '" width="' + (2 * R) + '" height="' + (2 * R) +
+    '" rx="10" class="c-plot"/>');
+  for (var g = -AXIS_RANGE + 5; g < AXIS_RANGE; g += 5) {
+    out.push('<line x1="' + px(g) + '" y1="' + (C - R) + '" x2="' + px(g) + '" y2="' + (C + R) + '" class="c-grid"/>');
+    out.push('<line x1="' + (C - R) + '" y1="' + py(g) + '" x2="' + (C + R) + '" y2="' + py(g) + '" class="c-grid"/>');
+  }
+  out.push('<line x1="' + (C - R) + '" y1="' + C + '" x2="' + (C + R) + '" y2="' + C + '" class="c-axis"/>');
+  out.push('<line x1="' + C + '" y1="' + (C - R) + '" x2="' + C + '" y2="' + (C + R) + '" class="c-axis"/>');
+
+  QUADRANTS.forEach(function (q) {
+    out.push('<text x="' + px(q.x * 12) + '" y="' + py(q.y * 17) + '" class="c-quad" text-anchor="middle">' +
+      q.name + '</text>');
+  });
+
+  out.push('<text x="' + C + '" y="' + (C - R - 8) + '" class="c-axis-label" text-anchor="middle">повече ред и ограничения</text>');
+  out.push('<text x="' + C + '" y="' + (C + R + 18) + '" class="c-axis-label" text-anchor="middle">повече лични свободи</text>');
+  out.push('<text x="' + (C - R) + '" y="' + (C - 6) + '" class="c-axis-label" text-anchor="start">държава</text>');
+  out.push('<text x="' + (C + R) + '" y="' + (C - 6) + '" class="c-axis-label" text-anchor="end">пазар</text>');
+
+  if (opts.rivals) {
+    RIVALS.forEach(function (r) {
+      out.push('<circle cx="' + px(r.pos[0]) + '" cy="' + py(r.pos[1]) + '" r="5" fill="' + r.color + '" opacity=".75"/>');
+      out.push('<text x="' + px(r.pos[0]) + '" y="' + (py(r.pos[1]) - 9) + '" class="c-rival" text-anchor="middle">' +
+        esc(r.name) + '</text>');
+    });
+  }
+
+  var path = opts.path || [];
+  if (path.length > 1) {
+    out.push('<polyline class="c-path" points="' + path.map(function (pt) {
+      return px(pt.e) + ',' + py(pt.p);
+    }).join(' ') + '"/>');
+    path.slice(0, -1).forEach(function (pt) {
+      out.push('<circle cx="' + px(pt.e) + '" cy="' + py(pt.p) + '" r="3" class="c-step"/>');
+    });
+  }
+  var last = path[path.length - 1] || { e: 0, p: 0 };
+  out.push('<circle cx="' + px(last.e) + '" cy="' + py(last.p) + '" r="11" class="c-me" fill="' +
+    (opts.color || 'var(--accent)') + '"/>');
+  out.push('<text x="' + px(last.e) + '" y="' + (py(last.p) + 5) + '" text-anchor="middle" font-size="12">' +
+    (opts.emoji || '●') + '</text>');
+
+  out.push('</svg>');
+  return out.join('');
+}
+
+function compassBlock(withRivals) {
+  return '<div class="compass-wrap">' +
+    compassSVG({ path: state.path, emoji: state.party.emoji, color: state.party.color, rivals: withRivals }) +
+    '</div>' +
+    '<p class="compass-line"><b>Къде сте:</b> ' + positionWords(state.econ, state.pers) + '.</p>' +
+    '<p class="compass-note">Всяко решение мести точката. Линията показва пътя от учредяването досега' +
+    (withRivals ? ', а цветните точки са другите партии' : '') + '.</p>';
+}
+
+function openStats() {
+  var b = el('statsBody');
+  var skips = state.log.filter(function (l) { return l.skipped; }).length;
+  var html = compassBlock(true);
+
+  html += '<div class="stats-grid">';
+  html += '<div><h4>Рейтинг по групи</h4>';
+  GROUPS.forEach(function (g) {
+    var v = state.ratings[g.id];
+    html += '<div class="meter"><div class="meter-top"><span>' + g.icon + ' ' + g.name +
+      ' <i class="wt">' + g.weight + '%</i></span><b>' + Math.round(v) + '</b></div>' +
+      '<div class="bar"><i style="width:' + v + '%"></i></div></div>';
+  });
+  html += '<p class="compass-note">Колкото по-висок е рейтингът в една група, толкова по-малко носи следващият плюс. ' +
+    'Първите проценти се печелят лесно, последните — трудно.</p></div>';
+
+  html += '<div><h4>Общо</h4><ul class="facts-list">' +
+    '<li>Ход: <b>' + Math.min(state.turn + 1, TURNS) + '</b> от ' + TURNS + '</li>' +
+    '<li>Доверие: <b>' + Math.round(state.trust) + '</b>/100</li>' +
+    '<li>Прогноза за вота: <b>' + projectedShare().toFixed(1) + '%</b></li>' +
+    '<li>Без реакция: <b>' + skips + '</b> пъти</li>' +
+    '<li>Истории: <b>' + (state.mode === 'real' ? 'само истински' : state.mode === 'fiction' ? 'само измислени' : 'микс') + '</b></li>' +
+    '</ul>';
+  if (state.log.length) {
+    html += '<h4>Решенията досега</h4><div class="log">';
+    state.log.forEach(function (l, i) {
+      html += '<div class="log-row' + (l.skipped ? ' skipped' : '') + '"><b>' + (i + 1) + '. ' +
+        esc(l.headline) + (l.real ? ' <i class="real-mark">истинско</i>' : '') + '</b><span>' + esc(l.choice) + '</span></div>';
+    });
+    html += '</div>';
+  }
+  html += '</div></div>';
+
+  b.innerHTML = html;
+  el('statsOverlay').hidden = false;
+  el('closeStats').focus();
+}
+
 /* ---------------- избори ---------------- */
 
 function distributeSeats(parties) {
   var passing = parties.filter(function (p) { return !p.other && p.share >= THRESHOLD; });
   var total = passing.reduce(function (s, p) { return s + p.share; }, 0);
-  var rest = [];
-  var given = 0;
+  var rest = [], given = 0;
   passing.forEach(function (p) {
     var exact = p.share / total * SEATS;
     p.seats = Math.floor(exact);
@@ -294,15 +500,23 @@ function runElection() {
     name: state.party.name, emoji: state.party.emoji, color: state.party.color,
     share: mine, mine: true
   }];
+
+  /* Съперниците имат свои размери и се свиват, когато партията на играча расте:
+     гласовете са общо 100 и всеки процент за някого е процент по-малко за друг. */
+  var baseSum = RIVALS.reduce(function (s, r) { return s + r.share; }, 0) + OTHERS_SHARE;
+  var scale = remainder / baseSum;
   var noisy = RIVALS.map(function (r) {
-    return { r: r, w: Math.max(0.04, r.share * (0.88 + Math.random() * 0.24)) };
+    return { r: r, w: r.share * scale * (0.9 + Math.random() * 0.2) };
   });
-  var wsum = noisy.reduce(function (s, n) { return s + n.w; }, 0) / 0.9; /* 10% остават за партии под прага */
+  var others = OTHERS_SHARE * scale;
+  var norm = remainder / (noisy.reduce(function (s, n) { return s + n.w; }, 0) + others);
   noisy.forEach(function (n) {
-    parties.push({ name: n.r.name, emoji: n.r.emoji, color: n.r.color, share: remainder * n.w / wsum });
+    parties.push({
+      name: n.r.name, emoji: n.r.emoji, color: n.r.color,
+      share: n.w * norm, rival: n.r
+    });
   });
-  var small = remainder - parties.slice(1).reduce(function (s, p) { return s + p.share; }, 0);
-  parties.push({ name: 'Други партии', emoji: '▫️', color: '#7b849b', share: Math.max(0, small), other: true });
+  parties.push({ name: 'Други партии', emoji: '▫️', color: '#7b849b', share: others * norm, other: true });
 
   parties.sort(function (a, b) { return b.share - a.share; });
   distributeSeats(parties);
@@ -322,16 +536,15 @@ function renderResult() {
   var me = state.result.mine;
   var first = parties[0];
   var place = parties.indexOf(me) + 1;
+  var ordinals = ['', 'първа', 'втора', 'трета', 'четвърта', 'пета', 'шеста'];
 
-  el('resultTitle').textContent = 'Изборна нощ';
   var lead;
   if (me.share < THRESHOLD) {
     lead = 'Партията ви остава под прага от 4% и няма депутати. Гласовете ви обаче са истински хора — ' +
       'и следващите избори са след най-много четири години.';
   } else if (place === 1) {
-    lead = 'Партията ви е първа политическа сила с ' + me.seats + ' депутати от 240.';
+    lead = 'Партията ви е първа политическа сила с ' + me.seats + ' депутати от 240. За мнозинство трябват 121.';
   } else {
-    var ordinals = ['', 'първа', 'втора', 'трета', 'четвърта', 'пета', 'шеста'];
     lead = 'Партията ви влиза в парламента с ' + me.seats + ' депутати и е ' +
       (ordinals[place] || place + '-та') + ' сила. Първи е „' + first.name + '“.';
   }
@@ -344,7 +557,7 @@ function renderResult() {
     var row = document.createElement('div');
     row.className = 'res-row' + (p.mine ? ' mine' : '');
     row.innerHTML =
-      '<span class="res-name">' + p.emoji + ' ' + p.name + (p.mine ? ' <i>(вие)</i>' : '') + '</span>' +
+      '<span class="res-name">' + p.emoji + ' ' + esc(p.name) + (p.mine ? ' <i>(вие)</i>' : '') + '</span>' +
       '<span class="res-bar"><i style="width:' + (p.share / max * 100) + '%;background:' + p.color + '"></i></span>' +
       '<span class="res-num">' + p.share.toFixed(1) + '%</span>' +
       '<span class="res-seats">' + (p.seats ? p.seats + ' места' : 'под прага') + '</span>';
@@ -355,76 +568,124 @@ function renderResult() {
   el('endingBox').hidden = true;
   el('logBox').hidden = true;
 
-  if (place === 1 && me.seats >= MAJORITY) {
-    ending('Самостоятелно мнозинство', me, 'solo');
-  } else if (place === 1) {
-    offerCoalition(me);
-  } else if (me.share >= THRESHOLD) {
-    ending('Влизате в парламента', me, 'opposition');
-  } else {
-    ending('Оставате извън парламента', me, 'out');
-  }
+  var winner = parties.filter(function (p) { return p.seats >= MAJORITY; })[0];
+
+  if (me.share < THRESHOLD) ending('Оставате извън парламента', 'out');
+  else if (me.seats >= MAJORITY) ending('Самостоятелно мнозинство', 'solo');
+  else if (winner) ending('Друга партия има мнозинство', 'otherMajority', winner);
+  else offerCoalition(me, place, parties);
 }
 
-function offerCoalition(me) {
-  var partners = state.result.parties.filter(function (p) {
+/* Преговорите: партиите казват какво искат, играчът решава дали цената струва. */
+function offerCoalition(me, place, parties) {
+  var leadsTalks = place === 1;
+  var withSeats = parties.filter(function (p) {
     return !p.mine && !p.other && p.seats > 0;
-  });
+  }).sort(function (a, b) { return b.seats - a.seats; });
+  var workable = withSeats.filter(function (p) { return me.seats + p.seats >= MAJORITY; });
+
+  /* Който не води преговорите и с никого не стига до 121, няма какво да реши:
+     мнозинството се събира без него. */
+  if (!leadsTalks && !workable.length) { ending('Оставате в опозиция', 'noOffer'); return; }
+
+  var candidates = leadsTalks ? withSeats : workable;
+
   el('coalitionBox').hidden = false;
-  el('coalitionLead').textContent = 'Имате ' + me.seats + ' места. Президентът ви връчва първия мандат. ' +
-    'За правителство трябват поне 121 гласа — значи преговори.';
+  el('coalitionTitle').textContent = leadsTalks
+    ? 'Мандатът е ваш. Сега трябва мнозинство: 121 места.'
+    : 'Без вас мнозинство не се събира.';
+  el('coalitionLead').textContent = leadsTalks
+    ? 'Имате ' + me.seats + ' места. Президентът връчва първия мандат на най-голямата група. ' +
+      'Всяка партия идва със своите условия — и никоя не влиза в правителство безплатно.'
+    : 'Имате ' + me.seats + ' места и не вие водите преговорите. Но числата на другите не излизат ' +
+      'без вашите гласове, затова условията идват при вас.';
 
   var box = el('coalitionOptions');
   box.innerHTML = '';
-  partners.forEach(function (p) {
+  candidates.forEach(function (p) {
     var together = me.seats + p.seats;
-    var b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'option' + (together >= MAJORITY ? '' : ' option-weak');
-    b.innerHTML = '<span class="option-key" aria-hidden="true">' + p.emoji + '</span>' +
-      '<span>Коалиция с „' + p.name + '“ — ' + together + ' места' +
-      (together >= MAJORITY ? '' : ' <i>(не стигат)</i>') + '</span>';
-    b.onclick = function () {
-      if (together >= MAJORITY) ending('Имате правителство', me, 'coalition', p);
-      else ending('Мандатът се връща', me, 'failed', p);
-    };
-    box.appendChild(b);
+    var enough = together >= MAJORITY;
+    var junior = p.seats > me.seats;
+    var card = document.createElement('div');
+    card.className = 'offer' + (enough ? '' : ' offer-weak');
+    card.innerHTML = '<h4>' + p.emoji + ' ' + esc(p.name) + ' — ' + p.seats + ' места' +
+      '<span class="offer-sum">' + (enough ? 'заедно: ' + together + ' ✔' : 'заедно: ' + together + ' — не стигат') + '</span></h4>' +
+      '<p class="offer-line">' + esc(p.rival.line) + '</p>' +
+      '<p class="offer-label">Иска в замяна:</p><ul>' +
+      p.rival.demands.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join('') + '</ul>' +
+      '<p class="offer-label">Предлага ви:</p><p>' + esc(p.rival.gives) + '</p>';
+    if (enough) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'big-btn';
+      b.textContent = junior ? 'Влизаме като по-малък партньор' : 'Приемаме условията';
+      b.onclick = function () { acceptCoalition(p, !junior); };
+      card.appendChild(b);
+    }
+    box.appendChild(card);
   });
 
-  var alone = document.createElement('button');
-  alone.type = 'button';
-  alone.className = 'option option-skip';
-  alone.innerHTML = '<span class="option-key" aria-hidden="true">–</span>' +
-    '<span>Без коалиция — опитваме с малцинствено правителство</span>';
-  alone.onclick = function () { ending('Малцинствено правителство', me, 'minority'); };
-  box.appendChild(alone);
+  var no = document.createElement('button');
+  no.type = 'button';
+  no.className = 'option option-skip';
+  no.innerHTML = '<span class="option-key" aria-hidden="true">–</span><span>' +
+    (leadsTalks ? 'Без коалиция — опитваме с управление без мнозинство'
+                : 'Отказваме условията и оставаме в опозиция') + '</span>';
+  no.onclick = function () { ending(leadsTalks ? 'Управление без мнозинство' : 'Оставате в опозиция',
+    leadsTalks ? 'minority' : 'opposition'); };
+  box.appendChild(no);
 }
 
-function ending(title, me, kind, partner) {
+function acceptCoalition(partner, leadsTalks) {
+  /* Коалицията мести партията към партньора — това се вижда на компаса. */
+  state.econ = clamp(state.econ + (partner.rival.pos[0] - state.econ) * 0.35, -AXIS_RANGE, AXIS_RANGE);
+  state.pers = clamp(state.pers + (partner.rival.pos[1] - state.pers) * 0.35, -AXIS_RANGE, AXIS_RANGE);
+  state.path.push({ e: state.econ, p: state.pers, label: 'коалиция' });
+  ending(leadsTalks ? 'Имате правителство' : 'Влизате в управлението', leadsTalks ? 'coalition' : 'junior', partner);
+}
+
+function ending(title, kind, partner) {
   el('coalitionBox').hidden = true;
   el('endingTitle').textContent = title;
+  var me = state.result.mine;
 
   var texts = {
     solo: 'Рядко и трудно: 121 или повече депутати сами. Можете да управлявате без партньор — и нямате на кого да прехвърлите отговорността.',
-    coalition: 'Подписвате споразумение с „' + (partner ? partner.name : '') + '“. Част от програмата ви остава за следващия път, защото в коалицията никой не получава всичко. Такива са били всички правителства в България от 1990 г. насам, освен няколко.',
-    minority: 'Управлявате с по-малко от 121 гласа и събирате мнозинство за всеки отделен закон. Възможно е, но всяко гласуване е преговор наново.',
-    failed: 'Сборът не стига до 121. Мандатът се връща на президента, който го дава на следващата партия. Ако и трите мандата се провалят, следват служебно правителство и нови избори.',
-    opposition: 'Опозицията не е загубено място: внасяте законопроекти, задавате въпроси на министрите в петък, работите в комисии и наблюдавате как се харчат парите. Много закони се променят именно оттам.',
-    out: 'Под 4% няма депутати, но партията остава — с членове, с опит и със структура. Повечето парламентарни партии в Европа са влизали втори или трети път.'
+    coalition: 'Подписвате споразумение с „' + (partner ? partner.name : '') + '“. Част от програмата ви остава за следващия път, ' +
+      'защото в коалиция никой не получава всичко. Погледнете компаса: правителството ви стои на друго място от партията ви преди изборите.',
+    junior: 'Влизате в правителство като по-малък партньор на „' + (partner ? partner.name : '') + '“. ' +
+      'Имате министерства и влияние, но дневния ред определя друг. Компасът ви се измести към тях — това е цената на участието.',
+    minority: 'Управлявате с по-малко от 121 гласа и събирате мнозинство за всеки отделен закон поотделно. ' +
+      'Възможно е — правителства на малцинството е имало и у нас, и в Европа. Но всяко гласуване е нов преговор, ' +
+      'бюджетът минава трудно, а един успешен вот на недоверие стига, за да се стигне до политическа криза и нови избори още същата година.',
+    opposition: 'Опозицията не е загубено място: внасяте законопроекти, задавате въпроси на министрите в петък, ' +
+      'работите в комисии и наблюдавате как се харчат парите. Много закони се променят именно оттам.',
+    otherMajority: '„' + (partner ? partner.name : 'Друга партия') + '“ има мнозинство сама и управлява без коалиция. ' +
+      'Работата ви е в опозицията — да проверявате, да питате и да предлагате.',
+    noOffer: 'Другите партии имат достатъчно места помежду си и мнозинството се събира без вас — ' +
+      'никоя двойка с ваше участие не стига до 121. Оставате в опозиция: с въпроси към министрите, ' +
+      'със законопроекти и с работа в комисиите. Следващия път повече гласове означават и повече тежест на масата.',
+    out: 'Под 4% няма депутати, но партията остава — с членове, с опит и със структура. ' +
+      'Повечето парламентарни партии в Европа са влизали втори или трети път.'
   };
   el('endingText').textContent = texts[kind];
+  el('finalCompass').innerHTML = '<h4>Къде свърши партията ви</h4>' + compassBlock(true);
 
   var learned = [
-    'Рейтингът ви завърши на ' + me.share.toFixed(1) + '% при доверие ' + state.trust + '/100.',
+    'Резултатът ви е ' + me.share.toFixed(1) + '% при доверие ' + Math.round(state.trust) + '/100.',
     'Няма решение, което вдига всички групи. Всяко „да“ към едни е „не“ към други.',
-    'Пенсионерите тежат 24% от гласовете, младите — 14%. Кой излиза да гласува има значение колкото и кой какво мисли.'
+    'Пенсионерите тежат 24% от гласовете, младите — 14%. Кой излиза да гласува има значение колкото и кой какво мисли.',
+    'Компасът ви показва ' + positionWords(state.econ, state.pers) + ' — сбор от десет решения, а не от един лозунг.'
   ];
+  if (me.share > 30) learned.push('Над 30% е много: последните проценти се печелят най-трудно, защото хората, които вече са с вас, не могат да гласуват два пъти.');
   var skips = state.log.filter(function (l) { return l.skipped; }).length;
   if (skips === 0) learned.push('Реагирахте на всички десет новини. Понякога мълчанието е по-доброто решение — но трябва да е избор, не навик.');
   else if (skips <= 3) learned.push('Пропуснахте ' + (skips === 1 ? 'една новина' : skips + ' новини') + '. Част от мълчанията ви спестиха грешка, други — струваха гласове.');
   else learned.push('Не реагирахте ' + skips + ' пъти. Мълчанието също е позиция и другите я тълкуват вместо вас.');
   if (state.trust >= 70) learned.push('Високото доверие изкара повече хора до урните. То се гради бавно и се губи с едно решение.');
   if (state.trust <= 35) learned.push('Ниското доверие свали резултата ви: хора, които ви харесват, просто не отидоха да гласуват.');
+  var reals = state.log.filter(function (l) { return l.real; }).length;
+  if (reals) learned.push(reals + ' от ситуациите бяха истински — случили са се в България през последните пет години.');
 
   var ul = el('learnedList');
   ul.innerHTML = '';
@@ -435,6 +696,7 @@ function ending(title, me, kind, partner) {
   });
 
   el('endingBox').hidden = false;
+  scrollToCard(el('endingBox'));
 }
 
 function renderLog() {
@@ -443,7 +705,8 @@ function renderLog() {
   state.log.forEach(function (l, i) {
     var d = document.createElement('div');
     d.className = 'log-row' + (l.skipped ? ' skipped' : '');
-    d.innerHTML = '<b>' + (i + 1) + '. ' + l.headline + '</b><span>' + l.choice + '</span>';
+    d.innerHTML = '<b>' + (i + 1) + '. ' + esc(l.headline) +
+      (l.real ? ' <i class="real-mark">истинско</i>' : '') + '</b><span>' + esc(l.choice) + '</span>';
     box.appendChild(d);
   });
 }
@@ -453,6 +716,7 @@ function renderLog() {
 function toIntro() {
   el('backBtn').hidden = true;
   el('turnBadge').hidden = true;
+  el('statsBtn').hidden = true;
   var best = readBest();
   if (best) {
     el('bestLine').hidden = false;
@@ -469,6 +733,12 @@ el('startBtn').onclick = function () {
 el('pName').oninput = buildCreateScreen;
 el('foundBtn').onclick = startGame;
 el('nextBtn').onclick = nextTurn;
+el('statsBtn').onclick = openStats;
+el('closeStats').onclick = function () { el('statsOverlay').hidden = true; };
+el('statsOverlay').onclick = function (e) { if (e.target === el('statsOverlay')) el('statsOverlay').hidden = true; };
+el('themeBtn').onclick = function () {
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+};
 el('backBtn').onclick = function () {
   if (el('screen-play').classList.contains('active') &&
       !window.confirm('Да започнем ли отначало? Текущата партия ще бъде разпусната.')) return;
@@ -482,7 +752,12 @@ el('logBtn').onclick = function () {
 };
 
 document.addEventListener('keydown', function (e) {
+  if (!el('statsOverlay').hidden) {
+    if (e.key === 'Escape') el('statsOverlay').hidden = true;
+    return;
+  }
   if (!el('screen-play').classList.contains('active')) return;
+  if (e.key === 's' || e.key === 'S') { openStats(); return; }
   if (!el('newsCard').hidden) {
     var n = parseInt(e.key, 10);
     var btns = el('optionList').children;
@@ -494,5 +769,6 @@ document.addEventListener('keydown', function (e) {
   }
 });
 
+initTheme();
 toIntro();
 })();
