@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Твоята партия — игра за политиката в България</title>
+<meta name="description" content="Създай партия, реагирай на десет новини и спечели изборите. Игра за тийнейджъри за това как работи политиката в България. Без сървър, работи офлайн." />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128499;</text></svg>" />
+</head>
+<body>
+
+<header class="topbar">
+  <button id="backBtn" class="icon-btn" hidden aria-label="Назад към началото">←</button>
+  <div class="brand"><span aria-hidden="true">🗳️</span> Твоята партия</div>
+  <div id="turnBadge" class="turn-badge" hidden>Ход <span id="turnNow">1</span>/10</div>
+</header>
+
+<main>
+
+<!-- ============ НАЧАЛО ============ -->
+<section id="screen-intro" class="screen active">
+  <h1>Направи партия. Издържи десет новини. Спечели изборите.</h1>
+  <p class="lead">
+    Всяка новина ти дава три възможни реакции — и правото да не реагираш.
+    Всяко решение вдига рейтинга ти при едни хора и го сваля при други.
+    Няма отговор, който харесва всички. Точно това е работата.
+  </p>
+  <div class="intro-cards">
+    <div class="intro-card"><span aria-hidden="true">👥</span><h3>Шест групи избиратели</h3><p>Пенсионери, млади, семейства, бизнес, учители и лекари, малките градове. Всяка тежи различно.</p></div>
+    <div class="intro-card"><span aria-hidden="true">🤝</span><h3>Доверие</h3><p>Отделна мярка. Ако го загубиш, хората просто не излизат да гласуват за теб.</p></div>
+    <div class="intro-card"><span aria-hidden="true">🏛️</span><h3>240 места</h3><p>На финала се броят гласове, прагът е 4%, а после започват преговорите за мнозинство.</p></div>
+  </div>
+  <p id="bestLine" class="best-line" hidden></p>
+  <button id="startBtn" class="big-btn">Да започваме</button>
+  <p class="fineprint">Партиите и събитията в играта са измислени. Правилата и институциите са истински.</p>
+</section>
+
+<!-- ============ СЪЗДАВАНЕ НА ПАРТИЯ ============ -->
+<section id="screen-create" class="screen">
+  <h2>Учредяване</h2>
+
+  <label class="field">
+    <span>Име на партията</span>
+    <input id="pName" type="text" maxlength="28" placeholder="напр. Движение „Утре“" autocomplete="off" />
+  </label>
+
+  <label class="field">
+    <span>Слоган <em>(незадължително)</em></span>
+    <input id="pSlogan" type="text" maxlength="44" placeholder="напр. Работи, вместо да обещава" autocomplete="off" />
+  </label>
+
+  <fieldset class="field">
+    <legend>Знак</legend>
+    <div id="emojiRow" class="chip-row" role="radiogroup" aria-label="Знак на партията"></div>
+  </fieldset>
+
+  <fieldset class="field">
+    <legend>Цвят</legend>
+    <div id="colorRow" class="chip-row" role="radiogroup" aria-label="Цвят на партията"></div>
+  </fieldset>
+
+  <fieldset class="field">
+    <legend>Основна кауза <em>— с нея започваш по-силно при две групи</em></legend>
+    <div id="causeRow" class="cause-row" role="radiogroup" aria-label="Основна кауза"></div>
+  </fieldset>
+
+  <button id="foundBtn" class="big-btn" disabled>Учредяваме партията</button>
+</section>
+
+<!-- ============ ИГРАТА ============ -->
+<section id="screen-play" class="screen">
+  <div class="play-wrap">
+
+    <div class="news-col">
+      <article id="newsCard" class="news-card">
+        <div class="news-head">
+          <span id="newsTag" class="tag">Новини</span>
+          <span id="newsEmoji" class="news-emoji" aria-hidden="true">📰</span>
+        </div>
+        <h2 id="newsHead">Заглавие</h2>
+        <p id="newsBody">Текст</p>
+        <div id="optionList" class="options"></div>
+      </article>
+
+      <article id="outcomeCard" class="outcome-card" hidden aria-live="polite">
+        <h3 id="outcomeTitle">Какво се случи</h3>
+        <p id="outcomeText"></p>
+        <div id="deltaList" class="deltas"></div>
+        <div class="fact"><strong>Знаеш ли?</strong> <span id="factText"></span></div>
+        <button id="nextBtn" class="big-btn">Следваща новина</button>
+      </article>
+    </div>
+
+    <aside class="stats-col">
+      <div id="partyHead" class="party-head"></div>
+      <div class="meter trust-meter">
+        <div class="meter-top"><span>🤝 Доверие</span><b id="trustVal">50</b></div>
+        <div class="bar"><i id="trustBar" style="width:50%"></i></div>
+      </div>
+      <h3 class="stats-title">Рейтинг по групи</h3>
+      <div id="groupBars"></div>
+      <div class="poll">
+        <div class="meter-top"><span>📊 Прогноза за вота</span><b id="pollVal">0%</b></div>
+        <p class="poll-note">Първата сила печели изборите. Под 4% няма депутати.</p>
+      </div>
+    </aside>
+
+  </div>
+</section>
+
+<!-- ============ ИЗБОРНА НОЩ ============ -->
+<section id="screen-result" class="screen">
+  <h2 id="resultTitle">Изборна нощ</h2>
+  <p id="resultLead" class="lead"></p>
+  <div id="resultTable" class="results"></div>
+  <div id="coalitionBox" class="coalition" hidden>
+    <h3>Мандатът е ваш. Сега трябва мнозинство: 121 места.</h3>
+    <p id="coalitionLead"></p>
+    <div id="coalitionOptions" class="options"></div>
+  </div>
+  <div id="endingBox" class="ending" hidden>
+    <h3 id="endingTitle"></h3>
+    <p id="endingText"></p>
+    <div class="learned">
+      <h4>Какво показа тази игра</h4>
+      <ul id="learnedList"></ul>
+    </div>
+    <div class="end-buttons">
+      <button id="againBtn" class="big-btn">Нова партия</button>
+      <button id="logBtn" class="ghost-btn">Виж всичките си решения</button>
+    </div>
+    <div id="logBox" class="log" hidden></div>
+  </div>
+</section>
+
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
