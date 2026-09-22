@@ -287,3 +287,24 @@ main { max-width: 1040px; margin: 0 auto; padding: 1.2rem max(1rem, env(safe-are
 .offer ul { margin: 0; padding-left: 1.1rem; }
 .offer li { margin-bottom: .2rem; }
 .offer .big-btn { margin-top: .7rem; }
+
+
+/* ---------- логото на „Образование без раници“ ---------- */
+.obr {
+  position: fixed; right: max(.9rem, env(safe-area-inset-right)); bottom: max(.9rem, env(safe-area-inset-bottom));
+  z-index: 20; display: block; width: 152px; height: 36px;
+  background: url('../img/obr-logo-dark.svg') center/contain no-repeat;
+  padding: .45rem .6rem; box-sizing: content-box;
+  border: 1px solid var(--line); border-radius: 10px;
+  background-color: var(--card); background-origin: content-box;
+  opacity: .75; transition: opacity .2s, border-color .2s;
+}
+:root[data-theme="dark"] .obr { background-image: url('../img/obr-logo-light.svg'); }
+.obr:hover, .obr:focus-visible { opacity: 1; border-color: var(--accent); }
+
+/* На тесен екран логото не бива да стои върху бутоните — слиза най-долу в страницата. */
+@media (max-width: 900px) {
+  .obr { position: static; margin: 1.5rem .9rem 1.5rem auto; }
+  main { padding-bottom: 1rem; }
+}
+@media (min-width: 901px) { main { padding-bottom: 5rem; } }
