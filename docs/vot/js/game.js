@@ -16,9 +16,9 @@ var STORE_KEY = 'tvoyata-partiya.best';
 var THEME_KEY = 'tvoyata-partiya.theme';
 
 var MODES = [
-  { id: 'mix', icon: '🔀', name: 'Микс', line: 'Истински и измислени ситуации заедно — всичките 75.' },
+  { id: 'mix', icon: '🔀', name: 'Микс', line: 'Истински и измислени ситуации заедно — всичките 83.' },
   { id: 'real', icon: '📰', name: 'Само истински', line: '30 истории от последните пет години в България.' },
-  { id: 'fiction', icon: '🎭', name: 'Само измислени', line: '45 ситуации, които спокойно биха могли да се случат.' }
+  { id: 'fiction', icon: '🎭', name: 'Само измислени', line: '53 ситуации, които спокойно биха могли да се случат.' }
 ];
 
 var QUADRANTS = [
