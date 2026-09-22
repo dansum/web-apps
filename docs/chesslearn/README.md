@@ -45,6 +45,15 @@ Sixteen of them, in three steps on the menu: **Beginner**, **Learning** and
 
 The `a1` button in the top bar shows or hides the coordinates around the board.
 
+## The menu filter
+
+The **Show** switch at the top of the menu narrows the list to the games two
+children can play on one device — Pawn Race, Knight Race and Battle for the
+Centre. A game counts as one for two because it offers the "2 players" choice,
+so a new game with that option joins the filter by itself. While the filter is
+on, opening one of those games starts it set to two players. The filter is not
+remembered: every visit opens on all games.
+
 ## Two sets of pieces
 
 The **Pieces** switch on the menu swaps the classic chess set for modern

@@ -47,6 +47,34 @@
   /* ---------------- menu ---------------- */
 
   var GROUPS = ['beginner', 'learning', 'advanced'];
+  var filter = 'all';          // 'all' | 'two', kept for this visit only
+
+  /* A game is for two when it offers the "2 players" choice. */
+  function supportsTwo(mode) {
+    return (mode.options || []).some(function (opt) {
+      return opt.key === 'opponent' && opt.choices.some(function (c) { return c.v === 'two'; });
+    });
+  }
+
+  function renderFilter() {
+    var counts = { all: modes.length, two: modes.filter(supportsTwo).length };
+    var html = '<span class="style-label">' + t('filter.title') + '</span><div class="style-chips">';
+    [['all', ''], ['two', '\uD83D\uDC65']].forEach(function (pair) {
+      var name = pair[0];
+      html += '<button class="filter-chip' + (filter === name ? ' on' : '') + '" data-filter="' + name + '">' +
+        (pair[1] ? '<span class="chip-icon">' + pair[1] + '</span>' : '') +
+        '<span>' + t('filter.' + name) + '</span>' +
+        '<span class="filter-count">' + counts[name] + '</span></button>';
+    });
+    el.filterSwitch.innerHTML = html + '</div>';
+    Array.prototype.forEach.call(el.filterSwitch.querySelectorAll('.filter-chip'), function (btn) {
+      btn.addEventListener('click', function () {
+        filter = btn.getAttribute('data-filter');
+        Sound.play('select');
+        renderMenu();
+      });
+    });
+  }
 
   function renderStyleSwitch() {
     var html = '<span class="style-label">' + t('style.title') + '</span><div class="style-chips">';
@@ -72,10 +100,12 @@
   }
 
   function renderMenu() {
+    renderFilter();
     renderStyleSwitch();
     el.modeGrid.innerHTML = '';
+    var shown = modes.filter(function (m) { return filter !== 'two' || supportsTwo(m); });
     GROUPS.forEach(function (group) {
-      var inGroup = modes.filter(function (m) { return (m.group || 'beginner') === group; })
+      var inGroup = shown.filter(function (m) { return (m.group || 'beginner') === group; })
         .sort(function (a, b) { return (a.order || 99) - (b.order || 99); });
       if (!inGroup.length) return;
       var head = document.createElement('h2');
@@ -98,6 +128,9 @@
       });
       el.modeGrid.appendChild(grid);
     });
+    if (!shown.length) {
+      el.modeGrid.innerHTML = '<p class="records-empty">' + t('filter.none') + '</p>';
+    }
   }
 
   /* ---------------- records ---------------- */
@@ -183,6 +216,7 @@
     pendingMode = mode;
     pendingCfg = {};
     (mode.options || []).forEach(function (opt) { pendingCfg[opt.key] = opt.def; });
+    if (filter === 'two' && supportsTwo(mode)) pendingCfg.opponent = 'two';
     if (!mode.options || !mode.options.length) { startGame(mode, pendingCfg); return; }
     el.setupTitle.textContent = t(mode.titleKey);
     el.setupDesc.textContent = t(mode.descKey);
@@ -346,7 +380,7 @@
 
   function init() {
     ['homeBtn', 'soundBtn', 'soundIcon', 'langBtn', 'langLabel', 'modeGrid',
-     'styleSwitch', 'coordsBtn', 'recordsBtn', 'recordsList', 'recordsMsg', 'saveRecordsBtn', 'loadRecordsBtn',
+     'filterSwitch', 'styleSwitch', 'coordsBtn', 'recordsBtn', 'recordsList', 'recordsMsg', 'saveRecordsBtn', 'loadRecordsBtn',
      'clearRecordsBtn', 'recordsFile',
      'setupTitle', 'setupDesc', 'setupOptions', 'settingsToggle', 'setupSummary', 'playBtn', 'statusCard', 'statusText',
      'scoreCard', 'helpText', 'hintBtn', 'undoBtn', 'restartBtn', 'overlay',

@@ -5,6 +5,11 @@
   var STRINGS = {
     en: {
       'app.title': 'Chess Playground',
+      'filter.title': 'Show',
+      'filter.all': 'All games',
+      'filter.two': 'For two players',
+      'filter.none': 'No game here for two players yet.',
+
       'style.title': 'Pieces',
       'style.classic': 'Classic',
       'style.army': 'Soldiers',
@@ -244,6 +249,11 @@
 
     bg: {
       'app.title': 'Шах игрище',
+      'filter.title': 'Покажи',
+      'filter.all': 'Всички игри',
+      'filter.two': 'За двама',
+      'filter.none': 'Тук още няма игра за двама.',
+
       'style.title': 'Фигури',
       'style.classic': 'Класически',
       'style.army': 'Войници',

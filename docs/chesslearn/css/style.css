@@ -733,3 +733,46 @@ main { padding: 16px 14px 40px; max-width: 1100px; margin: 0 auto; }
 @media (max-width: 500px) {
   .style-switch { margin-left: 0; width: 100%; justify-content: space-between; }
 }
+
+/* ---------------- two-player filter on the menu ---------------- */
+
+.filter-switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 7px 12px;
+}
+
+.filter-chip {
+  border: 3px solid #eee6f5;
+  background: #fbf8ff;
+  border-radius: 12px;
+  padding: 5px 10px;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+}
+
+.filter-chip .chip-icon { font-size: 17px; line-height: 1; }
+.filter-chip.on { border-color: var(--blue); background: #eaf2ff; }
+.filter-chip:active { transform: translateY(2px); }
+
+.filter-count {
+  background: rgba(47, 43, 69, .1);
+  border-radius: 9px;
+  padding: 1px 7px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.filter-chip.on .filter-count { background: rgba(77, 150, 255, .22); }
+
+@media (max-width: 500px) {
+  .filter-switch { width: 100%; justify-content: space-between; }
+}
