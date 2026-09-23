@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+<title>Дино атака</title>
+<meta name="description" content="Аркадна стрелба по динозаври в браузъра. Целиш се с ръка пред камерата на лаптопа или телефона — показалецът е цевта, палецът е спусъкът." />
+<meta name="theme-color" content="#120a24" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rubik:wght@400;600;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#129430;</text></svg>" />
+</head>
+<body class="in-menu">
+
+<canvas id="game" aria-label="Игрално поле"></canvas>
+
+<div id="screens">
+
+  <!-- ============ НАЧАЛО ============ -->
+  <section id="scr-title" class="screen">
+    <div class="cabinet">
+      <div class="marquee" aria-hidden="true"><span>★ АРКАДА ★</span></div>
+      <h1 class="logo"><span>ДИНО</span><span>АТАКА</span></h1>
+      <p class="blink">ПУСНИ ЖЕТОН</p>
+      <p id="title-hi" class="hi"></p>
+      <div class="menu">
+        <button class="btn big" data-action="hand" id="title-hand">✋ ИГРАЙ С РЪКА</button>
+        <button class="btn" data-action="mouse">🖱️ МИШКА ИЛИ ПРЪСТ</button>
+        <div class="row">
+          <span class="lbl">ИГРАЧИ</span>
+          <button class="btn chip" data-action="players" data-players="1">1</button>
+          <button class="btn chip" data-action="players" data-players="2">2</button>
+        </div>
+        <div class="row">
+          <button class="btn small" data-action="how">КАК СЕ ИГРАЕ</button>
+          <button class="btn small" data-action="scores">РЕКОРДИ</button>
+        </div>
+        <div class="row">
+          <button class="btn small" data-action="sound" id="soundBtn">ЗВУК: ВКЛ</button>
+          <button class="btn small" data-action="music" id="musicBtn">МУЗИКА: ВКЛ</button>
+        </div>
+      </div>
+      <p class="credit">СВОБОДНА ИГРА · ДВАМА ИГРАЧИ С ДВЕ РЪЦЕ</p>
+    </div>
+  </section>
+
+  <!-- ============ КАМЕРА ============ -->
+  <section id="scr-setup" class="screen">
+    <div class="panel setup">
+      <h2>Насочи ръката</h2>
+      <div class="setup-grid">
+        <div id="cam-slot" class="cam-slot"></div>
+        <div class="setup-side">
+          <ol class="steps">
+            <li><b>Направи пистолет:</b> показалецът напред, палецът нагоре, другите пръсти свити.</li>
+            <li><b>Целиш се</b> с показалеца към екрана.</li>
+            <li><b>Стреляш</b>, като свалиш палеца надолу — като спусък.</li>
+            <li><b>Презареждаш</b>, като изведеш ръката извън екрана — като в аркадата.</li>
+          </ol>
+          <p id="setup-status" class="status" role="status">Зареждам…</p>
+          <div id="meters" class="meters"></div>
+          <p id="fps" class="fps"></p>
+          <label class="slider">Чувствителност <input id="gain" type="range" min="1" max="3" step="0.1" value="1.7" /> <span id="gainVal">1.7</span></label>
+          <div class="row">
+            <button class="btn small" data-action="trigger" id="triggerBtn">СПУСЪК: ПАЛЕЦ</button>
+            <button class="btn small" data-action="recenter">ЦЕНТЪР ОТНОВО</button>
+          </div>
+        </div>
+      </div>
+      <div class="setup-go-wrap">
+        <button id="setup-go" class="target" data-action="fire-start" data-calibrate disabled aria-label="Стреляй тук, за да започнеш">
+          <span>СТРЕЛЯЙ<br />ТУК</span>
+        </button>
+        <p class="hint">Прицели се в мишената и стреляй. Така играта научава къде е центърът за теб.<br />Можеш и само да задържиш мерника върху бутон за секунда.</p>
+      </div>
+      <div class="row">
+        <button class="btn small" data-action="title">← НАЗАД</button>
+        <button class="btn small" data-action="mouse">ИГРАЙ С МИШКА</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ КАК СЕ ИГРАЕ ============ -->
+  <section id="scr-how" class="screen">
+    <div class="panel">
+      <h2>Как се играе</h2>
+      <div class="how">
+        <div><span class="ico">✋</span><p><b>С ръка:</b> пистолет от пръсти пред камерата. Палецът надолу — изстрел. Ръката извън екрана — презареждане. Двама играчи — две ръце, всеки със свой мерник.</p></div>
+        <div><span class="ico">🖱️</span><p><b>С мишка:</b> ляв бутон — изстрел, десен бутон или <kbd>R</kbd> — презареждане. <b>С пръст:</b> докосни, където искаш да стреляш; ↻ презарежда.</p></div>
+        <div><span class="ico">🦖</span><p><b>Динозаврите тичат към теб.</b> Ако стигнат дотук — губиш живот. Изстрел в главата носи повече точки. Поредица от попадения вдига множителя до x5.</p></div>
+        <div><span class="ico">🟢</span><p><b>Дилофозаврите плюят.</b> Стреляй по зелените топки във въздуха, преди да те уцелят.</p></div>
+        <div><span class="ico">🪂</span><p><b>Сандъци с парашут:</b> аптечка дава живот, динамитът взривява всички на екрана.</p></div>
+        <div><span class="ico">👑</span><p><b>Три етапа</b> — джунгла, вулкан и нощ с фенерче. В края на всеки те чака огромен тиранозавър.</p></div>
+      </div>
+      <p class="keys"><kbd>P</kbd> пауза · <kbd>M</kbd> звук · <kbd>R</kbd> презареждане</p>
+      <button class="btn" data-action="back">← НАЗАД</button>
+    </div>
+  </section>
+
+  <!-- ============ РЕКОРДИ ============ -->
+  <section id="scr-scores" class="screen">
+    <div class="panel narrow">
+      <h2>Рекорди</h2>
+      <table class="scores"><tbody id="scores-table"></tbody></table>
+      <button class="btn" data-action="back">← НАЗАД</button>
+    </div>
+  </section>
+
+  <!-- ============ ПАУЗА ============ -->
+  <section id="scr-pause" class="screen">
+    <div class="panel narrow">
+      <h2>Пауза</h2>
+      <div class="menu">
+        <button class="btn big" data-action="resume">▶ ПРОДЪЛЖИ</button>
+        <button class="btn" data-action="setup">✋ НАСТРОЙ РЪКАТА</button>
+        <button class="btn small" data-action="sound">ЗВУК</button>
+        <button class="btn small" data-action="quit">КРАЙ НА ИГРАТА</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ КРАЙ ============ -->
+  <section id="scr-over" class="screen">
+    <div class="panel narrow">
+      <h2 class="over">КРАЙ НА ИГРАТА</h2>
+      <p id="over-score" class="big-score"></p>
+      <div id="initials" hidden>
+        <p class="lead">Нов рекорд! Напиши инициалите си.</p>
+        <div class="ini">
+          <div class="ini-col"><button class="btn chip" data-action="up" data-i="0">▲</button><span class="ini-letter">А</span><button class="btn chip" data-action="down" data-i="0">▼</button></div>
+          <div class="ini-col"><button class="btn chip" data-action="up" data-i="1">▲</button><span class="ini-letter">А</span><button class="btn chip" data-action="down" data-i="1">▼</button></div>
+          <div class="ini-col"><button class="btn chip" data-action="up" data-i="2">▲</button><span class="ini-letter">А</span><button class="btn chip" data-action="down" data-i="2">▼</button></div>
+        </div>
+        <button class="btn big" data-action="ini-ok">ГОТОВО</button>
+      </div>
+      <div id="over-table-wrap">
+        <table class="scores"><tbody id="over-table"></tbody></table>
+        <div class="row">
+          <button class="btn big" data-action="again">ОЩЕ ВЕДНЪЖ</button>
+          <button class="btn" data-action="title">НАЧАЛО</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<canvas id="cursor" aria-hidden="true"></canvas>
+
+<div id="cam-dock" class="cam-dock">
+  <div id="cam-wrap" class="cam-wrap" hidden>
+    <video id="cam" playsinline muted autoplay></video>
+    <canvas id="cam-overlay"></canvas>
+  </div>
+</div>
+
+<button id="pauseBtn" class="hud-btn pause" aria-label="Пауза">❚❚</button>
+<button id="reloadBtn" class="hud-btn reload" aria-label="Презареди">↻</button>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
