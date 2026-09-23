@@ -143,6 +143,23 @@ export const sfx = {
   over: () => play(t => {
     [392, 330, 262, 196].forEach((f, i) => tone(t + i * 0.25, 0.3, { type: 'triangle', f0: f, gain: 0.3 }));
   }),
+  pok: (power = 0.5) => play(t => {
+    tone(t, 0.06, { type: 'sine', f0: 520 + power * 200, f1: 260, gain: 0.5 });
+    noise(t, 0.05, { type: 'bandpass', f0: 2200, q: 2, gain: 0.5 + power * 0.3 });
+  }),
+  bounce: () => play(t => {
+    tone(t, 0.05, { type: 'sine', f0: 300, f1: 150, gain: 0.25 });
+    noise(t, 0.03, { type: 'bandpass', f0: 1200, q: 3, gain: 0.2 });
+  }),
+  net: () => play(t => noise(t, 0.2, { f0: 600, f1: 150, gain: 0.5 })),
+  whoosh: () => play(t => noise(t, 0.22, { type: 'bandpass', f0: 500, f1: 2500, q: 1.2, gain: 0.25 })),
+  cheer: () => play(t => {
+    for (let i = 0; i < 4; i++) noise(t + i * 0.15, 1.2, { type: 'bandpass', f0: 900 + i * 300, f1: 700, q: 0.8, gain: 0.25 });
+  }),
+  aww: () => play(t => {
+    noise(t, 0.9, { type: 'bandpass', f0: 700, f1: 350, q: 1.5, gain: 0.3 });
+    tone(t, 0.8, { type: 'sine', f0: 330, f1: 220, gain: 0.05 });
+  }),
   tick: () => play(t => tone(t, 0.05, { type: 'square', f0: 700, gain: 0.08 })),
   select: () => play(t => {
     tone(t, 0.05, { type: 'square', f0: 660, gain: 0.1 });

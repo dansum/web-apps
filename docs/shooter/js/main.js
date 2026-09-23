@@ -3,6 +3,7 @@ import { TYPES, drawDino, drawProp, hitCircles, eyePos } from './dinos.js';
 import { THEMES, drawBackground, drawAmbient, drawForeground, makeAmbient } from './scenery.js';
 import { initAudio, sfx, setMuted, setMusic, startMusic, stopMusic } from './audio.js';
 import { HandInput } from './hand.js';
+import { createTennis, LEVELS } from './tennis.js';
 
 // ---------- настройки и рекорди (localStorage може да липсва) ----------
 const store = {
@@ -10,7 +11,7 @@ const store = {
   set(k, v) { try { localStorage.setItem('dino-' + k, JSON.stringify(v)); } catch (e) { /* няма значение */ } },
 };
 const settings = Object.assign({
-  players: 1, muted: false, music: true, gain: 1.7, autoFire: false, center: { x: 0.5, y: 0.5 },
+  players: 1, muted: false, music: true, gain: 1.7, autoFire: false, center: { x: 0.5, y: 0.5 }, tennisLevel: 'easy',
 }, store.get('settings', {}));
 const saveSettings = () => store.set('settings', settings);
 
@@ -66,6 +67,9 @@ function resize() {
 }
 window.addEventListener('resize', resize);
 resize();
+
+const tennis = createTennis({ ctx, view, hand, onEnd: tennisEnd });
+const inTennis = () => game.state === 'tennis' || game.state === 'tennis-over';
 
 // ---------- състояние ----------
 const game = {
@@ -144,6 +148,8 @@ function setTheme(name) {
 
 function startGame() {
   initAudio();
+  document.body.classList.remove('mode-tennis');
+  if (hand.landmarker) hand.setNumHands(settings.players);
   game.players = [];
   const n = game.inputMode === 'hand' ? settings.players : 1;
   for (let i = 0; i < n; i++) game.players.push(makePlayer(i));
@@ -981,6 +987,7 @@ function drawContinue() {
 // ---------- мерници ----------
 function crosshairs() {
   const list = [];
+  if (inTennis() && !menuOpen()) return list;
   if (game.inputMode === 'hand') {
     for (const p of hand.pointers()) {
       if (p.slot >= (game.state === 'title' || menuOpen() ? 2 : Math.max(1, game.players.length))) continue;
@@ -1111,6 +1118,7 @@ hand.onReload = slot => {
 canvas.addEventListener('pointermove', e => {
   mouse.x = e.clientX; mouse.y = e.clientY; mouse.seen = performance.now() / 1000;
   mouse.touch = e.pointerType === 'touch';
+  if (game.state === 'tennis') tennis.feedPointer(e.clientX / view.W, e.clientY / view.H);
 });
 window.addEventListener('pointermove', e => {
   if (e.pointerType !== 'touch') { mouse.x = e.clientX; mouse.y = e.clientY; mouse.seen = performance.now() / 1000; mouse.touch = false; }
@@ -1131,16 +1139,17 @@ window.addEventListener('keydown', e => {
   if (!$('#initials').hidden && $('#scr-over').classList.contains('active')) {
     if (initialsKey(e)) return;
   }
+  if (game.state === 'tennis' && !game.paused && tennis.key(e)) { e.preventDefault(); return; }
   const k = e.key.toLowerCase();
   if (k === 'r' || k === 'к') reload(0);
   else if (k === 'p' || k === 'escape' || k === 'п') togglePause();
   else if (k === 'm' || k === 'м') toggleMute();
   else if (k === ' ' && (game.state === 'continue' || game.state === 'clear')) fire(0, view.W / 2, view.H / 2, 'key');
 });
-document.addEventListener('visibilitychange', () => { if (document.hidden && game.state === 'play' && !game.paused) togglePause(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && (game.state === 'play' || game.state === 'tennis') && !game.paused) togglePause(); });
 
 function togglePause() {
-  if (game.state === 'title' || game.state === 'over') return;
+  if (game.state === 'title' || game.state === 'over' || game.state === 'tennis-over') return;
   if (game.paused) { game.paused = false; showScreen(null); }
   else { game.paused = true; showScreen('scr-pause'); }
 }
@@ -1170,6 +1179,7 @@ function placeCam(where) {
 
 function goTitle() {
   game.state = 'title';
+  document.body.classList.remove('mode-tennis');
   game.paused = false;
   game.players = [];
   game.dinos = [];
@@ -1189,6 +1199,7 @@ function syncButtons() {
   $('#triggerBtn').textContent = settings.autoFire ? 'СПУСЪК: АВТОМАТИЧНО' : 'СПУСЪК: ПАЛЕЦ';
   $('#gain').value = settings.gain;
   $('#gainVal').textContent = settings.gain.toFixed(1);
+  document.querySelectorAll('[data-level]').forEach(b => b.classList.toggle('on', b.dataset.level === settings.tennisLevel));
   const hs = highScores[0];
   $('#title-hi').textContent = hs ? `РЕКОРД ${fmt(hs.score)} · ${hs.name}` : '';
 }
@@ -1270,6 +1281,11 @@ document.addEventListener('click', e => {
     case 'ini-ok': saveInitials(); break;
     case 'again': startGame(); break;
     case 'title': goTitle(); break;
+    case 'tennis': syncButtons(); showScreen('scr-tennis'); break;
+    case 'tlevel': settings.tennisLevel = b.dataset.level; saveSettings(); syncButtons(); break;
+    case 'tennis-hand': startTennisHand(); break;
+    case 'tennis-mouse': startTennis('mouse'); break;
+    case 'tennis-again': startTennis(game.inputMode === 'hand' ? 'hand' : 'mouse'); break;
     default: break;
   }
 });
@@ -1316,13 +1332,61 @@ function updateSetupMeter() {
   $('#fps').textContent = hand.running ? `${Math.round(hand.fps)} кадъра/с` : '';
 }
 
+// ---------- тенис ----------
+function startTennis(input) {
+  initAudio();
+  stopMusic();
+  game.inputMode = input === 'hand' ? 'hand' : 'mouse';
+  game.paused = false;
+  game.state = 'tennis';
+  game.players = [];
+  document.body.classList.add('mode-tennis');
+  showScreen(null);
+  sfx.coin();
+  tennis.start(settings.tennisLevel, input);
+}
+
+async function startTennisHand() {
+  const st = $('#tennis-status');
+  st.classList.remove('err');
+  st.textContent = 'Пускам камерата…';
+  try {
+    await hand.start(1, msg => { st.textContent = msg; });
+    await hand.setNumHands(1);
+    st.textContent = '';
+    startTennis('hand');
+  } catch (err) {
+    st.classList.add('err');
+    const name = err && err.name;
+    st.textContent = name === 'NotAllowedError' ? 'Няма разрешение за камерата. Разреши я и опитай пак — или играй с мишка.'
+      : name === 'NotFoundError' ? 'Не намирам камера. Играй с мишка, пръст или стрелките.'
+      : 'Нещо не стана: ' + (err && err.message ? err.message : err);
+  }
+}
+
+function tennisEnd(score, stats) {
+  game.state = 'tennis-over';
+  const won = score.gMe > score.gAi;
+  won ? sfx.stage() : sfx.over();
+  $('#tover-title').textContent = won ? 'ПОБЕДА!' : 'ЗАГУБИ';
+  $('#tover-score').textContent = `ГЕЙМОВЕ ${score.gMe} : ${score.gAi}`;
+  $('#tover-stats').textContent = `${LEVELS[settings.tennisLevel].name} · удари ${stats.hits} от ${stats.swings} замаха · печеливши ${stats.winners}`;
+  showScreen('scr-tover');
+}
+
 // ---------- главен цикъл ----------
 let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
-  if (!game.paused) update(dt);
-  render(game.paused ? 0 : dt);
+  if (inTennis()) {
+    if (!game.paused && game.state === 'tennis') tennis.update(dt);
+    ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
+    tennis.render();
+  } else {
+    if (!game.paused) update(dt);
+    render(game.paused ? 0 : dt);
+  }
   updateDwell(dt);
   drawCursor();
   updateSetupMeter();
@@ -1340,7 +1404,7 @@ function frame(now) {
 
 // за тестове от конзолата
 window.__dino = {
-  game, hand, settings,
+  game, hand, settings, tennis,
   aim() {
     const d = game.dinos.filter(o => !o.dead && o.type !== 'pickup').sort((x, y) => x.z - y.z)[0];
     if (!d) return null;

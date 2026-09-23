@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
-<title>Дино атака</title>
+<title>Дино аркада</title>
 <meta name="description" content="Аркадна стрелба по динозаври в браузъра. Целиш се с ръка пред камерата на лаптопа или телефона — показалецът е цевта, палецът е спусъкът." />
 <meta name="theme-color" content="#120a24" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -28,6 +28,7 @@
       <div class="menu">
         <button class="btn big" data-action="hand" id="title-hand">✋ ИГРАЙ С РЪКА</button>
         <button class="btn" data-action="mouse">🖱️ МИШКА ИЛИ ПРЪСТ</button>
+        <button class="btn big tennis-btn" data-action="tennis">🎾 ТЕНИС</button>
         <div class="row">
           <span class="lbl">ИГРАЧИ</span>
           <button class="btn chip" data-action="players" data-players="1">1</button>
@@ -78,6 +79,45 @@
       <div class="row">
         <button class="btn small" data-action="title">← НАЗАД</button>
         <button class="btn small" data-action="mouse">ИГРАЙ С МИШКА</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ТЕНИС ============ -->
+  <section id="scr-tennis" class="screen">
+    <div class="panel">
+      <h2>🎾 Тенис</h2>
+      <p class="lead">Ти си отдолу, Дино е отсреща. Играчът тича сам — ти само замахваш с ръка пред камерата, бързо и настрани.</p>
+      <div class="how">
+        <div><span class="ico">👉</span><p><b>Топката е отдясно</b> — замахни отдясно наляво <b>←</b>.</p></div>
+        <div><span class="ico">👈</span><p><b>Топката е отляво</b> — замахни отляво надясно <b>→</b>.</p></div>
+        <div><span class="ico">⏱️</span><p><b>Уцели момента.</b> Удари, когато маркерът е в зелената зона. Рано дърпа топката в едната посока, късно — в другата.</p></div>
+        <div><span class="ico">⬆️</span><p><b>Сервис:</b> замахни, когато подхвърлената топка е най-горе. Замах нагоре прави висока топка (лоб).</p></div>
+      </div>
+      <div class="levels">
+        <button class="btn level" data-action="tlevel" data-level="easy"><b>ЛЕСНО</b><small>широк прозорец за удар, стига да уцелиш посоката ← или →</small></button>
+        <button class="btn level" data-action="tlevel" data-level="medium"><b>СРЕДНО</b><small>по-точен момент, по-бърз и по-хоризонтален замах</small></button>
+        <button class="btn level" data-action="tlevel" data-level="hard"><b>ТРУДНО</b><small>само един опит, точен момент, рязък и прав замах; лошият удар излиза в аут</small></button>
+      </div>
+      <p id="tennis-status" class="status" role="status"></p>
+      <div class="row">
+        <button class="btn big" data-action="tennis-hand">✋ ИГРАЙ С РЪКА</button>
+        <button class="btn" data-action="tennis-mouse">🖱️ МИШКА, ПРЪСТ ИЛИ СТРЕЛКИ</button>
+      </div>
+      <p class="keys">С мишка или пръст: бързо плъзгане наляво или надясно. С клавиатура: <kbd>←</kbd> <kbd>→</kbd>, сервис с <kbd>Space</kbd>.</p>
+      <button class="btn small" data-action="title">← НАЗАД</button>
+    </div>
+  </section>
+
+  <section id="scr-tover" class="screen">
+    <div class="panel narrow">
+      <h2 id="tover-title">КРАЙ НА МАЧА</h2>
+      <p id="tover-score" class="big-score"></p>
+      <p id="tover-stats" class="lead"></p>
+      <div class="menu">
+        <button class="btn big" data-action="tennis-again">ОЩЕ ЕДИН МАЧ</button>
+        <button class="btn" data-action="tennis">ДРУГА ТРУДНОСТ</button>
+        <button class="btn small" data-action="title">НАЧАЛО</button>
       </div>
     </div>
   </section>
