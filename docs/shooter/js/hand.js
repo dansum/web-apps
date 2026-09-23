@@ -178,7 +178,7 @@ export class HandInput {
       slot, wx: 0, wy: 0, lastSeen: 0, visible: false,
       fx: new OneEuro(), fy: new OneEuro(),
       x: 0.5, y: 0.5, rawX: 0.5, rawY: 0.5,
-      history: [], openRef: 0.55, armed: false, trigger: 0, lastShot: 0,
+      history: [], palm: [], openRef: 0.55, armed: false, trigger: 0, lastShot: 0,
       offscreen: false, autoT: 0,
     };
   }
@@ -201,6 +201,9 @@ export class HandInput {
     tr.y = tr.fy.filter(sy, t);
     tr.history.push({ t, x: tr.x, y: tr.y, rx: ax, ry: ay });
     while (tr.history.length && t - tr.history[0].t > 0.4) tr.history.shift();
+    // Сурова позиция на дланта (без усилване и филтър) — за засичане на замах в тениса.
+    tr.palm.push({ t, x: 1 - (lm[0].x + lm[9].x) / 2, y: (lm[0].y + lm[9].y) / 2 });
+    while (tr.palm.length && t - tr.palm[0].t > 0.6) tr.palm.shift();
 
     // Извън екрана = презареждане (като истински аркаден пистолет).
     const out = tr.x < -0.03 || tr.x > 1.03 || tr.y < -0.03 || tr.y > 1.03;

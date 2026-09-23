@@ -155,6 +155,16 @@ body.in-play #game { cursor: none; }
 .target.aim-hover { transform: scale(1.08); }
 @keyframes pulse { 50% { transform: scale(1.05); } }
 
+/* ---------- тенис ---------- */
+.tennis-btn { background: linear-gradient(#e9ff7a, #9ad31f); box-shadow: 0 5px 0 #4a7a00, 0 8px 14px rgba(0, 0, 0, 0.45); }
+.levels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0 8px; }
+.btn.level { display: flex; flex-direction: column; gap: 8px; align-items: center; background: linear-gradient(#e8defc, #b8a4e8); box-shadow: 0 4px 0 #4a2a8a; }
+.btn.level b { font-weight: 400; font-size: 13px; }
+.btn.level small { font-family: var(--text); font-size: 13px; line-height: 1.3; font-weight: 600; }
+.btn.level.on { background: linear-gradient(#aaf07a, #5cc21f); box-shadow: 0 4px 0 #2d6a0a; }
+body.mode-tennis #scr-pause [data-action="setup"] { display: none; }
+@media (max-width: 720px) { .levels { grid-template-columns: 1fr; } }
+
 /* ---------- как се играе ---------- */
 .how { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; text-align: left; margin-bottom: 14px; }
 .how > div { display: flex; gap: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; padding: 10px 12px; }
