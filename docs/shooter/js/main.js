@@ -1132,6 +1132,8 @@ canvas.addEventListener('pointerdown', e => {
   fire(0, e.clientX, e.clientY, mouse.touch ? 'touch' : 'mouse');
 });
 canvas.addEventListener('contextmenu', e => e.preventDefault());
+// браузърите пускат звук само след жест на потребителя — отключи при всяко докосване или клавиш
+for (const ev of ['pointerdown', 'keydown', 'touchend']) window.addEventListener(ev, () => initAudio(), { passive: true });
 $('#reloadBtn').addEventListener('pointerdown', e => { e.stopPropagation(); reload(0); });
 $('#pauseBtn').addEventListener('click', () => togglePause());
 
