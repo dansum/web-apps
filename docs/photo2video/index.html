@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Снимки във видео</title>
+<meta name="description" content="Превръща серия снимки във видео с плавни междинни кадри. Всичко става в браузъра — снимките не се качват никъде." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127902;</text></svg>" />
+</head>
+<body>
+
+<header class="top">
+  <h1>Снимки във видео</h1>
+  <p>Добавете поредица снимки, направени от статив. Приложението изчислява плавни междинни кадри между всеки две съседни снимки и ги записва във видео. Всичко става в браузъра — снимките не напускат компютъра ви.</p>
+</header>
+
+<main>
+
+  <!-- 1. Снимки -->
+  <section class="card" id="sec-photos">
+    <h2><span class="num">1</span> Снимки</h2>
+    <label class="drop" id="drop">
+      <input type="file" id="file-input" accept="image/*" multiple hidden />
+      <strong>Пуснете снимките тук</strong>
+      <span>или щракнете, за да ги изберете</span>
+    </label>
+    <div class="row between" id="photo-tools" hidden>
+      <span id="photo-count" class="muted"></span>
+      <span class="row">
+        <button type="button" class="btn small" id="sort-name">Подреди по име</button>
+        <button type="button" class="btn small" id="reverse">Обърни реда</button>
+        <button type="button" class="btn small ghost" id="clear">Изчисти</button>
+      </span>
+    </div>
+    <ol class="thumbs" id="thumbs"></ol>
+    <p class="muted hint">Пренаредете снимките, като ги плъзгате, или със стрелките под тях.</p>
+  </section>
+
+  <!-- 2. Настройки -->
+  <section class="card" id="sec-settings">
+    <h2><span class="num">2</span> Настройки</h2>
+
+    <fieldset class="algos">
+      <legend>Метод на интерполация</legend>
+      <label class="algo">
+        <input type="radio" name="algo" value="crossfade" />
+        <span class="algo-body">
+          <strong>Плавно смесване</strong>
+          <span class="meter"><span>Скорост</span><i class="m5"></i></span>
+          <span class="meter"><span>Качество</span><i class="m1"></i></span>
+          <small>Най-бързо. Едната снимка постепенно преминава в другата. Движещите се обекти се „раздвояват“.</small>
+        </span>
+      </label>
+      <label class="algo">
+        <input type="radio" name="algo" value="flow" checked />
+        <span class="algo-body">
+          <strong>Оптичен поток <em class="tag">препоръчано</em></strong>
+          <span class="meter"><span>Скорост</span><i class="m4"></i></span>
+          <span class="meter"><span>Качество</span><i class="m4"></i></span>
+          <small>Намира накъде се е преместил всеки пиксел и наистина придвижва обектите. Работи добре при малки разлики между снимките.</small>
+        </span>
+      </label>
+      <label class="algo">
+        <input type="radio" name="algo" value="rife" />
+        <span class="algo-body">
+          <strong>Невронна мрежа (RIFE)</strong>
+          <span class="meter"><span>Скорост</span><i class="m1"></i></span>
+          <span class="meter"><span>Качество</span><i class="m5"></i></span>
+          <small>Най-добро качество, но много по-бавно на слаба видеокарта. Изисква модел.</small>
+        </span>
+      </label>
+    </fieldset>
+
+    <div class="rife-panel" id="rife-panel" hidden>
+      <div class="notice" role="note">
+        <strong>Временно:</strong> засега моделът RIFE се зарежда ръчно — от файл <code>.onnx</code> на компютъра или от интернет адрес.
+        В следваща версия ще се зарежда автоматично, без да правите нищо.
+      </div>
+      <div class="grid2">
+        <label class="field">
+          <span>Файл с модела (.onnx)</span>
+          <input type="file" id="rife-file" accept=".onnx" />
+        </label>
+        <label class="field">
+          <span>или адрес на модела</span>
+          <span class="row">
+            <input type="url" id="rife-url" placeholder="https://…/rife.onnx" />
+            <button type="button" class="btn small" id="rife-load-url">Зареди</button>
+          </span>
+        </label>
+      </div>
+      <p class="muted" id="rife-status">Моделът не е зареден.</p>
+    </div>
+
+    <div class="grid3">
+      <label class="field">
+        <span>Резолюция</span>
+        <select id="res"></select>
+      </label>
+      <label class="field">
+        <span>Междинни кадри между две снимки</span>
+        <input type="number" id="inter" min="1" max="120" value="11" />
+      </label>
+      <label class="field">
+        <span>Кадри в секунда</span>
+        <select id="fps">
+          <option>12</option><option>15</option><option>24</option><option selected>25</option><option>30</option><option>50</option><option>60</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>Задържане на всяка снимка (кадри)</span>
+        <input type="number" id="hold" min="0" max="300" value="0" />
+      </label>
+      <label class="field">
+        <span>Формат</span>
+        <select id="format">
+          <option value="mp4" selected>MP4 (H.264)</option>
+          <option value="webm">WebM (VP9)</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>Качество на видеото</span>
+        <select id="quality">
+          <option value="low">Малък файл</option>
+          <option value="normal" selected>Нормално</option>
+          <option value="high">Високо</option>
+        </select>
+      </label>
+    </div>
+    <label class="check">
+      <input type="checkbox" id="equalize" checked />
+      <span>Изравнявай яркостта между снимките (премахва премигването, ако светлината леко се е променяла)</span>
+    </label>
+
+    <div class="summary" id="summary">Добавете поне две снимки.</div>
+  </section>
+
+  <!-- 3. Преглед -->
+  <section class="card" id="sec-preview">
+    <h2><span class="num">3</span> Преглед</h2>
+    <div class="stage">
+      <canvas id="view" aria-label="Преглед на кадъра"></canvas>
+      <div class="stage-empty" id="stage-empty">Тук ще видите междинните кадри.</div>
+    </div>
+    <div class="controls">
+      <label class="field">
+        <span>Двойка снимки</span>
+        <select id="pair"></select>
+      </label>
+      <label class="field grow">
+        <span>Момент между двете снимки: <b id="t-label">0,50</b></span>
+        <input type="range" id="t" min="0" max="1" step="0.01" value="0.5" />
+      </label>
+      <span class="row">
+        <button type="button" class="btn" id="play">▶ Пусни</button>
+        <label class="check small"><input type="checkbox" id="show-flow" /> <span>Покажи движението</span></label>
+      </span>
+    </div>
+    <p class="muted" id="preview-status"></p>
+  </section>
+
+  <!-- 4. Видео -->
+  <section class="card" id="sec-render">
+    <h2><span class="num">4</span> Видео</h2>
+    <div class="row">
+      <button type="button" class="btn primary" id="render" disabled>Създай видеото</button>
+      <button type="button" class="btn ghost" id="cancel" hidden>Спри</button>
+    </div>
+    <div class="progress" id="progress" hidden><div id="bar"></div></div>
+    <p class="muted" id="render-status"></p>
+    <div id="result" hidden>
+      <video id="video" controls loop playsinline></video>
+      <p class="row"><a class="btn primary" id="download" download>Изтегли видеото</a> <span class="muted" id="result-info"></span></p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="muted">Работи изцяло в браузъра. Най-добре в нов Chrome или Edge.</footer>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
