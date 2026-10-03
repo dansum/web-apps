@@ -21,101 +21,102 @@ window.TRAINING_CONFIG = {
   // the certificate page works either way.
   autoSend: true,
 
-  // TODO: replace these with questions based on the training video.
+  // Questions come strictly from the "Annual Training – Right at Home Boulder"
+  // slides (Annual_Training_20261003_small.pptx).
   // `answer` is the index of the correct option, counting from 0.
   questions: [
     {
-      q: "What is the single most effective way to prevent the spread of infection in a client's home?",
+      q: "The WellSky app isn't working and you need to clock in. What should you do?",
       options: [
-        "Wearing gloves for every task",
-        "Washing your hands properly and often",
-        "Opening the windows every day",
-        "Keeping the client in one room"
-      ],
-      answer: 1
-    },
-    {
-      q: "How long should you scrub your hands with soap when washing them?",
-      options: ["5 seconds", "At least 20 seconds", "Exactly 2 minutes", "Until the soap is gone"],
-      answer: 1
-    },
-    {
-      q: "You notice unexplained bruises on your client and they seem afraid of a family member. What should you do?",
-      options: [
-        "Ask the family member about it directly",
-        "Wait to see if it happens again",
-        "Report it to your supervisor right away, following your agency's abuse-reporting procedure",
-        "Do nothing; it is a private family matter"
+        "Skip clocking in and tell the office at the end of the week",
+        "Call Telephony from your own phone",
+        "Call Telephony from the client's phone, using the number on the back of your badge",
+        "Ask the client to note your arrival time on paper"
       ],
       answer: 2
     },
     {
-      q: "Which of these is the best way to reduce a client's risk of falling at home?",
+      q: "What is the minimum notice required to cancel a scheduled shift?",
+      options: ["2 hours", "12 hours", "24 hours", "2 weeks"],
+      answer: 2
+    },
+    {
+      q: "What happens if you cancel 3 or more shifts with less than 24 hours' notice within any 60-day period?",
       options: [
-        "Keep walkways clear, use good lighting and remove loose rugs",
-        "Encourage the client to stay in bed",
-        "Polish the floors so they are easy to clean",
-        "Move furniture often so the client stays alert"
+        "You are automatically removed from all active shifts, and it can result in termination",
+        "Nothing, as long as you send a critical message each time",
+        "You receive a verbal warning from the office",
+        "Your hourly pay is reduced for the next month"
       ],
       answer: 0
     },
     {
-      q: "Your client falls and you are alone with them. What is the right first step?",
+      q: "Your client asks you to stay an hour past your scheduled shift. What should you do?",
       options: [
-        "Lift them up immediately",
-        "Leave them and call their family",
-        "Stay calm, check them for injury before moving them, and call for help if needed",
-        "Give them pain medication from the cabinet"
-      ],
-      answer: 2
-    },
-    {
-      q: "When lifting or helping to move a client, good body mechanics means:",
-      options: [
-        "Bending at the waist and lifting with your back",
-        "Bending your knees, keeping your back straight and holding the load close to your body",
-        "Twisting your body to save time",
-        "Lifting quickly so the client is not uncomfortable"
+        "Stay — extra time is always paid",
+        "Notify the office on Trillian first; the extra time is paid only if the office approves it",
+        "Agree, and record the extra hour in your care notes",
+        "Refuse; caregivers may never stay late"
       ],
       answer: 1
     },
     {
-      q: "A client's medical information should be shared with:",
+      q: "A client asks for your personal phone number so they can call you directly. What should you do?",
       options: [
-        "Neighbours who ask how the client is doing",
-        "Your friends, as long as you do not use the client's name",
-        "Only people involved in the client's care who are authorised to know",
-        "Anyone, posted on social media without a photo"
+        "Give it to them; it builds trust",
+        "Give them your email instead of your phone number",
+        "Share it only with the client's family",
+        "Don't share it — contact between caregivers and clients is handled by the office"
+      ],
+      answer: 3
+    },
+    {
+      q: "As a mandatory reporter, you suspect a client is being financially exploited but you aren't sure. What should you do?",
+      options: [
+        "Investigate and collect proof before saying anything",
+        "Ask the family member you suspect about it",
+        "Report it to agency management right away — when in doubt, report it",
+        "Wait until you are certain"
       ],
       answer: 2
     },
     {
-      q: "A client living with dementia becomes agitated and keeps asking for their late spouse. What is the best approach?",
+      q: "A client with dementia says today is Tuesday, but it's actually Wednesday. Following the golden rules, what should you do?",
       options: [
-        "Correct them firmly so they accept reality",
-        "Stay calm, speak gently, acknowledge their feelings and redirect to a soothing activity",
-        "Leave the room until they calm down",
-        "Raise your voice so they can hear you clearly"
-      ],
-      answer: 1
-    },
-    {
-      q: "Which of these is a right every client has?",
-      options: [
-        "To be treated with dignity and to make choices about their own care",
-        "To have the caregiver do any household task they ask for",
-        "To receive free medication from the caregiver",
-        "To choose the caregiver's working hours"
+        "Just nod and smile — don't contradict or argue",
+        "Gently correct them so they stay oriented",
+        "Show them a calendar to prove the date",
+        "Ask them direct questions to test their memory"
       ],
       answer: 0
     },
     {
-      q: "You notice your client is suddenly confused, has a drooping face and slurred speech. What should you do?",
+      q: "How should you physically approach a person with dementia?",
       options: [
-        "Let them rest and check again in an hour",
-        "Call emergency services (911) immediately — these are signs of a stroke",
-        "Give them something to eat",
-        "Write it down and mention it at the end of your shift"
+        "From the side, so you don't block their view",
+        "From the front, because their peripheral vision is limited",
+        "From behind, quietly, so you don't disturb them",
+        "Quickly, so they don't have time to get anxious"
+      ],
+      answer: 1
+    },
+    {
+      q: "Your client falls and there's no apparent serious injury. What is the correct procedure?",
+      options: [
+        "Lift the client back up yourself, then tell the office",
+        "Help the client up and note the fall in WellSky at the end of your shift",
+        "Leave the client on the floor and wait for family to arrive",
+        "Don't lift them — send a critical message on Trillian and call the office, which will call the local lift assist"
+      ],
+      answer: 3
+    },
+    {
+      q: "According to infection-control guidelines, how should you treat blood and bodily fluids?",
+      options: [
+        "As infectious only if the client shows symptoms",
+        "As potentially infectious at all times, using Standard Precautions",
+        "As safe, as long as you wash your hands afterwards",
+        "As infectious only if the client has a known diagnosis such as MRSA"
       ],
       answer: 1
     }

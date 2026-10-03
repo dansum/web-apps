@@ -9,7 +9,7 @@ as PDF or print. No server, no build step.
 Everything editable is in `config.js`:
 
 - `notifyEmail` — who gets the completion notice (**TODO: Shana's Right at Home email**).
-- `questions` — the quiz (**TODO: replace with questions based on the video**).
+- `questions` — the quiz, taken from the Right at Home Boulder annual training slides.
   `answer` is the index of the correct option, counting from 0.
 - `passMark` — correct answers needed to pass (default 8 of 10).
 - `driveVideoId` — the Google Drive video. Share it as "Anyone with the link can view".
