@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Street Walks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans:wght@400;600&family=Sofia+Sans+Condensed:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/cesium@1.120.0/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+<script>window.CESIUM_BASE_URL = 'https://cdn.jsdelivr.net/npm/cesium@1.120.0/Build/Cesium/';</script>
+<script src="https://cdn.jsdelivr.net/npm/cesium@1.120.0/Build/Cesium/Cesium.js"></script>
+<style>
+  :root {
+    --paveta: #E2B93B;
+    --ink: #F4F0E4;
+    --muted: #A9B1BE;
+    --panel: rgba(18, 24, 34, 0.82);
+    --panel-solid: #121822;
+    --line: rgba(244, 240, 228, 0.16);
+    --danger: #F08C6E;
+    --sans: "Sofia Sans", "Segoe UI", system-ui, sans-serif;
+    --cond: "Sofia Sans Condensed", "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
+    color-scheme: dark;
+  }
+  html, body { height: 100%; margin: 0; overflow: hidden; background: #0E131B; color: var(--ink); font-family: var(--sans); }
+  #cesium { position: fixed; inset: 0; }
+  #cesium .cesium-widget-credits { font-family: var(--sans); }
+  [hidden] { display: none !important; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--paveta); outline-offset: 2px; }
+
+  /* ---------- Language switch ---------- */
+  .lang-switch { display: inline-flex; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; flex: none; }
+  .lang-switch button {
+    background: none; border: 0; padding: 4px 10px; font-family: var(--cond); font-weight: 700; font-size: 13px;
+    color: var(--muted); cursor: pointer;
+  }
+  .lang-switch button[aria-pressed="true"] { background: var(--paveta); color: #1B1606; }
+  .lang-switch button:not([aria-pressed="true"]):hover { color: var(--ink); background: rgba(255,255,255,.07); }
+  #start .lang-switch { position: absolute; top: calc(18px + env(safe-area-inset-top, 0px)); right: 22px; }
+
+  /* ---------- Start screen ---------- */
+  #start {
+    position: fixed; inset: 0; z-index: 20; display: flex; align-items: center;
+    padding: calc(24px + env(safe-area-inset-top, 0px)) 24px calc(24px + env(safe-area-inset-bottom, 0px));
+    background-color: #0E131B;
+    background-image:
+      linear-gradient(90deg, rgba(14,19,27,.97) 0%, rgba(14,19,27,.9) 45%, rgba(14,19,27,.55) 100%),
+      linear-gradient(0deg, transparent 0 46px, rgba(226,185,59,.22) 46px 48px),
+      linear-gradient(90deg, transparent 0 94px, rgba(226,185,59,.22) 94px 96px),
+      linear-gradient(90deg, transparent 0 46px, rgba(226,185,59,.22) 46px 48px, transparent 48px);
+    background-size: auto, 96px 48px, 96px 96px, 96px 96px;
+    background-position: 0 0, 0 0, 0 0, 0 48px;
+    overflow-y: auto;
+  }
+  #start .inner { max-width: 520px; margin-left: clamp(0px, 7vw, 120px); }
+  #start h1 {
+    font-family: var(--cond); font-weight: 700; font-size: clamp(44px, 6.5vw, 76px);
+    line-height: .96; letter-spacing: -.015em; margin: 0 0 18px;
+  }
+  #start h1 span { display: block; }
+  #start h1 span + span { color: var(--paveta); }
+  #start .lede { font-size: 18px; line-height: 1.5; color: var(--muted); margin: 0 0 28px; max-width: 46ch; }
+  label.field { display: block; font-weight: 600; font-size: 15px; margin-bottom: 8px; }
+  input[type=password], input[type=text] {
+    width: 100%; box-sizing: border-box; padding: 13px 14px; font: 15px/1.2 var(--sans);
+    color: var(--ink); background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: 6px;
+  }
+  input::placeholder { color: #7D8695; }
+  .row { display: flex; align-items: center; gap: 10px; margin: 12px 0 22px; font-size: 14px; color: var(--muted); }
+  .row input { width: 18px; height: 18px; accent-color: var(--paveta); }
+  #go {
+    font-family: var(--cond); font-weight: 700; font-size: 20px; letter-spacing: .01em;
+    background: var(--paveta); color: #1B1606; border: 0; border-radius: 6px; padding: 13px 26px; cursor: pointer;
+  }
+  #go:hover { background: #EDC650; }
+  #go:disabled { opacity: .6; cursor: progress; }
+  #error { color: var(--danger); font-size: 15px; line-height: 1.45; margin: 16px 0 0; max-width: 52ch; }
+  details { margin-top: 28px; border-top: 1px solid var(--line); padding-top: 14px; font-size: 15px; line-height: 1.55; color: var(--muted); }
+  details summary { cursor: pointer; color: var(--ink); font-weight: 600; }
+  details h3 { font-size: 15px; color: var(--ink); margin: 16px 0 4px; }
+  details p, details ol { margin: 4px 0; }
+  details ol { padding-left: 20px; }
+  details code { color: var(--ink); background: rgba(255,255,255,.07); padding: 1px 5px; border-radius: 3px; }
+  details a { color: var(--paveta); }
+
+  /* ---------- HUD ---------- */
+  #loadbar { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 6; overflow: hidden; opacity: 0; transition: opacity .4s; }
+  #loadbar.on { opacity: 1; }
+  #loadbar::after { content: ""; position: absolute; top: 0; bottom: 0; width: 30%; background: var(--paveta); animation: slide 1.4s ease-in-out infinite; }
+  @keyframes slide { from { left: -30%; } to { left: 100%; } }
+  @media (prefers-reduced-motion: reduce) { #loadbar::after { animation: none; left: 0; width: 100%; opacity: .7; } }
+
+  #place {
+    position: fixed; z-index: 5; pointer-events: none;
+    top: calc(18px + env(safe-area-inset-top, 0px)); left: 22px; max-width: min(60vw, 560px);
+    text-shadow: 0 1px 10px rgba(0,0,0,.7), 0 0 2px rgba(0,0,0,.5);
+  }
+  #place h2 { font-family: var(--cond); font-weight: 700; font-size: clamp(26px, 3.6vw, 42px); line-height: 1.02; margin: 0; letter-spacing: -.01em; }
+  #place .sub { margin: 6px 0 0; font-size: 15px; }
+  #place .meta { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 13px; color: #DCE1E8; }
+  #mode { font-family: var(--cond); font-weight: 700; font-size: 13px; letter-spacing: .02em; background: var(--paveta); color: #1B1606; padding: 3px 9px; border-radius: 3px; text-shadow: none; }
+  #mode.fly { background: #8FC3E8; }
+
+  #crosshair { position: fixed; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: rgba(255,255,255,.85); box-shadow: 0 0 0 1.5px rgba(0,0,0,.45); z-index: 5; pointer-events: none; }
+  #lockhint {
+    position: fixed; z-index: 5; left: 50%; transform: translateX(-50%);
+    bottom: calc(46px + env(safe-area-inset-bottom, 0px));
+    background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 16px; font-size: 15px; pointer-events: none;
+    backdrop-filter: blur(6px);
+  }
+
+  .panel { position: fixed; z-index: 5; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; backdrop-filter: blur(8px); }
+  #places { top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px; width: 280px; max-height: calc(100% - 120px); overflow-y: auto; padding: 10px 0 12px; }
+  #places .head { display: flex; align-items: center; justify-content: space-between; margin: 4px 16px 8px; }
+  #places h3, #help h3 { font-family: var(--cond); font-weight: 700; font-size: 18px; margin: 0; }
+  #help h3 { margin: 4px 16px 8px; }
+  #places ul { list-style: none; margin: 0; padding: 0; }
+  #places li button.pl {
+    width: 100%; display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: baseline; text-align: left;
+    background: none; border: 0; border-left: 3px solid transparent; padding: 7px 16px 7px 13px; cursor: pointer; font-size: 15px; line-height: 1.3;
+  }
+  #places li button.pl:hover, #my-list li button.go:hover { background: rgba(255,255,255,.06); }
+  #places li button[aria-current="true"] { border-left-color: var(--paveta); background: rgba(226,185,59,.10); }
+  #places li kbd { font-size: 12px; }
+  #places h4 { font-family: var(--cond); font-weight: 700; font-size: 15px; color: var(--muted); margin: 14px 16px 4px; }
+  #my-list li { display: flex; align-items: stretch; }
+  #my-list li button.go { flex: 1; text-align: left; background: none; border: 0; border-left: 3px solid transparent; padding: 7px 8px 7px 13px; cursor: pointer; font-size: 15px; line-height: 1.3; }
+  #my-list li button.rm { background: none; border: 0; color: var(--muted); padding: 0 14px; cursor: pointer; font-size: 18px; line-height: 1; }
+  #my-list li button.rm:hover { color: var(--danger); }
+  #goto-form { padding: 12px 16px 0; margin-top: 10px; border-top: 1px solid var(--line); }
+  #goto-form label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+  #goto-form .line { display: flex; gap: 6px; }
+  #goto-form input { padding: 8px 10px; font-size: 14px; border-radius: 5px; min-width: 0; }
+  #goto-form button { flex: none; background: var(--paveta); color: #1B1606; border: 0; border-radius: 5px; padding: 0 12px; font-weight: 600; font-size: 14px; cursor: pointer; }
+  #goto-form button:hover { background: #EDC650; }
+  #goto-msg { margin: 6px 0 0; font-size: 13px; line-height: 1.4; color: var(--muted); }
+  #goto-msg.err { color: var(--danger); }
+  #places .tools { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px 0; margin-top: 12px; border-top: 1px solid var(--line); }
+  .ghost { background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: 5px; padding: 6px 10px; font-size: 13px; cursor: pointer; }
+  .ghost:hover { background: rgba(255,255,255,.12); }
+
+  #help { left: 16px; bottom: calc(40px + env(safe-area-inset-bottom, 0px)); padding: 10px 16px 12px 0; font-size: 14px; }
+  #help dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0 0 0 16px; }
+  #help dt { white-space: nowrap; }
+  #help dd { margin: 0; color: #DCE1E8; }
+  kbd {
+    font-family: var(--cond); font-weight: 500; font-size: 13px; display: inline-block; min-width: 1.3em; text-align: center;
+    padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; background: rgba(255,255,255,.05);
+  }
+  #toast { position: fixed; z-index: 7; left: 50%; top: 22%; transform: translateX(-50%); max-width: min(90vw, 520px); text-align: center; background: var(--panel-solid); border: 1px solid var(--line); border-radius: 6px; padding: 10px 16px; font-size: 15px; line-height: 1.4; opacity: 0; transition: opacity .3s; pointer-events: none; }
+  #toast.on { opacity: 1; }
+
+  @media (max-width: 760px) {
+    #places { width: 230px; }
+    #help { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="cesium"></div>
+<div id="loadbar" aria-hidden="true"></div>
+
+<section id="hud" hidden>
+  <div id="place" aria-live="polite">
+    <h2 id="place-name"></h2>
+    <p class="sub" id="place-sub"></p>
+    <div class="meta"><span id="mode"></span><span id="coords"></span></div>
+  </div>
+  <div id="crosshair" hidden></div>
+  <div id="lockhint" data-i18n="lockHint"></div>
+
+  <nav id="places" class="panel">
+    <div class="head">
+      <h3 data-i18n="placesTitle"></h3>
+      <div class="lang-switch" role="group"><button type="button" data-lang="en">EN</button><button type="button" data-lang="bg">БГ</button></div>
+    </div>
+    <ul id="place-list"></ul>
+    <h4 id="my-head" data-i18n="myPlaces" hidden></h4>
+    <ul id="my-list"></ul>
+    <form id="goto-form" autocomplete="off">
+      <label for="goto" data-i18n="gotoLabel"></label>
+      <div class="line">
+        <input id="goto" type="text" placeholder="48.8584, 2.2945" spellcheck="false">
+        <button type="submit" data-i18n="gotoBtn"></button>
+      </div>
+      <p id="goto-msg"></p>
+    </form>
+    <div class="tools">
+      <button class="ghost" id="save-place" type="button" data-i18n="savePlace"></button>
+      <button class="ghost" id="quality" type="button"></button>
+      <button class="ghost" id="mode-btn" type="button"></button>
+      <button class="ghost" id="change-key" type="button" data-i18n="changeKey"></button>
+    </div>
+  </nav>
+
+  <aside id="help" class="panel">
+    <h3 data-i18n="helpTitle"></h3>
+    <dl>
+      <dt><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></dt><dd data-i18n="hWalk"></dd>
+      <dt data-i18n="hMouse"></dt><dd data-i18n-html="hMouseDd"></dd>
+      <dt><kbd>Shift</kbd></dt><dd data-i18n="hRun"></dd>
+      <dt><kbd data-i18n="kSpace"></kbd></dt><dd data-i18n="hJump"></dd>
+      <dt><kbd>F</kbd></dt><dd data-i18n="hFly"></dd>
+      <dt><kbd>Q</kbd> <kbd>E</kbd></dt><dd data-i18n="hQE"></dd>
+      <dt><kbd>1</kbd>–<kbd>8</kbd></dt><dd data-i18n="hDigits"></dd>
+      <dt><kbd>M</kbd> <kbd>H</kbd></dt><dd data-i18n="hMH"></dd>
+    </dl>
+  </aside>
+  <div id="toast" role="status"></div>
+</section>
+
+<section id="start">
+  <div class="lang-switch" role="group"><button type="button" data-lang="en">EN</button><button type="button" data-lang="bg">БГ</button></div>
+  <div class="inner">
+    <h1><span data-i18n="h1a"></span><span data-i18n="h1b"></span></h1>
+    <p class="lede" data-i18n="lede"></p>
+    <form id="start-form" autocomplete="off">
+      <label class="field" for="key" data-i18n="keyLabel"></label>
+      <input id="key" type="password" data-i18n-ph="keyPh" spellcheck="false">
+      <div class="row"><input type="checkbox" id="remember"><label for="remember" data-i18n="remember"></label></div>
+      <button id="go" type="submit"></button>
+      <p id="error" role="alert"></p>
+    </form>
+    <details>
+      <summary data-i18n="keyHelpSummary"></summary>
+      <div data-i18n-html="keyHelpHtml"></div>
+    </details>
+  </div>
+</section>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---------- Places: points are in open squares, so you land on the ground rather than a roof ----------
+  const PLACES = [
+    { name: { en: 'Paris, Eiffel Tower', bg: 'Париж, Айфеловата кула' }, sub: { en: 'The view from the Trocadéro', bg: 'Изгледът от Трокадеро' }, lat: 48.86195, lon: 2.28785, heading: 128 },
+    { name: { en: 'Toronto, City Hall', bg: 'Торонто, кметството' }, sub: { en: 'Nathan Phillips Square', bg: 'Площад „Нейтън Филипс“' }, lat: 43.65220, lon: -79.38380, heading: 345 },
+    { name: { en: 'New York, Times Square', bg: 'Ню Йорк, Таймс Скуеър' }, sub: { en: 'The pedestrian plaza on Broadway', bg: 'Пешеходната зона на Бродуей' }, lat: 40.75770, lon: -73.98570, heading: 25 },
+    { name: { en: 'London, Trafalgar Square', bg: 'Лондон, Трафалгар Скуеър' }, sub: { en: "Nelson's Column", bg: 'Колоната на Нелсън' }, lat: 51.50840, lon: -0.12810, heading: 175 },
+    { name: { en: "Rome, St Peter's Square", bg: 'Рим, площад „Свети Петър“' }, sub: { en: "St Peter's Basilica", bg: 'Базиликата „Свети Петър“' }, lat: 41.90220, lon: 12.45800, heading: 272 },
+    { name: { en: 'Tokyo, Shibuya Crossing', bg: 'Токио, кръстовището Шибуя' }, sub: { en: 'The famous scramble crossing', bg: 'Прочутото диагонално кръстовище' }, lat: 35.65950, lon: 139.70055, heading: 330 },
+    { name: { en: 'San Francisco, Union Square', bg: 'Сан Франциско, Юниън Скуеър' }, sub: { en: 'The heart of the shopping district', bg: 'Сърцето на търговския район' }, lat: 37.78770, lon: -122.40745, heading: 0 },
+    { name: { en: 'Varna, city centre', bg: 'Варна, центърът' }, sub: { en: 'In front of the Cathedral of the Assumption', bg: 'Пред катедралата „Успение Богородично“' }, lat: 43.20460, lon: 27.91035, heading: 34 }
+  ];
+
+  // ---------- Texts ----------
+  const I18N = {
+    en: {
+      title: 'Street Walks',
+      h1a: 'Street', h1b: 'Walks',
+      lede: "Walk through famous cities in Google Earth's 3D model, with keyboard and mouse. Buildings are solid, and you climb steps and curbs as you go. Pick a place from the list or enter coordinates anywhere in the world.",
+      keyLabel: 'Access key for the 3D data',
+      keyPh: 'Cesium ion token or Google API key (AIza…)',
+      remember: 'Remember the key in this browser',
+      go: 'Start walking',
+      loading: 'Loading…',
+      keyHelpSummary: 'How to get a free key',
+      keyHelpHtml: '<h3>Option 1: Cesium ion (easiest, no bank card)</h3><ol><li>Sign up for a free account at <a href="https://ion.cesium.com/signup" target="_blank" rel="noopener">ion.cesium.com</a>.</li><li>In <em>Asset Depot</em>, find “Google Photorealistic 3D Tiles” and add it to <em>My Assets</em>.</li><li>Under <em>Access Tokens</em>, copy the <em>Default</em> token and paste it above.</li></ol><h3>Option 2: Google Maps Platform</h3><p>In Google Cloud, enable the <em>Map Tiles API</em>, create an API key and paste it above. A billing account is required, but there is a free monthly quota. The key must not be restricted to specific websites, or it will not work from a file.</p><h3>If you only see a black screen</h3><p>Some browsers block requests when a page is opened directly as a file. Open a terminal in the file’s folder, run <code>python3 -m http.server</code> and open <code>http://localhost:8000/street-walks.html</code>.</p>',
+      errCesium: 'The CesiumJS library did not load. Check your internet connection and reload the page.',
+      errNoKey: 'Paste an access key to load the city.',
+      errKey: (c) => `The key was not accepted (code ${c}). For Cesium ion, check the token and that “Google Photorealistic 3D Tiles” is added under My Assets. For Google, check that the Map Tiles API is enabled and the key is not restricted to specific websites.`,
+      errLoad: (m) => `The 3D data did not load: ${m}. If you opened the page directly as a file, try a local server (see the instructions below).`,
+      lockHint: 'Click the view to look around with the mouse',
+      placesTitle: 'Places',
+      myPlaces: 'My places',
+      gotoLabel: 'Go to coordinates',
+      gotoBtn: 'Go',
+      gotoHint: 'Latitude and longitude, or a Google Maps link',
+      gotoErr: 'Could not read the coordinates. Example: 48.8584, 2.2945',
+      gotoShort: 'Short links do not contain coordinates. Open the link and copy the full address from the address bar.',
+      savePlace: 'Save this place',
+      qualityNormal: 'Detail: normal',
+      qualityHigh: 'Detail: high',
+      flyBtn: 'Free flight',
+      landBtn: 'Land',
+      changeKey: 'Change key',
+      modeWalk: 'On foot',
+      modeFly: 'Free flight',
+      loadingStreets: 'Loading the streets…',
+      coordsName: 'Chosen coordinates',
+      noGround: 'Could not find the ground here. You start in the air: descend with Q and press F to land.',
+      noGroundBelow: 'No ground has loaded below you. Descend a little and try again.',
+      savePrompt: 'Name of this place',
+      placeN: (n) => `Place ${n}`,
+      saved: 'Place saved in this browser.',
+      remove: (n) => `Remove ${n}`,
+      aboveGround: (m) => `, ${m} m above the last ground`,
+      langLabel: 'Language',
+      helpTitle: 'Controls',
+      hWalk: 'walk (or arrow keys)',
+      hMouse: 'Mouse',
+      hMouseDd: 'look around, <kbd>Esc</kbd> releases the mouse',
+      hRun: 'run',
+      kSpace: 'Space',
+      hJump: 'jump, or up when flying',
+      hFly: 'on foot or free flight',
+      hQE: 'down and up when flying',
+      hDigits: 'go to a place',
+      hMH: 'hide the places or this help'
+    },
+    bg: {
+      title: 'Разходки по улиците',
+      h1a: 'Разходки', h1b: 'по улиците',
+      lede: 'Разходете се из известни градове в 3D модела на Google Earth, с клавиатура и мишка. Сградите са плътни, а по стъпала и бордюри се качвате. Изберете място от списъка или въведете координати навсякъде по света.',
+      keyLabel: 'Ключ за достъп до 3D данните',
+      keyPh: 'Cesium ion токен или Google API ключ (AIza…)',
+      remember: 'Запомни ключа в този браузър',
+      go: 'Започни разходката',
+      loading: 'Зареждане…',
+      keyHelpSummary: 'Как да взема безплатен ключ',
+      keyHelpHtml: '<h3>Вариант 1: Cesium ion (най-лесно, без банкова карта)</h3><ol><li>Регистрирайте се на <a href="https://ion.cesium.com/signup" target="_blank" rel="noopener">ion.cesium.com</a> с безплатен акаунт.</li><li>В <em>Asset Depot</em> намерете „Google Photorealistic 3D Tiles“ и го добавете към <em>My Assets</em>.</li><li>В <em>Access Tokens</em> копирайте <em>Default</em> токена и го поставете горе.</li></ol><h3>Вариант 2: Google Maps Platform</h3><p>В Google Cloud включете <em>Map Tiles API</em>, създайте API ключ и го поставете горе. Изисква се профил за плащане, но има безплатна месечна квота. Ключът не бива да е ограничен до определени сайтове, иначе няма да работи от файл.</p><h3>Ако виждате само черен екран</h3><p>Някои браузъри блокират част от заявките, когато страницата е отворена директно като файл. Отворете терминал в папката с файла, пуснете <code>python3 -m http.server</code> и отворете <code>http://localhost:8000/street-walks.html</code>.</p>',
+      errCesium: 'Библиотеката CesiumJS не се зареди. Проверете интернет връзката си и презаредете страницата.',
+      errNoKey: 'Поставете ключ за достъп, за да заредите града.',
+      errKey: (c) => `Ключът не беше приет (код ${c}). За Cesium ion проверете токена и дали „Google Photorealistic 3D Tiles“ е добавен в My Assets. За Google проверете дали Map Tiles API е включен и ключът не е ограничен до определени сайтове.`,
+      errLoad: (m) => `3D данните не се заредиха: ${m}. Ако страницата е отворена директно като файл, опитайте през локален сървър (вижте инструкцията по-долу).`,
+      lockHint: 'Кликнете в картината, за да се оглеждате с мишката',
+      placesTitle: 'Места',
+      myPlaces: 'Мои места',
+      gotoLabel: 'Отиди на координати',
+      gotoBtn: 'Отиди',
+      gotoHint: 'Ширина и дължина или линк от Google Maps',
+      gotoErr: 'Не разпознах координатите. Пример: 48.8584, 2.2945',
+      gotoShort: 'Краткият линк не съдържа координати. Отворете го и копирайте пълния адрес от адресната лента.',
+      savePlace: 'Запази това място',
+      qualityNormal: 'Детайл: нормален',
+      qualityHigh: 'Детайл: висок',
+      flyBtn: 'Свободен полет',
+      landBtn: 'Слез на земята',
+      changeKey: 'Смени ключа',
+      modeWalk: 'Пеша',
+      modeFly: 'Свободен полет',
+      loadingStreets: 'Зареждане на улиците…',
+      coordsName: 'Избрани координати',
+      noGround: 'Не намерих земята на това място. Започвате от въздуха: снижете се с Q и натиснете F, за да стъпите.',
+      noGroundBelow: 'Под вас няма заредена земя. Снижете се малко и опитайте пак.',
+      savePrompt: 'Име на мястото',
+      placeN: (n) => `Място ${n}`,
+      saved: 'Мястото е запазено в този браузър.',
+      remove: (n) => `Премахни ${n}`,
+      aboveGround: (m) => `, ${m} м над последната земя`,
+      langLabel: 'Език',
+      helpTitle: 'Управление',
+      hWalk: 'ходене (или стрелките)',
+      hMouse: 'Мишка',
+      hMouseDd: 'оглеждане, <kbd>Esc</kbd> освобождава мишката',
+      hRun: 'бягане',
+      kSpace: 'Интервал',
+      hJump: 'скок, при полет нагоре',
+      hFly: 'пеша или свободен полет',
+      hQE: 'надолу и нагоре при полет',
+      hDigits: 'отиди на място',
+      hMH: 'скрий местата или тази помощ'
+    }
+  };
+
+  const EYE = 1.7;          // eye height, m
+  const STEP_UP = 0.9;      // highest step you can climb, m
+  const WALL_PAD = 0.35;    // distance kept from walls, m
+  const SPEED = { walk: 2.6, run: 7, fly: 18, flyFast: 70 };
+  const SENS = 0.0022;
+  const R = 6378137;
+  const KEY_STORE = 'sofia-walk-key';        // kept from the earlier version so saved keys still work
+  const MY_STORE = 'sofia-walk-places';
+  const LANG_STORE = 'street-walks-lang';
+
+  const $ = (id) => document.getElementById(id);
+  const C = window.Cesium;
+  const toRad = (d) => d * Math.PI / 180;
+
+  function storeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function storeSet(k, v) { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { /* storage unavailable */ } }
+
+  let lang = storeGet(LANG_STORE) === 'bg' ? 'bg' : 'en';
+  const t = (k, ...a) => { const v = I18N[lang][k] ?? I18N.en[k]; return typeof v === 'function' ? v(...a) : v; };
+  const L = (o) => (o && typeof o === 'object') ? (o[lang] || o.en) : o;
+
+  let viewer, scene, camera, tileset, canvas;
+  let loopStarted = false, locked = false, spawnSeq = 0, highQuality = false, loadingKey = false;
+  let lastPlace = null;   // { p, ref }
+  let current = null;     // { kind: 'preset' | 'mine' | 'coords', idx?, id? }
+  let gotoState = 'hint'; // 'hint' | 'err' | 'short'
+  const keys = new Set();
+  const st = { lon: 0, lat: 0, ground: 0, groundShown: 0, alt: 0, heading: 0, pitch: 0, jump: 0, vy: 0, mode: 'walk', ready: false };
+
+  // ---------- Language ----------
+  function applyLang() {
+    document.documentElement.lang = lang;
+    document.title = t('title');
+    document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-html]').forEach((el) => { el.innerHTML = t(el.dataset.i18nHtml); });
+    document.querySelectorAll('[data-i18n-ph]').forEach((el) => { el.placeholder = t(el.dataset.i18nPh); });
+    document.querySelectorAll('.lang-switch').forEach((g) => g.setAttribute('aria-label', t('langLabel')));
+    document.querySelectorAll('.lang-switch button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.lang === lang ? 'true' : 'false'));
+    $('places').setAttribute('aria-label', t('placesTitle'));
+    $('go').textContent = loadingKey ? t('loading') : t('go');
+    $('quality').textContent = highQuality ? t('qualityHigh') : t('qualityNormal');
+    setMode(st.mode);
+    renderPresets();
+    renderMine();
+    renderGotoMsg();
+    if (lastPlace) {
+      $('place-name').textContent = L(lastPlace.p.name);
+      $('place-sub').textContent = st.ready ? (L(lastPlace.p.sub) || fmtCoords(lastPlace.p.lat, lastPlace.p.lon)) : t('loadingStreets');
+    }
+  }
+
+  document.querySelectorAll('.lang-switch button').forEach((b) => b.addEventListener('click', () => {
+    lang = b.dataset.lang;
+    storeSet(LANG_STORE, lang);
+    applyLang();
+    b.blur();
+  }));
+
+  const saved = storeGet(KEY_STORE);
+  if (saved) { $('key').value = saved; $('remember').checked = true; }
+
+  // ---------- Lists ----------
+  function renderPresets() {
+    const ul = $('place-list');
+    ul.textContent = '';
+    PLACES.forEach((p, i) => {
+      const li = document.createElement('li');
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'pl';
+      b.innerHTML = `<kbd>${i + 1}</kbd><span></span>`;
+      b.querySelector('span').textContent = L(p.name);
+      b.addEventListener('click', () => { goTo(i); b.blur(); });
+      li.appendChild(b);
+      ul.appendChild(li);
+    });
+    markCurrent();
+  }
+
+  function loadMine() {
+    try {
+      const a = JSON.parse(storeGet(MY_STORE) || '[]');
+      return Array.isArray(a) ? a.filter((p) => p && checkCoords(p.lat, p.lon) && typeof p.name === 'string') : [];
+    } catch (e) { return []; }
+  }
+  let mine = loadMine();
+  const saveMine = () => storeSet(MY_STORE, JSON.stringify(mine));
+
+  function renderMine() {
+    const ul = $('my-list');
+    ul.textContent = '';
+    $('my-head').hidden = mine.length === 0;
+    mine.forEach((p) => {
+      const li = document.createElement('li');
+      const go = document.createElement('button');
+      go.type = 'button'; go.className = 'go'; go.dataset.id = p.id; go.textContent = p.name;
+      go.addEventListener('click', () => { spawnAt(p, { kind: 'mine', id: p.id }); go.blur(); });
+      const rm = document.createElement('button');
+      rm.type = 'button'; rm.className = 'rm'; rm.textContent = '×';
+      rm.setAttribute('aria-label', t('remove', p.name));
+      rm.addEventListener('click', () => { mine = mine.filter((x) => x.id !== p.id); saveMine(); renderMine(); });
+      li.append(go, rm);
+      ul.appendChild(li);
+    });
+    markCurrent();
+  }
+
+  function markCurrent() {
+    document.querySelectorAll('#place-list button').forEach((b, j) =>
+      b.setAttribute('aria-current', current && current.kind === 'preset' && current.idx === j ? 'true' : 'false'));
+    document.querySelectorAll('#my-list button.go').forEach((b) =>
+      b.setAttribute('aria-current', current && current.kind === 'mine' && current.id === b.dataset.id ? 'true' : 'false'));
+  }
+
+  function renderGotoMsg() {
+    const msg = $('goto-msg');
+    msg.className = gotoState === 'hint' ? '' : 'err';
+    msg.textContent = gotoState === 'err' ? t('gotoErr') : gotoState === 'short' ? t('gotoShort') : t('gotoHint');
+  }
+
+  // ---------- Coordinates ----------
+  const fmtCoords = (lat, lon) => `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+  const coordsPlace = (r) => ({ name: { en: I18N.en.coordsName, bg: I18N.bg.coordsName }, sub: fmtCoords(r.lat, r.lon), lat: r.lat, lon: r.lon, heading: r.heading ?? 0 });
+
+  function checkCoords(lat, lon, heading) {
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
+    return { lat, lon, heading: Number.isFinite(heading) ? ((heading % 360) + 360) % 360 : undefined };
+  }
+
+  // Accepts "48.86, 2.29", "48,86 2,29", "48.86 2.29 90" (with heading),
+  // 40°00'47.1"N 105°13'55.7"W, and Google Maps links (including the heading from Street View)
+  function parseCoords(text) {
+    const s0 = (text || '').trim();
+    if (!s0) return null;
+    if (/goo\.gl\/|g\.co\//i.test(s0)) return { short: true };
+    let m;
+    const hm = s0.match(/,(\d+(?:\.\d+)?)h(?=[,/?]|$)/);
+    const heading = hm ? Number(hm[1]) : undefined;
+    if ((m = s0.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/))) return checkCoords(+m[1], +m[2], heading);
+    if ((m = s0.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/))) return checkCoords(+m[1], +m[2], heading);
+    if ((m = s0.match(/[?&](?:q|ll|query|center|destination|viewpoint)=(-?\d+(?:\.\d+)?)(?:,|%2C|\s|\+)+(-?\d+(?:\.\d+)?)/i))) return checkCoords(+m[1], +m[2], heading);
+    const dms = [...s0.matchAll(/(\d+(?:\.\d+)?)\s*°\s*(?:(\d+(?:\.\d+)?)\s*['′’]\s*)?(?:(\d+(?:\.\d+)?)\s*(?:"|″|''|”)\s*)?([NSEWСЮИЗ])/gi)];
+    if (dms.length >= 2) {
+      const v = dms.slice(0, 2).map((x) => {
+        let d = Number(x[1]) + Number(x[2] || 0) / 60 + Number(x[3] || 0) / 3600;
+        if (/[SWЮЗ]/i.test(x[4])) d = -d;
+        return { d, lat: /[NSСЮ]/i.test(x[4]) };
+      });
+      const la = v.find((x) => x.lat), lo = v.find((x) => !x.lat);
+      if (la && lo) return checkCoords(la.d, lo.d);
+    }
+    let s = s0;
+    if (!s.includes('.') && /-?\d+,\d+[\s;]+-?\d+,\d+/.test(s)) s = s.replace(/(\d),(\d)/g, '$1.$2');
+    const nums = s.match(/-?\d+(?:\.\d+)?/g);
+    if (nums && nums.length >= 2 && nums.length <= 3) return checkCoords(+nums[0], +nums[1], nums[2] !== undefined ? +nums[2] : heading);
+    return null;
+  }
+
+  // ---------- Start ----------
+  applyLang();
+
+  if (!C) {
+    $('error').textContent = t('errCesium');
+    $('go').disabled = true;
+    return;
+  }
+
+  $('start-form').addEventListener('submit', (e) => { e.preventDefault(); start(); });
+
+  async function start() {
+    const key = $('key').value.trim();
+    if (!key) { $('error').textContent = t('errNoKey'); return; }
+    storeSet(KEY_STORE, $('remember').checked ? key : null);
+    $('error').textContent = '';
+    loadingKey = true;
+    $('go').disabled = true; $('go').textContent = t('loading');
+    try {
+      if (!viewer) initViewer();
+      if (tileset) { scene.primitives.remove(tileset); tileset = undefined; }
+      const opts = { maximumScreenSpaceError: highQuality ? 6 : 16, showCreditsOnScreen: true };
+      if (/^AIza/.test(key)) {
+        C.GoogleMaps.defaultApiKey = key;
+        tileset = await C.createGooglePhotorealistic3DTileset(key, opts);
+      } else {
+        C.GoogleMaps.defaultApiKey = undefined;
+        C.Ion.defaultAccessToken = key;
+        tileset = await C.Cesium3DTileset.fromIonAssetId(2275207, opts);
+      }
+      scene.primitives.add(tileset);
+      tileset.loadProgress.addEventListener((pending, processing) => {
+        $('loadbar').classList.toggle('on', pending + processing > 0);
+      });
+      $('start').hidden = true;
+      $('hud').hidden = false;
+      if (!loopStarted) { loopStarted = true; requestAnimationFrame(loop); }
+      const fromHash = parseCoords(decodeURIComponent(location.hash.slice(1)));
+      if (lastPlace) spawnAt(lastPlace.p, lastPlace.ref);
+      else if (fromHash && !fromHash.short) spawnAt(coordsPlace(fromHash), { kind: 'coords' });
+      else goTo(0);
+    } catch (err) {
+      console.error(err);
+      $('error').textContent = friendlyError(err);
+    } finally {
+      loadingKey = false;
+      $('go').disabled = false; $('go').textContent = t('go');
+    }
+  }
+
+  function friendlyError(err) {
+    const code = err && (err.statusCode || err.status);
+    if (code === 401 || code === 403 || code === 404) return t('errKey', code);
+    return t('errLoad', (err && (err.message || err.response)) || String(err));
+  }
+
+  function initViewer() {
+    viewer = new C.Viewer('cesium', {
+      globe: false, baseLayer: false, baseLayerPicker: false, geocoder: false, homeButton: false,
+      sceneModePicker: false, navigationHelpButton: false, animation: false, timeline: false,
+      fullscreenButton: false, infoBox: false, selectionIndicator: false, msaaSamples: 4
+    });
+    scene = viewer.scene;
+    camera = viewer.camera;
+    canvas = viewer.canvas;
+    scene.screenSpaceCameraController.enableInputs = false;
+    if (scene.skyAtmosphere) scene.skyAtmosphere.show = true;
+    scene.fog.enabled = true;
+    camera.frustum.near = 0.1;
+    viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(C.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+
+    canvas.addEventListener('click', () => {
+      if (!locked && canvas.requestPointerLock) {
+        try { const r = canvas.requestPointerLock(); if (r && r.catch) r.catch(() => {}); } catch (e) { /* no pointer lock */ }
+      }
+    });
+    document.addEventListener('pointerlockchange', () => {
+      locked = document.pointerLockElement === canvas;
+      $('crosshair').hidden = !locked;
+      $('lockhint').hidden = locked;
+    });
+    document.addEventListener('mousemove', (e) => { if (locked) look(e.movementX, e.movementY); });
+    let drag = null;
+    canvas.addEventListener('pointerdown', (e) => { if (!locked) drag = { x: e.clientX, y: e.clientY }; });
+    window.addEventListener('pointerup', () => { drag = null; });
+    window.addEventListener('pointermove', (e) => {
+      if (!drag || locked) return;
+      look(e.clientX - drag.x, e.clientY - drag.y);
+      drag = { x: e.clientX, y: e.clientY };
+    });
+  }
+
+  function look(dx, dy) {
+    st.heading = C.Math.zeroToTwoPi(st.heading + dx * SENS);
+    st.pitch = Math.max(-1.45, Math.min(1.45, st.pitch - dy * SENS));
+  }
+
+  // ---------- Moving to a place ----------
+  function goTo(i) { return spawnAt(PLACES[i], { kind: 'preset', idx: i }); }
+
+  async function spawnAt(p, ref) {
+    const seq = ++spawnSeq;
+    current = ref; lastPlace = { p, ref };
+    st.ready = false;
+    markCurrent();
+    $('place-name').textContent = L(p.name);
+    $('place-sub').textContent = t('loadingStreets');
+    st.lon = toRad(p.lon); st.lat = toRad(p.lat);
+    st.heading = toRad(p.heading || 0); st.pitch = toRad(-4);
+    // High above everything (mountains included) while we look for the ground
+    camera.setView({ destination: C.Cartesian3.fromRadians(st.lon, st.lat, 9000), orientation: { heading: st.heading, pitch: toRad(-89), roll: 0 } });
+
+    // Several probes around the point; the lowest is the ground (not a roof, tree or car)
+    const offs = [[0, 0], [2, 0], [-2, 0], [0, 2], [0, -2]];
+    const carts = offs.map(([e, n]) => new C.Cartographic(st.lon + e / (R * Math.cos(st.lat)), st.lat + n / R, 0));
+    let heights = [];
+    try {
+      const res = await scene.sampleHeightMostDetailed(carts);
+      heights = res.map((c) => c && c.height).filter((h) => Number.isFinite(h));
+    } catch (e) { console.warn(e); }
+    if (seq !== spawnSeq) return;
+    st.jump = 0; st.vy = 0;
+    $('place-sub').textContent = L(p.sub) || fmtCoords(p.lat, p.lon);
+    if (!heights.length) {
+      st.ground = 0; st.groundShown = 0; st.alt = 3000;
+      setMode('fly');
+      st.pitch = toRad(-35);
+      st.ready = true;
+      toast(t('noGround'));
+      return;
+    }
+    const g = Math.min(...heights);
+    st.ground = g; st.groundShown = g;
+    setMode('walk');
+    st.alt = g + EYE;
+    st.ready = true;
+  }
+
+  $('goto-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const r = parseCoords($('goto').value);
+    if (r && r.short) { gotoState = 'short'; renderGotoMsg(); return; }
+    if (!r) { gotoState = 'err'; renderGotoMsg(); return; }
+    gotoState = 'hint'; renderGotoMsg();
+    $('goto').blur();
+    spawnAt(coordsPlace(r), { kind: 'coords' });
+  });
+
+  $('save-place').addEventListener('click', (e) => {
+    e.currentTarget.blur();
+    if (!st.ready) return;
+    if (document.exitPointerLock) document.exitPointerLock();
+    const lat = C.Math.toDegrees(st.lat), lon = C.Math.toDegrees(st.lon);
+    const name = (window.prompt(t('savePrompt'), t('placeN', mine.length + 1)) || '').trim();
+    if (!name) return;
+    const p = { id: Date.now().toString(36), name, sub: fmtCoords(lat, lon), lat: +lat.toFixed(6), lon: +lon.toFixed(6), heading: Math.round(C.Math.toDegrees(st.heading)) };
+    mine.push(p);
+    saveMine();
+    current = { kind: 'mine', id: p.id };
+    lastPlace = { p, ref: current };
+    renderMine();
+    toast(t('saved'));
+  });
+
+  // ---------- Modes ----------
+  function setMode(m) {
+    st.mode = m;
+    const fly = m === 'fly';
+    $('mode').textContent = fly ? t('modeFly') : t('modeWalk');
+    $('mode').classList.toggle('fly', fly);
+    $('mode-btn').textContent = fly ? t('landBtn') : t('flyBtn');
+  }
+
+  function toggleMode() {
+    if (!st.ready) return;
+    if (st.mode === 'walk') { setMode('fly'); st.jump = 0; st.vy = 0; return; }
+    const top = C.Cartesian3.fromRadians(st.lon, st.lat, st.alt);
+    const hit = pick(new C.Ray(top, C.Cartesian3.negate(C.Ellipsoid.WGS84.geodeticSurfaceNormal(top, new C.Cartesian3()), new C.Cartesian3())));
+    if (!hit) { toast(t('noGroundBelow')); return; }
+    st.ground = C.Cartographic.fromCartesian(hit.position).height;
+    st.groundShown = st.alt - EYE;   // smooth landing
+    setMode('walk');
+  }
+
+  let toastTimer;
+  function toast(text) {
+    $('toast').textContent = text; $('toast').classList.add('on');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.remove('on'), 3200);
+  }
+
+  $('mode-btn').addEventListener('click', (e) => { toggleMode(); e.currentTarget.blur(); });
+  $('quality').addEventListener('click', (e) => {
+    highQuality = !highQuality;
+    if (tileset) tileset.maximumScreenSpaceError = highQuality ? 6 : 16;
+    e.currentTarget.textContent = highQuality ? t('qualityHigh') : t('qualityNormal');
+    e.currentTarget.blur();
+  });
+  $('change-key').addEventListener('click', () => {
+    if (document.exitPointerLock) document.exitPointerLock();
+    $('start').hidden = false; $('key').focus();
+  });
+
+  // ---------- Keyboard (physical keys, so it works with any layout) ----------
+  window.addEventListener('keydown', (e) => {
+    if (!$('start').hidden || e.target.tagName === 'INPUT') return;
+    keys.add(e.code);
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
+    if (e.repeat) return;
+    if (e.code === 'Space' && st.mode === 'walk' && st.jump === 0 && st.vy === 0) st.vy = 4.2;
+    else if (e.code === 'KeyF') toggleMode();
+    else if (e.code === 'KeyM') $('places').hidden = !$('places').hidden;
+    else if (e.code === 'KeyH') $('help').hidden = !$('help').hidden;
+    else if (/^Digit[1-8]$/.test(e.code)) goTo(Number(e.code.slice(5)) - 1);
+  });
+  window.addEventListener('keyup', (e) => keys.delete(e.code));
+  window.addEventListener('blur', () => keys.clear());
+  const down = (...codes) => codes.some((c) => keys.has(c));
+
+  // ---------- Walking physics ----------
+  function pick(ray) {
+    try { return scene.pickFromRay(ray, [], 0.1); } catch (e) { return undefined; }
+  }
+
+  const tmpA = new C.Cartesian3(), tmpB = new C.Cartesian3();
+
+  function attempt(e, n) {
+    const dist = Math.hypot(e, n);
+    if (dist < 1e-6) return false;
+    const nlat = st.lat + n / R;
+    const nlon = st.lon + e / (R * Math.cos(st.lat));
+    // Wall: horizontal ray at 1 m height in the direction of movement
+    const from = C.Cartesian3.fromRadians(st.lon, st.lat, st.ground + 1.0);
+    const to = C.Cartesian3.fromRadians(nlon, nlat, st.ground + 1.0, undefined, tmpA);
+    const dir = C.Cartesian3.normalize(C.Cartesian3.subtract(to, from, tmpB), tmpB);
+    const wall = pick(new C.Ray(from, dir));
+    if (wall && C.Cartesian3.distance(from, wall.position) < dist + WALL_PAD) return false;
+    // Ground: downward ray from one step above the current ground
+    const top = C.Cartesian3.fromRadians(nlon, nlat, st.ground + STEP_UP);
+    const downDir = C.Cartesian3.negate(C.Ellipsoid.WGS84.geodeticSurfaceNormal(top, new C.Cartesian3()), new C.Cartesian3());
+    const floor = pick(new C.Ray(top, downDir));
+    st.lon = nlon; st.lat = nlat;
+    if (floor) {
+      const h = C.Cartographic.fromCartesian(floor.position).height;
+      if (Number.isFinite(h)) st.ground = h;
+    }
+    return true;
+  }
+
+  function tryMove(e, n) {
+    if (attempt(e, n)) return;
+    if (Math.abs(e) > 1e-4 && attempt(e, 0)) return;   // slide along the wall
+    if (Math.abs(n) > 1e-4) attempt(0, n);
+  }
+
+  let last = performance.now(), readoutT = 0;
+  function loop(now) {
+    const dt = Math.min(0.1, (now - last) / 1000);
+    last = now;
+    if (st.ready && scene) update(dt);
+    requestAnimationFrame(loop);
+  }
+
+  function update(dt) {
+    const fwd = (down('KeyW', 'ArrowUp') ? 1 : 0) - (down('KeyS', 'ArrowDown') ? 1 : 0);
+    const side = (down('KeyD', 'ArrowRight') ? 1 : 0) - (down('KeyA', 'ArrowLeft') ? 1 : 0);
+    const fast = down('ShiftLeft', 'ShiftRight');
+    const sh = Math.sin(st.heading), ch = Math.cos(st.heading);
+
+    if (st.mode === 'walk') {
+      if (fwd || side) {
+        const len = Math.hypot(fwd, side);
+        const step = (fast ? SPEED.run : SPEED.walk) * dt / len;
+        tryMove((fwd * sh + side * ch) * step, (fwd * ch - side * sh) * step);
+      }
+      if (st.vy !== 0 || st.jump > 0) {
+        st.vy -= 9.8 * dt;
+        st.jump += st.vy * dt;
+        if (st.jump <= 0) { st.jump = 0; st.vy = 0; }
+      }
+      const diff = st.ground - st.groundShown;
+      st.groundShown += diff * Math.min(1, dt * (diff > 0 ? 14 : 6));
+      st.alt = st.groundShown + EYE + st.jump;
+    } else {
+      const speed = fast ? SPEED.flyFast : SPEED.fly;
+      const cp = Math.cos(st.pitch), sp = Math.sin(st.pitch);
+      const up = (down('KeyE', 'Space') ? 1 : 0) - (down('KeyQ', 'KeyC') ? 1 : 0);
+      const e = (fwd * sh * cp + side * ch) * speed * dt;
+      const n = (fwd * ch * cp - side * sh) * speed * dt;
+      st.lat += n / R;
+      st.lon += e / (R * Math.cos(st.lat));
+      st.alt += (fwd * sp + up) * speed * dt;
+    }
+
+    camera.setView({
+      destination: C.Cartesian3.fromRadians(st.lon, st.lat, st.alt),
+      orientation: { heading: st.heading, pitch: st.pitch, roll: 0 }
+    });
+
+    readoutT += dt;
+    if (readoutT > 0.25) {
+      readoutT = 0;
+      let txt = fmtCoords(C.Math.toDegrees(st.lat), C.Math.toDegrees(st.lon));
+      if (st.mode === 'fly') txt += t('aboveGround', Math.round(st.alt - st.ground));
+      $('coords').textContent = txt;
+    }
+  }
+})();
+</script>
+</body>
+</html>
