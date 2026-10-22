@@ -108,6 +108,7 @@ function renderHome() {
     <section class="hero">
       <h1>Човекът и природата в 3D</h1>
       <p>Курсове за 3.–6. клас по учебните програми на МОН. Гледай, пипай, върти и проверявай знанията си.</p>
+      <p class="small" style="color:#dbe7ff">Алфа версия. <a href="programa.html" style="color:#fff">Програмен план до пълния продукт →</a></p>
     </section>
     <section class="cards">
       ${GRADES.map((g) => {
@@ -184,7 +185,7 @@ function videoSlot(skill) {
     return `<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${esc(skill.video.youtubeId)}?rel=0"
       title="${esc(skill.video.title || 'Видео от Кан Академия')}" allowfullscreen loading="lazy"
       allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"></iframe>
-      <p class="small">Видео: Кан Академия · ${esc(skill.video.title || '')}</p></div>`;
+      <p class="small">Видео: ${esc(skill.video.source || 'Кан Академия')} · ${esc(skill.video.title || '')}</p></div>`;
   }
   return `<div class="video empty"><span class="badge red">🎬 Видеото още не е подбрано</span>
     <p class="small">Тук ще има видео от българската Кан Академия. Подбираме само проверени видеа.</p></div>`;

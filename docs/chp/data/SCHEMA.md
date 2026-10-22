@@ -45,7 +45,7 @@ export default {
   assumption: null,               // текст, ако нещо в умението е наше предположение
   quality: "low",                 // "low" = опростено 3D (червен знак „В разработка“), "high" = пълно преживяване
   experience: null,               // за "high": име на модула в js/exp/ (напр. "cell")
-  video: null,                    // { youtubeId, title } — само проверено видео от Кан Академия; иначе null
+  video: null,                    // { youtubeId, title, source } — проверено видео; source по подразбиране е „Кан Академия“
   scene: { objects: [ /* обекти в 3D сцената */ ] },
   questions: [ /* 6–8 въпроса */ ]
 }
