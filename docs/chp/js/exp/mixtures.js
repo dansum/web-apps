@@ -367,12 +367,12 @@ export function mount(container, { onComplete }) {
 
   // Разположение: на тесен екран уредите са на два реда.
   const TPOS = narrow
-    ? { sieve: [-1.9, -1.45], filter: [0, -1.55], magnet: [1.9, -1.45], settle: [-1.0, -0.2], evap: [1.0, -0.2] }
+    ? { sieve: [-2.4, -0.7], settle: [-1.2, -1.5], filter: [0, -0.7], evap: [1.2, -1.5], magnet: [2.4, -0.7] }
     : { sieve: [-4.2, -0.8], settle: [-2.1, -0.8], filter: [0, -0.8], evap: [2.1, -0.8], magnet: [4.2, -0.8] };
   const SLOTS = narrow
     ? [[-2.2, 1.45], [-1.1, 2.15], [0, 1.45], [1.1, 2.15], [2.2, 1.45]]
     : [[-4.0, 1.75], [-2.0, 2.25], [0, 1.75], [2.0, 2.25], [4.0, 1.75]];
-  const GOG = narrow ? [-2.6, 0, 0.55] : [-5.7, 0, 0.9];
+  const GOG = narrow ? [-1.7, 0, 1.25] : [-3.1, 0, 1.4];
   const BENCH_W = narrow ? 6.6 : 13.6;
 
   // ---------- стая ----------
@@ -558,6 +558,7 @@ export function mount(container, { onComplete }) {
     grip.rotation.z = Math.PI / 2;
     grip.position.set(-1.1, 0.1, 0);
     sv.add(band, rim, net, handle, grip);
+    sv.rotation.y = -Math.PI / 2; // дръжката сочи назад
     g.add(sv);
     const big = makeGrains(g, 40);
     const small = makeGrains(g, 170);
@@ -1270,7 +1271,7 @@ export function mount(container, { onComplete }) {
         const fo = id === 'goggles' ? { dist: 3, height: 1.4, lift: 0.1 } : id === 'lamp' ? { dist: 3, height: 1.0, lift: 0.5 } : { dist: narrow ? 3.8 : 3.4, height: 1.3, lift: 0.65 };
         stage.focusOn(obj.visible === false ? goggles : obj, { ...fo, keepFollow: false });
       }
-      let html = `<b>${esc(info.icon)} ${esc(info.label)}</b><br>${info.note}`;
+      let html = `${esc(info.icon)} ${info.note}`;
       if (id === 'goggles' && !wearing) {
         clearTip();
         seen.add(id); menu.mark(id); menu.setActive(id); upd();
@@ -1301,7 +1302,7 @@ export function mount(container, { onComplete }) {
     clickHandler = (id) => { if (!id) clearTip(); };
     menuHandler = (id) => {
       const info = TOOLS[id] || EXTRA[id];
-      sayTool(id, `<b>${esc(info.icon)} ${esc(info.label)}</b><br>${info.note}`);
+      sayTool(id, `${esc(info.icon)} ${info.note}`);
     };
     let mistakes = 0;
     const order = shuffle(RULES.map((r, i) => i));
@@ -1409,7 +1410,7 @@ export function mount(container, { onComplete }) {
         const m = BY_MIX[id.slice(4)];
         const j = jars.find((x) => x.userData.mix === m);
         say(j, `<b>${esc(m.name)}</b><br>${esc(m.look)}`, '', j.userData.top);
-      } else if (TOOLS[id]) sayTool(id, `<b>${esc(TOOLS[id].label)}</b><br>${TOOLS[id].note}`);
+      } else if (TOOLS[id]) sayTool(id, `${esc(TOOLS[id].icon)} ${TOOLS[id].note}`);
     };
     menuHandler = null;
     stopDrag = stage.enableDrag({
@@ -1558,7 +1559,7 @@ export function mount(container, { onComplete }) {
       shell.score(`Грешки: ${mistakes}`);
     };
     draw();
-    clickHandler = (id) => { if (!id) clearTip(); else if (TOOLS[id]) sayTool(id, `<b>${esc(TOOLS[id].label)}</b><br>${TOOLS[id].note}`); };
+    clickHandler = (id) => { if (!id) clearTip(); else if (TOOLS[id]) sayTool(id, `${esc(TOOLS[id].icon)} ${TOOLS[id].note}`); };
     const ctrl = shell.setControls('<button class="btn primary">Провери</button>');
     ctrl.querySelector('button').addEventListener('click', () => {
       if (seq.length < 4) { shell.msg('Попълни и четирите реда.', 'bad'); return; }
@@ -1696,6 +1697,7 @@ export function mount(container, { onComplete }) {
     c.querySelector('button').addEventListener('click', () => {
       clearTip();
       const ratio = scores.reduce((a, b) => a + b, 0) / scores.length;
+      shell.score('');
       shell.finish(ratio, onComplete, restart);
     });
   }

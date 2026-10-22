@@ -19,6 +19,7 @@ const CSS = `
 .heart-legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.8rem; color: #556; margin-top: 4px; }
 .heart-legend i { display: inline-block; width: 0.8em; height: 0.8em; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
 .heart-multi .choice { padding: 7px 10px; }
+.heart-multi .choice:disabled { color: #1b2a3a; }
 .heart-multi .choice .box { width: 1.1em; height: 1.1em; border: 2px solid #9aa7b8; border-radius: 4px; flex: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8em; }
 .heart-multi .choice.on .box { background: #1865f2; border-color: #1865f2; color: #fff; }
 .heart-multi .choice.on .box::after { content: "✓"; }
@@ -122,7 +123,7 @@ const ACTS = { sleep: { icon: '😴', name: 'Сън', bpm: 60 }, walk: { icon: '
 
 const AID = [
   { id: 'gloves', icon: '🧤', label: 'Ръкавици', done: 'Сложи ръкавици — така пазиш и себе си, и ранения от зараза.' },
-  { id: 'gauze', icon: '⬜', label: 'Марля', done: 'Притисни раната с чиста марля и задръж няколко минути.' },
+  { id: 'gauze', icon: '✋', label: 'Марля', done: 'Притисни раната с чиста марля и задръж няколко минути.' },
   { id: 'arm', icon: '💪', label: 'Ръката', done: 'Повдигни ранената ръка над нивото на сърцето — кървенето намалява.' },
   { id: 'bandage', icon: '🩹', label: 'Бинт', done: 'Превържи раната плътно, но не прекалено стегнато.' },
   { id: 'phone', icon: '📞', label: 'Телефон', done: 'Кажи на учител или родител. Ако кървенето е силно или не спира — обади се на <b>112</b>.' },
@@ -414,6 +415,7 @@ function build(container, { onComplete }, restart) {
   aid.add(table);
   const aidWall = new THREE.Mesh(new THREE.PlaneGeometry(14, 8), mat(0xe9f3f1));
   aidWall.position.set(0, 2, -2.2);
+  aidWall.scale.set(2, 1.6, 1);
   aid.add(aidWall);
   // кутия за първа помощ
   const kit = new THREE.Group();
@@ -552,11 +554,15 @@ function build(container, { onComplete }, restart) {
     arm.add(w);
     wraps.push(w);
   }
-  const aidHeart = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture('rgba(230,40,60,1)', 'rgba(230,40,60,0)'), transparent: true, depthWrite: false }));
-  aidHeart.position.set(1.4, 1.8, -1.6);
-  aidHeart.scale.set(0.5, 0.5, 1);
-  aidHeart.raycast = () => {};
-  aid.add(aidHeart);
+  const aidFloor = noRay(new THREE.Mesh(new THREE.PlaneGeometry(30, 20), mat(0xc9d6de)));
+  aidFloor.rotation.x = -Math.PI / 2;
+  aidFloor.position.y = -1.9;
+  aid.add(aidFloor);
+  for (const [x, z] of [[-2.6, -1.5], [2.6, -1.5], [-2.6, 1.5], [2.6, 1.5]]) {
+    const leg = noRay(new THREE.Mesh(new THREE.BoxGeometry(0.15, 1.7, 0.15), mat(0x90a4ae)));
+    leg.position.set(x, -1.05, z);
+    aid.add(leg);
+  }
 
   // ---------- анимация ----------
   let bpm = 70;
@@ -662,8 +668,6 @@ function build(container, { onComplete }, restart) {
       if (!d.visible) continue;
       d.scale.setScalar(0.8 + Math.sin(t * 2 + d.userData.ph) * 0.2);
     }
-    const hb = 1 + (p < 0.12 ? Math.sin((p / 0.12) * Math.PI) * 0.3 : 0);
-    aidHeart.scale.set(0.5 * hb, 0.5 * hb, 1);
     kit.children[3].rotation.x = -0.9 - Math.sin(t * 0.8) * 0.05;
     for (const it of Object.values(items)) {
       if (it.userData.used || tween.has(it)) continue;
@@ -689,12 +693,12 @@ function build(container, { onComplete }, restart) {
   // ---------- камера и балончета ----------
   function view(pos, tgt, dur = 1.0) {
     const asp = camera.aspect || 1.5;
-    const k = Math.min(1.5, Math.max(1, 1.05 / asp));
+    const k = Math.min(1.5, Math.max(1, 0.75 / asp));
     const v = new THREE.Vector3(...pos).sub(new THREE.Vector3(...tgt)).multiplyScalar(k).add(new THREE.Vector3(...tgt));
     stage.stopFollow();
     stage.flyTo(v.toArray(), tgt, dur);
   }
-  const overview = () => view([-0.45, 0.9, 10.8], [-0.45, 0.65, 0]);
+  const overview = () => { const x = (camera.aspect || 1.5) > 1.2 ? -0.45 : 0; view([x, 0.9, 10.8], [x, 0.65, 0]); };
   let tip = null;
   function say(anchor, html, cls = '', lift = 0.4) {
     if (tip) tip.remove();
@@ -709,7 +713,15 @@ function build(container, { onComplete }, restart) {
   const menu = cornerMenu(stage, {
     title: 'Кръвоносна система',
     items: MENU.map((id) => ({ id, label: NOTES[id].label, icon: NOTES[id].icon })),
-    onSelect: (id) => menuHandler && menuHandler(id),
+    onSelect: (id) => {
+      if (menuHandler) menuHandler(id);
+      // На тесен екран менюто се свива, за да не закрива балончето.
+      const host = stage.renderer.domElement.parentElement;
+      if (host.clientWidth < 480) {
+        const head = menu.el.querySelector('.cm-head');
+        if (head && head.getAttribute('aria-expanded') === 'true') head.click();
+      }
+    },
   });
 
   // Къде е всяко нещо в сцената.
@@ -793,7 +805,7 @@ function build(container, { onComplete }, restart) {
         <p><b>Кликни поред местата</b>, през които минава кръвта, докато се върне в дясната камера.</p>
         <p class="small">Кликвай кухините на сърцето, белите дробове или органите на тялото.</p>
         <p>Пътят: <b>${path.map((x) => esc(STATION_NAME[x])).join(' → ')}</b></p>`);
-      shell.score(`Стъпка ${k} от ${ORDER.length - 1} · грешки: ${mistakes}`);
+      shell.score(`Стъпка ${Math.min(k, ORDER.length - 1)} от ${ORDER.length - 1} · грешки: ${mistakes}`);
     };
     draw();
     shell.setControls('');
@@ -900,6 +912,7 @@ function build(container, { onComplete }, restart) {
     const upd = () => shell.score(`Задача ${Math.min(ti + 1, 2)} от 2 · грешки: ${mistakes}`);
     const draw = () => {
       const T = TASKS[ti];
+      if (ti > 0) shell.msg('');
       shell.task(`<p>${T.text} Колко пъти в минута бие сърцето му?</p>
         <div class="heart-acts">${Object.entries(ACTS).map(([k, a]) => `<span class="chip ${k === act ? 'on' : ''}" data-a="${k}">${a.icon} ${a.name}</span>`).join('')}</div>
         <p class="small">Натисни „Пусни 10 секунди“ и <b>брой ударите</b> („туп“ над сърцето). После умножи по 6 — в минутата има 6 пъти по 10 секунди.</p>
@@ -1089,7 +1102,7 @@ function build(container, { onComplete }, restart) {
         draw();
         return;
       }
-      if (id !== 'arm') { items[id].userData.used = true; if (id !== 'phone') items[id].userData.label.visible = false; }
+      if (id !== 'arm') { items[id].userData.used = true; delete items[id].userData.pickId; if (id !== 'phone') items[id].userData.label.visible = false; }
       items[id] && (items[id].userData.hl = false);
       act[id]();
       say(id === 'arm' ? palm : id === 'gloves' || id === 'bandage' ? arm.children[0] : anchor, `✔ ${AID[n].done}`, 'good wide', id === 'arm' ? 0.6 : 0.7);

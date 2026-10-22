@@ -116,7 +116,7 @@ export function createStage(container, opts = {}) {
   function frame() {
     if (!running) return;
     requestAnimationFrame(frame);
-    const dt = Math.min(clock.getDelta(), 0.05);
+    const dt = Math.min(clock.getDelta(), 0.1); // на слаб компютър анимацията не забавя прекалено
     const t = clock.elapsedTime;
     if (tween) {
       tween.k = Math.min(1, tween.k + dt / tween.dur);
@@ -369,6 +369,8 @@ export function cornerMenu(stage, { title = 'Избери', items = [], onSelect
     el.querySelector('.cm-head').addEventListener('click', () => { open = !open; draw(); });
     el.querySelectorAll('.cm-item').forEach((b) => b.addEventListener('click', () => {
       active = b.dataset.id;
+      // На тесен екран менюто се свива след избор, за да не закрива сцената.
+      if ((host.clientWidth || 600) < 480) open = false;
       draw();
       onSelect && onSelect(active);
     }));

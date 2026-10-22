@@ -14,6 +14,7 @@ const STYLE = `
 .pt-multi .choice .box{width:1.1em;height:1.1em;border:2px solid #9aa6b5;border-radius:4px;flex:none;display:inline-flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:900}
 .pt-multi .choice.on .box{background:#1865f2;border-color:#1865f2;color:#fff}
 .pt-multi .choice.on .box::after{content:"✓"}
+.pt-multi .choice:disabled{opacity:1;color:inherit}
 .pt-why{display:block;font-size:.8rem;color:#5b6472;margin-top:2px}
 `;
 function injectStyle() {
@@ -54,6 +55,7 @@ function glassBox(w, h, d) {
   faces.position.y = h / 2;
   faces.renderOrder = 4;
   const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: 0x9fb8cc }));
+  edges.raycast = () => {};
   edges.position.y = h / 2;
   g.add(faces, edges);
   return g;
@@ -170,6 +172,10 @@ function build(container, { onComplete }, restart) {
   const { scene } = stage;
   stage.controls.minAzimuthAngle = -1.1;
   stage.controls.maxAzimuthAngle = 1.1;
+  // На тесен (висок) екран камерата се отдръпва, за да се вижда цялата сцена.
+  const narrowK = () => { const a = stage.camera.aspect; return a < 1.2 ? Math.min(1.9, Math.pow(1.2 / a, 0.75)) : 1; };
+  const fly = (pos, tgt, dur) => { const k = narrowK(); stage.flyTo(pos.map((v, i) => tgt[i] + (v - tgt[i]) * k), tgt, dur); };
+  const narrow = () => stage.renderer.domElement.clientWidth < 480;
 
   // ---- анимации и таймери ----
   const anims = new Set();
@@ -450,6 +456,7 @@ function build(container, { onComplete }, restart) {
   let tip = null;
   function say(anchor, html, cls = '', lift = 1.2) {
     if (tip) tip.remove();
+    if (narrow()) cls = cls.replace('wide', '');
     tip = stage.bubble(anchor, html, { lift, cls });
   }
   function clearTip() { if (tip) { tip.remove(); tip = null; } }
@@ -499,9 +506,16 @@ function build(container, { onComplete }, restart) {
   const menu = cornerMenu(stage, {
     title: 'Разгледай',
     items: MENU.map((m) => ({ id: m.id, label: m.label, icon: m.icon })),
-    onSelect: (id) => menuHandler && menuHandler(id),
+    onSelect: (id) => {
+      // На тесен екран менюто се свива след избора, за да не закрива балончето.
+      if (stage.renderer.domElement.clientWidth < 480) {
+        const head = menu.el.querySelector('.cm-head');
+        if (head && head.getAttribute('aria-expanded') === 'true') head.click();
+      }
+      if (menuHandler) menuHandler(id);
+    },
   });
-  const overview = () => { stage.stopFollow(); stage.flyTo([0, 3.6, 7.4], [0, 1.5, 0]); };
+  const overview = () => { stage.stopFollow(); fly([0, 3.6, 7.4], [0, 1.5, 0]); };
 
   function step1() {
     shell.step(0);
@@ -524,13 +538,13 @@ function build(container, { onComplete }, restart) {
         setHighlight(37);
         if (stateOf(Tgoal) === 'gas') Tgoal = 20;
         stage.stopFollow();
-        stage.flyTo([0.2, 2.6, 5.0], [0.2, 1.1, 0]);
+        fly([0.2, 2.6, 5.0], [0.2, 1.1, 0]);
         say(boxG, `<b>${m.icon} ${m.label}</b><br>${m.note}`, 'wide', 3.3);
       } else {
         setHighlight(-1);
         Tgoal = m.T;
         stage.stopFollow();
-        stage.flyTo([0, 3.2, 6.6], [0.3, 1.5, 0]);
+        fly([0, 3.2, 6.6], [0.3, 1.5, 0]);
         say(boxG, `<b>${m.icon} ${m.label}</b> ${chip(id)}<br>${m.note}<br><span class="small">Частиците са същите — водни. Менят се само разстоянието и движението.</span>`, 'wide', 3.3);
       }
       upd();
@@ -558,7 +572,7 @@ function build(container, { onComplete }, restart) {
     menu.show(false);
     menuHandler = null;
     stage.stopFollow();
-    stage.flyTo([0.6, 3.2, 7.0], [0.6, 1.5, 0]);
+    fly([0.6, 3.2, 7.0], [0.6, 1.5, 0]);
     Tgoal = -20;
     let mistakes = 0;
     const TASKS = [
@@ -696,7 +710,7 @@ function build(container, { onComplete }, restart) {
         if (s.tag) s.tag.set(`⏱ ${Math.floor(s.time)} мин`);
         if (mix > 0.8) {
           s.done = true;
-          if (s.tag) { s.tag.set(`✔ Смеси се само за ${Math.max(1, Math.round(s.time))} мин`); s.tag.el.classList.add('good'); }
+          if (s.tag) { s.tag.set(`✔ Смеси се за ${Math.max(1, Math.round(s.time))} мин`); s.tag.el.classList.add('good'); }
           if (raceDone) raceDone();
         }
       }
@@ -711,7 +725,7 @@ function build(container, { onComplete }, restart) {
     tTag.el.style.visibility = 'hidden';
     race.visible = true;
     stage.stopFollow();
-    stage.flyTo([0, 3.4, 7.2], [0, 1.4, 0]);
+    fly([0, 3.4, 7.2], [0, 1.4, 0]);
     let mistakes = 0;
     shell.task(`<p>В двете чаши има еднакво много вода. В едната е <b>студена</b>, в другата — <b>гореща</b>. Ще капнем в тях по капка мастило и <b>няма да бъркаме</b>.</p>
       <p class="pt-q">Предскажи: в коя чаша мастилото ще оцвети цялата вода по-бързо?</p>
@@ -840,7 +854,7 @@ function build(container, { onComplete }, restart) {
     race.visible = false;
     s4.visible = true;
     stage.stopFollow();
-    stage.flyTo([0, 3.2, 7.0], [0, 1.2, 0]);
+    fly([0, 3.2, 7.0], [0, 1.2, 0]);
     let mistakes = 0;
     const EX = [
       { t: 'Ароматът на печени кифли стига от кухнята до стаята.', d: true, why: 'Частиците на аромата се смесват с въздуха.' },
@@ -909,6 +923,7 @@ function build(container, { onComplete }, restart) {
           if (b.dataset.v === 'gas') b.classList.add('right'); else if (b.classList.contains('on')) b.classList.add('wrong');
         });
         if (pred !== 'gas') mistakes++;
+        try { shell.stageEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) { /* няма значение */ }
         animate(0.5, (k) => { pc.position.set(0.2 * k, 0.3 + Math.sin(k * Math.PI) * 0.2 - 0.26 * k, 0); pc.rotation.z = -1.5 * k; });
         gasD.mesh.visible = true;
         gasD.drop(new THREE.Vector3(-0.85, 0.4, 0.35), 0.05);

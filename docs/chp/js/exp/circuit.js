@@ -833,7 +833,15 @@ function build(container, { onComplete }, restart) {
       { id: 'heater', label: 'Нагревател', icon: '🔥' },
       { id: 'socket', label: 'Контакт', icon: '🔌' },
     ],
-    onSelect: (id) => menuHandler && menuHandler(id),
+    onSelect: (id) => {
+      if (menuHandler) menuHandler(id);
+      // На тесен екран менюто се свива, за да не закрива балончето.
+      const host = stage.renderer.domElement.parentElement;
+      if (host.clientWidth < 480) {
+        const head = menu.el.querySelector('.cm-head');
+        if (head && head.getAttribute('aria-expanded') === 'true') head.click();
+      }
+    },
   });
 
   function resetDevices() {

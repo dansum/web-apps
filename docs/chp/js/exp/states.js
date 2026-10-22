@@ -52,6 +52,7 @@ const STYLE = `
 .st-list{margin:6px 0 0;padding-left:20px}.st-list li{margin:2px 0}.st-list li.done{color:#0d7a3a}
 .st-list li.done::marker{content:"✓ ";font-weight:900}.st-list li.cur{font-weight:700}
 .st-q{margin:10px 0 4px;font-weight:700}
+.st-list li.bad{color:#d92916}
 .st-press{display:block;margin-top:6px}
 `;
 function injectStyle() {
@@ -227,6 +228,7 @@ function iceModel(withSaucer = true) {
   cube.position.y = (withSaucer ? 0.05 : 0) + 0.17;
   cube.rotation.y = 0.4;
   const edges = new THREE.LineSegments(new THREE.EdgesGeometry(cube.geometry), new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 }));
+  edges.raycast = () => {}; // линиите не бива да хващат кликове
   cube.add(edges);
   g.add(cube);
   g.userData.cube = cube;
@@ -302,6 +304,7 @@ function balloonModel(height = 2.0, scale = 1) {
   g.add(ball);
   const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0.14, 0), new THREE.Vector3(0, height - 0.55 * scale, 0)]);
   const string = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0x555555 }));
+  string.raycast = () => {};
   g.add(string);
   g.userData.ball = ball;
   g.userData.string = string;
@@ -630,6 +633,10 @@ function build(container, { onComplete }, restart) {
   stage.hemi.color.set(0xfff4e2);
   stage.sun.position.set(3, 10, 6);
   const kitchen = buildKitchen(scene);
+  // На тесен (висок) екран камерата се отдръпва, за да се вижда цялата сцена.
+  const narrowK = () => { const a = stage.camera.aspect; return a < 1.2 ? Math.min(1.9, Math.pow(1.2 / a, 0.75)) : 1; };
+  const fly = (pos, tgt, dur) => { const k = narrowK(); stage.flyTo(pos.map((v, i) => tgt[i] + (v - tgt[i]) * k), tgt, dur); };
+  const narrow = () => stage.renderer.domElement.clientWidth < 480;
 
   // ---- анимации и таймери ----
   const anims = new Set();
@@ -761,6 +768,7 @@ function build(container, { onComplete }, restart) {
   let tip = null;
   function say(anchor, html, cls = '', lift = null) {
     if (tip) tip.remove();
+    if (narrow()) cls = cls.replace('wide', '');
     const l = lift != null ? lift : anchor.userData.top || 1.2;
     tip = stage.bubble(anchor, html, { lift: l, cls });
   }
@@ -784,9 +792,16 @@ function build(container, { onComplete }, restart) {
   const menu = cornerMenu(stage, {
     title: 'На масата',
     items: ITEMS.map((o) => ({ id: o.id, label: o.label, icon: o.icon })),
-    onSelect: (id) => menuHandler && menuHandler(id),
+    onSelect: (id) => {
+      // На тесен екран менюто се свива след избора, за да не закрива балончето.
+      if (stage.renderer.domElement.clientWidth < 480) {
+        const head = menu.el.querySelector('.cm-head');
+        if (head && head.getAttribute('aria-expanded') === 'true') head.click();
+      }
+      if (menuHandler) menuHandler(id);
+    },
   });
-  const overview = () => { stage.stopFollow(); stage.flyTo([0, 5.2, 8.6], [0, 0.6, 0]); };
+  const overview = () => { stage.stopFollow(); fly([0, 5.2, 8.6], [0, 0.6, 0]); };
 
   function step1() {
     shell.step(0);
@@ -805,7 +820,7 @@ function build(container, { onComplete }, restart) {
       const o = itemById[id];
       const g = roots.get(id);
       const far = id === 'balloon' || id === 'steam';
-      stage.focusOn(g, { dist: far ? 5.4 : 4.2, height: far ? 1.6 : 1.9, lift: id === 'balloon' ? 1.5 : id === 'steam' ? 0.7 : 0.3 });
+      stage.focusOn(g, { dist: (far ? 5.4 : 4.2) * narrowK(), height: far ? 1.6 : 1.9, lift: id === 'balloon' ? 1.5 : id === 'steam' ? 0.7 : 0.3 });
       say(g, `<b>${esc(o.icon)} ${esc(o.label)}</b> ${kindChip(o.kind)}<br>${esc(o.note)}`, 'wide');
       seen.add(id);
       menu.mark(id);
@@ -1030,7 +1045,7 @@ function build(container, { onComplete }, restart) {
     };
     const wrong = () => { mistakes++; shell.score(`Опит ${exp + 1} от 3 · грешки: ${mistakes}`); };
     stage.stopFollow();
-    stage.flyTo([-0.4, 3.6, 6.6], [-0.4, 0.7, 0.4]);
+    fly([-0.4, 3.6, 6.6], [-0.4, 0.7, 0.4]);
 
     // Опит 1: една и съща вода в различни съдове.
     let holder = jug;
@@ -1155,7 +1170,7 @@ function build(container, { onComplete }, restart) {
       exp = 2;
       lab.visible = false;
       gasLab.visible = true;
-      stage.flyTo([-0.7, 3.4, 6.0], [-0.7, 1.0, 0.5]);
+      fly([-0.7, 3.4, 6.0], [-0.7, 1.0, 0.5]);
       drawList(`<p>В едната спринцовка има <b>въздух</b>, а в другата — <b>вода</b>. Отдолу са запушени. Въздухът е невидим, затова тук е оцветен.</p>
         <label class="small st-press">Натисни двете бутала <input class="slider press" type="range" min="0" max="100" step="1" value="0"></label>`);
       shell.setControls('');
@@ -1196,7 +1211,7 @@ function build(container, { onComplete }, restart) {
             animate(0.8, (k) => syrAir.position.lerpVectors(up, over, ease(k)), () => {
               animate(0.5, (k) => syrAir.position.lerpVectors(over, on, ease(k)), () => {
                 syrAir.userData.label.visible = false;
-                stage.flyTo([0.2, 4.0, 6.4], [0.4, 1.4, 0.5]);
+                fly([0.2, 4.0, 6.4], [0.4, 1.4, 0.5]);
                 sl.value = 0;
                 sl.disabled = false;
                 sl.parentElement.firstChild.textContent = 'Натисни буталото докрай ';
@@ -1291,13 +1306,13 @@ function build(container, { onComplete }, restart) {
     shadowAll(g);
     sortGroup.add(g);
     if (id === 's-air') balloons.push(g);
+    addHitBox(g, 0.7);
     const box = new THREE.Box3().setFromObject(g);
     const lbl = labelSprite(o.label, { size: 0.22 });
     lbl.position.y = (box.max.y - g.position.y) / g.scale.y + 0.22 / g.scale.y;
     lbl.scale.multiplyScalar(1 / g.scale.x);
     g.add(lbl);
     stage.steadyLabel(lbl, 9);
-    addHitBox(g, 0.85);
     g.userData.top = (box.max.y - g.position.y) + 0.5;
     sortRoots.set(id, g);
   });
@@ -1339,7 +1354,7 @@ function build(container, { onComplete }, restart) {
     vase.visible = false;
     for (const k of Object.keys(zones)) zones[k].group.visible = true;
     stage.stopFollow();
-    stage.flyTo([0, 6.6, 6.3], [0, 0.0, 0.15]);
+    fly([0, 6.6, 6.3], [0, 0.0, 0.15]);
     shell.task(`<p>Подреди нещата в трите кръга.</p>
       <p><b>Провлачи всяко</b> в кръга, където му е мястото.</p>
       <p class="small">Питай се: тече ли? Има ли собствена форма? Разнася ли се навсякъде? Кликни върху нещо, за да си припомниш.</p>`);
@@ -1501,7 +1516,7 @@ function build(container, { onComplete }, restart) {
     steamGroup.visible = true;
     vase.visible = true;
     stage.stopFollow();
-    stage.flyTo([0, 5.0, 8.4], [0, 0.7, 0]);
+    fly([0, 5.0, 8.4], [0, 0.7, 0]);
     const qs = [
       { id: 'pf', q: 'Мама отваря шишенце парфюм в единия край на кухнята. Какво ще стане?', a: [
         ['stay', 'Ароматът ще остане до шишенцето.'], ['room', 'Ароматът ще се разнесе из цялата кухня.'], ['pour', 'Ароматът ще се разлее по масата като вода.']], right: 'room' },
@@ -1536,6 +1551,13 @@ function build(container, { onComplete }, restart) {
           else if (b.classList.contains('on')) b.classList.add('wrong');
         });
       }
+      // Кратък списък вместо дългите въпроси, за да се вижда масата.
+      shell.task(`<p>Твоите предсказания:</p><ol class="st-list">${qs.map((q) => {
+        const ok = ans[q.id] === q.right;
+        const txt = q.a.find(([v]) => v === ans[q.id])[1];
+        return `<li class="${ok ? 'done' : 'bad'}">${ok ? '' : '✘ '}${esc(txt)}</li>`;
+      }).join('')}</ol>`);
+      try { shell.stageEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) { /* няма значение */ }
       simulate(good, qs.length);
     });
   }
@@ -1566,7 +1588,7 @@ function build(container, { onComplete }, restart) {
     });
     // 2) вода в цедката
     function sieveWater() {
-      stage.flyTo([1.6, 3.6, 6.0], [1.6, 0.8, 0.6]);
+      fly([1.6, 3.6, 6.0], [1.6, 0.8, 0.6]);
       const theta = 1.25;
       const lip = jug4.userData.vessel.lip.position.clone();
       const rot = new THREE.Vector3(lip.x * Math.cos(theta) + lip.y * Math.sin(theta), -lip.x * Math.sin(theta) + lip.y * Math.cos(theta), 0);
