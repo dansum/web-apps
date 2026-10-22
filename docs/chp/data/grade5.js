@@ -154,6 +154,7 @@ export default {
           assumption: null,
           quality: "high",
           experience: "particles",
+          review: true, // готово, но още не е изпитано докрай
           video: null,
           scene: {
             objects: [
