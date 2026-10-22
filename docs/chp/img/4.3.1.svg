@@ -24,7 +24,6 @@
 <text x="270" y="288" text-anchor="middle" font-size="16" fill="#0A2A66">(захар)</text>
 <rect x="356" y="50" width="268" height="338" rx="16" fill="#fff" stroke="#28AAE1" stroke-width="2"/>
 <text x="490" y="76" text-anchor="middle" font-size="18" font-weight="bold" fill="#0A2A66">Жизнен цикъл</text>
-<path d="M490 118 A110 110 0 0 1 590 220" stroke="#FA961E" stroke-width="3" fill="none" marker-end="url(#a)" opacity="0"/>
 <g>
 <ellipse cx="490" cy="112" rx="12" ry="8" fill="#8D6E63"/>
 <text x="490" y="140" text-anchor="middle" font-size="16" fill="#0A2A66">семе</text>
