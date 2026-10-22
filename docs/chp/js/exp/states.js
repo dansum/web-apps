@@ -792,14 +792,7 @@ function build(container, { onComplete }, restart) {
   const menu = cornerMenu(stage, {
     title: 'На масата',
     items: ITEMS.map((o) => ({ id: o.id, label: o.label, icon: o.icon })),
-    onSelect: (id) => {
-      // На тесен екран менюто се свива след избора, за да не закрива балончето.
-      if (stage.renderer.domElement.clientWidth < 480) {
-        const head = menu.el.querySelector('.cm-head');
-        if (head && head.getAttribute('aria-expanded') === 'true') head.click();
-      }
-      if (menuHandler) menuHandler(id);
-    },
+    onSelect: (id) => menuHandler && menuHandler(id),
   });
   const overview = () => { stage.stopFollow(); fly([0, 5.2, 8.6], [0, 0.6, 0]); };
 

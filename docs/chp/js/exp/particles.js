@@ -506,14 +506,7 @@ function build(container, { onComplete }, restart) {
   const menu = cornerMenu(stage, {
     title: 'Разгледай',
     items: MENU.map((m) => ({ id: m.id, label: m.label, icon: m.icon })),
-    onSelect: (id) => {
-      // На тесен екран менюто се свива след избора, за да не закрива балончето.
-      if (stage.renderer.domElement.clientWidth < 480) {
-        const head = menu.el.querySelector('.cm-head');
-        if (head && head.getAttribute('aria-expanded') === 'true') head.click();
-      }
-      if (menuHandler) menuHandler(id);
-    },
+    onSelect: (id) => menuHandler && menuHandler(id),
   });
   const overview = () => { stage.stopFollow(); fly([0, 3.6, 7.4], [0, 1.5, 0]); };
 
