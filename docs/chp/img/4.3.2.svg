@@ -5,18 +5,18 @@
 <text x="320" y="34" text-anchor="middle" font-size="23" font-weight="bold" fill="#0A2A66">Как дишат и как растат животните</text>
 <rect x="16" y="50" width="250" height="250" rx="16" fill="#fff" stroke="#28AAE1" stroke-width="2"/>
 <text x="141" y="76" text-anchor="middle" font-size="18" font-weight="bold" fill="#0A2A66">Дишане</text>
-<path d="M70 100 v20" stroke="#E57373" stroke-width="6" stroke-linecap="round"/>
+<g transform="translate(12 0)"><path d="M70 100 v20" stroke="#E57373" stroke-width="6" stroke-linecap="round"/>
 <path d="M68 118 q-30 -4 -32 30 q-2 30 26 30 q8 0 8 -12 z" fill="#E57373"/>
 <path d="M72 118 q30 -4 32 30 q2 30 -26 30 q-8 0 -8 -12 z" fill="#E57373"/>
-<text x="70" y="206" text-anchor="middle" font-size="16" font-weight="bold" fill="#0A2A66">бели дробове</text>
-<text x="70" y="228" text-anchor="middle" font-size="16" fill="#0A2A66">куче, птица,</text>
-<text x="70" y="248" text-anchor="middle" font-size="16" fill="#0A2A66">човек</text>
-<path d="M150 140 q40 -34 90 0 q-40 34 -90 0 z" fill="#28AAE1"/>
+</g><text x="82" y="206" text-anchor="middle" font-size="16" font-weight="bold" fill="#0A2A66">бели дробове</text>
+<text x="82" y="228" text-anchor="middle" font-size="16" fill="#0A2A66">куче, птица,</text>
+<text x="82" y="248" text-anchor="middle" font-size="16" fill="#0A2A66">човек</text>
+<g transform="translate(-14 0)"><path d="M150 140 q40 -34 90 0 q-40 34 -90 0 z" fill="#28AAE1"/>
 <path d="M240 140 l18 -16 v32 z" fill="#28AAE1"/>
 <circle cx="166" cy="136" r="4" fill="#0A2A66"/>
 <path d="M180 126 q6 14 0 28 M188 126 q6 14 0 28" stroke="#E53935" stroke-width="3" fill="none"/>
 <circle cx="150" cy="108" r="4" fill="none" stroke="#28AAE1" stroke-width="2"/><circle cx="144" cy="96" r="3" fill="none" stroke="#28AAE1" stroke-width="2"/>
-<text x="200" y="206" text-anchor="middle" font-size="16" font-weight="bold" fill="#0A2A66">хриле</text>
+</g><text x="200" y="206" text-anchor="middle" font-size="16" font-weight="bold" fill="#0A2A66">хриле</text>
 <text x="200" y="228" text-anchor="middle" font-size="16" fill="#0A2A66">риби</text>
 <text x="141" y="280" text-anchor="middle" font-size="16" fill="#0A2A66">Всички дишат кислород.</text>
 <rect x="276" y="50" width="348" height="250" rx="16" fill="#fff" stroke="#28AAE1" stroke-width="2"/>
@@ -35,5 +35,5 @@
 <text x="340" y="288" text-anchor="middle" font-size="16" fill="#0A2A66">коте</text><text x="480" y="288" text-anchor="middle" font-size="16" fill="#0A2A66">котка – бозае малките</text>
 <rect x="16" y="310" width="608" height="78" rx="16" fill="#E6F8F2" stroke="#14BF96" stroke-width="2"/>
 <text x="320" y="338" text-anchor="middle" font-size="17" font-weight="bold" fill="#0A2A66">Откъде е енергията? От храната!</text>
-<text x="320" y="366" text-anchor="middle" font-size="16" fill="#0A2A66">Животните я използват, за да се движат, растат и да поддържат телесна топлина.</text>
+<text x="320" y="366" text-anchor="middle" font-size="16" fill="#0A2A66">Животните я използват за движение, растеж и телесна топлина.</text>
 </svg>
