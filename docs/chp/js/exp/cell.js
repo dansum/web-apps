@@ -1,6 +1,6 @@
 // 5.3.1 „Клетъчен строеж на организмите“ — 3D микроскоп и разрязана клетка.
 // Стъпки: подготви микроскопа → фокусирай → части на клетката → едноклетъчни и многоклетъчни.
-import { createStage, labelSprite, mat, zoneRing, addHitBox, THREE, esc } from '../kit.js';
+import { createStage, labelSprite, mat, zoneRing, addHitBox, cornerMenu, THREE, esc } from '../kit.js';
 import { createShell, stepScore } from './shell.js';
 
 // ---------- микроскоп ----------
@@ -212,8 +212,11 @@ function granules(count, box, clip, color = 0xb68b4c, sphere = false) {
     } while (sphere && (x * x) / (box[0] * box[0] / 4) + (y * y) / (box[1] * box[1] / 4) + (z * z) / (box[2] * box[2] / 4) > 1);
     const s = new THREE.Mesh(geo, m);
     s.position.set(x, y, z);
+    s.userData.base = s.position.clone();
+    s.userData.ph = r() * Math.PI * 2;
     g.add(s);
   }
+  g.userData.granules = true;
   return g;
 }
 
@@ -463,6 +466,20 @@ export function mount(container, { onComplete }) {
     l.position.set(0, 1.35, 0);
     cell.add(l);
   }
+  // Цитоплазмата „тече“, а ядрата леко пулсират.
+  const flowing = [];
+  cellWorld.traverse((o) => { if (o.userData.granules) flowing.push(...o.children); });
+  stage.tick((dt, t) => {
+    if (!cellWorld.visible) return;
+    for (const g of flowing) {
+      const b = g.userData.base; const ph = g.userData.ph;
+      g.position.set(b.x + Math.sin(t * 0.7 + ph) * 0.09, b.y + Math.cos(t * 0.5 + ph) * 0.05, b.z + Math.sin(t * 0.6 + ph * 1.3) * 0.06);
+    }
+    const k = 1 + 0.03 * Math.sin(t * 2);
+    plant.userData.parts.nuc.scale.setScalar(k);
+    animal.userData.parts.nuc.scale.setScalar(k);
+    animal.rotation.y = Math.sin(t * 0.3) * 0.15;
+  });
   const glow = new THREE.PointLight(0xffffff, 1.2, 20);
   glow.position.set(0, 3, 4);
   cellWorld.add(glow);
@@ -496,10 +513,49 @@ export function mount(container, { onComplete }) {
   }
 
   // ---------- 1. Подготви микроскопа ----------
+  // Меню в ъгъла: части на микроскопа (стъпка 1) и организми (стъпка 4).
+  let menuHandler = null;
+  const menu = cornerMenu(stage, { title: 'Части на микроскопа', items: [], onSelect: (id) => menuHandler && menuHandler(id) });
+  const PART_ICONS = { eyepiece: '👁', tube: '🔭', revolver: '🔄', stage: '🔲', knob: '⚙', light: '💡', arm: '✋' };
+
   function step1() {
     shell.step(0);
     clearTip();
     lab.visible = true; cellWorld.visible = false; dropWorld.visible = false;
+    stage.flyTo([3.2, 3.6, 5.2], [0, 1.3, 0]);
+    menu.setTitle('Части на микроскопа');
+    menu.setItems(Object.keys(PARTS).map((id) => ({ id, label: PARTS[id].label, icon: PART_ICONS[id] })));
+    menu.show(true);
+    const seen = new Set();
+    shell.task(`<p>Преди да работиш с микроскопа, <b>опознай частите му</b>.</p>
+      <p>Избери част от менюто в ъгъла или кликни върху нея в сцената. Разгледай поне 5 части.</p>`);
+    const c = shell.setControls('<div class="row"><button class="btn all">🔭 Целият микроскоп</button><button class="btn primary nx" disabled>Към задачите →</button></div>');
+    c.querySelector('.all').addEventListener('click', () => { stage.stopFollow(); stage.flyTo([3.2, 3.6, 5.2], [0, 1.3, 0]); });
+    const nx = c.querySelector('.nx');
+    const upd = () => shell.score(`Разгледани части: ${seen.size} от ${Object.keys(PARTS).length}`);
+    upd();
+    const show = (id) => {
+      const a = partAnchor(id);
+      if (!a) return;
+      stage.focusOn(a, { dist: 2.6, height: 0.6, lift: 0.1, keepFollow: false });
+      say(a, `<b>${esc(PART_ICONS[id])} ${esc(PARTS[id].label)}</b><br>${esc(PARTS[id].note)}`, '', 0.35);
+      seen.add(id);
+      menu.mark(id);
+      menu.setActive(id);
+      upd();
+      if (seen.size >= 5) { nx.disabled = false; shell.msg('Браво! Сега провери какво запомни.', 'good'); }
+    };
+    menuHandler = show;
+    hoverHandler = (r) => {
+      if (!r) return;
+      const id = r.userData.pickId;
+      if (PARTS[id]) say(r, `<b>${esc(PARTS[id].label)}</b>`, 'tag', 0.35);
+    };
+    clickHandler = (hit) => { if (hit && PARTS[hit.root.userData.pickId]) show(hit.root.userData.pickId); };
+    nx.addEventListener('click', () => { menu.show(false); menuHandler = null; clearTip(); shell.msg(''); step1Tasks(); });
+  }
+
+  function step1Tasks() {
     stage.flyTo([3.2, 3.6, 5.2], [0, 1.3, 0]);
     let mistakes = 0;
     let phase = 0;
@@ -805,6 +861,33 @@ export function mount(container, { onComplete }) {
         if (!g.userData.locked) g.rotation.y = Math.sin(t * 0.6 + g.userData.phase) * 0.4;
       }
     });
+    // Организмите плуват и пълзят около мястото си, докато не бъдат подредени.
+    const stopSwim = stage.tick((dt, t) => {
+      for (const g of models) {
+        if (g.userData.locked || g.userData.dragging || g === hovered) continue;
+        const o = g.userData.o;
+        const ph = g.userData.phase;
+        const sp = o.id === 'paramecium' ? 0.9 : o.id === 'bacterium' ? 1.3 : o.uni ? 0.35 : 0;
+        if (!sp) continue;
+        const h = g.userData.home;
+        g.position.x = h.x + Math.sin(t * sp + ph) * 0.45;
+        g.position.z = h.z + Math.cos(t * sp * 0.8 + ph) * 0.3;
+        g.rotation.y = -t * sp * 0.6 + ph;
+      }
+    });
+    menu.setItems(ORGS.map((o) => ({ id: o.id, label: o.label, icon: o.uni ? '🔬' : '🌿' })));
+    // Организмът под курсора спира, за да се хване лесно.
+    let hovered = null;
+    hoverHandler = (r) => { hovered = r && r.userData.o ? r : null; };
+    menu.setTitle('Организми');
+    menu.show(true);
+    menuHandler = (id) => {
+      const g = models.find((m) => m.userData.o.id === id);
+      if (!g) return;
+      stage.focusOn(g, { dist: 4.5, height: 2.2, lift: 0.3, keepFollow: false });
+      say(g, `<b>${esc(g.userData.o.label)}</b><br>${esc(g.userData.o.note)}`, '', 1.1);
+      menu.mark(id);
+    };
     let mistakes = 0;
     let placed = 0;
     shell.task(`<p>Някои организми са изградени само от <b>една клетка</b>, а други — от <b>много клетки</b>.</p>
@@ -820,8 +903,9 @@ export function mount(container, { onComplete }) {
     const local = new THREE.Vector3();
     stopDrag = stage.enableDrag({
       planeY: base.y,
-      onStart: () => clearTip(),
+      onStart: (g) => { clearTip(); stage.stopFollow(); g.userData.dragging = true; },
       onDrop: (g, p, start) => {
+        g.userData.dragging = false;
         local.copy(p); // позицията е спрямо dropWorld
         const o = g.userData.o;
         const inU = Math.hypot(local.x - zU.position.x, local.z - zU.position.z) < 1.7;
@@ -849,8 +933,11 @@ export function mount(container, { onComplete }) {
           c.querySelector('button').addEventListener('click', () => {
             clearTip();
             const ratio = scores.reduce((a, b) => a + b, 0) / scores.length;
+            menu.show(false);
+            menuHandler = null;
             shell.finish(ratio, onComplete, () => {
               stopAnim();
+              stopSwim();
               for (const m of models) dropWorld.remove(m);
               dropWorld.remove(zU, zM);
               restart();

@@ -153,6 +153,22 @@ main { max-width: 1180px; margin: 0 auto; padding: 16px; min-height: 70vh; }
 .bubble.bad { border-color: var(--red); background: #fff0ee; }
 .bubble.tag { padding: 3px 8px; font-weight: 800; font-size: 0.78rem; }
 
+/* меню в ъгъла на 3D сцената */
+.corner-menu { position: absolute; top: 8px; z-index: 5; max-height: calc(100% - 16px); display: flex; flex-direction: column;
+  background: rgba(255, 255, 255, 0.94); border: 1px solid #c7d3e0; border-radius: 10px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12); max-width: 190px; }
+.corner-menu[hidden] { display: none; }
+.corner-menu.left { left: 8px; }
+.corner-menu.right { right: 8px; }
+.cm-head { font: inherit; font-weight: 800; font-size: 0.85rem; border: 0; background: transparent; padding: 7px 10px; cursor: pointer; display: flex; justify-content: space-between; gap: 8px; }
+.cm-list { overflow-y: auto; padding: 0 4px 6px; }
+.cm-item { font: inherit; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; width: 100%; text-align: left; border: 0; background: transparent; padding: 5px 6px; border-radius: 7px; cursor: pointer; }
+.cm-item:hover { background: #eef4ff; }
+.cm-item.on { background: #1865f2; color: #fff; }
+.cm-ico { width: 1.4em; text-align: center; }
+.cm-lbl { flex: 1; }
+.cm-ok { color: #1fab54; font-weight: 900; }
+.cm-item.on .cm-ok { color: #fff; }
+
 /* статия */
 .article-stage { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
 .article-panel { padding: 8px 4px 0; }

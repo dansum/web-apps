@@ -1,6 +1,6 @@
 // 6.1.3 „Лост и макара“ — 3D лабораторна маса с лост, макари и силомер.
 // Стъпки: уравновеси лоста → подвижна опора → макари → лостове и макари около нас.
-import { createStage, labelSprite, mat, zoneRing, addHitBox, THREE, esc } from '../kit.js';
+import { createStage, labelSprite, mat, zoneRing, addHitBox, cornerMenu, THREE, esc } from '../kit.js';
 import { createShell, stepScore } from './shell.js';
 
 const WEIGHT_COLORS = { 1: 0xf6c343, 2: 0xf08a24, 3: 0xe0533a, 4: 0xb3367a, 5: 0x7b3fb5, 6: 0x3f5fbf, 10: 0x37474f };
@@ -151,6 +151,16 @@ export function mount(container, { onComplete }) {
   let clickHandler = null;
   stage.onClick((hit) => clickHandler && clickHandler(hit));
 
+  // Меню в ъгъла: частите на лоста (стъпка 1) и примери (стъпка 4).
+  let menuHandler = null;
+  const menu = cornerMenu(stage, { title: 'Части на лоста', items: [], onSelect: (id) => menuHandler && menuHandler(id) });
+  const LEVER_PARTS = [
+    { id: 'fulcrum', label: 'Опора', icon: '🔺', note: 'Точката, около която се върти лостът.', at: () => L.fulcrum },
+    { id: 'beam', label: 'Лост', icon: '📏', note: 'Твърдо тяло, което се върти около опората.', at: () => L.beam },
+    { id: 'arm', label: 'Рамо', icon: '↔', note: 'Разстоянието от опората до мястото, където действа силата. Тук се мери в деления.', at: () => L.marks.find((m) => m.userData.pickId === 'mark:3') },
+    { id: 'load', label: 'Тежест', icon: '⚫', note: 'Тежестта действа със сила надолу. Мери се в нютони (N).', at: () => (L.hung[0] ? L.hung[0].model : L.beam) },
+  ];
+
   // ---------- 1. Уравновеси ----------
   function step1() {
     shell.step(0);
@@ -169,6 +179,14 @@ export function mount(container, { onComplete }) {
       { fixed: [[6, -1]], text: 'Вляво: <b>6 N</b> на <b>1-во</b> деление. Уравновеси с <b>една тежест от 2 N</b>. На кое деление ще я закачиш?', weights: [2], one: 2 },
       { fixed: [[10, -2]], text: 'Вляво: <b>10 N</b> на <b>2-ро</b> деление. Колко нютона трябва да е тежестта на <b>5-то</b> деление вдясно?', ask: 4 },
     ];
+    menu.setTitle('Части на лоста');
+    menu.setItems(LEVER_PARTS.map(({ id, label, icon }) => ({ id, label, icon })));
+    menu.show(true);
+    menuHandler = (id) => {
+      const part = LEVER_PARTS.find((x) => x.id === id);
+      say(part.at(), `<b>${esc(part.icon)} ${esc(part.label)}</b><br>${esc(part.note)}`, '', 0.5);
+      menu.mark(id);
+    };
     readouts.left = stage.bubble(new THREE.Vector3(-2.2 * UNIT, 2.7, 0), '', { cls: 'tag', lift: 0.6 });
     readouts.right = stage.bubble(new THREE.Vector3(2.2 * UNIT, 2.7, 0), '', { cls: 'tag', lift: 0.6 });
     const refresh = () => {
@@ -258,7 +276,7 @@ export function mount(container, { onComplete }) {
       const c = shell.setControls(`<button class="btn primary">${last ? 'Напред →' : 'Следваща задача →'}</button>`);
       c.querySelector('button').addEventListener('click', () => {
         shell.msg('');
-        if (last) { scores.push(stepScore(mistakes, 4)); clearReadouts(); step2(); return; }
+        if (last) { scores.push(stepScore(mistakes, 4)); clearReadouts(); menu.show(false); menuHandler = null; clearTip(); step2(); return; }
         p++;
         load();
       });
@@ -562,47 +580,72 @@ export function mount(container, { onComplete }) {
     const metal = mat(0xb0bec5, { metalness: 0.7, roughness: 0.3 });
     switch (id) {
       case 'scissors': {
+        // Две половини, които се въртят около винтчето (опората).
+        const halves = [];
         for (const s of [1, -1]) {
+          const half = new THREE.Group();
+          half.position.y = 0.3;
           const blade = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.04, 0.1), metal);
-          blade.position.set(0.45, 0.3, 0);
-          blade.rotation.y = s * 0.25;
+          blade.position.set(0.45, 0, 0);
           const ringM = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.04, 8, 20), mat(s > 0 ? 0xd92916 : 0x1865f2));
           ringM.rotation.x = Math.PI / 2;
-          ringM.position.set(-0.3, 0.3, s * 0.18);
-          g.add(blade, ringM);
+          ringM.position.set(-0.35, 0, 0);
+          half.add(blade, ringM);
+          g.add(half);
+          halves.push({ half, s });
         }
+        const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.08, 10), mat(0x333333));
+        pin.position.y = 0.33;
+        g.add(pin);
+        g.userData.anim = (t) => { const a = 0.12 + Math.abs(Math.sin(t * 1.6)) * 0.3; for (const { half, s } of halves) half.rotation.y = s * a; };
         break;
       }
       case 'pliers': {
+        const arms = [];
         for (const s of [1, -1]) {
+          const arm = new THREE.Group();
+          arm.position.y = 0.3;
           const h = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.08, 0.1), mat(0xf1c232));
-          h.position.set(-0.35, 0.3, s * 0.1);
-          h.rotation.y = s * 0.15;
+          h.position.set(-0.45, 0, s * 0.06);
           const jaw = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.08, 0.08), metal);
-          jaw.position.set(0.35, 0.3, -s * 0.03);
-          g.add(h, jaw);
+          jaw.position.set(0.2, 0, -s * 0.03);
+          arm.add(h, jaw);
+          g.add(arm);
+          arms.push({ arm, s });
         }
+        g.userData.anim = (t) => { const a = 0.05 + Math.abs(Math.sin(t * 1.2)) * 0.18; for (const { arm, s } of arms) arm.rotation.y = s * a; };
         break;
       }
       case 'seesaw': {
+        const plankG = new THREE.Group();
+        plankG.position.y = 0.4;
         const plank = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.07, 0.3), mat(0xa0703c));
-        plank.position.y = 0.4;
-        plank.rotation.z = 0.15;
+        const kidA = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.16, 4, 8), mat(0xe53935));
+        kidA.position.set(-0.75, 0.15, 0);
+        const kidB = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.16, 4, 8), mat(0x1e88e5));
+        kidB.position.set(0.75, 0.15, 0);
+        plankG.add(plank, kidA, kidB);
         const tri = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.38, 3), mat(0x5c6b7a));
         tri.position.y = 0.19;
-        g.add(plank, tri);
+        g.add(plankG, tri);
+        g.userData.anim = (t) => { plankG.rotation.z = Math.sin(t * 1.3) * 0.2; };
         break;
       }
       case 'arm': {
         const skin = mat(0xf0c3a0);
         const upper = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.6, 4, 10), skin);
         upper.position.set(-0.2, 0.55, 0);
+        // Предмишницата се върти около лакътя (опората) и вдига топката.
+        const elbow = new THREE.Group();
+        elbow.position.set(-0.2, 0.22, 0);
         const fore = new THREE.Mesh(new THREE.CapsuleGeometry(0.08, 0.6, 4, 10), skin);
         fore.rotation.z = Math.PI / 2;
-        fore.position.set(0.2, 0.25, 0);
+        fore.position.set(0.4, 0, 0);
         const ball = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 8), mat(0xe53935));
-        ball.position.set(0.6, 0.38, 0);
-        g.add(upper, fore, ball);
+        ball.position.set(0.8, 0.14, 0);
+        elbow.add(fore, ball);
+        g.add(upper, elbow);
+        g.userData.anim = (t) => { elbow.rotation.z = 0.15 + Math.abs(Math.sin(t * 1.1)) * 0.9; };
         break;
       }
       case 'flag': {
@@ -616,7 +659,10 @@ export function mount(container, { onComplete }) {
         g2.position.set(0.3, 1.1, 0);
         const r2 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.107, 0.012), mat(0xd62612));
         r2.position.set(0.3, 0.993, 0);
-        g.add(pole, wheel, flag, g2, r2);
+        const flagG = new THREE.Group();
+        flagG.add(flag, g2, r2);
+        g.add(pole, wheel, flagG);
+        g.userData.anim = (t) => { flagG.position.y = -0.55 + (Math.sin(t * 0.7) * 0.5 + 0.5) * 0.55; flagG.rotation.y = Math.sin(t * 3) * 0.08; };
         break;
       }
       case 'crane': {
@@ -631,6 +677,13 @@ export function mount(container, { onComplete }) {
         const bucket = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.1, 0.22, 12), mat(0x78909c));
         bucket.position.set(0.5, 0.45, 0);
         g.add(frame, arm, wheel, rope, bucket);
+        g.userData.anim = (t) => {
+          const y = 0.35 + (Math.sin(t * 0.9) * 0.5 + 0.5) * 0.6;
+          bucket.position.y = y;
+          rope.scale.y = (1.32 - y - 0.11) / 0.8;
+          rope.position.y = (1.32 + y + 0.11) / 2;
+          wheel.rotation.z = y * 6;
+        };
         break;
       }
       default: break;
@@ -666,7 +719,7 @@ export function mount(container, { onComplete }) {
     order.forEach((o, i) => {
       const g = exModel(o.id);
       g.scale.setScalar(1.4);
-      g.position.set(-3.6 + i * 1.45, 0, -0.8);
+      g.position.set(-1.9 + i * 1.2, 0, -0.8);
       g.userData.pickId = o.id;
       g.userData.dragId = o.id;
       g.userData.o = o;
@@ -678,6 +731,19 @@ export function mount(container, { onComplete }) {
       world.add(g);
       models.push(g);
     });
+    const stopEx = stage.tick((dt, t) => {
+      models.forEach((g, i) => { if (g.userData.anim && !g.userData.dragging) g.userData.anim(t + i * 0.7); });
+    });
+    menu.setTitle('Предмети');
+    menu.setItems(EXAMPLES.map((o) => ({ id: o.id, label: o.label, icon: o.kind === 'lever' ? '⚖' : '🛞' })));
+    menu.show(true);
+    menuHandler = (id) => {
+      const g = models.find((m) => m.userData.o.id === id);
+      if (!g) return;
+      stage.focusOn(g, { dist: 4, height: 1.8, lift: 0.6, keepFollow: false });
+      say(g, `<b>${esc(g.userData.o.label)}</b>`, 'tag', 1.6);
+      menu.mark(id);
+    };
     let mistakes = 0;
     let placed = 0;
     shell.task(`<p>Лостове и макари има навсякъде около нас — и дори в тялото ни.</p>
@@ -693,8 +759,9 @@ export function mount(container, { onComplete }) {
     const local = new THREE.Vector3();
     stopDrag = stage.enableDrag({
       planeY: 0,
-      onStart: () => clearTip(),
+      onStart: (g) => { clearTip(); stage.stopFollow(); g.userData.dragging = true; },
       onDrop: (g, p, start) => {
+        g.userData.dragging = false;
         local.copy(p); // позицията е спрямо world
         const o = g.userData.o;
         const inL = Math.hypot(local.x - zL.position.x, local.z - zL.position.z) < 1.8;
@@ -722,7 +789,10 @@ export function mount(container, { onComplete }) {
           c.querySelector('button').addEventListener('click', () => {
             clearTip();
             const ratio = scores.reduce((a, b) => a + b, 0) / scores.length;
+            menu.show(false);
+            menuHandler = null;
             shell.finish(ratio, onComplete, () => {
+              stopEx();
               scene.remove(world);
               restart();
             });

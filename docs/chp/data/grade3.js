@@ -126,8 +126,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "states",
           video: null,
           scene: {
             objects: [
@@ -461,8 +461,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "body",
           video: null,
           scene: {
             objects: [

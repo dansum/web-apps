@@ -152,8 +152,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "particles",
           video: null,
           scene: {
             objects: [
@@ -880,8 +880,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "mixtures",
           video: null,
           scene: {
             objects: [
@@ -1931,8 +1931,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "breathing",
           video: null,
           scene: {
             objects: [
