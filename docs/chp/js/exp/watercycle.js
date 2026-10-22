@@ -19,7 +19,7 @@ const CSS = `
 .xp-task .choices.wc-pick { grid-template-columns: repeat(3, 1fr); margin-top: 6px; }
 .xp-task .choices.wc-pick .choice { justify-content: center; flex-direction: column; gap: 2px; padding: 8px 4px; font-weight: 700; }
 .xp-task .choices.wc-pick .choice span { font-size: 1.5rem; }
-.bubble.wc-temp { font-weight: 900; font-size: 0.95rem; padding: 4px 9px; }
+.bubble.wc-ttag { font-weight: 900; font-size: 0.95rem; padding: 4px 9px; }
 `;
 function injectCss() {
   if (document.getElementById('wc-style')) return;
@@ -478,7 +478,7 @@ export function mount(container, { onComplete }) {
   for (const [x, y, z, r] of [[0, 1.0, 0, 0.95], [0.2, 1.9, -0.1, 0.9], [-0.2, 2.7, 0.1, 0.85], [-1.1, 3.25, 0, 0.7], [1.1, 3.3, 0, 0.75], [0, 3.35, 0, 0.8]]) {
     const p = new THREE.Mesh(new THREE.IcosahedronGeometry(r, 2), towerM);
     p.position.set(x, y, z);
-    p.scale.y = y > 3 ? 0.5 : 0.85;
+    p.scale.set(y > 3 ? 1.5 : 1.15, y > 3 ? 0.5 : 0.85, 1.1);
     tower.add(p);
   }
   tower.visible = false;
@@ -492,7 +492,7 @@ export function mount(container, { onComplete }) {
   let fill = 0.25; // 0…1 колко капчици има облакът
   let storm = 0; // 0…1 колко е буреносен
   let cloudMove = null;
-  const cWhite = new THREE.Color(0xffffff), cGrey = new THREE.Color(0xaab3bd), cDark = new THREE.Color(0x5b6570);
+  const cWhite = new THREE.Color(0xffffff), cGrey = new THREE.Color(0xaab3bd), cDark = new THREE.Color(0x6a7480);
   function moveCloud(to, dur) { cloudMove = { from: cloud.position.clone(), to: to.clone(), k: 0, dur }; }
 
   // Мълния.
@@ -636,7 +636,7 @@ export function mount(container, { onComplete }) {
   // ---------- етикети на местата (стъпка 1) ----------
   const placeLabels = [];
   function placeLabel(text, pos) {
-    const s = labelSprite(text, { size: 0.42 });
+    const s = labelSprite(text, { size: 0.52 });
     s.position.set(...pos);
     stage.steadyLabel(s, 20);
     scene.add(s);
@@ -903,7 +903,7 @@ export function mount(container, { onComplete }) {
   let tempTag = null;
   function setTempTag(text) {
     if (!text) { if (tempTag) { tempTag.remove(); tempTag = null; } return; }
-    if (!tempTag) tempTag = stage.bubble(mtnHit, '', { lift: -0.6, cls: 'tag wc-temp' });
+    if (!tempTag) tempTag = stage.bubble(mtnHit, '', { lift: -0.6, cls: 'tag wc-ttag' });
     tempTag.set(text);
   }
 
@@ -923,7 +923,7 @@ export function mount(container, { onComplete }) {
   const narrow = () => (shell.stageEl.clientWidth || 600) < 560;
   function overview(dur = 1.1) {
     stage.stopFollow();
-    if (narrow()) stage.flyTo([-1, 15, 27], [-0.5, 1.2, 0], dur);
+    if (narrow()) stage.flyTo([-2.6, 15, 27], [-2.2, 1.2, 0], dur);
     else stage.flyTo([0, 11, 20], [0, 1.4, 0], dur);
   }
   const FOCUS = {
@@ -983,7 +983,12 @@ export function mount(container, { onComplete }) {
       }
     };
     clickHandler = (id) => { if (!id) { clearTip(); return; } if (placeById[id]) visit(id); };
-    menuHandler = visit;
+    menuHandler = (id) => {
+      visit(id);
+      // На тесен екран менюто се свива, за да не закрива балончето.
+      const list = menu.el.querySelector('.cm-list');
+      if (narrow() && list && !list.hidden) menu.el.querySelector('.cm-head').click();
+    };
     next.addEventListener('click', step2);
     overview();
   }
@@ -1002,7 +1007,7 @@ export function mount(container, { onComplete }) {
     sunPower = 0.15;
     cloud.position.copy(CLOUD_SEA);
     sim.feedCloud = true;
-    const NEED = 45;
+    const NEED = 30;
     shell.task(`<p><b>Пусни кръговрата на водата!</b></p>
       <ol class="wc-steps">
         <li data-s="evap">Нагрей морето със слънцето.</li>
@@ -1106,7 +1111,7 @@ export function mount(container, { onComplete }) {
         stopWind();
         phase = 'atMtn';
         mark();
-        sayAt('mountain', '<b>Над планината</b><br>Въздухът се издига по склона и се охлажда още. Капчиците в облака се сливат, стават по-големи и тежки.', 'wide');
+        say(cloud, '<b>Над планината</b><br>Въздухът се издига по склона и се охлажда още. Капчиците в облака се сливат, стават по-големи и тежки.', { lift: 1.3, cls: 'wide' });
         shell.msg('Облакът е над планината. Пусни валежа.', 'good');
       };
     });
@@ -1137,7 +1142,7 @@ export function mount(container, { onComplete }) {
         stopDrain();
         phase = 'flow';
         mark();
-        stage.flyTo(narrow() ? [2, 5, 24] : [2.5, 3.2, 17], [1.5, -0.2, 4], 1.6);
+        stage.flyTo(narrow() ? [2, 7, 25] : [2.5, 5.2, 18], [1.5, -0.5, 5], 1.6);
         later(1.6, () => sayAt('ground', '<b>Подземни води</b><br>Част от водата попива в земята. Под земята тя бавно тече към реките, езерата и морето.', 'wide'));
         later(5.5, () => {
           phase = 'done';
@@ -1188,7 +1193,7 @@ export function mount(container, { onComplete }) {
   function makeTag(st, n) {
     const g = new THREE.Group();
     const txt = n ? `${n}. ${st.label}` : st.label;
-    const s = labelSprite(txt, n ? { size: 0.5, color: '#fff', bg: '#1fab54', border: '#14843f' } : { size: 0.5, color: '#1b2a3a', bg: 'rgba(255,255,255,0.95)', border: '#1865f2' });
+    const s = labelSprite(txt, n ? { size: 0.66, color: '#fff', bg: '#1fab54', border: '#14843f' } : { size: 0.66, color: '#1b2a3a', bg: 'rgba(255,255,255,0.95)', border: '#1865f2' });
     g.add(s);
     stage.steadyLabel(s, 20);
     return g;
@@ -1277,6 +1282,7 @@ export function mount(container, { onComplete }) {
       }
     };
     function askSun() {
+      clearTip();
       shell.task(`<p>Кръгът се затвори! Една капка може да обиколи този път много пъти.</p>
         <p><b>Какво кара водата да се изпарява и задвижва целия кръговрат?</b> Кликни върху него в сцената.</p>`);
       shell.msg('');
@@ -1334,9 +1340,9 @@ export function mount(container, { onComplete }) {
       const html = R1
         ? `<p><b>Задача 1.</b> Направи така, че в планината да <b>завали сняг</b>. Нагласи температурата на въздуха и натисни „Валеж“.</p>`
         : round === 1
-          ? `<p><b>Задача 2.</b> Лято е, въздухът е ${fmt(temp)}, облакът е обикновен.</p><p><b>Какво ще падне?</b></p>${pickHtml()}`
+          ? `<p><b>Задача 2.</b> Лято е, въздухът е ${fmt(20)}, облакът е обикновен.</p><p><b>Какво ще падне?</b></p>${pickHtml()}`
           : round === 2
-            ? `<p><b>Задача 3.</b> Горещ летен ден, ${fmt(temp)}. Над планината расте висок тъмен <b>буреносен облак</b> с мълнии.</p><p><b>Какво може да падне от него?</b></p>${pickHtml()}`
+            ? `<p><b>Задача 3.</b> Горещ летен ден, ${fmt(27)}. Над планината расте висок тъмен <b>буреносен облак</b> с мълнии.</p><p><b>Какво може да падне от него?</b></p>${pickHtml()}`
             : '<p>Сега знаеш трите основни вида валежи: <b>дъжд</b>, <b>сняг</b> и <b>град</b>. Можеш да пробваш още, преди да видиш резултата.</p>';
       shell.task(html);
       if (round === 1 || round === 2) {
@@ -1380,6 +1386,7 @@ export function mount(container, { onComplete }) {
       if (sim.precip) return;
       const kind = kindFor(temp, stormOn);
       clearTip();
+      shell.msg('');
       fall(kind);
       setLocked(true);
       sim.onPrecipEnd = () => {
@@ -1413,7 +1420,7 @@ export function mount(container, { onComplete }) {
     function nextRound() {
       clearTip();
       setLocked(true);
-      go.hidden = true;
+      go.style.display = 'none';
       if (round === 1) {
         stormOn = false; stBtn.classList.remove('on');
         // Затопля се: снегът се топи и водата тече в реката.
@@ -1423,6 +1430,7 @@ export function mount(container, { onComplete }) {
       } else if (round === 2) {
         animateTemp(27, 1.5);
         stormOn = true; stBtn.classList.add('on');
+        stage.flyTo(narrow() ? [3, 11, 21] : [2, 8.5, 16], [5, 4.6, -2.5], 1.5);
       }
       render();
       upScore();
@@ -1448,7 +1456,7 @@ export function mount(container, { onComplete }) {
           // Край: свободна игра и резултат.
           stormOn = false; stBtn.classList.remove('on');
           setLocked(false);
-          go.hidden = false;
+          go.style.display = '';
           render();
           shell.score(`Грешки: ${mistakes}`);
           scores.push(stepScore(mistakes, 2));
@@ -1460,6 +1468,7 @@ export function mount(container, { onComplete }) {
             clearTip();
             setTempTag(null);
             const ratio = scores.reduce((a, b) => a + b, 0) / scores.length;
+            shell.score('');
             shell.finish(ratio, onComplete, restart);
           });
         });

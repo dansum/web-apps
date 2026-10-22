@@ -355,9 +355,9 @@ function steamCloud(n = 7) {
   const g = new THREE.Group();
   const puffs = [];
   for (let i = 0; i < n; i++) {
-    const p = puffSprite(0xffffff, 0.75, 0.42);
+    const p = puffSprite(0xa9bccd, 0.9, 0.5);
     p.userData.ph = i * 1.3;
-    p.userData.base = new THREE.Vector3(Math.cos(i * 2.2) * 0.25, 0.55 + (i % 3) * 0.12, Math.sin(i * 2.2) * 0.18);
+    p.userData.base = new THREE.Vector3(Math.cos(i * 2.2) * 0.25, 0.45 + (i % 3) * 0.14, Math.sin(i * 2.2) * 0.18);
     g.add(p);
     puffs.push(p);
   }
@@ -649,7 +649,7 @@ function build(container, { onComplete }, restart) {
   // ---- стъпка 1: неща на масата ----
   const POS1 = {
     stone: [-3.7, 0, 1.3], spoon: [-2.4, 0, 1.6], ice: [-1.05, 0, 1.3], water: [0.3, 0, 1.4], honey: [1.65, 0, 1.25],
-    juice: [3.25, 0, 1.0], sugar: [-2.5, 0, -0.9], balloon: [-3.9, 0, -2.1], steam: [1.9, 0, -1.9],
+    juice: [3.25, 0, 1.0], sugar: [-2.7, 0, -0.9], balloon: [-0.5, 0, -2.4], steam: [1.9, 0, -1.9],
   };
   const roots = new Map();
   const tableItems = new THREE.Group();
@@ -749,7 +749,7 @@ function build(container, { onComplete }, restart) {
       for (const p of c.userData.puffs) {
         const u = p.userData;
         p.position.set(u.base.x + Math.sin(t * 0.8 + u.ph) * 0.06, u.base.y + Math.sin(t * 1.1 + u.ph) * 0.05, u.base.z);
-        p.material.opacity = 0.6 + Math.sin(t + u.ph) * 0.15;
+        p.material.opacity = 0.8 + Math.sin(t + u.ph) * 0.12;
       }
     }
   });
@@ -868,10 +868,10 @@ function build(container, { onComplete }, restart) {
   scene.add(gasLab);
   const syrAir = syringeModel('air');
   const syrWater = syringeModel('water');
-  syrAir.position.set(-1.2, 0, 0.5);
-  syrWater.position.set(0.1, 0, 0.5);
+  syrAir.position.set(-2.2, 0, 0.6);
+  syrWater.position.set(-0.9, 0, 0.6);
   const jar = makeVessel('jar');
-  jar.position.set(2.0, 0, 0.3);
+  jar.position.set(0.7, 0, 0.5);
   const jarLid = new THREE.Mesh(new THREE.CylinderGeometry(0.68, 0.68, 0.08, 32), mat(0xb0bec5, { metalness: 0.6, roughness: 0.35 }));
   jarLid.position.y = SHAPES.jar.floor + SHAPES.jar.depth + 0.05;
   const lidHole = new THREE.Mesh(new THREE.CircleGeometry(0.06, 16), new THREE.MeshBasicMaterial({ color: 0x263238 }));
@@ -890,7 +890,7 @@ function build(container, { onComplete }, restart) {
   const AIR_N = 30;
   const airPuffs = [];
   for (let i = 0; i < AIR_N; i++) {
-    const p = puffSprite(0xab47bc, 0.42, 0.26);
+    const p = puffSprite(0xab47bc, 0.5, 0.34);
     const a = Math.random() * Math.PI * 2;
     const r = Math.sqrt(Math.random());
     p.userData = { n: new THREE.Vector3(Math.cos(a) * r, Math.random(), Math.sin(a) * r), v: new THREE.Vector3(), where: 'syr', fly: 0 };
@@ -934,7 +934,7 @@ function build(container, { onComplete }, restart) {
       }
       gasLab.worldToLocal(world);
       p.position.copy(world);
-      if (u.where === 'jar') { p.scale.setScalar(0.42); p.material.opacity = 0.32; } else { p.scale.setScalar(0.26); p.material.opacity = Math.min(0.75, 0.38 * dens); }
+      if (u.where === 'jar') { p.scale.setScalar(0.5); p.material.opacity = 0.38; } else { p.scale.setScalar(0.34); p.material.opacity = Math.min(0.8, 0.45 * dens); }
     }
     const w = syrWater.userData.water;
     const top = syrWater.userData.plunger.position.y - 0.04;
@@ -1019,6 +1019,7 @@ function build(container, { onComplete }, restart) {
     menu.show(false);
     menuHandler = null;
     tableItems.visible = false;
+    roots.get('steam').userData.label.visible = false;
     lab.visible = true;
     let mistakes = 0;
     const LIST = ['Прелей водата в чашата, купата и бутилката', 'Сложи камъка във всеки съд', 'Натисни буталата на спринцовките'];
@@ -1154,22 +1155,20 @@ function build(container, { onComplete }, restart) {
       exp = 2;
       lab.visible = false;
       gasLab.visible = true;
-      stage.flyTo([0.4, 3.4, 6.2], [0.4, 1.0, 0.4]);
+      stage.flyTo([-0.7, 3.4, 6.0], [-0.7, 1.0, 0.5]);
       drawList(`<p>В едната спринцовка има <b>въздух</b>, а в другата — <b>вода</b>. Отдолу са запушени. Въздухът е невидим, затова тук е оцветен.</p>
         <label class="small st-press">Натисни двете бутала <input class="slider press" type="range" min="0" max="100" step="1" value="0"></label>`);
       shell.setControls('');
       const sl = container.querySelector('.press');
       let shown = false;
-      const bA = pin(syrAir, 'Въздух', 'tag', 2.35);
-      const bW = pin(syrWater, 'Вода', 'tag', 2.35);
+      let bA = null;
+      let bW = null;
       sl.addEventListener('input', () => {
         const k = +sl.value / 100;
         syrAir.userData.plunger.position.y = 1.68 - k * 0.95;
         syrWater.userData.plunger.position.y = 1.68 - Math.min(k, 0.03) * 0.95;
-        bA.set(k > 0.3 ? 'Въздухът се свива!' : 'Въздух');
-        bW.set(k > 0.1 ? 'Водата не се свива!' : 'Вода');
-        if (k > 0.3) bA.el.classList.add('good');
-        if (k > 0.1) bW.el.classList.add('bad');
+        if (k > 0.3 && !bA) { bA = pin(syrAir, 'Въздухът се свива!', 'tag good', 2.35); syrAir.userData.label.visible = false; }
+        if (k > 0.1 && !bW) { bW = pin(syrWater, 'Водата не се свива!', 'tag bad', 2.35); syrWater.userData.label.visible = false; }
         if (k >= 0.9 && !shown) {
           shown = true;
           shell.msg('Въздухът зае по-малко място, а водата — не.', 'good');
@@ -1179,6 +1178,7 @@ function build(container, { onComplete }, restart) {
       });
       function toJar() {
         clearPins();
+        syrWater.userData.label.visible = true;
         shell.msg('');
         sl.disabled = true;
         // спринцовката отпушва въздуха и се премества над капака
@@ -1196,7 +1196,7 @@ function build(container, { onComplete }, restart) {
             animate(0.8, (k) => syrAir.position.lerpVectors(up, over, ease(k)), () => {
               animate(0.5, (k) => syrAir.position.lerpVectors(over, on, ease(k)), () => {
                 syrAir.userData.label.visible = false;
-                stage.flyTo([1.4, 4.0, 6.4], [1.6, 1.4, 0.3]);
+                stage.flyTo([0.2, 4.0, 6.4], [0.4, 1.4, 0.5]);
                 sl.value = 0;
                 sl.disabled = false;
                 sl.parentElement.firstChild.textContent = 'Натисни буталото докрай ';
@@ -1232,6 +1232,7 @@ function build(container, { onComplete }, restart) {
       }
     }
     function question3() {
+      shell.msg('');
       const c = shell.setControls('');
       choiceBox(c, 'Какво направи въздухът в буркана?', [
         'Събра се на дъното, като вода.',
@@ -1277,12 +1278,12 @@ function build(container, { onComplete }, restart) {
     's-air': () => { const g = balloonModel(1.15, 0.62); g.userData.ph = 2; return g; },
     's-steam': () => { const g = steamCloud(); clouds.push(g); return g; },
   };
-  const SORT_X = [-4.0, -3.0, -2.0, -1.0, 0, 1.0, 2.0, 3.0, 4.0];
-  const sortOrder = ['s-milk', 's-stone', 's-steam', 's-honey', 's-pencil', 's-air', 's-ice', 's-oil', 's-sugar'];
+  const SORT_POS = [[-3.6, -1.7], [-1.8, -1.7], [0, -1.7], [1.8, -1.7], [3.6, -1.7], [-2.7, -0.45], [-0.9, -0.45], [0.9, -0.45], [2.7, -0.45]];
+  const sortOrder = ['s-milk', 's-stone', 's-steam', 's-honey', 's-air', 's-pencil', 's-ice', 's-oil', 's-sugar'];
   sortOrder.forEach((id, i) => {
     const o = sortById[id];
     const g = sortBuilders[id]();
-    g.position.set(SORT_X[i], 0, -1.3 + (i % 2) * 0.35);
+    g.position.set(SORT_POS[i][0], 0, SORT_POS[i][1]);
     g.userData.home = g.position.clone();
     g.userData.pickId = id;
     g.userData.dragId = id;
@@ -1303,10 +1304,10 @@ function build(container, { onComplete }, restart) {
   const zones = {};
   const ZX = { solid: -3.1, liquid: 0, gas: 3.1 };
   for (const k of Object.keys(KIND)) {
-    const z = zoneRing(KIND[k].color, 1.3);
-    z.position.set(ZX[k], 0.0, 1.55);
+    const z = zoneRing(KIND[k].color, 1.2);
+    z.position.set(ZX[k], 0.0, 1.75);
     const lbl = labelSprite(KIND[k].name, { size: 0.3, color: '#fff', bg: KIND[k].css, border: KIND[k].css });
-    lbl.position.set(0, 0.3, 1.45);
+    lbl.position.set(0, 0.3, 1.32);
     z.add(lbl);
     z.visible = false;
     scene.add(z);
@@ -1333,9 +1334,12 @@ function build(container, { onComplete }, restart) {
     lab.visible = false;
     tableItems.visible = false;
     sortGroup.visible = true;
+    kettle.visible = false;
+    steamGroup.visible = false;
+    vase.visible = false;
     for (const k of Object.keys(zones)) zones[k].group.visible = true;
     stage.stopFollow();
-    stage.flyTo([0, 6.8, 7.4], [0, 0.2, 0.3]);
+    stage.flyTo([0, 6.6, 6.3], [0, 0.0, 0.15]);
     shell.task(`<p>Подреди нещата в трите кръга.</p>
       <p><b>Провлачи всяко</b> в кръга, където му е мястото.</p>
       <p class="small">Питай се: тече ли? Има ли собствена форма? Разнася ли се навсякъде? Кликни върху нещо, за да си припомниш.</p>`);
@@ -1362,7 +1366,7 @@ function build(container, { onComplete }, restart) {
         let target = null;
         for (const k of Object.keys(zones)) {
           const zp = zones[k].group.position;
-          if (Math.hypot(p.x - zp.x, p.z - zp.z) < 1.45) target = k;
+          if (Math.hypot(p.x - zp.x, p.z - zp.z) < 1.35) target = k;
         }
         if (!target) { moveTo(g, start, 0.4); return; }
         if (target === o.kind) {
@@ -1493,6 +1497,9 @@ function build(container, { onComplete }, restart) {
     sortGroup.visible = false;
     for (const k of Object.keys(zones)) zones[k].group.visible = false;
     s4.visible = true;
+    kettle.visible = true;
+    steamGroup.visible = true;
+    vase.visible = true;
     stage.stopFollow();
     stage.flyTo([0, 5.0, 8.4], [0, 0.7, 0]);
     const qs = [

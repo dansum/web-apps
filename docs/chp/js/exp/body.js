@@ -33,6 +33,7 @@ const ORGANS = [
 const PRON = { brain: 'Той', heart: 'То', lungs: 'Те', stomach: 'Той', intestines: 'Те', vessels: 'Те' };
 const byId = Object.fromEntries(ORGANS.map((o) => [o.id, o]));
 // Органите, които детето връща на мястото им (съдовете остават в тялото).
+const PRED = { up: 'по-бързо', down: 'по-бавно', same: 'както преди' };
 const MOVABLE = ['brain', 'heart', 'lungs', 'stomach', 'intestines'];
 // Подсказки при грешно място: първо загадка, после по-ясно.
 const PLACE_HINTS = {
@@ -64,10 +65,14 @@ const CSS = `
 .body-hud .body-bar { height: 5px; border-radius: 99px; background: #e5e9f0; overflow: hidden; }
 .body-hud .body-bar i { display: block; height: 100%; width: 30%; border-radius: 99px; transition: width 0.3s; }
 .body-modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-.body-modes .btn { padding-left: 4px; padding-right: 4px; }
+.body-modes .btn { padding-left: 2px; padding-right: 2px; font-size: 0.85rem; white-space: nowrap; }
 .body-modes .btn.on { outline: 3px solid #1865f2; outline-offset: 1px; }
 .xp-chips .chip.body-fn { font-weight: 700; font-size: 0.88rem; border-radius: 10px; text-align: left; }
-@media (max-width: 520px) { .body-hud { font-size: 0.78rem; min-width: 140px; padding: 5px 8px; } }
+.body-held { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); z-index: 4; pointer-events: none;
+  background: #1865f2; color: #fff; font-weight: 800; border-radius: 999px; padding: 6px 14px; font-size: 0.88rem;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.2); max-width: calc(100% - 24px); text-align: center; }
+.body-held[hidden] { display: none; }
+@media (max-width: 520px) { .body-hud { font-size: 0.78rem; min-width: 140px; padding: 5px 8px; } .body-held { font-size: 0.78rem; padding: 4px 10px; } }
 `;
 
 // ---------- модели ----------
@@ -89,12 +94,12 @@ function buildBrain() {
   const g = new THREE.Group();
   const m = organMat(0xf497b6, { roughness: 0.6 });
   for (const s of [1, -1]) {
-    const h = new THREE.Mesh(wrinkle(new THREE.IcosahedronGeometry(1, 4)), m);
+    const h = new THREE.Mesh(wrinkle(new THREE.SphereGeometry(1, 48, 36)), m);
     h.scale.set(0.2, 0.24, 0.33);
     h.position.set(s * 0.105, 0, 0);
     g.add(h);
   }
-  const cer = new THREE.Mesh(wrinkle(new THREE.IcosahedronGeometry(1, 3), 0.05), organMat(0xe27ca0));
+  const cer = new THREE.Mesh(wrinkle(new THREE.SphereGeometry(1, 32, 20), 0.05), organMat(0xe27ca0));
   cer.scale.set(0.17, 0.09, 0.11);
   cer.position.set(0, -0.16, -0.2);
   g.add(cer);
@@ -270,7 +275,7 @@ function buildKid() {
     head.add(eye);
     eyes.push(eye);
     const brow = new THREE.Mesh(new THREE.CapsuleGeometry(0.014, 0.09, 4, 8), organMat(0x6b4226));
-    brow.rotation.z = Math.PI / 2 + s * 0.15;
+    brow.rotation.z = Math.PI / 2 - s * 0.18;
     brow.position.set(s * 0.2, 0.17, 0.55);
     head.add(brow);
     const ear = skinPart(new THREE.SphereGeometry(0.11, 14, 10), headSkin, rim);
@@ -421,6 +426,7 @@ export function mount(container, { onComplete }) {
     g.userData.home = new THREE.Vector3(...HOMEPOS[id]);
     if (id === 'heart') addHitBox(g, 0.42);
     if (id === 'stomach') addHitBox(g, 0.4);
+    if (id === 'lungs' || id === 'intestines') addHitBox(g, 0.4);
     kid.add(g);
     organs[id] = g;
   }
@@ -451,8 +457,8 @@ export function mount(container, { onComplete }) {
       }
     }
   }
-  vessel(vesselGroup, [[0.08, 2.72, 0.12], [0.08, 2.95, 0.02], [0.11, 3.3, 0.06], [0.15, 3.62, 0.12], [0.12, 3.95, 0.06]], [0.06, 0, -0.03]);
-  vessel(vesselGroup, [[0.03, 2.72, 0.12], [-0.06, 2.95, 0.02], [-0.11, 3.3, 0.06], [-0.15, 3.62, 0.12], [-0.12, 3.95, 0.06]], [-0.06, 0, -0.03]);
+  vessel(vesselGroup, [[0.08, 2.72, 0.12], [0.08, 2.95, 0.02], [0.11, 3.3, 0.02], [0.14, 3.55, -0.04], [0.1, 3.78, -0.12]], [0.05, 0, -0.03]);
+  vessel(vesselGroup, [[0.03, 2.72, 0.12], [-0.06, 2.95, 0.02], [-0.11, 3.3, 0.02], [-0.14, 3.55, -0.04], [-0.1, 3.78, -0.12]], [-0.05, 0, -0.03]);
   vessel(vesselGroup, [[0.08, 2.72, 0.12], [0.05, 2.9, -0.06], [-0.04, 2.76, -0.17], [-0.04, 2.2, -0.19], [-0.02, 1.6, -0.16], [0, 1.3, -0.1]], [-0.09, 0, 0.03], { hit: false });
   for (const s of [1, -1]) {
     vessel(vesselGroup, [[0, 1.3, -0.1], [s * 0.15, 1.22, -0.03], [s * 0.27, 1.1, 0.03]], [s * 0.05, 0, 0.05], { hit: false });
@@ -473,12 +479,13 @@ export function mount(container, { onComplete }) {
   anchors.intestines = addAnchor(organs.intestines, [0, 0.27, 0]);
   const vesselCenter = addAnchor(K.arms[0], [0, -0.75, 0.05]);
   anchors.vessels = addAnchor(K.arms[0], [0, -0.55, 0.05]);
-  tagAnchors.brain = addAnchor(organs.brain, [0, 0.05, 0.3]);
-  tagAnchors.heart = addAnchor(organs.heart, [0.08, -0.02, 0.1]);
-  tagAnchors.lungs = addAnchor(organs.lungs, [-0.32, -0.12, 0.2]);
-  tagAnchors.stomach = addAnchor(organs.stomach, [0.12, -0.02, 0.12]);
-  tagAnchors.intestines = addAnchor(organs.intestines, [-0.12, -0.12, 0.12]);
-  tagAnchors.vessels = addAnchor(K.arms[0], [0, -1.05, 0.08]);
+  // Етикетите в стъпка 3 са разпръснати, за да не се застъпват.
+  tagAnchors.brain = addAnchor(kid, [0, 4.5, 0.4]);
+  tagAnchors.heart = addAnchor(kid, [0.42, 2.62, 0.35]);
+  tagAnchors.lungs = addAnchor(kid, [-0.45, 3.08, 0.3]);
+  tagAnchors.stomach = addAnchor(kid, [0.45, 2.02, 0.3]);
+  tagAnchors.intestines = addAnchor(kid, [-0.4, 1.6, 0.3]);
+  tagAnchors.vessels = addAnchor(K.arms[1], [0, -1.15, 0.08]);
   const centerOf = (id) => (id === 'vessels' ? vesselCenter : organs[id]);
 
   const glows = {};
@@ -496,6 +503,10 @@ export function mount(container, { onComplete }) {
     <div class="body-row"><span class="body-ico">🫁</span><span class="body-num brm">20</span><span class="body-unit">вдишвания в минута</span></div>
     <div class="body-bar"><i class="rbar" style="background:#42a5f5"></i></div>`;
   stage.overlay.parentElement.appendChild(hud);
+  const heldEl = document.createElement('div');
+  heldEl.className = 'body-held';
+  heldEl.hidden = true;
+  stage.overlay.parentElement.appendChild(heldEl);
   const hq = (s) => hud.querySelector(s);
 
   // ---------- живот: сърце, дишане, кръв, мигане, тичане ----------
@@ -783,7 +794,8 @@ export function mount(container, { onComplete }) {
     life.sway = true;
     for (const m of slotMarks) kid.remove(m);
     slotMarks.length = 0;
-    overview();
+    stage.stopFollow();
+    stage.flyTo([0, 3.0, 6.6], [0, 2.55, 0], 1);
     let held = null;
     let mistakes = 0;
     const done = new Set();
@@ -796,6 +808,11 @@ export function mount(container, { onComplete }) {
         held = ch.dataset.k;
         container.querySelectorAll('.xp-chips .chip').forEach((x) => x.classList.toggle('held', x === ch));
         shell.msg('Сега кликни органа в тялото на Боби.');
+        heldEl.textContent = `Кой орган: „${byId[held].fn}“?`;
+        heldEl.hidden = false;
+        // На тесен екран сцената е над панела — показваме я.
+        const r = shell.stageEl.getBoundingClientRect();
+        if (r.top < 0 || r.bottom > window.innerHeight) shell.stageEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }));
     };
     draw();
@@ -814,6 +831,7 @@ export function mount(container, { onComplete }) {
         tags.push(stage.bubble(tagAnchors[id], `✔ ${esc(byId[id].label)}`, { lift: 0, cls: 'tag good' }));
         shell.msg(`Вярно! ${byId[id].label}: ${byId[id].fn.toLowerCase()}.`, 'good');
         held = null;
+        heldEl.hidden = true;
         draw();
         upd();
         if (done.size === ORGANS.length) {
@@ -876,14 +894,13 @@ export function mount(container, { onComplete }) {
           else if (b.classList.contains('on')) b.classList.add('wrong');
         });
       });
-      runPhase(good);
+      runPhase(good, { ...ans });
     });
   }
 
   let runTimer = null;
-  function runPhase(good) {
+  function runPhase(good, pred) {
     setMode('run');
-    stage.focusOn(organs.heart, { dist: 4.2, height: 0.5, lift: 0.1 });
     const c = shell.setControls(`<div class="body-modes"><button class="btn" data-m="rest">🧍 Почивай</button><button class="btn" data-m="walk">🚶 Ходи</button><button class="btn on" data-m="run">🏃 Тичай</button></div>`);
     c.querySelectorAll('[data-m]').forEach((b) => b.addEventListener('click', () => {
       c.querySelectorAll('[data-m]').forEach((x) => x.classList.toggle('on', x === b));
@@ -894,18 +911,18 @@ export function mount(container, { onComplete }) {
       runTimer = null;
       say('heart', '<b>Туп-туп-туп!</b> Когато Боби тича, сърцето бие много по-бързо, а той диша по-бързо и по-дълбоко.', 'wide');
       shell.msg(good === 2 ? 'Позна и двете! 🎉' : good === 1 ? 'Позна едното.' : 'Сърцето и дишането станаха по-бързи.', good === 2 ? 'good' : 'bad');
-      askWhy(good);
+      askWhy(good, pred);
     }, 3800);
   }
 
-  function askWhy(good) {
+  function askWhy(good, pred) {
     const opts = shuffle([
       { v: 'ok', t: 'Мускулите на краката работят много и им трябва повече кръв с кислород и храна.' },
       { v: 'food', t: 'За да се смила храната по-бързо.' },
       { v: 'cold', t: 'Защото на Боби му е студено.' },
     ]);
-    const old = container.querySelector('.xp-task').innerHTML;
-    shell.task(`${old}<p><b>Защо, когато тичаш, сърцето бие по-бързо?</b></p>${choicesHTML('w', opts)}
+    const mark = (v) => (v === 'up' ? '✔' : '✘');
+    shell.task(`<p class="small">Ти предположи: сърцето — <b>${PRED[pred.h]} ${mark(pred.h)}</b>, дишането — <b>${PRED[pred.b]} ${mark(pred.b)}</b>.</p><p><b>Защо, когато тичаш, сърцето бие по-бързо?</b></p>${choicesHTML('w', opts)}
       <p class="small">Пробвай и бутоните „Почивай“ и „Ходи“.</p>`);
     let tries = 0;
     container.querySelectorAll('.xp-task .choices[data-q="w"] .choice').forEach((b) => b.addEventListener('click', () => {
@@ -956,6 +973,7 @@ export function mount(container, { onComplete }) {
     floor.visible = true;
     floorRing.visible = true;
     hud.hidden = true;
+    heldEl.hidden = true;
     setMode('rest');
     lockView(false);
     scores.length = 0;
@@ -968,6 +986,7 @@ export function mount(container, { onComplete }) {
       if (runTimer) clearTimeout(runTimer);
       if (stopDrag) stopDrag();
       hud.remove();
+      heldEl.remove();
       menu.remove();
       stage.dispose();
     },

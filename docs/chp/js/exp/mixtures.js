@@ -36,33 +36,33 @@ const MIX2 = [
     look: 'Едри зелени зърна, смесени със ситен бял прах.',
     jar: { grains: [{ color: 0x7cb342, r: 0.05, n: 14 }, { color: 0xf3ecdc, r: 0.02, n: 90 }] },
     vis: { big: { color: 0x7cb342, r: 0.055, n: 26 }, small: { color: 0xf3ecdc, r: 0.02, n: 160 } },
-    noMag: 'граха и брашното', result: 'Грахът остана в ситото, брашното мина в купата.',
+    noMag: 'граха и брашното', result: 'Грахът остана в ситото, брашното мина в купата.', proto: 'грах — в ситото, брашно — в купата',
     hint: 'Частиците тук са с много различна големина.' },
   { id: 'sandw', short: 'Пясък и вода', name: 'Пясък и вода', best: 'filter', liquid: true,
     look: 'Песъчинките не се разтварят — плуват мътни във водата и падат на дъното.',
     jar: { liquid: 0xa9c7cf, grains: [{ color: SAND, r: 0.022, n: 70, bottom: true }] },
     vis: { mix: 0xb5b08e, solid: SAND, filtrate: 0xcfe9f7 },
     alt: { settle: 'Става — пясъкът ще се утаи. Но водата над него остава мътна и трябва да чакаш. Има по-бърз и по-чист начин.' },
-    noMag: 'пясъка и водата', result: 'Пясъкът остана върху филтъра, бистрата вода мина в чашата.',
+    noMag: 'пясъка и водата', result: 'Пясъкът остана върху филтъра, бистрата вода мина в чашата.', proto: 'пясък — на филтъра, вода — в чашата',
     hint: 'Пясъкът не се разтваря. Коя хартия пропуска водата, но не и песъчинките?' },
   { id: 'saltw', short: 'Сол и вода', name: 'Сол и вода (разтвор)', best: 'evap', liquid: true, dissolved: true,
     look: 'Бистра течност. Солта се е разтворила и не се вижда — но водата е солена.',
     jar: { liquid: 0xd4ecf7 },
     vis: { liquid: 0xd4ecf7, residue: 0xffffff },
-    noMag: 'солта и водата', result: 'Водата се изпари, в блюдото останаха кристалчета сол.',
+    noMag: 'солта и водата', result: 'Водата се изпари, в блюдото останаха кристалчета сол.', proto: 'водата се изпари, сол — в блюдото',
     hint: 'Солта е разтворена. Как да махнем водата, а солта да остане?' },
   { id: 'iron', short: 'Стърготини и пясък', name: 'Железни стърготини и пясък', best: 'magnet', dry: true, hasIron: true, sameSize: true,
     look: 'Сиви железни стърготини, смесени с пясък. Частиците са почти еднакво дребни.',
     jar: { grains: [{ color: 0x3d4248, r: 0.02, n: 60 }, { color: SAND, r: 0.02, n: 60 }] },
     vis: { iron: { color: 0x3d4248, shape: 'filing', n: 70 }, other: { color: SAND, shape: 'grain', n: 90 } },
-    result: 'Стърготините полепнаха по магнита, пясъкът остана в паничката.',
+    result: 'Стърготините полепнаха по магнита, пясъкът остана в паничката.', proto: 'желязо — на магнита, пясък — в паничката',
     hint: 'Едното вещество е метал — желязо.' },
   { id: 'mud', short: 'Кал', name: 'Кал (пръст и вода)', best: 'settle', liquid: true,
     look: 'Мътна кафява вода с много ситни частици пръст.',
     jar: { liquid: 0x8a6a45 },
     vis: { mode: 'sediment', murky: 0x8a6a45, clear: 0xc9dde0, solid: 0x6a4a30 },
     alt: { filter: 'Става, но ситната кал бързо запушва филтъра. Има по-лесен начин — без никакви уреди, само с малко търпение.' },
-    noMag: 'пръстта и водата', result: 'Пръстта се утаи на дъното, а водата отгоре се избистри.',
+    noMag: 'пръстта и водата', result: 'Пръстта се утаи на дъното, а водата отгоре се избистри.', proto: 'пръст — на дъното, бистра вода — отгоре',
     hint: 'Ако оставиш сместа на спокойствие, тежките частици ще паднат надолу.' },
 ];
 const MIX3 = [
@@ -352,11 +352,15 @@ export function mount(container, { onComplete }) {
   const { scene, camera } = stage;
   const narrow = camera.aspect < 1.15;
 
+  // Реално време (а не кадри): анимациите траят еднакво и на бавен компютър.
+  let rdt = 0.016;
+  let lastNow = performance.now();
+  stage.tick(() => { const n = performance.now(); rdt = Math.min(0.25, Math.max(0.001, (n - lastNow) / 1000)); lastNow = n; });
   const phase = (dur, fn) => new Promise((res) => {
     let k = 0;
     const stop = stage.tick((dt, t) => {
-      k = Math.min(1, k + dt / dur);
-      if (fn) fn(k, dt, t);
+      k = Math.min(1, k + rdt / dur);
+      if (fn) fn(k, rdt, t);
       if (k >= 1) { stop(); res(); }
     });
   });
@@ -366,8 +370,8 @@ export function mount(container, { onComplete }) {
     ? { sieve: [-1.9, -1.45], filter: [0, -1.55], magnet: [1.9, -1.45], settle: [-1.0, -0.2], evap: [1.0, -0.2] }
     : { sieve: [-4.2, -0.8], settle: [-2.1, -0.8], filter: [0, -0.8], evap: [2.1, -0.8], magnet: [4.2, -0.8] };
   const SLOTS = narrow
-    ? [[-2.2, 1.35], [-1.1, 2.0], [0, 1.35], [1.1, 2.0], [2.2, 1.35]]
-    : [[-4.0, 1.45], [-2.0, 1.85], [0, 1.45], [2.0, 1.85], [4.0, 1.45]];
+    ? [[-2.2, 1.45], [-1.1, 2.15], [0, 1.45], [1.1, 2.15], [2.2, 1.45]]
+    : [[-4.0, 1.75], [-2.0, 2.25], [0, 1.75], [2.0, 2.25], [4.0, 1.75]];
   const GOG = narrow ? [-2.6, 0, 0.55] : [-5.7, 0, 0.9];
   const BENCH_W = narrow ? 6.6 : 13.6;
 
@@ -518,6 +522,7 @@ export function mount(container, { onComplete }) {
     const [x, z] = TPOS[id];
     g.position.set(x, 0, z);
     g.userData.pickId = id;
+    g.userData.toolId = id;
     g.traverse((o) => { if (o.isMesh && !o.material.transparent) o.castShadow = true; });
     scene.add(g);
     toolRoots.push(g);
@@ -1073,7 +1078,7 @@ export function mount(container, { onComplete }) {
     st.label = lbl;
   }
   stage.tick((dt, t) => {
-    for (const id of TOOL_IDS) stations[id].tick(dt, t);
+    for (const id of TOOL_IDS) stations[id].tick(rdt, t);
   });
 
   // --- предпазни очила ---
@@ -1136,7 +1141,7 @@ export function mount(container, { onComplete }) {
     stage.stopFollow();
     stage.flyTo(pos, c, dur);
   }
-  const overview = (dur) => (narrow ? fitView([0, 0.5, 0.1], 3.05, 2.2, 0.62, dur) : fitView([0, 0.55, 0.35], 6.0, 1.9, 0.5, dur));
+  const overview = (dur) => (narrow ? fitView([0, 0.5, 0.1], 3.05, 2.2, 0.62, dur) : fitView([0, 0.5, 0.6], 5.5, 1.9, 0.55, dur));
 
   // ---------- балончета ----------
   let tip = null;
@@ -1344,8 +1349,8 @@ export function mount(container, { onComplete }) {
   stage.renderer.domElement.addEventListener('pointerdown', ptrMove);
   function toolUnder(pos) {
     if (lastPtr) {
-      const hit = stage.pickAt(lastPtr, 'pickId', toolRoots);
-      if (hit && TOOL_IDS.includes(hit.root.userData.pickId)) return hit.root.userData.pickId;
+      const hit = stage.pickAt(lastPtr, 'toolId', toolRoots);
+      if (hit) return hit.root.userData.toolId;
     }
     let best = null; let bd = 0.9;
     for (const id of TOOL_IDS) {
@@ -1440,6 +1445,9 @@ export function mount(container, { onComplete }) {
         clearTip();
         shell.msg('');
         g.position.copy(start);
+        const sg = stations[id].g;
+        const fv = sg.position.clone();
+        fitView([fv.x, 0.75, fv.z + 0.6], narrow ? 2.0 : 2.3, 1.35, 0.42, 0.9);
         await separate(g, m, id);
         g.userData.done = true;
         g.userData.locked = true;
@@ -1450,12 +1458,13 @@ export function mount(container, { onComplete }) {
         if (proto) {
           const row = proto.find((r) => r.id === m.id);
           row.method = TOOLS[id].method;
-          row.result = m.result.split(',')[0] + '.';
+          row.result = m.proto;
           drawTask();
         }
         upd();
         busy = false;
         lockJars(false);
+        overview(1.8);
         if (done === list.length) {
           stopDrag(); stopDrag = null;
           scores.push(stepScore(mistakes, 4));

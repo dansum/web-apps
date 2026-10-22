@@ -10,10 +10,10 @@ const CSS = `
 .circuit-sch .cap { font-size: 0.8rem; text-align: center; color: #556; }
 .circuit-one { max-width: 210px; margin: 4px auto; display: block; }
 .circuit-match { display: grid; gap: 6px; margin-top: 6px; }
-.circuit-match .mrow { display: grid; grid-template-columns: 6.6em 1fr; gap: 6px; align-items: center; }
+.circuit-match .mrow { display: grid; gap: 3px; }
 .circuit-match .mrow b { font-size: 0.9rem; }
 .circuit-match .opts { display: flex; gap: 4px; flex-wrap: wrap; }
-.circuit-match .choice { padding: 5px 8px; font-size: 0.85rem; }
+.circuit-match .choice { padding: 4px 9px; font-size: 0.85rem; }
 .circuit-dev { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0; }
 .circuit-dev .chip { cursor: pointer; }
 .circuit-dev .chip.on { background: #1865f2; color: #fff; border-color: #1865f2; }
@@ -186,6 +186,7 @@ function lampModel() {
   const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0 }));
   halo.position.y = 0.98;
   halo.scale.set(2.4, 2.4, 1);
+  halo.raycast = () => {};
   const light = new THREE.PointLight(0xffd27a, 0, 6, 2);
   light.position.y = 1.0;
   g.add(sock, screw, bulb, neck, fil, halo, light);
@@ -302,6 +303,7 @@ function heaterModel() {
     s.scale.set(0.22, 0.22, 1);
     s.userData.ph = i / 9;
     s.userData.x = -0.25 + (i % 5) * 0.125;
+    s.raycast = () => {};
     g.add(s);
     waves.push(s);
   }
@@ -437,7 +439,7 @@ function build(container, { onComplete }, restart) {
   const STEPS = ['Опознай уредите', 'Построй верига', 'Проводник или изолатор?', 'Схеми и безопасност'];
   const shell = createShell(container, { steps: STEPS });
   const stage = createStage(shell.stageEl, {
-    background: 0xe6edf5, camPos: [0, 6.2, 8.8], target: [0, 0.4, 0.2], shadows: true, maxDistance: 20, minDistance: 2.5,
+    background: 0xe6edf5, camPos: [0, 6.2, 8.8], target: [0, 0.4, 0.2], shadows: false, maxDistance: 20, minDistance: 2.5,
   });
   const { scene, camera } = stage;
   const timers = new Set();
@@ -518,7 +520,7 @@ function build(container, { onComplete }, restart) {
     hole.position.set(s * 0.09, 0, 0.052);
     socket.add(hole);
   }
-  const warn = textPlane('⚡ 230 V', 0.62, 0.2, { bg: '#ffd54f', fg: '#1b2a3a', font: 'bold 90px system-ui, Arial' });
+  const warn = textPlane('230 V', 0.62, 0.2, { bg: '#ffd54f', fg: '#1b2a3a', font: 'bold 64px system-ui, Arial' });
   warn.position.set(0, -0.48, 0.0);
   socket.add(warn);
   socket.position.set(3.4, 1.0, -4.25);
@@ -533,6 +535,7 @@ function build(container, { onComplete }, restart) {
   for (let i = 0; i < dustN; i++) { dp[i * 3] = (Math.random() - 0.5) * 9; dp[i * 3 + 1] = Math.random() * 4; dp[i * 3 + 2] = (Math.random() - 0.5) * 7; }
   dustGeo.setAttribute('position', new THREE.BufferAttribute(dp, 3));
   const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.035, transparent: true, opacity: 0.6, depthWrite: false }));
+  dust.raycast = () => {};
   scene.add(dust);
 
   // ---------- уреди ----------
@@ -784,7 +787,7 @@ function build(container, { onComplete }, restart) {
     stage.stopFollow();
     stage.flyTo(p.toArray(), tgt, dur);
   }
-  const overview = () => view([0, 6.2, 8.8], [0, 0.4, 0.2]);
+  const overview = () => view([0, 5.9, 7.9], [0, 0.4, 0]);
 
   // ---------- балончета ----------
   let tip = null;
@@ -909,7 +912,7 @@ function build(container, { onComplete }, restart) {
     clearWires();
     setSwitch(false);
     resetDevices();
-    view([0, 6.4, 7.6], [0, 0.3, 0.4]);
+    view([0, 5.6, 6.4], [0, 0.3, -0.1]);
     let mistakes = 0;
     let phase = 'build';
     let hinted = 0;
@@ -1198,7 +1201,7 @@ function build(container, { onComplete }, restart) {
       scene.add(z);
       rings[k] = { group: z, members: [] };
     }
-    view([0, 7.4, 7.6], [0, 0, 0.5]);
+    view([0, 6.6, 6.2], [0, 0, 0.45]);
     gapObj = null;
     let mistakes = 0;
     let sorted = 0;
@@ -1270,14 +1273,14 @@ function build(container, { onComplete }, restart) {
           g.rotation.y = 0;
           g.userData.locked = true;
           sorted++;
-          say(g, `✔ ${esc(o.app)}`, 'good wide', 0.6);
+          say(r.group, `✔ ${esc(o.app)}`, 'good wide', 0.9);
           shell.msg('Вярно!', 'good');
         } else {
           mistakes++;
           toHome(g);
-          say(g, g.userData.tested
+          say(rings[target].group, g.userData.tested
             ? `✘ Спомни си какво направи лампата, когато ${esc(o.full)} беше в процепа.`
-            : '✘ Не позна. Пробвай го първо в жълтия процеп — лампата ще ти подскаже.', 'bad wide', 0.6);
+            : '✘ Не позна. Пробвай го първо в жълтия процеп — лампата ще ти подскаже.', 'bad wide', 0.9);
           shell.msg(mistakes >= 3 ? 'Подсказка: ако лампата свети — дори слабо — предметът е проводник.' : 'Не е вярно.', 'bad');
         }
         upd();
@@ -1332,7 +1335,7 @@ function build(container, { onComplete }, restart) {
       addWire('T:lamp:b', 'T:battery:-', [[2.95, 0.15, -0.8], [0, 0.15, -1.2], [-3.55, 0.15, -0.8]]);
       update();
     }, 850);
-    view([0, 6.4, 7.6], [0, 0.3, 0.2]);
+    view([0, 5.6, 6.4], [0, 0.3, -0.1]);
     let mistakes = 0;
     const upd = () => shell.score(`Грешки: ${mistakes}`);
     upd();
