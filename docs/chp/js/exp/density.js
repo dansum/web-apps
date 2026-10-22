@@ -494,7 +494,9 @@ export function mount(container, { onComplete }) {
           b.f = Math.min(1, Math.max(0, (surf - (g.position.y - half)) / b.h));
           continue;
         }
-        const a = GR * ((b.f * rhoW(b)) / b.rho - 1) - (b.f > 0 ? DAMP : 0.2) * b.v;
+        // яйцето е почти „неутрално“ — усилваме разликата, за да се вижда движението (посоката е вярна)
+        const gain = b.where === 'egg' ? 14 : 1;
+        const a = GR * gain * ((b.f * rhoW(b)) / b.rho - 1) - (b.f > 0 ? DAMP : 0.2) * b.v;
         b.v += a * h;
         g.position.y += b.v * h;
         const fl = floorOf(b) + half;
@@ -944,8 +946,8 @@ export function mount(container, { onComplete }) {
       glide(g, homeOf(id), 0.8);
     }
     const tp = tank.position;
-    if (narrow) fitView([tp.x, 0.8, tp.z + 0.8], 2.0, 1.2, 0.35);
-    else fitView([tp.x, 0.8, tp.z + 0.6], 2.2, 1.2, 0.35);
+    if (narrow) fitView([tp.x, 1.05, tp.z + 0.8], 2.0, 1.55, 0.35);
+    else fitView([tp.x, 1.05, tp.z + 0.6], 2.2, 1.55, 0.35);
     const clay = objs.get('clay');
     const bub = stage.bubble(clay, '', { lift: 0.45, cls: 'tag' });
     const readBub = () => {
