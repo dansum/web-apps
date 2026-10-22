@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Lato, Arial, sans-serif">
+<title>Температура и трите състояния на водата</title>
+<defs>
+<marker id="ao" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#FA961E"/></marker>
+<marker id="ac" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#28AAE1"/></marker>
+</defs>
+<rect width="640" height="400" fill="#F7F7F7"/>
+<text x="320" y="36" text-anchor="middle" font-size="24" font-weight="bold" fill="#0A2A66">Трите състояния на водата</text>
+<rect x="34" y="70" width="24" height="230" rx="12" fill="#fff" stroke="#0A2A66" stroke-width="2"/>
+<circle cx="46" cy="310" r="20" fill="#E53935" stroke="#0A2A66" stroke-width="2"/>
+<rect x="40" y="150" width="12" height="160" fill="#E53935"/>
+<line x1="58" y1="90" x2="68" y2="90" stroke="#0A2A66" stroke-width="2"/><text x="72" y="96" font-size="16" fill="#0A2A66">100 °C</text>
+<line x1="58" y1="250" x2="68" y2="250" stroke="#0A2A66" stroke-width="2"/><text x="72" y="256" font-size="16" fill="#0A2A66">0 °C</text>
+<text x="12" y="358" font-size="16" fill="#0A2A66">термометър</text>
+<text x="12" y="378" font-size="16" fill="#0A2A66">(градуси Целзий)</text>
+<g>
+<rect x="150" y="140" width="130" height="120" rx="16" fill="#fff" stroke="#28AAE1" stroke-width="2"/>
+<rect x="180" y="160" width="40" height="40" rx="6" fill="#D6F1FB" stroke="#28AAE1" stroke-width="2"/>
+<rect x="212" y="180" width="40" height="40" rx="6" fill="#D6F1FB" stroke="#28AAE1" stroke-width="2"/>
+<text x="215" y="246" text-anchor="middle" font-size="18" font-weight="bold" fill="#0A2A66">лед</text>
+</g>
+<g>
+<rect x="320" y="140" width="130" height="120" rx="16" fill="#fff" stroke="#28AAE1" stroke-width="2"/>
+<path d="M360 160 h50 l-5 58 h-40 z" fill="#E3F6FD" stroke="#28AAE1" stroke-width="2"/>
+<path d="M363 182 h44 l-3 34 h-38 z" fill="#28AAE1"/>
+<text x="385" y="246" text-anchor="middle" font-size="18" font-weight="bold" fill="#0A2A66">вода</text>
+</g>
+<g>
+<rect x="490" y="140" width="130" height="120" rx="16" fill="#fff" stroke="#28AAE1" stroke-width="2"/>
+<path d="M530 215 q-12 -15 0 -30 q12 -15 0 -30 M555 215 q-12 -15 0 -30 q12 -15 0 -30 M580 215 q-12 -15 0 -30 q12 -15 0 -30" stroke="#90A4AE" stroke-width="5" fill="none" stroke-linecap="round"/>
+<text x="555" y="246" text-anchor="middle" font-size="18" font-weight="bold" fill="#0A2A66">водна пара</text>
+</g>
+<text x="385" y="76" text-anchor="middle" font-size="17" font-weight="bold" fill="#FA961E">нагряване</text>
+<path d="M215 132 q85 -45 160 0" stroke="#FA961E" stroke-width="3" fill="none" marker-end="url(#ao)"/>
+<text x="300" y="104" text-anchor="middle" font-size="16" fill="#0A2A66">топене</text>
+<path d="M395 132 q85 -45 150 0" stroke="#FA961E" stroke-width="3" fill="none" marker-end="url(#ao)"/>
+<text x="470" y="104" text-anchor="middle" font-size="16" fill="#0A2A66">изпарение</text>
+<path d="M545 268 q-75 45 -150 0" stroke="#28AAE1" stroke-width="3" fill="none" marker-end="url(#ac)"/>
+<text x="470" y="306" text-anchor="middle" font-size="16" fill="#0A2A66">втечняване</text>
+<path d="M375 268 q-85 45 -160 0" stroke="#28AAE1" stroke-width="3" fill="none" marker-end="url(#ac)"/>
+<text x="300" y="306" text-anchor="middle" font-size="16" fill="#0A2A66">замръзване</text>
+<text x="385" y="338" text-anchor="middle" font-size="17" font-weight="bold" fill="#28AAE1">охлаждане</text>
+<text x="385" y="372" text-anchor="middle" font-size="16" fill="#0A2A66">Водата замръзва при 0 °C и кипи при 100 °C.</text>
+</svg>

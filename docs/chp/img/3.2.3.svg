@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Lato, Arial, sans-serif">
+<title>От какво се нуждаят растенията</title>
+<rect width="640" height="400" fill="#EAF6FC"/>
+<rect x="0" y="290" width="640" height="110" fill="#A8754A"/>
+<rect x="0" y="282" width="640" height="14" rx="6" fill="#3CB44B"/>
+<text x="320" y="36" text-anchor="middle" font-size="24" font-weight="bold" fill="#0A2A66">Какво е нужно на растението, за да си</text>
+<text x="320" y="64" text-anchor="middle" font-size="24" font-weight="bold" fill="#0A2A66">изработи хранителни вещества?</text>
+<g>
+<circle cx="78" cy="130" r="34" fill="#FFD54A"/>
+<path d="M78 82 v-10 M78 178 v10 M30 130 h-10 M126 130 h10 M44 96 l-7 -7 M112 164 l7 7 M44 164 l-7 7 M112 96 l7 -7" stroke="#FA961E" stroke-width="4" stroke-linecap="round"/>
+<path d="M130 160 L262 196" stroke="#FA961E" stroke-width="4" stroke-dasharray="10 8" stroke-linecap="round"/>
+<path d="M262 196 l-14 -12 M262 196 l-17 4" stroke="#FA961E" stroke-width="4" stroke-linecap="round"/>
+<rect x="24" y="186" width="108" height="32" rx="12" fill="#FA961E"/>
+<text x="78" y="208" text-anchor="middle" font-size="18" font-weight="bold" fill="#fff">светлина</text>
+</g>
+<g>
+<path d="M320 288 v-150" stroke="#2E9A3E" stroke-width="7" stroke-linecap="round"/>
+<path d="M320 230 q-60 -6 -74 -46 q52 0 74 38 z" fill="#3CB44B"/>
+<path d="M320 196 q60 -6 74 -46 q-52 0 -74 38 z" fill="#3CB44B"/>
+<path d="M320 160 q-44 -10 -50 -42 q40 4 50 34 z" fill="#3CB44B"/>
+<path d="M320 140 q30 -20 22 -46 q-26 14 -22 40 z" fill="#3CB44B"/>
+<path d="M320 296 q-24 20 -50 26 M320 296 q2 30 -8 52 M320 296 q26 18 48 22 M320 310 q16 22 34 30" stroke="#F3E6D3" stroke-width="4" fill="none" stroke-linecap="round"/>
+</g>
+<g>
+<path d="M540 168 q-60 20 -130 4" stroke="#28AAE1" stroke-width="4" fill="none" stroke-dasharray="10 8" stroke-linecap="round"/>
+<path d="M410 172 l12 -12 M410 172 l14 8" stroke="#28AAE1" stroke-width="4" stroke-linecap="round"/>
+<rect x="500" y="80" width="112" height="32" rx="12" fill="#28AAE1"/>
+<text x="556" y="102" text-anchor="middle" font-size="18" font-weight="bold" fill="#fff">въздух</text>
+<text x="556" y="134" text-anchor="middle" font-size="16" fill="#0A2A66">влиза</text>
+<text x="556" y="154" text-anchor="middle" font-size="16" fill="#0A2A66">през листата</text>
+</g>
+<g>
+<path d="M474 230 l-36 -20 a10 10 0 0 1 -2 -14 l8 -6 a10 10 0 0 1 14 2 l26 30 z" fill="#14BF96"/>
+<rect x="470" y="216" width="70" height="56" rx="10" fill="#14BF96"/>
+<path d="M540 230 q26 0 26 22" stroke="#14BF96" stroke-width="7" fill="none"/>
+<path d="M420 214 q-6 10 0 16 q6 -6 0 -16 z M404 236 q-6 10 0 16 q6 -6 0 -16 z M424 252 q-6 10 0 16 q6 -6 0 -16 z" fill="#28AAE1"/>
+<rect x="396" y="316" width="96" height="32" rx="12" fill="#14BF96"/>
+<text x="444" y="338" text-anchor="middle" font-size="18" font-weight="bold" fill="#fff">вода</text>
+<text x="504" y="330" font-size="16" fill="#fff">влиза</text>
+<text x="504" y="350" font-size="16" fill="#fff">през корените</text>
+</g>
+<rect x="24" y="316" width="250" height="64" rx="14" fill="#fff" stroke="#3CB44B" stroke-width="3"/>
+<text x="149" y="342" text-anchor="middle" font-size="16" fill="#0A2A66">В листата растението</text>
+<text x="149" y="364" text-anchor="middle" font-size="16" fill="#0A2A66">си прави храна.</text>
+</svg>

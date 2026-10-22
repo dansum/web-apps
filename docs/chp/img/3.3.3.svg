@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Lato, Arial, sans-serif">
+<title>Хигиена и здравословно хранене</title>
+<rect width="640" height="400" fill="#F7F7F7"/>
+<text x="320" y="36" text-anchor="middle" font-size="24" font-weight="bold" fill="#0A2A66">Три навика за здраво тяло</text>
+<g>
+<rect x="20" y="56" width="190" height="326" rx="18" fill="#fff" stroke="#28AAE1" stroke-width="3"/>
+<text x="115" y="88" text-anchor="middle" font-size="20" font-weight="bold" fill="#28AAE1">Права стойка</text>
+<circle cx="115" cy="118" r="16" fill="#F2C4A0"/>
+<path d="M115 136 v62" stroke="#0A2A66" stroke-width="18" stroke-linecap="round"/>
+<rect x="124" y="140" width="30" height="48" rx="8" fill="#FA961E"/>
+<path d="M115 200 l-10 40 M115 200 l10 40" stroke="#0A2A66" stroke-width="10" stroke-linecap="round"/>
+<path d="M150 112 v90" stroke="#3CB44B" stroke-width="3" stroke-dasharray="6 5"/>
+<text x="115" y="276" text-anchor="middle" font-size="16" fill="#0A2A66">Гърбът е изправен.</text>
+<text x="115" y="304" text-anchor="middle" font-size="16" fill="#0A2A66">Носи раницата</text>
+<text x="115" y="326" text-anchor="middle" font-size="16" fill="#0A2A66">на двете рамене.</text>
+<text x="115" y="354" text-anchor="middle" font-size="16" fill="#0A2A66">Седи правилно.</text>
+</g>
+<g>
+<rect x="225" y="56" width="190" height="326" rx="18" fill="#fff" stroke="#14BF96" stroke-width="3"/>
+<text x="320" y="88" text-anchor="middle" font-size="20" font-weight="bold" fill="#14BF96">Чисти зъби</text>
+<path d="M276 130 q0 -24 22 -24 q10 0 14 6 q4 -6 14 -6 q22 0 22 24 q0 20 -8 40 q-6 22 -12 22 q-8 0 -10 -24 q-2 -10 -6 -10 q-4 0 -6 10 q-2 24 -10 24 q-6 0 -12 -22 q-8 -20 -8 -40 z" fill="#fff" stroke="#0A2A66" stroke-width="3" stroke-linejoin="round"/>
+<path d="M344 214 l46 -46" stroke="#28AAE1" stroke-width="10" stroke-linecap="round"/>
+<rect x="378" y="150" width="14" height="24" rx="3" fill="#14BF96" transform="rotate(45 385 162)"/>
+<path d="M290 124 q4 -8 10 -8" stroke="#28AAE1" stroke-width="3" fill="none" stroke-linecap="round"/>
+<text x="320" y="248" text-anchor="middle" font-size="16" fill="#0A2A66">Мий зъбите</text>
+<text x="320" y="270" text-anchor="middle" font-size="16" fill="#0A2A66">сутрин и вечер</text>
+<text x="320" y="292" text-anchor="middle" font-size="16" fill="#0A2A66">поне 2 минути.</text>
+<text x="320" y="326" text-anchor="middle" font-size="16" fill="#0A2A66">Яж по-малко</text>
+<text x="320" y="348" text-anchor="middle" font-size="16" fill="#0A2A66">сладки неща.</text>
+</g>
+<g>
+<rect x="430" y="56" width="190" height="326" rx="18" fill="#fff" stroke="#3CB44B" stroke-width="3"/>
+<text x="525" y="88" text-anchor="middle" font-size="20" font-weight="bold" fill="#3CB44B">Полезна храна</text>
+<circle cx="525" cy="160" r="58" fill="#F7F7F7" stroke="#0A2A66" stroke-width="3"/>
+<circle cx="525" cy="160" r="44" fill="#fff" stroke="#DADADA" stroke-width="2"/>
+<circle cx="506" cy="146" r="14" fill="#E04B3A"/>
+<path d="M506 132 q3 -6 8 -6" stroke="#8A5A2B" stroke-width="3" fill="none"/>
+<path d="M532 132 q16 4 14 22 l-14 30 l-10 -6 z" fill="#FA961E"/>
+<path d="M532 132 l-4 -8 M536 131 l2 -8" stroke="#3CB44B" stroke-width="3" stroke-linecap="round"/>
+<circle cx="508" cy="176" r="9" fill="#3CB44B"/><circle cx="518" cy="184" r="9" fill="#3CB44B"/><circle cx="500" cy="186" r="8" fill="#3CB44B"/>
+<rect x="590" y="140" width="20" height="40" rx="4" fill="#BFE6F7" stroke="#0A2A66" stroke-width="2"/>
+<text x="525" y="248" text-anchor="middle" font-size="16" fill="#0A2A66">Плодове и</text>
+<text x="525" y="270" text-anchor="middle" font-size="16" fill="#0A2A66">зеленчуци всеки ден,</text>
+<text x="525" y="292" text-anchor="middle" font-size="16" fill="#0A2A66">мляко и хляб.</text>
+<text x="525" y="326" text-anchor="middle" font-size="16" fill="#0A2A66">Пий вода, а не</text>
+<text x="525" y="348" text-anchor="middle" font-size="16" fill="#0A2A66">газирани напитки.</text>
+</g>
+</svg>

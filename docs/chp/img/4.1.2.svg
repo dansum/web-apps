@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Lato, Arial, sans-serif">
+<title>Почвата</title>
+<rect width="640" height="400" fill="#F7F7F7"/>
+<text x="320" y="36" text-anchor="middle" font-size="24" font-weight="bold" fill="#0A2A66">От какво се състои почвата?</text>
+<rect x="30" y="60" width="300" height="70" fill="#DFF3FB"/>
+<path d="M120 130 v-40" stroke="#3CB44B" stroke-width="5"/>
+<ellipse cx="106" cy="92" rx="16" ry="8" fill="#3CB44B"/><ellipse cx="134" cy="84" rx="16" ry="8" fill="#3CB44B"/>
+<path d="M240 130 v-50" stroke="#3CB44B" stroke-width="5"/>
+<circle cx="240" cy="72" r="12" fill="#FA961E"/>
+<rect x="30" y="130" width="300" height="70" fill="#4E342E"/>
+<rect x="30" y="200" width="300" height="80" fill="#8D6E63"/>
+<rect x="30" y="280" width="300" height="80" fill="#BCAAA4"/>
+<path d="M120 130 q-10 30 5 60 M120 140 q20 20 10 45" stroke="#E8D5B5" stroke-width="3" fill="none"/>
+<path d="M70 165 q15 -10 30 0 q15 10 30 0" stroke="#F48FB1" stroke-width="6" fill="none" stroke-linecap="round"/>
+<circle cx="200" cy="160" r="5" fill="#A1887F"/><circle cx="260" cy="175" r="4" fill="#A1887F"/>
+<circle cx="80" cy="240" r="9" fill="#BDBDBD"/><circle cx="160" cy="250" r="7" fill="#BDBDBD"/><circle cx="260" cy="235" r="10" fill="#BDBDBD"/>
+<circle cx="120" cy="225" r="6" fill="#BDE7F7"/><circle cx="210" cy="262" r="6" fill="#BDE7F7"/>
+<ellipse cx="100" cy="320" rx="30" ry="16" fill="#9E9E9E"/><ellipse cx="230" cy="315" rx="38" ry="20" fill="#9E9E9E"/>
+<rect x="30" y="60" width="300" height="300" fill="none" stroke="#0A2A66" stroke-width="2" rx="4"/>
+<text x="350" y="78" font-size="18" font-weight="bold" fill="#0A2A66">Съставни части:</text>
+<circle cx="362" cy="106" r="8" fill="#4E342E"/><text x="378" y="112" font-size="17" fill="#0A2A66">хумус (изгнили останки)</text>
+<circle cx="362" cy="136" r="8" fill="#BDBDBD"/><text x="378" y="142" font-size="17" fill="#0A2A66">пясък, глина и камъчета</text>
+<circle cx="362" cy="166" r="8" fill="#28AAE1"/><text x="378" y="172" font-size="17" fill="#0A2A66">вода</text>
+<circle cx="362" cy="196" r="8" fill="#fff" stroke="#0A2A66"/><text x="378" y="202" font-size="17" fill="#0A2A66">въздух</text>
+<circle cx="362" cy="226" r="8" fill="#F48FB1"/><text x="378" y="232" font-size="17" fill="#0A2A66">живи организми</text>
+<rect x="346" y="256" width="276" height="104" rx="14" fill="#E6F8F2" stroke="#14BF96" stroke-width="2"/>
+<text x="484" y="282" text-anchor="middle" font-size="17" font-weight="bold" fill="#0A2A66">Плодородието зависи от:</text>
+<text x="484" y="308" text-anchor="middle" font-size="16" fill="#0A2A66">количеството хумус,</text>
+<text x="484" y="330" text-anchor="middle" font-size="16" fill="#0A2A66">водата, въздуха</text>
+<text x="484" y="352" text-anchor="middle" font-size="16" fill="#0A2A66">и топлината</text>
+<text x="180" y="386" text-anchor="middle" font-size="16" fill="#0A2A66">почвата е горният слой на земята</text>
+</svg>

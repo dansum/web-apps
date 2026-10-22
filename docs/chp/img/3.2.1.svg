@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Lato, Arial, sans-serif">
+<title>Живо и неживо</title>
+<defs>
+<g id="ok"><circle r="15" fill="#3CB44B"/><path d="M-7 0 l5 6 l9 -11" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+<g id="no"><circle r="15" fill="#FA961E"/><path d="M-6 -6 l12 12 M6 -6 l-12 12" stroke="#fff" stroke-width="4" stroke-linecap="round"/></g>
+</defs>
+<rect width="640" height="400" fill="#fff"/>
+<text x="320" y="36" text-anchor="middle" font-size="24" font-weight="bold" fill="#0A2A66">Как да различим живото от неживото?</text>
+<rect x="232" y="54" width="250" height="34" rx="12" fill="#3CB44B"/>
+<text x="357" y="78" text-anchor="middle" font-size="18" font-weight="bold" fill="#fff">Живо</text>
+<rect x="494" y="54" width="126" height="34" rx="12" fill="#0A2A66"/>
+<text x="557" y="78" text-anchor="middle" font-size="18" font-weight="bold" fill="#fff">Неживо</text>
+<g>
+<path d="M295 172 v-40" stroke="#3CB44B" stroke-width="5" stroke-linecap="round"/>
+<path d="M295 158 q-18 -4 -22 -16 q16 0 22 12 z" fill="#3CB44B"/>
+<g fill="#FA961E"><circle cx="295" cy="112" r="9"/><circle cx="308" cy="120" r="9"/><circle cx="282" cy="120" r="9"/><circle cx="300" cy="132" r="9"/><circle cx="290" cy="132" r="9"/></g>
+<circle cx="295" cy="123" r="7" fill="#FFD54A"/>
+<text x="295" y="196" text-anchor="middle" font-size="16" fill="#0A2A66">цвете</text>
+</g>
+<g>
+<ellipse cx="420" cy="152" rx="34" ry="20" fill="#9AA5B1"/>
+<circle cx="392" cy="128" r="18" fill="#9AA5B1"/>
+<path d="M378 116 l4 -16 l10 12 z M398 112 l8 -14 l4 16 z" fill="#9AA5B1"/>
+<circle cx="386" cy="126" r="3" fill="#0A2A66"/><circle cx="398" cy="126" r="3" fill="#0A2A66"/>
+<path d="M452 150 q22 -6 16 -30" stroke="#9AA5B1" stroke-width="7" fill="none" stroke-linecap="round"/>
+<text x="420" y="196" text-anchor="middle" font-size="16" fill="#0A2A66">котка</text>
+</g>
+<g>
+<path d="M520 170 q-6 -30 18 -40 q30 -8 44 14 q10 22 -6 28 z" fill="#8A7F72"/>
+<path d="M540 146 q12 -6 22 2" stroke="#B5AA9C" stroke-width="3" fill="none" stroke-linecap="round"/>
+<text x="557" y="196" text-anchor="middle" font-size="16" fill="#0A2A66">камък</text>
+</g>
+<g font-size="18" fill="#0A2A66">
+<rect x="20" y="212" width="600" height="52" rx="12" fill="#F7F7F7"/>
+<text x="36" y="244">Храни се</text>
+<rect x="20" y="272" width="600" height="52" rx="12" fill="#F7F7F7"/>
+<text x="36" y="304">Расте</text>
+<rect x="20" y="332" width="600" height="52" rx="12" fill="#F7F7F7"/>
+<text x="36" y="364">Размножава се</text>
+</g>
+<use href="#ok" x="295" y="238"/><use href="#ok" x="420" y="238"/><use href="#no" x="557" y="238"/>
+<use href="#ok" x="295" y="298"/><use href="#ok" x="420" y="298"/><use href="#no" x="557" y="298"/>
+<use href="#ok" x="295" y="358"/><use href="#ok" x="420" y="358"/><use href="#no" x="557" y="358"/>
+</svg>
