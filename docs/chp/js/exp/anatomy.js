@@ -27,7 +27,7 @@ export function curveOf(points, closed = false) {
 }
 
 export function tube(curveOrPoints, radius, material, segs = 48, radial = 8) {
-  const curve = curveOrPoints.isCurve ? curveOrPoints : curveOf(curveOrPoints);
+  const curve = typeof curveOrPoints.getPoint === 'function' ? curveOrPoints : curveOf(curveOrPoints);
   const m = new THREE.Mesh(new THREE.TubeGeometry(curve, segs, radius, radial, false), material);
   m.userData.curve = curve;
   return m;
