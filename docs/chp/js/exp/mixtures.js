@@ -1464,7 +1464,7 @@ export function mount(container, { onComplete }) {
         upd();
         busy = false;
         lockJars(false);
-        overview(1.8);
+        overview(1.3);
         if (done === list.length) {
           stopDrag(); stopDrag = null;
           scores.push(stepScore(mistakes, 4));

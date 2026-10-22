@@ -695,7 +695,9 @@ export function mount(container, { onComplete }) {
     kid.rotation.y = 0;
     lockView(true);
     stage.stopFollow();
-    stage.flyTo([0, 2.95, 8.6], [0, 2.55, 0], 1);
+    // На тесен екран камерата се отдръпва, за да се виждат и двете табли.
+    const z2 = Math.min(13, 8.6 * Math.max(1, 1.3 / stage.camera.aspect));
+    stage.flyTo([0, 2.95, z2], [0, 2.55, 0], 1);
     // табли от двете страни
     const shape = new THREE.Shape();
     const w = 1.25; const h = 3.5; const r = 0.22;

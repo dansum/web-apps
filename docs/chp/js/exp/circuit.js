@@ -20,6 +20,7 @@ const CSS = `
 .circuit-dev .chip.done::after { content: " ✓"; color: #1fab54; }
 .circuit-dev .chip.on.done::after { color: #fff; }
 .circuit-multi .choice { padding: 7px 10px; }
+.circuit-multi .choice:disabled, .circuit-match .choice:disabled, .circuit-sch .choice:disabled { color: #1b2a3a; }
 .circuit-multi .choice .box { width: 1.1em; height: 1.1em; border: 2px solid #9aa7b8; border-radius: 4px; flex: none; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8em; }
 .circuit-multi .choice.on .box { background: #1865f2; border-color: #1865f2; color: #fff; }
 .circuit-multi .choice.on .box::after { content: "✓"; }
@@ -728,8 +729,8 @@ function build(container, { onComplete }, restart) {
     const flick = 1 + Math.sin(t * 37) * 0.015;
     L.glassM.emissiveIntensity = shown.lamp * 1.1 * flick;
     L.filM.emissiveIntensity = shown.lamp * 3;
-    L.halo.material.opacity = Math.min(1, shown.lamp * 0.95);
-    L.halo.scale.setScalar(1.2 + shown.lamp * 1.6);
+    L.halo.material.opacity = Math.min(1, shown.lamp * 0.8);
+    L.halo.scale.setScalar(1.0 + shown.lamp * 1.2);
     L.light.intensity = shown.lamp * 5;
     const M = comps.motor.userData.fx;
     M.spin += dt * shown.motor * 22;
@@ -869,7 +870,7 @@ function build(container, { onComplete }, restart) {
         say(anchor, html, 'wide', 0.35);
       } else if (id === 'socket') {
         stage.stopFollow();
-        stage.flyTo([2.2, 2.6, 0.6], [3.4, 1.1, -4.2]);
+        stage.flyTo([2.5, 2.5, -0.9], [3.4, 1.0, -4.2]);
         say(socket, `<b>🔌 Контакт</b><br>${SOCKET_NOTE}`, 'wide', 0.45);
       } else {
         const g = comps[id];
@@ -1267,11 +1268,12 @@ function build(container, { onComplete }, restart) {
         if (right) {
           const r = rings[target];
           const n = r.members.length;
-          const slot = new THREE.Vector3(r.group.position.x + (n % 2 ? 0.35 : -0.35), 0, r.group.position.z - 0.55 + Math.floor(n / 2) * 0.42);
+          const slot = new THREE.Vector3(r.group.position.x + (n % 2 ? 0.32 : -0.32), 0, r.group.position.z - 0.5 + Math.floor(n / 2) * 0.45);
           r.members.push(id);
           objMoves.set(g, { from: g.position.clone(), to: slot, k: 0, dur: 0.3 });
           g.rotation.y = 0;
           g.userData.locked = true;
+          g.children.forEach((c) => { if (c.isSprite) c.visible = false; });
           sorted++;
           say(r.group, `✔ ${esc(o.app)}`, 'good wide', 0.9);
           shell.msg('Вярно!', 'good');
@@ -1411,7 +1413,7 @@ function build(container, { onComplete }, restart) {
       clearTip();
       clickHandler = (id) => { if (id === 'socket') say(socket, `<b>🔌 Контакт</b><br>${SOCKET_NOTE}`, 'wide', 0.45); };
       stage.stopFollow();
-      stage.flyTo([2.0, 2.4, 0.9], [3.2, 1.0, -4.2], 1.2);
+      stage.flyTo([2.5, 2.5, -0.9], [3.4, 1.0, -4.2], 1.2);
       say(socket, `<b>🔌 Внимание!</b><br>${SOCKET_NOTE}`, 'wide', 0.45);
       const ITEMS = [
         { t: 'Пипам ключа на лампата с мокри ръце', bad: true },

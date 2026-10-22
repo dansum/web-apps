@@ -902,6 +902,7 @@ export function mount(container, { onComplete }) {
     });
   }
 
+  let stopHoppers = null;
   function runSimulation(good) {
     clearTip();
     const frog = roots.get('frog');
@@ -942,8 +943,9 @@ export function mount(container, { onComplete }) {
         });
       }
     });
-    // подскачащи нови скакалци
-    stage.tick((dt, t) => {
+    // подскачащи нови скакалци (спира при „Започни отначало“)
+    if (stopHoppers) stopHoppers();
+    stopHoppers = stage.tick((dt, t) => {
       for (const g of extra) {
         const cyc = (t * 0.8 + g.userData.phase) % 2;
         g.position.y = cyc < 0.35 ? Math.sin((cyc / 0.35) * Math.PI) * 0.3 : 0;
@@ -952,6 +954,7 @@ export function mount(container, { onComplete }) {
   }
 
   function restart(extra = []) {
+    if (stopHoppers) { stopHoppers(); stopHoppers = null; }
     for (const g of extra) scene.remove(g);
     for (const a of arrows) scene.remove(a);
     arrows = [];
