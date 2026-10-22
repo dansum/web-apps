@@ -634,7 +634,7 @@ function build(container, { onComplete }, restart) {
   stage.sun.position.set(3, 10, 6);
   const kitchen = buildKitchen(scene);
   // На тесен (висок) екран камерата се отдръпва, за да се вижда цялата сцена.
-  const narrowK = () => { const a = stage.camera.aspect; return a < 1.2 ? Math.min(1.9, Math.pow(1.2 / a, 0.75)) : 1; };
+  const narrowK = () => { const a = stage.camera.aspect; return a < 1.45 ? Math.min(2, 1.45 / a) : 1; };
   const fly = (pos, tgt, dur) => { const k = narrowK(); stage.flyTo(pos.map((v, i) => tgt[i] + (v - tgt[i]) * k), tgt, dur); };
   const narrow = () => stage.renderer.domElement.clientWidth < 480;
 
