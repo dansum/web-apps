@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Lato, Arial, sans-serif">
+<title>Свойства на материалите и тяхната употреба</title>
+<rect width="640" height="400" fill="#F7F7F7"/>
+<text x="320" y="38" text-anchor="middle" font-size="24" font-weight="bold" fill="#0A2A66">Избираме материала според свойствата му</text>
+<g>
+<rect x="20" y="60" width="292" height="152" rx="18" fill="#fff" stroke="#28AAE1" stroke-width="3"/>
+<rect x="40" y="82" width="90" height="108" rx="6" fill="#BFE6F7" stroke="#0A2A66" stroke-width="4"/>
+<path d="M85 82 v108 M40 136 h90" stroke="#0A2A66" stroke-width="4"/>
+<path d="M52 100 l20 -10 M52 155 l25 -12" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+<text x="148" y="104" font-size="20" font-weight="bold" fill="#28AAE1">Стъкло</text>
+<text x="148" y="132" font-size="16" fill="#0A2A66">прозрачно –</text>
+<text x="148" y="154" font-size="16" fill="#0A2A66">пропуска светлина</text>
+<text x="148" y="182" font-size="16" fill="#0A2A66" font-style="italic">→ прозорец</text>
+</g>
+<g>
+<rect x="328" y="60" width="292" height="152" rx="18" fill="#fff" stroke="#0A2A66" stroke-width="3"/>
+<g transform="translate(12,0)"><path d="M360 108 h70 a20 20 0 0 1 20 20 v20 a28 28 0 0 1 -28 28 h-54 a28 28 0 0 1 -28 -28 v-20 a20 20 0 0 1 20 -20 z" fill="#A9B4C2" stroke="#0A2A66" stroke-width="3"/>
+<path d="M340 118 h-10 M450 118 h10" stroke="#0A2A66" stroke-width="6" stroke-linecap="round"/>
+<rect x="378" y="96" width="34" height="12" rx="5" fill="#0A2A66"/></g>
+<text x="490" y="104" font-size="20" font-weight="bold" fill="#0A2A66">Метал</text>
+<text x="490" y="132" font-size="16" fill="#0A2A66">твърд и здрав,</text>
+<text x="490" y="154" font-size="16" fill="#0A2A66">издържа огън</text>
+<text x="490" y="182" font-size="16" fill="#0A2A66" font-style="italic">→ тенджера</text>
+</g>
+<g>
+<rect x="20" y="228" width="292" height="152" rx="18" fill="#fff" stroke="#3CB44B" stroke-width="3"/>
+<path d="M48 250 h36 v70 h30 a14 14 0 0 1 14 14 v12 h-80 z" fill="#3CB44B" stroke="#0A2A66" stroke-width="3" stroke-linejoin="round"/>
+<path d="M48 340 h80" stroke="#0A2A66" stroke-width="3"/>
+<text x="148" y="272" font-size="20" font-weight="bold" fill="#3CB44B">Гума</text>
+<text x="148" y="300" font-size="16" fill="#0A2A66">не пропуска</text>
+<text x="148" y="322" font-size="16" fill="#0A2A66">вода, еластична</text>
+<text x="148" y="350" font-size="16" fill="#0A2A66" font-style="italic">→ ботуши</text>
+</g>
+<g>
+<rect x="328" y="228" width="292" height="152" rx="18" fill="#fff" stroke="#FA961E" stroke-width="3"/>
+<rect x="350" y="250" width="100" height="100" rx="10" fill="#FA961E" fill-opacity="0.35" stroke="#FA961E" stroke-width="3"/>
+<path d="M350 270 h100 M350 290 h100 M350 310 h100 M350 330 h100 M370 250 v100 M390 250 v100 M410 250 v100 M430 250 v100" stroke="#FA961E" stroke-width="1.5"/>
+<circle cx="400" cy="300" r="14" fill="#28AAE1" fill-opacity="0.6"/>
+<text x="476" y="272" font-size="20" font-weight="bold" fill="#FA961E">Памук</text>
+<text x="476" y="300" font-size="16" fill="#0A2A66">мек, попива</text>
+<text x="476" y="322" font-size="16" fill="#0A2A66">вода</text>
+<text x="476" y="350" font-size="16" fill="#0A2A66" font-style="italic">→ кърпа</text>
+</g>
+</svg>

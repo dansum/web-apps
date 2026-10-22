@@ -13,7 +13,22 @@ export const LEVELS = [
 ];
 
 function empty() {
-  return { name: '', updated: null, skills: {}, tests: {}, articles: {} };
+  return { name: '', updated: null, skills: {}, tests: {}, articles: {}, daily: {}, lastCourse: null };
+}
+
+// Брой довършени задачи (упражнения, тестове, статии) за деня.
+function countTask() {
+  const d = today();
+  state.daily = state.daily || {};
+  state.daily[d] = (state.daily[d] || 0) + 1;
+}
+export function tasksToday() {
+  return (state.daily && state.daily[today()]) || 0;
+}
+export function setLastCourse(id) {
+  if (state.lastCourse === id) return;
+  state.lastCourse = id;
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* няма значение */ }
 }
 
 let state = empty();
@@ -67,6 +82,7 @@ export function applyPractice(skillId, ratio) {
   s.attempts = (s.attempts || 0) + 1;
   state.skills[skillId] = s;
   setLevel(skillId, Math.max(cur, got));
+  countTask();
   save();
   return { before: cur, after: level(skillId) };
 }
@@ -88,10 +104,12 @@ export function recordTest(testId, score) {
   t.lastScore = score;
   t.last = today();
   state.tests[testId] = t;
+  countTask();
   save();
 }
 
 export function markArticle(id) {
+  if (!state.articles[id]) countTask();
   state.articles[id] = true;
   save();
 }

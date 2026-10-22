@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Lato, Arial, sans-serif">
+<title>Видове движение</title>
+<defs><marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#FA961E"/></marker></defs>
+<rect width="640" height="400" fill="#F7F7F7"/>
+<text x="320" y="36" text-anchor="middle" font-size="24" font-weight="bold" fill="#0A2A66">Видове движение</text>
+<g>
+<rect x="20" y="56" width="292" height="160" rx="16" fill="#fff" stroke="#28AAE1" stroke-width="2"/>
+<text x="166" y="84" text-anchor="middle" font-size="19" font-weight="bold" fill="#0A2A66">праволинейно</text>
+<line x1="40" y1="170" x2="290" y2="170" stroke="#90A4AE" stroke-width="4"/>
+<rect x="60" y="126" width="90" height="34" rx="10" fill="#28AAE1"/><circle cx="80" cy="162" r="9" fill="#0A2A66"/><circle cx="130" cy="162" r="9" fill="#0A2A66"/>
+<line x1="165" y1="140" x2="280" y2="140" stroke="#FA961E" stroke-width="4" stroke-dasharray="8 6" marker-end="url(#a)"/>
+<text x="166" y="200" text-anchor="middle" font-size="16" fill="#0A2A66">влак по права линия</text>
+</g>
+<g>
+<rect x="328" y="56" width="292" height="160" rx="16" fill="#fff" stroke="#28AAE1" stroke-width="2"/>
+<text x="474" y="84" text-anchor="middle" font-size="19" font-weight="bold" fill="#0A2A66">криволинейно</text>
+<path d="M360 170 Q420 70 480 120 T590 110" stroke="#FA961E" stroke-width="4" fill="none" stroke-dasharray="8 6" marker-end="url(#a)"/>
+<circle cx="360" cy="170" r="14" fill="#3CB44B"/><path d="M348 166 q12 6 24 0" stroke="#fff" stroke-width="2" fill="none"/>
+<text x="474" y="200" text-anchor="middle" font-size="16" fill="#0A2A66">хвърлена топка</text>
+</g>
+<g>
+<rect x="20" y="228" width="292" height="160" rx="16" fill="#fff" stroke="#28AAE1" stroke-width="2"/>
+<text x="166" y="256" text-anchor="middle" font-size="19" font-weight="bold" fill="#0A2A66">въртене</text>
+<circle cx="166" cy="320" r="34" fill="#E6F8F2" stroke="#14BF96" stroke-width="4"/>
+<line x1="132" y1="320" x2="200" y2="320" stroke="#14BF96" stroke-width="3"/><line x1="166" y1="286" x2="166" y2="354" stroke="#14BF96" stroke-width="3"/>
+<circle cx="166" cy="320" r="6" fill="#0A2A66"/>
+<path d="M126 296 A46 46 0 0 1 206 296" stroke="#FA961E" stroke-width="4" fill="none" marker-end="url(#a)"/>
+<text x="166" y="378" text-anchor="middle" font-size="16" fill="#0A2A66">колело</text>
+</g>
+<g>
+<rect x="328" y="228" width="292" height="160" rx="16" fill="#fff" stroke="#28AAE1" stroke-width="2"/>
+<text x="474" y="256" text-anchor="middle" font-size="19" font-weight="bold" fill="#0A2A66">трептене</text>
+<line x1="420" y1="268" x2="528" y2="268" stroke="#0A2A66" stroke-width="4"/>
+<line x1="474" y1="268" x2="474" y2="340" stroke="#0A2A66" stroke-width="2"/><circle cx="474" cy="346" r="11" fill="#FA961E"/>
+<line x1="474" y1="268" x2="444" y2="334" stroke="#0A2A66" stroke-width="2" opacity="0.3"/><circle cx="441" cy="339" r="11" fill="#FA961E" opacity="0.3"/>
+<line x1="474" y1="268" x2="504" y2="334" stroke="#0A2A66" stroke-width="2" opacity="0.3"/><circle cx="507" cy="339" r="11" fill="#FA961E" opacity="0.3"/>
+<path d="M430 362 Q474 380 518 362" stroke="#28AAE1" stroke-width="3" fill="none"/>
+<text x="560" y="314" text-anchor="middle" font-size="16" fill="#0A2A66">махало,</text>
+<text x="560" y="334" text-anchor="middle" font-size="16" fill="#0A2A66">люлка</text>
+<text x="390" y="314" text-anchor="middle" font-size="16" fill="#0A2A66">напред-</text>
+<text x="390" y="334" text-anchor="middle" font-size="16" fill="#0A2A66">назад</text>
+</g>
+</svg>

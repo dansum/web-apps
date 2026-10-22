@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Lato, Arial, sans-serif">
+<title>Растения, гъби и животни</title>
+<rect width="640" height="400" fill="#F7F7F7"/>
+<text x="320" y="36" text-anchor="middle" font-size="24" font-weight="bold" fill="#0A2A66">Три големи групи живи организми</text>
+<g>
+<rect x="20" y="56" width="190" height="326" rx="18" fill="#fff" stroke="#3CB44B" stroke-width="3"/>
+<text x="115" y="88" text-anchor="middle" font-size="22" font-weight="bold" fill="#3CB44B">Растения</text>
+<rect x="108" y="160" width="14" height="50" rx="4" fill="#8A5A2B"/>
+<circle cx="115" cy="136" r="34" fill="#3CB44B"/>
+<circle cx="92" cy="152" r="20" fill="#3CB44B"/>
+<circle cx="138" cy="152" r="20" fill="#3CB44B"/>
+<path d="M60 210 h110" stroke="#8A5A2B" stroke-width="4" stroke-linecap="round"/>
+<text x="115" y="246" text-anchor="middle" font-size="16" fill="#0A2A66">Сами си правят</text>
+<text x="115" y="268" text-anchor="middle" font-size="16" fill="#0A2A66">храната с помощта</text>
+<text x="115" y="290" text-anchor="middle" font-size="16" fill="#0A2A66">на светлината.</text>
+<text x="115" y="326" text-anchor="middle" font-size="16" fill="#0A2A66">Не се преместват</text>
+<text x="115" y="348" text-anchor="middle" font-size="16" fill="#0A2A66">от място на място.</text>
+</g>
+<g>
+<rect x="225" y="56" width="190" height="326" rx="18" fill="#fff" stroke="#FA961E" stroke-width="3"/>
+<text x="320" y="88" text-anchor="middle" font-size="22" font-weight="bold" fill="#FA961E">Гъби</text>
+<path d="M306 160 h28 l4 46 h-36 z" fill="#F3E6D3" stroke="#0A2A66" stroke-width="2" stroke-linejoin="round"/>
+<path d="M270 164 q0 -54 50 -56 q50 2 50 56 z" fill="#E04B3A" stroke="#0A2A66" stroke-width="2" stroke-linejoin="round"/>
+<circle cx="296" cy="136" r="7" fill="#fff"/><circle cx="326" cy="124" r="6" fill="#fff"/><circle cx="346" cy="146" r="7" fill="#fff"/>
+<path d="M265 210 h110" stroke="#8A5A2B" stroke-width="4" stroke-linecap="round"/>
+<text x="320" y="246" text-anchor="middle" font-size="16" fill="#0A2A66">Хранят се с готови</text>
+<text x="320" y="268" text-anchor="middle" font-size="16" fill="#0A2A66">вещества от почвата</text>
+<text x="320" y="290" text-anchor="middle" font-size="16" fill="#0A2A66">и гниещи остатъци.</text>
+<text x="320" y="326" text-anchor="middle" font-size="16" fill="#0A2A66">Не се преместват</text>
+<text x="320" y="348" text-anchor="middle" font-size="16" fill="#0A2A66">от място на място.</text>
+</g>
+<g>
+<rect x="430" y="56" width="190" height="326" rx="18" fill="#fff" stroke="#28AAE1" stroke-width="3"/>
+<text x="525" y="88" text-anchor="middle" font-size="22" font-weight="bold" fill="#28AAE1">Животни</text>
+<ellipse cx="520" cy="178" rx="36" ry="26" fill="#C9B79C"/>
+<circle cx="552" cy="150" r="18" fill="#C9B79C"/>
+<ellipse cx="548" cy="120" rx="6" ry="20" fill="#C9B79C"/><ellipse cx="562" cy="122" rx="6" ry="20" fill="#C9B79C"/>
+<circle cx="558" cy="148" r="3" fill="#0A2A66"/>
+<circle cx="484" cy="172" r="8" fill="#fff"/>
+<path d="M500 202 v8 M540 202 v8" stroke="#C9B79C" stroke-width="8" stroke-linecap="round"/>
+<path d="M470 210 h110" stroke="#8A5A2B" stroke-width="4" stroke-linecap="round"/>
+<text x="525" y="246" text-anchor="middle" font-size="16" fill="#0A2A66">Хранят се с готова</text>
+<text x="525" y="268" text-anchor="middle" font-size="16" fill="#0A2A66">храна – растения</text>
+<text x="525" y="290" text-anchor="middle" font-size="16" fill="#0A2A66">или други животни.</text>
+<text x="525" y="326" text-anchor="middle" font-size="16" fill="#0A2A66">Движат се. Човекът</text>
+<text x="525" y="348" text-anchor="middle" font-size="16" fill="#0A2A66">също е в тази група.</text>
+</g>
+</svg>

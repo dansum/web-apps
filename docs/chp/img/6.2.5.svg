@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400" font-family="Lato, Arial, sans-serif" role="img">
+<title>Желязо и корозия – опит с пирони</title>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker>
+<marker id="an" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0A2A66"/></marker>
+<marker id="ao" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#FA961E"/></marker>
+<marker id="ac" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#28AAE1"/></marker>
+<marker id="ag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3CB44B"/></marker>
+<marker id="at" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#14BF96"/></marker>
+<marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#D9363E"/></marker>
+</defs>
+<rect width="640" height="400" fill="#FFFFFF"/>
+<rect x="0" y="0" width="640" height="52" fill="#F7F7F7"/>
+<rect x="0" y="52" width="640" height="3" fill="#14BF96"/>
+<text x="320" y="35" text-anchor="middle" font-size="24" font-weight="700" fill="#0A2A66">Желязото и корозията</text>
+<path d="M50,90 L50,270 a30,30 0 0 0 60,0 L110,90" fill="#FFFFFF" stroke="#0A2A66" stroke-width="3"/><path d="M52,250 L52,270 a28,28 0 0 0 56,0 L108,250 z" fill="#E8E2D0"/><rect x="46" y="80" width="68" height="14" rx="3" fill="#B07A45"/><rect x="76" y="110" width="8" height="160" fill="#9AA3AE"/><rect x="68" y="106" width="24" height="7" fill="#9AA3AE"/>
+<text x="80" y="330" text-anchor="middle" font-size="15" font-weight="700" fill="#0A2A66">сух въздух</text>
+<text x="80" y="350" text-anchor="middle" font-size="15" font-weight="400" fill="#3CB44B">няма ръжда</text>
+<path d="M190,90 L190,270 a30,30 0 0 0 60,0 L250,90" fill="#FFFFFF" stroke="#0A2A66" stroke-width="3"/><path d="M192,180 L192,270 a28,28 0 0 0 56,0 L248,180 z" fill="#28AAE1" opacity="0.45"/><rect x="216" y="110" width="8" height="160" fill="#B5541C"/><rect x="208" y="106" width="24" height="7" fill="#B5541C"/><circle cx="220" cy="190" r="6" fill="#B5541C"/><circle cx="220" cy="215" r="6" fill="#B5541C"/><circle cx="220" cy="240" r="6" fill="#B5541C"/><circle cx="220" cy="258" r="6" fill="#B5541C"/>
+<text x="220" y="330" text-anchor="middle" font-size="15" font-weight="700" fill="#0A2A66">вода + въздух</text>
+<text x="220" y="350" text-anchor="middle" font-size="15" font-weight="700" fill="#B5541C">ръжда</text>
+<path d="M330,90 L330,270 a30,30 0 0 0 60,0 L390,90" fill="#FFFFFF" stroke="#0A2A66" stroke-width="3"/><path d="M332,180 L332,270 a28,28 0 0 0 56,0 L388,180 z" fill="#28AAE1" opacity="0.45"/><rect x="332" y="165" width="56" height="16" fill="#F2C94C" opacity="0.9"/><rect x="326" y="80" width="68" height="14" rx="3" fill="#B07A45"/><rect x="356" y="110" width="8" height="160" fill="#9AA3AE"/><rect x="348" y="106" width="24" height="7" fill="#9AA3AE"/>
+<text x="360" y="330" text-anchor="middle" font-size="15" font-weight="700" fill="#0A2A66">вода без въздух</text>
+<text x="360" y="350" text-anchor="middle" font-size="15" font-weight="400" fill="#3CB44B">няма ръжда</text>
+<text x="80" y="75" text-anchor="middle" font-size="15" font-weight="400" fill="#555">сушител</text>
+<text x="360" y="75" text-anchor="middle" font-size="15" font-weight="400" fill="#555">олио</text>
+<rect x="430" y="64" width="195" height="176" rx="12" fill="#F7F7F7" stroke="#28AAE1" stroke-width="2"/>
+<text x="445" y="89" text-anchor="start" font-size="17" font-weight="700" fill="#28AAE1">Желязо Fe</text>
+<text x="445" y="113" text-anchor="start" font-size="15" font-weight="400" fill="#0A2A66">• сребристосив метал</text>
+<text x="445" y="134" text-anchor="start" font-size="15" font-weight="400" fill="#0A2A66">• метален блясък</text>
+<text x="445" y="155" text-anchor="start" font-size="15" font-weight="400" fill="#0A2A66">• провежда ток</text>
+<text x="457.0" y="176" text-anchor="start" font-size="15" font-weight="400" fill="#0A2A66">и топлина</text>
+<text x="445" y="197" text-anchor="start" font-size="15" font-weight="400" fill="#0A2A66">• реагира със солна</text>
+<text x="457.0" y="218" text-anchor="start" font-size="15" font-weight="400" fill="#0A2A66">киселина</text>
+<rect x="430" y="250" width="195" height="82" rx="12" fill="#FFF4E6" stroke="#FA961E" stroke-width="2"/>
+<text x="445" y="274" text-anchor="start" font-size="15" font-weight="400" fill="#0A2A66">Чугун – тръби, печки</text>
+<text x="445" y="298" text-anchor="start" font-size="15" font-weight="400" fill="#0A2A66">Стомана – релси,</text>
+<text x="445" y="318" text-anchor="start" font-size="15" font-weight="400" fill="#0A2A66">мостове, инструменти</text>
+<text x="320" y="385" text-anchor="middle" font-size="17" font-weight="700" fill="#0A2A66">Корозия: желязо + кислород + вода → ръжда</text>
+</svg>

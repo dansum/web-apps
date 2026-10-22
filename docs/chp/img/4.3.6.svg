@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" font-family="Lato, Arial, sans-serif">
+<title>Хранителни вещества и заразни болести</title>
+<rect width="640" height="400" fill="#F7F7F7"/>
+<text x="320" y="34" text-anchor="middle" font-size="23" font-weight="bold" fill="#0A2A66">Храна за здраве и защита от болести</text>
+<rect x="16" y="50" width="608" height="178" rx="16" fill="#fff" stroke="#28AAE1" stroke-width="2"/>
+<g font-size="16" fill="#0A2A66" text-anchor="middle">
+<g>
+<rect x="58" y="96" width="36" height="22" rx="8" fill="#FFE082"/><ellipse cx="118" cy="106" rx="22" ry="14" fill="#D7A86E"/>
+<text x="98" y="82" font-weight="bold" fill="#FA961E">въглехидрати</text>
+<text x="98" y="150">хляб, ориз,</text><text x="98" y="170">картофи</text>
+<text x="98" y="200" fill="#0A2A66" font-style="italic">енергия</text>
+</g>
+<g>
+<ellipse cx="226" cy="106" rx="18" ry="22" fill="#FFF3E0" stroke="#C8A165" stroke-width="2"/><path d="M252 96 h40 l-6 24 h-28 z" fill="#E57373"/>
+<text x="250" y="82" font-weight="bold" fill="#E53935">белтъчини</text>
+<text x="250" y="150">месо, риба,</text><text x="250" y="170">яйца, боб</text>
+<text x="250" y="200" fill="#0A2A66" font-style="italic">растеж</text>
+</g>
+<g>
+<rect x="374" y="94" width="40" height="26" rx="6" fill="#FFD54F"/><path d="M424 120 v-20 a10 10 0 0 1 20 0 v20 z" fill="#FFF8E1" stroke="#C8A165" stroke-width="2"/>
+<text x="410" y="82" font-weight="bold" fill="#C8A165">мазнини</text>
+<text x="410" y="150">масло,</text><text x="410" y="170">олио, ядки</text>
+<text x="410" y="200" fill="#0A2A66" font-style="italic">запас енергия</text>
+</g>
+<g>
+<circle cx="540" cy="106" r="16" fill="#FA961E"/><path d="M570 126 l8 -28 l8 28 z" fill="#FA961E"/><path d="M576 98 l-4 -6 M580 98 l4 -6" stroke="#3CB44B" stroke-width="3"/>
+<text x="558" y="82" font-weight="bold" fill="#3CB44B">витамини</text>
+<text x="558" y="150">плодове</text><text x="558" y="170">и зеленчуци</text>
+<text x="558" y="200" fill="#0A2A66" font-style="italic">здраве</text>
+</g>
+</g>
+<rect x="16" y="238" width="250" height="150" rx="16" fill="#FFEBEE" stroke="#E53935" stroke-width="2"/>
+<text x="141" y="264" text-anchor="middle" font-size="17" font-weight="bold" fill="#E53935">Причинители</text>
+<g fill="#81C784"><rect x="40" y="282" width="40" height="18" rx="9"/><circle cx="114" cy="290" r="10" fill="#BA68C8"/></g>
+<g stroke="#BA68C8" stroke-width="3"><line x1="114" y1="274" x2="114" y2="278"/><line x1="114" y1="302" x2="114" y2="306"/><line x1="98" y1="290" x2="102" y2="290"/><line x1="126" y1="290" x2="130" y2="290"/></g>
+<text x="190" y="296" text-anchor="middle" font-size="16" fill="#0A2A66">микроби</text>
+<text x="66" y="326" text-anchor="middle" font-size="16" fill="#0A2A66">бактерии</text>
+<text x="114" y="346" text-anchor="middle" font-size="16" fill="#0A2A66">вируси</text>
+<text x="141" y="374" text-anchor="middle" font-size="16" fill="#0A2A66">грип, варицела, морбили</text>
+<rect x="276" y="238" width="348" height="150" rx="16" fill="#E6F8F2" stroke="#14BF96" stroke-width="2"/>
+<text x="450" y="264" text-anchor="middle" font-size="17" font-weight="bold" fill="#14BF96">Как се пазим и лекуваме?</text>
+<g font-size="16" fill="#0A2A66" text-anchor="middle">
+<circle cx="334" cy="300" r="18" fill="#BDE7F7"/><circle cx="326" cy="296" r="4" fill="#fff"/><circle cx="340" cy="304" r="5" fill="#fff"/>
+<text x="334" y="340">мием</text><text x="334" y="360">ръцете</text>
+<rect x="400" y="292" width="44" height="14" rx="4" fill="#28AAE1"/><rect x="444" y="296" width="14" height="6" fill="#0A2A66"/><rect x="388" y="296" width="12" height="6" fill="#0A2A66"/>
+<text x="424" y="340">ваксини</text>
+<rect x="500" y="290" width="40" height="18" rx="9" fill="#FA961E"/><rect x="520" y="290" width="20" height="18" fill="#fff" stroke="#FA961E" stroke-width="2"/>
+<text x="560" y="340">лекарства</text><text x="560" y="360">от лекар</text>
+</g>
+</svg>

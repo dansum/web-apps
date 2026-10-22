@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400" font-family="Lato, Arial, sans-serif" role="img">
+<title>Нервна и опорно-двигателна система на човека</title>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker>
+<marker id="an" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0A2A66"/></marker>
+<marker id="ao" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#FA961E"/></marker>
+<marker id="ac" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#28AAE1"/></marker>
+<marker id="ag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3CB44B"/></marker>
+<marker id="at" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#14BF96"/></marker>
+<marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#D9363E"/></marker>
+</defs>
+<rect width="640" height="400" fill="#FFFFFF"/>
+<rect x="0" y="0" width="640" height="52" fill="#F7F7F7"/>
+<rect x="0" y="52" width="640" height="3" fill="#14BF96"/>
+<text x="320" y="35" text-anchor="middle" font-size="24" font-weight="700" fill="#0A2A66">Нервна и опорно-двигателна система</text>
+<circle cx="150" cy="100" r="30" fill="#DCE3EA"/>
+<rect x="115" y="135" width="70" height="105" rx="20" fill="#DCE3EA"/>
+<path d="M118,145 L80,235" stroke="#DCE3EA" stroke-width="20" stroke-linecap="round"/><path d="M182,145 L220,235" stroke="#DCE3EA" stroke-width="20" stroke-linecap="round"/>
+<path d="M135,235 L128,335" stroke="#DCE3EA" stroke-width="24" stroke-linecap="round"/><path d="M165,235 L172,335" stroke="#DCE3EA" stroke-width="24" stroke-linecap="round"/>
+<ellipse cx="150" cy="95" rx="21" ry="16" fill="#F5A3B5" stroke="#C25570" stroke-width="1.5"/>
+<path d="M150,112 L150,232" stroke="#E0B400" stroke-width="7" stroke-linecap="round"/>
+<path d="M150,145 L80,235" stroke="#E0B400" stroke-width="2.5" fill="none"/>
+<path d="M150,145 L220,235" stroke="#E0B400" stroke-width="2.5" fill="none"/>
+<path d="M150,230 L128,335" stroke="#E0B400" stroke-width="2.5" fill="none"/>
+<path d="M150,230 L172,335" stroke="#E0B400" stroke-width="2.5" fill="none"/>
+<path d="M150,180 L120,195" stroke="#E0B400" stroke-width="2.5" fill="none"/>
+<path d="M150,180 L180,195" stroke="#E0B400" stroke-width="2.5" fill="none"/>
+<line x1="172" y1="90" x2="225" y2="80" stroke="#555" stroke-width="1.5"/>
+<text x="230" y="85" text-anchor="start" font-size="15" font-weight="700" fill="#0A2A66">главен мозък</text>
+<line x1="153" y1="160" x2="225" y2="140" stroke="#555" stroke-width="1.5"/>
+<text x="230" y="145" text-anchor="start" font-size="15" font-weight="700" fill="#0A2A66">гръбначен мозък</text>
+<line x1="205" y1="212" x2="225" y2="200" stroke="#555" stroke-width="1.5"/>
+<text x="230" y="205" text-anchor="start" font-size="15" font-weight="700" fill="#0A2A66">нерви</text>
+<text x="150" y="370" text-anchor="middle" font-size="17" font-weight="700" fill="#8A6D00">Нервна система</text>
+<text x="150" y="390" text-anchor="middle" font-size="15" font-weight="400" fill="#0A2A66">управлява органите</text>
+<path d="M398,125 L465,250 L575,185" stroke="#DCE3EA" stroke-width="56" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+<line x1="398" y1="125" x2="461" y2="243" stroke="#F3E9D2" stroke-width="13" stroke-linecap="round"/>
+<line x1="398" y1="125" x2="461" y2="243" stroke="#B8A57A" stroke-width="15" stroke-linecap="round" opacity="0.35"/>
+<line x1="471" y1="248" x2="565" y2="191" stroke="#F3E9D2" stroke-width="10" stroke-linecap="round"/>
+<line x1="471" y1="258" x2="565" y2="201" stroke="#F3E9D2" stroke-width="8" stroke-linecap="round"/>
+<circle cx="465" cy="250" r="12" fill="#FFFFFF" stroke="#28AAE1" stroke-width="3"/>
+<ellipse cx="449.1" cy="178.1" rx="50" ry="17" fill="#D9363E" opacity="0.85" transform="rotate(61.8 449.1 178.1)"/>
+<line x1="472.7" y1="222.1" x2="487" y2="232" stroke="#FFFFFF" stroke-width="4"/>
+<line x1="472.7" y1="222.1" x2="487" y2="232" stroke="#C9C9C9" stroke-width="2"/>
+<line x1="457.1275025338303" y1="168.05165864186696" x2="520" y2="110" stroke="#555" stroke-width="1.5"/>
+<text x="525" y="105" text-anchor="start" font-size="15" font-weight="700" fill="#D9363E">мускул</text>
+<line x1="489" y1="234" x2="530" y2="292" stroke="#555" stroke-width="1.5"/>
+<text x="520" y="310" text-anchor="start" font-size="15" font-weight="700" fill="#0A2A66">сухожилие</text>
+<line x1="457" y1="260" x2="420" y2="298" stroke="#555" stroke-width="1.5"/>
+<text x="415" y="316" text-anchor="middle" font-size="15" font-weight="700" fill="#28AAE1">става</text>
+<line x1="405" y1="150" x2="350" y2="178" stroke="#555" stroke-width="1.5"/>
+<text x="345" y="183" text-anchor="end" font-size="15" font-weight="700" fill="#8A7445">кост</text>
+<text x="470" y="352" text-anchor="middle" font-size="17" font-weight="700" fill="#0A2A66">Опорно-двигателна система</text>
+<text x="470" y="372" text-anchor="middle" font-size="15" font-weight="400" fill="#0A2A66">нерв → мускулът се свива →</text>
+<text x="470" y="392" text-anchor="middle" font-size="15" font-weight="400" fill="#0A2A66">костите се движат в ставата</text>
+<line x1="300" y1="65" x2="300" y2="340" stroke="#EEE" stroke-width="2"/>
+</svg>
