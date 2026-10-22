@@ -20,7 +20,17 @@ async function loadCourses() {
     } catch (e) {
       console.warn('Няма данни за', g, e);
       courses[g] = null;
+      return;
     }
+    // Видеата са в отделен файл за всеки клас.
+    try {
+      const r = await fetch(`data/videos-grade${g}.json`);
+      if (!r.ok) return;
+      const vids = await r.json();
+      for (const u of courses[g].units) {
+        for (const sk of u.skills) if (!sk.video && vids[sk.id] && vids[sk.id].youtubeId) sk.video = vids[sk.id];
+      }
+    } catch (e) { /* без видеа за този клас */ }
   }));
 }
 
@@ -62,21 +72,21 @@ function nextSkill(id) {
 function monBadges(item, { long = false } = {}) {
   const out = [];
   if (!item.mon) {
-    out.push(`<span class="badge red" title="Това не идва от учебната програма на МОН.">⚠ Не е по програма на МОН</span>`);
+    out.push(`<span class="badge warn" title="Това не идва от учебната програма на МОН.">⚠ Не е по програма на МОН</span>`);
   }
   if (item.assumption) {
     out.push(long
-      ? `<div class="redbox"><b>⚠ Наше предположение, не е по данни от МОН:</b> ${esc(item.assumption)}</div>`
-      : `<span class="badge red" title="${esc(item.assumption)}">⚠ Наше предположение</span>`);
+      ? `<div class="warnbox"><b>⚠ Наше предположение, не е по данни от МОН:</b> ${esc(item.assumption)}</div>`
+      : `<span class="badge warn" title="${esc(item.assumption)}">⚠ Наше предположение</span>`);
   }
   return out.join(' ');
 }
 function devBadge(item) {
   if (item.quality === 'high' && item.review) {
-    return '<span class="badge hq">★ 3D преживяване</span> <span class="badge red" title="Преживяването е готово, но още не е изпитано докрай.">🚧 В проверка</span>';
+    return '<span class="badge hq">★ 3D преживяване</span> <span class="badge warn" title="Преживяването е готово, но още не е изпитано докрай.">🚧 В проверка</span>';
   }
   return item.quality === 'high' ? '<span class="badge hq">★ 3D преживяване</span>'
-    : '<span class="badge red" title="Опростена версия. Пълното 3D преживяване се разработва.">🚧 В разработка</span>';
+    : '<span class="badge warn" title="Опростена версия. Пълното 3D преживяване се разработва.">🚧 В разработка</span>';
 }
 function levelChip(id) {
   const lv = store.LEVELS[store.level(id)];
@@ -127,12 +137,12 @@ function renderHome() {
 }
 
 function signsHelp() {
-  return `<section class="signs"><h3>Какво значат знаците</h3>
+  return `<details class="signs"><summary>Какво значат знаците</summary>
     <p><span class="badge hq">★ 3D преживяване</span> Пълно интерактивно преживяване.</p>
-    <p><span class="badge red">🚧 В разработка</span> Опростена 3D версия; пълното преживяване предстои.</p>
-    <p><span class="badge red">🚧 В проверка</span> Пълното преживяване е готово, но още не е изпитано докрай.</p>
-    <p><span class="badge red">⚠ Наше предположение</span> или <span class="badge red">⚠ Не е по програма на МОН</span> Частта не идва директно от учебната програма на МОН.</p>
-    <p><span class="badge red">🎬 Видеото още не е подбрано</span> Тук ще има видео от Кан Академия.</p></section>`;
+    <p><span class="badge warn">🚧 В разработка</span> Опростена 3D версия с картинка; пълното преживяване предстои.</p>
+    <p><span class="badge warn">🚧 В проверка</span> Пълното преживяване е готово, но още не е изпитано докрай.</p>
+    <p><span class="badge warn">⚠ Наше предположение</span> или <span class="badge warn">⚠ Не е по програма на МОН</span> Частта не идва директно от учебната програма на МОН.</p>
+    <p><span class="badge warn">⚠ Непрегледано видео</span> Видеото е намерено автоматично и още не е прегледано от учител.</p></details>`;
 }
 
 function renderCourse(g) {
@@ -184,15 +194,19 @@ function renderCourse(g) {
   }));
 }
 
+const LANGS = { en: 'на английски', ru: 'на руски', none: 'без говор' };
 function videoSlot(skill) {
-  if (skill.video && skill.video.youtubeId) {
-    return `<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${esc(skill.video.youtubeId)}?rel=0"
-      title="${esc(skill.video.title || 'Видео от Кан Академия')}" allowfullscreen loading="lazy"
+  const v = skill.video;
+  if (v && v.youtubeId) {
+    const lang = v.lang && v.lang !== 'bg' ? ` · ${esc(LANGS[v.lang] || v.lang)}` : '';
+    const note = v.confidence === 'high' ? ''
+      : '<p class="vnote"><span class="badge warn" title="Видеото е намерено автоматично и още не е прегледано от учител.">⚠ Непрегледано видео</span></p>';
+    return `<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${esc(v.youtubeId)}?rel=0"
+      title="${esc(v.title || 'Видео')}" allowfullscreen loading="lazy"
       allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"></iframe>
-      <p class="small">Видео: ${esc(skill.video.source || 'Кан Академия')} · ${esc(skill.video.title || '')}</p></div>`;
+      <p class="small">🎬 ${esc(v.title || '')}${lang} · <a href="https://www.youtube.com/watch?v=${esc(v.youtubeId)}" target="_blank" rel="noopener">отвори в YouTube</a></p>${note}</div>`;
   }
-  return `<div class="video empty"><span class="badge red">🎬 Видеото още не е подбрано</span>
-    <p class="small">Тук ще има видео от българската Кан Академия. Подбираме само проверени видеа.</p></div>`;
+  return `<div class="video empty"><span class="badge warn">🎬 Видеото още не е подбрано</span></div>`;
 }
 
 async function renderSkill(id) {
@@ -241,7 +255,8 @@ async function renderSkill(id) {
 
   // Опростено упражнение: 3D сцена + въпроси.
   if (!hasWebGL()) return noWebGL(area, skill, course);
-  area.innerHTML = `<div class="lowfi-wrap"><div class="lowfi"></div><p class="scene-hint">Върти сцената с пръст или мишка. Кликни върху обект, за да прочетеш за него.</p></div>
+  area.innerHTML = `<figure class="picture"><img src="img/${esc(skill.id)}.svg" alt="${esc(skill.title)}" loading="lazy" onerror="this.parentElement.remove()"></figure>
+    <div class="lowfi-wrap"><div class="lowfi"></div><p class="scene-hint">Върти сцената с пръст или мишка. Кликни върху обект, за да прочетеш за него.</p></div>
     <div class="practice"></div>`;
   let lf = null;
   lf = mountLowfi(area.querySelector('.lowfi'), skill.scene?.objects || [], { onPick: (pid) => lf && lf._onPick && lf._onPick(pid) });
@@ -415,6 +430,38 @@ function notFound() {
   view.innerHTML = `<p class="warn">Страницата не е намерена.</p><p><a href="#/">Към началото</a></p>`;
 }
 
+// ---- лента с напредъка ----
+function courseOfRoute(kind, arg) {
+  if (kind === 'c' || (kind === 't' && GRADES.includes(arg))) return courses[arg];
+  if (kind === 's') return findSkill(arg)?.course;
+  if (kind === 'a') return findArticle(arg)?.course;
+  if (kind === 't') return findUnit(arg)?.course;
+  return null;
+}
+function drawStats(course) {
+  const el = document.getElementById('stats');
+  if (!el) return;
+  if (course) store.setLastCourse(course.id);
+  const c = course || courses[store.getState().lastCourse] || null;
+  const today = store.tasksToday();
+  const word = today === 1 ? 'задача' : 'задачи';
+  let left;
+  if (c) {
+    const pct = store.coursePercent(c);
+    left = `<span class="stat">📘 ${esc(c.id)}. клас: <b>${pct}%</b> от курса <span class="mini"><i style="width:${pct}%"></i></span></span>`;
+  } else {
+    const all = GRADES.map((g) => courses[g]).filter(Boolean);
+    const pct = all.length ? Math.round(all.reduce((a, x) => a + store.coursePercent(x), 0) / all.length) : 0;
+    left = `<span class="stat">📘 Всички курсове: <b>${pct}%</b> <span class="mini"><i style="width:${pct}%"></i></span></span>`;
+  }
+  el.innerHTML = `<div class="in">${left}<span class="stat">✅ Днес: <b>${today}</b> ${word}</span></div>`;
+  el.hidden = false;
+}
+store.onChange(() => {
+  const h = location.hash.replace(/^#\/?/, '').split('/');
+  drawStats(courseOfRoute(h[0], h[1]));
+});
+
 // ---- маршрути ----
 function route() {
   for (const fn of cleanup) { try { fn(); } catch (e) { console.warn(e); } }
@@ -422,6 +469,7 @@ function route() {
   const h = location.hash.replace(/^#\/?/, '');
   const [kind, arg] = h.split('/');
   window.scrollTo(0, 0);
+  drawStats(courseOfRoute(kind, arg));
   if (!kind) return renderHome();
   if (kind === 'c') return renderCourse(arg);
   if (kind === 's') return renderSkill(arg);
