@@ -1074,17 +1074,7 @@ export function mount(container, { onComplete }) {
   }
   stage.tick((dt, t) => {
     for (const id of TOOL_IDS) stations[id].tick(dt, t);
-    stations.sieve.tick(dt);
   });
-  // (ситото има два набора зрънца — обновяваме ги в общия тик)
-  stations.sieve.tick = (dt) => { stations.sieve._t = dt; };
-  {
-    const sv = stations.sieve;
-    const grainSets = sv.g.children.filter((c) => c.isInstancedMesh);
-    sv.tick = () => {};
-    stage.tick(() => {});
-    void grainSets;
-  }
 
   // --- предпазни очила ---
   const goggles = new THREE.Group();

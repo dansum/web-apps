@@ -610,8 +610,10 @@ function buildKitchen(scene) {
 // ---------- преживяване ----------
 export function mount(container, opts) {
   injectStyle();
-  let inst = build(container, opts, () => { inst.dispose(); inst = build(container, opts, restartRef); });
-  function restartRef() { inst.dispose(); inst = build(container, opts, restartRef); }
+  // „Започни отначало“ строи всичко наново — така нищо не остава от предишния опит.
+  let inst = null;
+  const restart = () => { inst.dispose(); inst = build(container, opts, restart); };
+  inst = build(container, opts, restart);
   return { dispose() { inst.dispose(); } };
 }
 
@@ -775,9 +777,7 @@ function build(container, { onComplete }, restart) {
   const scores = [];
   let clickHandler = null;
   stage.onClick((hit) => { if (clickHandler) clickHandler(hit ? hit.root.userData.pickId : null, hit); });
-  let hoverOk = null;
-  stage.onHover(() => {}, 'pickId');
-  void hoverOk;
+  stage.onHover(() => {});
 
   // ---------- 1. Опознай ----------
   let menuHandler = null;
@@ -897,7 +897,6 @@ function build(container, { onComplete }, restart) {
     gasLab.add(p);
     airPuffs.push(p);
   }
-  const airState = { press: 0, plungerTop: 1.68 };
   const tmpV = new THREE.Vector3();
   const tipWorld = new THREE.Vector3();
   function syrRegion(n, out) {
@@ -914,7 +913,6 @@ function build(container, { onComplete }, restart) {
     if (!gasLab.visible) return;
     syrAir.updateMatrixWorld();
     jar.updateMatrixWorld();
-    const inSyr = airPuffs.filter((p) => p.userData.where === 'syr').length;
     const dens = 1 + (1 - (syrAir.userData.plunger.position.y - 0.3) / 1.38) * 1.2;
     for (const p of airPuffs) {
       const u = p.userData;
@@ -938,13 +936,11 @@ function build(container, { onComplete }, restart) {
       p.position.copy(world);
       if (u.where === 'jar') { p.scale.setScalar(0.42); p.material.opacity = 0.32; } else { p.scale.setScalar(0.26); p.material.opacity = Math.min(0.75, 0.38 * dens); }
     }
-    void inSyr;
     const w = syrWater.userData.water;
     const top = syrWater.userData.plunger.position.y - 0.04;
     w.scale.y = top - 0.3;
     w.position.y = 0.3 + (top - 0.3) / 2;
   });
-  void airState;
 
   function pour(src, dst, done) {
     const sv = src.userData.vessel;

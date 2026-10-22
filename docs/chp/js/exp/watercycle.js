@@ -1022,7 +1022,7 @@ export function mount(container, { onComplete }) {
     const sv = ctrl.querySelector('.sv');
     const mark = () => {
       const order = ['evap', 'full', 'wind', 'rain'];
-      const cur = { evap: 0, full: 1, wind: 2, atMtn: 3, rain: 3, flow: 4, done: 4 }[phase];
+      const cur = phase === 'evap' ? (warmed ? 1 : 0) : { full: 2, wind: 2, atMtn: 3, rain: 3, flow: 4, done: 4 }[phase];
       container.querySelectorAll('.wc-steps li').forEach((li) => {
         const k = order.indexOf(li.dataset.s);
         li.className = k < cur ? 'done' : k === cur ? 'now' : '';
@@ -1036,10 +1036,7 @@ export function mount(container, { onComplete }) {
       if (!warmed && sunPower >= 0.5 && phase === 'evap') {
         warmed = true;
         sayAt('sea', '<b>Изпарение</b><br>Слънцето нагрява водата и тя се превръща в невидими водни пари. Те се издигат нагоре с топлия въздух. Солта остава в морето.', 'wide');
-        later(5, () => { if (phase === 'evap') phase = 'evap2'; mark(); phase = phase === 'evap2' ? 'evap' : phase; });
-        phase = 'evap';
         mark();
-        container.querySelector('.wc-steps li[data-s="evap"]').className = 'done';
       }
     };
     sl.addEventListener('input', updSun);

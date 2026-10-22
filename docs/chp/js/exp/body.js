@@ -30,6 +30,7 @@ const ORGANS = [
     fact: 'На рисунката червените носят кръвта от сърцето, а сините я връщат обратно.',
     fn: 'Носят кръвта до всяка част на тялото' },
 ];
+const PRON = { brain: 'Той', heart: 'То', lungs: 'Те', stomach: 'Той', intestines: 'Те', vessels: 'Те' };
 const byId = Object.fromEntries(ORGANS.map((o) => [o.id, o]));
 // Органите, които детето връща на мястото им (съдовете остават в тялото).
 const MOVABLE = ['brain', 'heart', 'lungs', 'stomach', 'intestines'];
@@ -827,7 +828,7 @@ export function mount(container, { onComplete }) {
       mistakes++;
       missOn[held] = (missOn[held] || 0) + 1;
       flash.set(id, { k: 0.8, color: 0xff3030 });
-      say(id, `✘ Това е <b>${esc(byId[id].label.toLowerCase())}</b>. Той не прави това.`.replace('Той', id === 'lungs' || id === 'intestines' || id === 'vessels' ? 'Те' : id === 'heart' || id === 'stomach' ? 'То' : 'Той').replace('То не', id === 'stomach' ? 'Той не' : 'То не'), 'bad');
+      say(id, `✘ Това е <b>${esc(byId[id].label.toLowerCase())}</b>. ${PRON[id]} не ${id === 'lungs' || id === 'intestines' || id === 'vessels' ? 'правят' : 'прави'} това.`, 'bad');
       shell.msg(missOn[held] >= 2 ? `Подсказка: ${FN_HINTS[held]}` : `Не е ${byId[id].label.toLowerCase()}. Помисли пак.`, 'bad');
       upd();
     };
