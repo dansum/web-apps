@@ -72,6 +72,9 @@ function monBadges(item, { long = false } = {}) {
   return out.join(' ');
 }
 function devBadge(item) {
+  if (item.quality === 'high' && item.review) {
+    return '<span class="badge hq">★ 3D преживяване</span> <span class="badge red" title="Преживяването е готово, но още не е изпитано докрай.">🚧 В проверка</span>';
+  }
   return item.quality === 'high' ? '<span class="badge hq">★ 3D преживяване</span>'
     : '<span class="badge red" title="Опростена версия. Пълното 3D преживяване се разработва.">🚧 В разработка</span>';
 }
@@ -127,6 +130,7 @@ function signsHelp() {
   return `<section class="signs"><h3>Какво значат знаците</h3>
     <p><span class="badge hq">★ 3D преживяване</span> Пълно интерактивно преживяване.</p>
     <p><span class="badge red">🚧 В разработка</span> Опростена 3D версия; пълното преживяване предстои.</p>
+    <p><span class="badge red">🚧 В проверка</span> Пълното преживяване е готово, но още не е изпитано докрай.</p>
     <p><span class="badge red">⚠ Наше предположение</span> или <span class="badge red">⚠ Не е по програма на МОН</span> Частта не идва директно от учебната програма на МОН.</p>
     <p><span class="badge red">🎬 Видеото още не е подбрано</span> Тук ще има видео от Кан Академия.</p></section>`;
 }

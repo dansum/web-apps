@@ -1,6 +1,6 @@
 // 3.2.4 „Кой какво яде: хранителни вериги“ — 3D ливада край езеро.
 // Стъпки: опознай → разпредели по храна → построй верига → какво ще стане, ако…
-import { createStage, labelSprite, mat, zoneRing, addHitBox, THREE, esc } from '../kit.js';
+import { createStage, labelSprite, mat, zoneRing, addHitBox, cornerMenu, THREE, esc } from '../kit.js';
 import { createShell, stepScore } from './shell.js';
 
 const KINDS = {
@@ -34,18 +34,36 @@ const LIVING = [
   { id: 'boar', label: 'Дива свиня', kind: 'omni', eats: ['oak'], pos: [-5.4, 0, 1.8],
     note: 'Рови за жълъди и корени, яде и червеи и охлюви. Всеядна.' },
 ];
+// Как се движи всеки вид: радиус на разходката около дома му, скорост, иконка за менюто.
+const LIFE = {
+  grass: { icon: '🌱' }, berries: { icon: '🍓' }, oak: { icon: '🌳' },
+  grasshopper: { icon: '🦗', r: 1.6, speed: 0.9, hop: true },
+  hare: { icon: '🐰', r: 2.6, speed: 1.3, graze: true },
+  deer: { icon: '🦌', r: 2.4, speed: 0.9, graze: true },
+  frog: { icon: '🐸', r: 1.3, speed: 0.7, hop: true, pond: true },
+  stork: { icon: '🐦', r: 1.8, speed: 0.45, peck: true, pond: true },
+  wolf: { icon: '🐺', r: 3.0, speed: 1.4 },
+  bear: { icon: '🐻', r: 1.8, speed: 0.55, graze: true },
+  boar: { icon: '🐗', r: 2.0, speed: 0.8, graze: true },
+};
 const byId = Object.fromEntries(LIVING.map((o) => [o.id, o]));
 const ANIMALS = LIVING.filter((o) => !o.plant);
 const POND = { x: -2.2, z: -4.6, rx: 3.2, rz: 2.0 };
 
 // ---------- модели ----------
+// Краката висят от „тазобедрена“ точка, за да могат да се люлеят при ходене.
 function legs(g, color, { n = 4, len = 0.5, r = 0.06, spreadX = 0.5, spreadZ = 0.18, y = 0 }) {
   const m = mat(color);
+  const list = g.userData.legs || (g.userData.legs = []);
   const pts = n === 2 ? [[0, spreadZ], [0, -spreadZ]] : [[spreadX, spreadZ], [spreadX, -spreadZ], [-spreadX, spreadZ], [-spreadX, -spreadZ]];
   for (const [x, z] of pts) {
+    const hip = new THREE.Group();
+    hip.position.set(x, y + len, z);
     const l = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.8, len, 8), m);
-    l.position.set(x, y + len / 2, z);
-    g.add(l);
+    l.position.y = -len / 2;
+    hip.add(l);
+    g.add(hip);
+    list.push(hip);
   }
 }
 
@@ -408,9 +426,147 @@ export function mount(container, { onComplete }) {
     g.userData.top = top + 0.55;
     g.userData.label = label;
     if (!o.plant) addHitBox(g, 0.9);
+    stage.steadyLabel(label, 13);
     scene.add(g);
     roots.set(o.id, g);
   }
+
+  // ---------- живот на ливадата: разходки, пасене, подскоци ----------
+  let wanderOn = true;
+  const inPond = (x, z, k = 1.15) => ((x - POND.x) / (POND.rx * k)) ** 2 + ((z - POND.z) / (POND.rz * k)) ** 2 < 1;
+  function pickTarget(g) {
+    const L = LIFE[g.userData.pickId];
+    const home = g.userData.home;
+    for (let i = 0; i < 12; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = Math.sqrt(Math.random()) * L.r;
+      const x = home.x + Math.cos(a) * r;
+      const z = home.z + Math.sin(a) * r;
+      if (Math.hypot(x, z) > 8.5) continue;
+      if (inPond(x, z, L.pond ? 0.98 : 1.18)) continue;
+      return new THREE.Vector3(x, 0, z);
+    }
+    return home.clone();
+  }
+  function angleTo(a, b) { let d = b - a; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return d; }
+  function wander(g, dt, t) {
+    const L = LIFE[g.userData.pickId];
+    const w = g.userData.w || (g.userData.w = { mode: 'idle', timer: Math.random() * 2, phase: 0 });
+    const legsList = g.userData.legs || [];
+    if (w.mode === 'idle') {
+      w.timer -= dt;
+      // пасе, кълве или се оглежда
+      const head = g.userData.head;
+      if (head) {
+        const dip = (L.graze || L.peck) && Math.sin(t * 0.9 + g.userData.phase) > 0.2;
+        head.rotation.z += ((dip ? -0.55 : Math.sin(t * 0.6 + g.userData.phase) * 0.1) - head.rotation.z) * Math.min(1, dt * 3);
+        head.rotation.y = Math.sin(t * 0.7 + g.userData.phase) * 0.35;
+      }
+      for (const lg of legsList) lg.rotation.z *= 0.85;
+      g.position.y += (0 - g.position.y) * Math.min(1, dt * 8);
+      if (w.timer <= 0) { w.mode = 'walk'; w.target = pickTarget(g); }
+      return;
+    }
+    const dx = w.target.x - g.position.x;
+    const dz = w.target.z - g.position.z;
+    const dist = Math.hypot(dx, dz);
+    if (dist < 0.08) { w.mode = 'idle'; w.timer = 1.5 + Math.random() * 3.5; return; }
+    const want = Math.atan2(-dz, dx);
+    const diff = angleTo(g.rotation.y, want);
+    g.rotation.y += diff * Math.min(1, dt * 5);
+    if (Math.abs(diff) < 0.7) {
+      const step = Math.min(dist, L.speed * dt);
+      g.position.x += (dx / dist) * step;
+      g.position.z += (dz / dist) * step;
+      w.phase += dt * L.speed * (L.hop ? 5 : 9);
+    }
+    if (L.hop) {
+      g.position.y = Math.abs(Math.sin(w.phase)) * 0.28;
+    } else {
+      g.position.y = Math.abs(Math.sin(w.phase)) * 0.03;
+      legsList.forEach((lg, i) => {
+        const pair = legsList.length === 2 ? i : (i === 0 || i === 3 ? 0 : 1);
+        lg.rotation.z = Math.sin(w.phase + pair * Math.PI) * 0.5;
+      });
+      if (g.userData.head) g.userData.head.rotation.z += (0.05 - g.userData.head.rotation.z) * Math.min(1, dt * 4);
+    }
+  }
+  function settle(g) {
+    if (g.userData.w) g.userData.w = { mode: 'idle', timer: 1, phase: 0 };
+    for (const lg of g.userData.legs || []) lg.rotation.z = 0;
+    g.position.y = 0;
+  }
+
+  // Пеперуди, облаци и птици — за жива ливада.
+  const flyers = [];
+  const wingM = [0xffb300, 0xe91e63, 0x42a5f5].map((c) => new THREE.MeshStandardMaterial({ color: c, side: THREE.DoubleSide, roughness: 0.6 }));
+  for (let i = 0; i < 4; i++) {
+    const b = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.02, 0.12, 4, 6), mat(0x3e2723));
+    body.rotation.z = Math.PI / 2;
+    b.add(body);
+    const wings = [];
+    for (const sgn of [1, -1]) {
+      const w = new THREE.Mesh(new THREE.CircleGeometry(0.13, 10), wingM[i % 3]);
+      w.position.z = sgn * 0.1;
+      w.rotation.x = Math.PI / 2;
+      const hinge = new THREE.Group();
+      hinge.add(w);
+      b.add(hinge);
+      wings.push({ hinge, sgn });
+    }
+    b.userData = { wings, cx: (Math.random() - 0.5) * 9, cz: (Math.random() - 0.5) * 7, ph: Math.random() * 6, sp: 0.4 + Math.random() * 0.3 };
+    scene.add(b);
+    flyers.push(b);
+  }
+  const clouds = [];
+  for (let i = 0; i < 5; i++) {
+    const c = new THREE.Group();
+    const cm = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, transparent: true, opacity: 0.92 });
+    for (let k = 0; k < 4; k++) {
+      const puff = new THREE.Mesh(new THREE.SphereGeometry(0.8 + Math.random() * 0.5, 12, 8), cm);
+      puff.position.set(k * 0.9 - 1.4, Math.random() * 0.3, Math.random() * 0.5);
+      puff.scale.y = 0.6;
+      c.add(puff);
+    }
+    c.position.set(-18 + i * 8, 9 + Math.random() * 2, -10 - Math.random() * 6);
+    scene.add(c);
+    clouds.push(c);
+  }
+  const birds = [];
+  for (let i = 0; i < 3; i++) {
+    const bd = new THREE.Group();
+    const wm = mat(0x37474f);
+    const wingsB = [];
+    for (const sgn of [1, -1]) {
+      const h = new THREE.Group();
+      const w = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.02, 0.4), wm);
+      w.position.z = sgn * 0.2;
+      h.add(w);
+      bd.add(h);
+      wingsB.push({ h, sgn });
+    }
+    bd.userData = { wingsB, ph: i * 2.1, r: 9 + i * 1.5 };
+    scene.add(bd);
+    birds.push(bd);
+  }
+  stage.tick((dt, t) => {
+    for (const b of flyers) {
+      const u = b.userData;
+      const k = t * u.sp + u.ph;
+      b.position.set(u.cx + Math.sin(k) * 1.6, 0.9 + Math.sin(k * 2.3) * 0.35, u.cz + Math.sin(k * 0.7) * 1.4);
+      b.rotation.y = Math.atan2(-Math.cos(k * 0.7) * 0.98, Math.cos(k) * 1.6);
+      for (const { hinge, sgn } of u.wings) hinge.rotation.x = sgn * Math.sin(t * 16 + u.ph) * 0.9;
+    }
+    for (const c of clouds) { c.position.x += dt * 0.25; if (c.position.x > 22) c.position.x = -22; }
+    for (const bd of birds) {
+      const u = bd.userData;
+      const k = t * 0.18 + u.ph;
+      bd.position.set(Math.cos(k) * u.r, 7 + Math.sin(k * 3) * 0.4, Math.sin(k) * u.r - 4);
+      bd.rotation.y = -k;
+      for (const { h, sgn } of u.wingsB) h.rotation.x = sgn * Math.sin(t * 6 + u.ph) * 0.5;
+    }
+  });
 
   // Анимация: дишане, подскоци, люлеене на тревата, стрелки, плъзгане към цел.
   const moving = new Map();
@@ -433,6 +589,7 @@ export function mount(container, { onComplete }) {
         if (mv.k >= 1) { moving.delete(g); g.position.copy(mv.to); }
         continue;
       }
+      if (wanderOn && LIFE[id] && LIFE[id].speed) { wander(g, dt, t); if (g.userData.tail) g.userData.tail.rotation.x = Math.sin(t * 3) * 0.3; continue; }
       const ph = g.userData.phase;
       if (g.userData.hopper) {
         const cyc = (t * 0.6 + ph) % 3;
@@ -474,29 +631,51 @@ export function mount(container, { onComplete }) {
   stage.onClick((hit) => { if (clickHandler) clickHandler(hit ? hit.root.userData.pickId : null); });
 
   // ---------- 1. Опознай ----------
+  // Меню в ъгъла: детето избира растение или животно, камерата отива при него.
+  const menu = cornerMenu(stage, {
+    title: 'Животни и растения',
+    items: LIVING.map((o) => ({ id: o.id, label: o.label, icon: LIFE[o.id].icon })),
+    onSelect: (id) => menuHandler && menuHandler(id),
+  });
+  let menuHandler = null;
+
+  function overview() {
+    stage.stopFollow();
+    stage.flyTo([0, 7.5, 12], [0, 0.6, 0]);
+  }
+
   function step1() {
     shell.step(0);
     clearTip();
+    wanderOn = true;
+    menu.show(true);
     const seen = new Set();
     shell.task(`<p>На ливадата край езерото живеят растения и животни.</p>
-      <p><b>Кликни върху поне 5 животни</b>, за да разбереш какво ядат.</p>`);
-    const ctrl = shell.setControls('<button class="btn primary" disabled>Напред →</button>');
-    const next = ctrl.querySelector('button');
-    const upd = () => shell.score(`Разгледани животни: ${[...seen].filter((id) => !byId[id].plant).length} от ${ANIMALS.length}`);
+      <p><b>Разгледай поне 5 животни</b>, за да разбереш какво ядат: кликни върху тях или ги избери от менюто в ъгъла.</p>`);
+    const ctrl = shell.setControls('<div class="row"><button class="btn all">🔭 Цялата ливада</button><button class="btn primary nx" disabled>Напред →</button></div>');
+    const next = ctrl.querySelector('.nx');
+    ctrl.querySelector('.all').addEventListener('click', overview);
+    const nAnimals = () => [...seen].filter((id) => !byId[id].plant).length;
+    const upd = () => shell.score(`Разгледани животни: ${nAnimals()} от ${ANIMALS.length}`);
     upd();
-    clickHandler = (id) => {
-      if (!id) return clearTip();
+    const visit = (id, fly) => {
       const o = byId[id];
-      say(id, `<b>${esc(o.label)}</b><br>${esc(o.note)}`);
+      const g = roots.get(id);
+      if (fly) stage.focusOn(g, { dist: o.plant ? 7.5 : 6, height: 2.6, lift: 0.4 });
+      say(id, `<b>${esc(LIFE[id].icon)} ${esc(o.label)}</b><br>${esc(o.note)}`);
       seen.add(id);
+      menu.mark(id);
+      menu.setActive(id);
       upd();
-      if ([...seen].filter((x) => !byId[x].plant).length >= 5) {
+      if (nAnimals() >= 5) {
         next.disabled = false;
         shell.msg('Браво! Можеш да продължиш или да разгледаш още.', 'good');
       }
     };
-    next.addEventListener('click', step2);
-    stage.flyTo([0, 7.5, 12], [0, 0.6, 0]);
+    clickHandler = (id) => { if (!id) { clearTip(); return; } visit(id, true); };
+    menuHandler = (id) => visit(id, true);
+    next.addEventListener('click', () => { menu.setActive(null); step2(); });
+    overview();
   }
 
   // ---------- 2. Разпредели ----------
@@ -506,6 +685,10 @@ export function mount(container, { onComplete }) {
     shell.step(1);
     clearTip();
     shell.msg('');
+    wanderOn = false;
+    menu.show(false);
+    menuHandler = null;
+    for (const g of roots.values()) settle(g);
     const zx = { herb: -4, carn: 0, omni: 4 };
     for (const k of Object.keys(KINDS)) {
       const z = zoneRing(KINDS[k].color, 1.5);
@@ -580,6 +763,10 @@ export function mount(container, { onComplete }) {
     shell.step(2);
     clearTip();
     shell.msg('');
+    stage.stopFollow();
+    menu.show(true);
+    menu.setActive(null);
+    menuHandler = (id) => clickHandler && clickHandler(id);
     for (const k of Object.keys(zones)) zones[k].group.visible = false;
     for (const a of ANIMALS) {
       const g = roots.get(a.id);
@@ -670,6 +857,8 @@ export function mount(container, { onComplete }) {
     shell.step(3);
     clearTip();
     shell.msg('');
+    menu.show(false);
+    menuHandler = null;
     for (const a of arrows) scene.remove(a);
     arrows = [];
     const show = ['grass', 'grasshopper', 'frog', 'stork'];
@@ -713,6 +902,7 @@ export function mount(container, { onComplete }) {
     });
   }
 
+  let stopHoppers = null;
   function runSimulation(good) {
     clearTip();
     const frog = roots.get('frog');
@@ -753,8 +943,9 @@ export function mount(container, { onComplete }) {
         });
       }
     });
-    // подскачащи нови скакалци
-    stage.tick((dt, t) => {
+    // подскачащи нови скакалци (спира при „Започни отначало“)
+    if (stopHoppers) stopHoppers();
+    stopHoppers = stage.tick((dt, t) => {
       for (const g of extra) {
         const cyc = (t * 0.8 + g.userData.phase) % 2;
         g.position.y = cyc < 0.35 ? Math.sin((cyc / 0.35) * Math.PI) * 0.3 : 0;
@@ -763,6 +954,7 @@ export function mount(container, { onComplete }) {
   }
 
   function restart(extra = []) {
+    if (stopHoppers) { stopHoppers(); stopHoppers = null; }
     for (const g of extra) scene.remove(g);
     for (const a of arrows) scene.remove(a);
     arrows = [];
@@ -774,6 +966,7 @@ export function mount(container, { onComplete }) {
       g.userData.locked = true;
     }
     if (stopDrag) { stopDrag(); stopDrag = null; }
+    for (const g of roots.values()) settle(g);
     scores.length = 0;
     step1();
   }

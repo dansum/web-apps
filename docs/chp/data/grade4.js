@@ -150,8 +150,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "watercycle",
           video: null,
           scene: {
             objects: [
@@ -414,8 +414,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "solar",
           video: null,
           scene: {
             objects: [

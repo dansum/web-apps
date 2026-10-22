@@ -76,6 +76,12 @@ export function createStage(container, opts = {}) {
   container.appendChild(overlay);
 
   const tickers = new Set();
+  let follow = null;
+  const steadyLabels = new Set();
+  const tmpL = new THREE.Vector3();
+  const followPos = new THREE.Vector3();
+  const followDelta = new THREE.Vector3();
+  controls.addEventListener('start', () => { follow = null; });
   const bubbles = new Set();
   let tween = null;
   let running = true;
@@ -97,8 +103,12 @@ export function createStage(container, opts = {}) {
       p.project(camera);
       const visible = p.z < 1 && p.x > -1.2 && p.x < 1.2 && p.y > -1.2 && p.y < 1.2;
       b.el.style.display = visible ? '' : 'none';
-      const x = (p.x * 0.5 + 0.5) * width();
-      const y = (-p.y * 0.5 + 0.5) * height();
+      let x = (p.x * 0.5 + 0.5) * width();
+      let y = (-p.y * 0.5 + 0.5) * height();
+      // Балончето остава вътре в сцената.
+      const bw = b.el.offsetWidth; const bh = b.el.offsetHeight;
+      x = Math.min(Math.max(x, bw / 2 + 4), width() - bw / 2 - 4);
+      y = Math.min(Math.max(y, bh + 10), height() - 4);
       b.el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`;
     }
   }
@@ -106,7 +116,7 @@ export function createStage(container, opts = {}) {
   function frame() {
     if (!running) return;
     requestAnimationFrame(frame);
-    const dt = Math.min(clock.getDelta(), 0.05);
+    const dt = Math.min(clock.getDelta(), 0.1); // на слаб компютър анимацията не забавя прекалено
     const t = clock.elapsedTime;
     if (tween) {
       tween.k = Math.min(1, tween.k + dt / tween.dur);
@@ -116,6 +126,20 @@ export function createStage(container, opts = {}) {
       if (tween.k >= 1) tween = null;
     }
     for (const fn of tickers) fn(dt, t);
+    // Етикетите пазят приблизително еднакъв размер на екрана, колкото и близо да е камерата.
+    for (const sp of steadyLabels) {
+      sp.getWorldPosition(tmpL);
+      const f = Math.min(1.4, Math.max(0.35, camera.position.distanceTo(tmpL) / sp.userData.refDist));
+      sp.scale.set(sp.userData.baseScale.x * f, sp.userData.baseScale.y * f, 1);
+    }
+    if (follow && !tween) {
+      // Камерата следва избрания обект, като пази разстоянието си до него.
+      follow.obj.getWorldPosition(followPos);
+      followPos.y += follow.lift;
+      followDelta.copy(followPos).sub(controls.target).multiplyScalar(Math.min(1, dt * 4));
+      controls.target.add(followDelta);
+      camera.position.add(followDelta);
+    }
     controls.update();
     renderer.render(scene, camera);
     placeBubbles();
@@ -263,6 +287,25 @@ export function createStage(container, opts = {}) {
     };
   }
 
+  // Приближава камерата към обект, гледайки от сегашната посока, и после го следва.
+  function focusOn(obj, { dist = 4, height = 1.6, lift = 0.5, dur = 0.9, keepFollow = true } = {}) {
+    const p = obj.getWorldPosition(new THREE.Vector3());
+    const dir = camera.position.clone().sub(controls.target).setY(0);
+    if (dir.lengthSq() < 1e-4) dir.set(0, 0, 1);
+    dir.normalize().multiplyScalar(dist);
+    const tgt = p.clone(); tgt.y += lift;
+    const pos = p.clone().add(dir); pos.y += height + lift;
+    flyTo(pos.toArray(), tgt.toArray(), dur);
+    follow = keepFollow ? { obj, lift } : null;
+  }
+  function stopFollow() { follow = null; }
+  // refDist: разстоянието, при което етикетът е с нормалния си размер.
+  function steadyLabel(sprite, refDist = 12) {
+    sprite.userData.baseScale = sprite.scale.clone();
+    sprite.userData.refDist = refDist;
+    steadyLabels.add(sprite);
+  }
+
   function dispose() {
     running = false;
     ro.disconnect();
@@ -303,10 +346,48 @@ export function createStage(container, opts = {}) {
   const api = {
     THREE, scene, camera, renderer, controls, overlay, sun, hemi, screenOf,
     tick(fn) { tickers.add(fn); return () => tickers.delete(fn); },
-    pickAt, onClick, onHover, enableDrag, bubble, clearBubbles, flyTo, dispose,
+    pickAt, onClick, onHover, enableDrag, bubble, clearBubbles, flyTo, focusOn, stopFollow, steadyLabel, dispose,
   };
   container.__stage = api;
   return api;
+}
+
+// Малко меню в ъгъла на сцената: списък с обекти, от който детето избира.
+// items: [{ id, label, icon }]; onSelect(id). Връща { setActive, mark, setItems, show, remove }.
+export function cornerMenu(stage, { title = 'Избери', items = [], onSelect, corner = 'left' } = {}) {
+  const host = stage.renderer.domElement.parentElement;
+  const el = document.createElement('div');
+  el.className = 'corner-menu ' + corner;
+  host.appendChild(el);
+  let open = true;
+  let active = null;
+  const marked = new Set();
+  function draw() {
+    el.innerHTML = `<button class="cm-head" aria-expanded="${open}">${esc(title)} <span>${open ? '▾' : '▸'}</span></button>
+      <div class="cm-list" ${open ? '' : 'hidden'}>${items.map((it) => `<button class="cm-item ${it.id === active ? 'on' : ''}" data-id="${esc(it.id)}">
+        <span class="cm-ico">${esc(it.icon || '•')}</span><span class="cm-lbl">${esc(it.label)}</span>${marked.has(it.id) ? '<span class="cm-ok">✓</span>' : ''}</button>`).join('')}</div>`;
+    el.querySelector('.cm-head').addEventListener('click', () => { open = !open; draw(); });
+    el.querySelectorAll('.cm-item').forEach((b) => b.addEventListener('click', () => {
+      active = b.dataset.id;
+      // На тесен екран менюто се свива след избор, за да не закрива сцената.
+      if ((host.clientWidth || 600) < 480) open = false;
+      draw();
+      onSelect && onSelect(active);
+    }));
+  }
+  // По-тесен екран: менюто започва свито.
+  if ((host.clientWidth || 600) < 480) open = false;
+  draw();
+  ['pointerdown', 'wheel', 'touchstart'].forEach((ev) => el.addEventListener(ev, (e) => e.stopPropagation(), { passive: true }));
+  return {
+    el,
+    setActive(id) { active = id; draw(); },
+    mark(id) { marked.add(id); draw(); },
+    setItems(next) { items = next; marked.clear(); active = null; draw(); },
+    setTitle(t) { title = t; draw(); },
+    show(on) { el.hidden = !on; },
+    remove() { el.remove(); },
+  };
 }
 
 // Етикет-спрайт с текст, който винаги гледа към камерата.

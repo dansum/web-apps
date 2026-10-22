@@ -39,6 +39,7 @@ export function createShell(container, { steps }) {
       const r = onComplete ? onComplete(ratio) : null;
       q('.xp-title').textContent = 'Готово!';
       shell.msg('');
+      shell.score('');
       q('.xp-task').innerHTML = `<p><b>Резултат: ${Math.round(ratio * 100)}%</b></p>
         ${r ? `<p>Ниво на умението: <b>${esc(r.levelName)}</b>${r.after > r.before ? ' ⬆' : ''}</p>` : ''}
         ${r && r.after === 3 ? '<p class="small">За „Овладяно“ реши правилно въпросите за това умение в теста върху раздела.</p>' : ''}
