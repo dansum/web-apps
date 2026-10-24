@@ -183,8 +183,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "pollution",
           video: null,
           scene: {
             objects: [
