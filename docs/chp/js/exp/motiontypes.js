@@ -873,12 +873,12 @@ export function mount(container, { onComplete }) {
     sortWorld.visible = true;
     // Тесен екран: кръговете 2 × 2, предметите в две колони, камерата отгоре.
     const narrow = (shell.stageEl.clientWidth || 600) / (shell.stageEl.clientHeight || 400) < 1.1;
-    if (narrow) { stage.stopFollow(); stage.flyTo([0, 14, 9.5 + 5.5], [0, 0, 9.5 + 0.6], 1); } else view([0, 7.8, 18], [0, 0, 10.8]);
+    if (narrow) { stage.stopFollow(); stage.flyTo([0, 14.5, 9.5 + 3.6], [0, 0, 9.5 + 1.0], 1); } else view([0, 7.8, 18], [0, 0, 10.8]);
     const rings = KIND_IDS.map((k, i) => {
       const z = zoneRing(KINDS[k].color, 1.35);
       if (narrow) z.position.set(i % 2 ? 1.5 : -1.5, 0.02, i < 2 ? -3.6 : -0.7);
       else z.position.set(RING_X[i], 0.02, -1.1);
-      const l = labelSprite(KINDS[k].name, { size: 0.36, color: '#fff', bg: KINDS[k].css, border: KINDS[k].css });
+      const l = labelSprite(KINDS[k].name, { size: narrow ? 0.46 : 0.36, color: '#fff', bg: KINDS[k].css, border: KINDS[k].css });
       l.position.set(0, 0.3, narrow ? -1.5 : 1.7);
       z.add(l);
       sortWorld.add(z);
@@ -891,7 +891,7 @@ export function mount(container, { onComplete }) {
       puck.position.y = 0.06;
       const m = miniModel(o.id);
       m.position.y = 0.12;
-      const l = labelSprite(o.label, { size: 0.26 });
+      const l = labelSprite(o.label, { size: narrow ? 0.34 : 0.26 });
       l.position.y = 1.3;
       g.add(puck, m, l);
       if (narrow) g.position.set(i % 2 ? 1.4 : -1.4, 0, 1.5 + Math.floor(i / 2) * 1.5);
