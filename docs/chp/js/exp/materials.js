@@ -1077,7 +1077,7 @@ function build(container, { onComplete }, restart) {
     menuHandler = null;
     station.visible = true;
     board.visible = true;
-    if (narrow) overview(); else fitView([0.4, 0.8, 0.1], 4.4, 2.0, 0.42);
+    if (narrow) overview(); else fitView([0.1, 0.8, 0.3], 4.9, 2.0, 0.45);
     let mistakes = 0;
     let ti = 0;
     const drawTask = (extra = '') => {
