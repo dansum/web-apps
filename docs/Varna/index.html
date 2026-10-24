@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+<title>Варна строи</title>
+<meta name="description" content="Игра за строене на град, вдъхновена от Варна. За ученици от 5. клас: научи кои фактори са важни, за да живеят хората добре в един град." />
+<meta name="theme-color" content="#0b3c5d" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9875;</text></svg>" />
+</head>
+<body>
+
+<canvas id="map" aria-label="Картата на града"></canvas>
+
+<header id="topbar">
+  <div class="brand">⚓ Варна строи</div>
+  <div class="stat" id="st-money" title="Пари в бюджета на града"></div>
+  <div class="stat" id="st-pop" title="Жители"></div>
+  <div class="stat" id="st-date" title="Месец и година"></div>
+  <button class="stat wb" id="st-wb" title="Добруване — средното от всички фактори"></button>
+  <div class="speed" role="group" aria-label="Скорост">
+    <button data-speed="0" title="Пауза (интервал)">⏸</button>
+    <button data-speed="1" title="Нормално">▶</button>
+    <button data-speed="3" title="Бързо">⏩</button>
+  </div>
+  <button id="btn-menu" title="Меню">☰</button>
+</header>
+
+<aside id="mission"></aside>
+<aside id="factors" aria-label="Фактори за добруване"></aside>
+
+<nav id="toolbar">
+  <div id="groups"></div>
+  <div id="tools"></div>
+</nav>
+
+<div id="info" hidden></div>
+<div id="advisor" hidden><span class="bird">🐦</span><p></p></div>
+<div id="toast"></div>
+
+<div id="modal" hidden><div class="card" id="modal-card"></div></div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
