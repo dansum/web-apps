@@ -972,7 +972,7 @@ function build(container, { onComplete }, restart) {
     factory: () => fitView([FAC.x + 1.2, 1.7, FAC.z], 3.2, 2.4, 0.35),
     chimney: () => fitView([FAC.x + 0.4, 2.4, FAC.z], 3.4, 2.8, 0.3),
     cars: () => fitView([-2.5, 0.4, ROADZ], 4.2, 1.6, 0.5),
-    pipe: () => fitView([pStart + pLen * 0.7, 0.3, PZ + 1.2], 3.8, 2.4, 0.7),
+    pipe: () => fitView([pStart + pLen * 0.65, 0.3, PZ + 0.3], 3.4, 2.0, 0.75),
     litter: () => fitView([LIT.x - 0.3, 0.3, LIT.z + 1.4], 2.6, 2.2, 0.7),
     tractor: () => fitView([FIELD.x, 0.5, FIELD.z], 3.4, 2, 0.55),
     dump: () => fitView([DUMP.x, 0.6, DUMP.z], 2.6, 1.8, 0.5),
@@ -1224,7 +1224,7 @@ function build(container, { onComplete }, restart) {
     const inZone = [0, 0];
     const slots = [[-0.45, -0.3], [0.45, -0.3], [0, 0.42]];
     let cur = 0;
-    const view4 = () => fitView([(zx[0] + zx[1]) / 2, 0.4, ZZ - 0.2], 3.4, 1.9, 0.8);
+    const view4 = () => fitView([(zx[0] + zx[1]) / 2, 0.4, ZZ - 0.2], camera.aspect < 1 ? 3.0 : 3.4, 1.9, 0.8);
     view4();
     const upd = () => shell.score(`Подредени: ${cur} от ${items.length} · грешки: ${mistakes}`);
     shell.task(`<p>Какво правят хората всеки ден? Кое <b>опазва</b> природата и кое я <b>замърсява</b>?</p>
