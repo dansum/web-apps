@@ -115,22 +115,58 @@ function legend() {
 }
 
 // ---- изгледи ----
+const FOCUS = '4'; // главната страница е насочена към този клас
+// Умения с пълно 3D преживяване, за които няма картинка в img/.
+const NO_PICTURE = new Set(['3.1.3', '3.2.4', '3.3.1', '4.1.4', '4.2.6', '5.1.2', '5.2.2', '5.3.1', '5.3.6', '6.1.3', '6.1.5', '6.1.7', '6.3.5']);
+
 function renderHome() {
-  document.title = 'Човекът и природата в 3D';
+  document.title = 'Човекът и природата в 3D · 4. клас';
+  const c = courses[FOCUS];
+  if (!c) { view.innerHTML = '<p class="warn">Съдържанието се подготвя.</p>'; return; }
+  const all = c.units.flatMap((u) => u.skills);
+  const hq = all.filter((s) => s.quality === 'high');
+  // Следващото умение: първото пълно преживяване, което още не е „Владее“, иначе първото незапочнато.
+  const next = hq.find((s) => store.level(s.id) < 3) || all.find((s) => store.level(s.id) === 0) || all[0];
+  const pct = store.coursePercent(c);
   view.innerHTML = `
-    <section class="hero">
-      <h1>Човекът и природата в 3D</h1>
-      <p>Курсове за 3.–6. клас по учебните програми на МОН. Гледай, пипай, върти и проверявай знанията си.</p>
-      <p class="small" style="color:#dbe7ff">Алфа версия. <a href="programa.html" style="color:#fff">Програмен план до пълния продукт →</a></p>
+    <section class="hero hero-focus">
+      <div>
+        <p class="kicker">Човекът и природата в 3D</p>
+        <h1>4. клас</h1>
+        <p>Гледай, пипай, върти и проверявай знанията си. Всичко е по учебната програма на МОН.</p>
+        <div class="row">
+          <a class="btn primary big" href="#/s/${esc(next.id)}">${store.level(next.id) ? 'Продължи' : 'Започни'}: ${esc(next.title)} →</a>
+          <a class="btn ghost-light" href="#/c/${FOCUS}">Целият курс</a>
+        </div>
+      </div>
+      <div class="hero-pct"><b>${pct}%</b><span>от курса</span>${progressBar(pct)}</div>
     </section>
-    <section class="cards">
-      ${GRADES.map((g) => {
-        const c = courses[g];
-        if (!c) return `<div class="card disabled"><h2>${g}. клас</h2><p>Съдържанието се подготвя.</p></div>`;
-        const pct = store.coursePercent(c);
-        const n = c.units.reduce((s, u) => s + u.skills.length, 0);
-        return `<a class="card" href="#/c/${g}"><div class="grade">${g}</div><h2>${esc(c.title)}</h2>
-          <p>${c.units.length} раздела · ${n} умения</p>${progressBar(pct)}<p class="small">${pct}% овладяване</p></a>`;
+    <h2 class="sec-title">3D преживявания в 4. клас</h2>
+    <section class="xp-cards">
+      ${hq.map((s) => {
+        const u = c.units.find((x) => x.skills.includes(s));
+        return `<a class="xp-card" href="#/s/${esc(s.id)}">
+          ${NO_PICTURE.has(s.id) ? `<div class="xp-thumb">${['🧪', '⚡', '🌿'][c.units.indexOf(u)] || '🌿'}</div>`
+            : `<img src="img/${esc(s.id)}.svg" alt="" loading="lazy">`}
+          <span class="badge hq">★ 3D</span>
+          <b>${esc(s.title)}</b>
+          <span class="small">${esc(u.title)}</span>
+          ${levelChip(s.id)}</a>`;
+      }).join('')}
+    </section>
+    <h2 class="sec-title">Раздели</h2>
+    <section class="units-mini">
+      ${c.units.map((u, k) => `<a class="unit-mini" href="#/c/${FOCUS}" data-unit="u-${esc(u.id)}">
+        <span class="unit-n">Раздел ${k + 1}</span><b>${esc(u.title)}</b>
+        <span class="sqrow">${u.skills.map((s) => sq(s.id)).join('')}</span>
+        <span class="small">${u.skills.filter((s) => s.quality === 'high').length} от ${u.skills.length} умения в 3D</span></a>`).join('')}
+    </section>
+    <h2 class="sec-title">Другите класове</h2>
+    <section class="other-grades">
+      ${GRADES.filter((g) => g !== FOCUS).map((g) => {
+        const o = courses[g];
+        if (!o) return '';
+        return `<a class="pill" href="#/c/${g}">${g}. клас · ${store.coursePercent(o)}%</a>`;
       }).join('')}
     </section>
     ${signsHelp()}`;
@@ -432,6 +468,7 @@ function notFound() {
 
 // ---- лента с напредъка ----
 function courseOfRoute(kind, arg) {
+  if (!kind) return courses[FOCUS];
   if (kind === 'c' || (kind === 't' && GRADES.includes(arg))) return courses[arg];
   if (kind === 's') return findSkill(arg)?.course;
   if (kind === 'a') return findArticle(arg)?.course;
