@@ -3,6 +3,7 @@ import * as store from './store.js';
 import { ask } from './quiz.js';
 import { mountLowfi } from './lowfi.js';
 import { hasWebGL, esc, shuffle } from './kit.js';
+import * as voice from './voice.js';
 
 const GRADES = ['3', '4', '5', '6'];
 const PRACTICE_N = 5;
@@ -385,6 +386,7 @@ function renderArticle(id) {
       panel.innerHTML = `<p>${esc(s.text)}</p>`;
     }
     if (!lf) panel.innerHTML = `<p><b>${esc(o ? o.label : '')}</b> ${esc(s.text)}</p>`;
+    if (!bub) voice.speakEl(panel);
   };
   view.querySelector('.prev').addEventListener('click', () => { if (k > 0) { k--; draw(); } });
   view.querySelector('.next').addEventListener('click', () => {
@@ -501,6 +503,7 @@ store.onChange(() => {
 
 // ---- маршрути ----
 function route() {
+  voice.stop();
   for (const fn of cleanup) { try { fn(); } catch (e) { console.warn(e); } }
   cleanup = [];
   const h = location.hash.replace(/^#\/?/, '');
@@ -540,7 +543,33 @@ async function importFile(file) {
   route();
 }
 
+// Бутон „Глас“: чете текста на глас. Показва се само ако браузърът може да говори.
+function setupVoice() {
+  const b = document.getElementById('voice');
+  if (!voice.supported()) return;
+  const draw = (on) => {
+    b.textContent = on ? '🔊 Глас: вкл.' : '🔇 Глас';
+    b.title = on ? 'Спри четенето на глас' : 'Чети текста на глас';
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    b.classList.toggle('on', on);
+  };
+  b.hidden = false;
+  draw(voice.isOn());
+  voice.onToggle(draw);
+  b.addEventListener('click', () => {
+    const on = !voice.isOn();
+    voice.setOn(on);
+    if (!on) return;
+    voice.speak('Гласът е включен. Щракни върху балонче или задача, за да я чуеш отново.');
+    // Гласовете се зареждат с малко закъснение; ако няма български, казваме го.
+    setTimeout(() => {
+      if (voice.isOn() && !voice.bgVoice()) toast('На това устройство няма инсталиран български глас. Текстът може да звучи странно.', 'bad');
+    }, 1200);
+  });
+}
+
 function setupBar() {
+  setupVoice();
   drawName();
   document.getElementById('who').addEventListener('click', () => {
     const n = prompt('Как се казваш? (Името влиза в името на файла с напредъка.)', store.getState().name || '');

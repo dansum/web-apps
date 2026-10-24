@@ -1,5 +1,6 @@
 // Обща рамка за преживяванията на високо качество: 3D сцена вляво, панел със задачата вдясно.
 import { esc } from '../kit.js';
+import { speak, speakEl } from '../voice.js';
 
 export function createShell(container, { steps }) {
   container.innerHTML = `<div class="xp">
@@ -25,11 +26,12 @@ export function createShell(container, { steps }) {
       q('.xp-title').textContent = `${i + 1}. ${steps[i]}`;
       shell.msg('');
     },
-    task(html) { q('.xp-task').innerHTML = html; },
+    task(html) { q('.xp-task').innerHTML = html; speakEl(q('.xp-task')); },
     msg(text, kind = '') {
       const m = q('.xp-msg');
       m.className = 'xp-msg ' + kind;
       m.textContent = text;
+      if (text) speak(text);
     },
     score(text) { q('.xp-score').textContent = text; },
     setControls(html) { shell.controls.innerHTML = html; return shell.controls; },
@@ -44,6 +46,7 @@ export function createShell(container, { steps }) {
         ${r ? `<p>Ниво на умението: <b>${esc(r.levelName)}</b>${r.after > r.before ? ' ⬆' : ''}</p>` : ''}
         ${r && r.after === 3 ? '<p class="small">За „Овладяно“ реши правилно въпросите за това умение в теста върху раздела.</p>' : ''}
         ${ratio < 1 ? '<p class="small">Опитай пак без грешки, за да стигнеш до „Владее“.</p>' : ''}`;
+      speakEl(q('.xp-task'));
       const c = shell.setControls(`<div class="row"><button class="btn again">Започни отначало</button>
         ${r && r.next ? `<a class="btn primary" href="#/s/${esc(r.next.id)}">Следващо умение →</a>` : ''}</div>`);
       c.querySelector('.again').addEventListener('click', restart);

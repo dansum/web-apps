@@ -1,5 +1,6 @@
 // Въпроси: показване, проверка и обратна връзка. Общо за упражнения и тестове.
 import { esc, shuffle } from './kit.js';
+import { speak } from './voice.js';
 
 // ask(el, q, { lowfi, objects, onDone(correct) })
 // lowfi: опростената сцена (за въпроси „pick“ в упражнение); без нея „pick“ става избор от етикетите.
@@ -11,6 +12,7 @@ export function ask(el, q, { lowfi = null, objects = [], onDone, nextLabel = 'Н
     <div class="q-actions"><button class="btn primary q-check" disabled>Провери</button></div>
     <div class="q-feedback" hidden></div>`;
   el.appendChild(box);
+  speak(q.q);
   const body = box.querySelector('.q-body');
   const checkBtn = box.querySelector('.q-check');
   const fb = box.querySelector('.q-feedback');
@@ -195,6 +197,7 @@ export function ask(el, q, { lowfi = null, objects = [], onDone, nextLabel = 'Н
     fb.innerHTML = `<p class="verdict">${ok ? '✔ Вярно!' : '✘ Не съвсем.'}</p>
       ${q.explain ? `<p>${esc(q.explain)}</p>` : ''}
       <button class="btn primary q-next">${esc(nextLabel)}</button>`;
+    speak(`${ok ? 'Вярно!' : 'Не съвсем.'} ${q.explain || ''}`);
     const nb = fb.querySelector('.q-next');
     nb.addEventListener('click', () => onDone && onDone(ok));
     nb.focus({ preventScroll: true });
