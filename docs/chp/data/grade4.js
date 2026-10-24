@@ -47,8 +47,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "properties",
           video: null,
           scene: {
             objects: [
