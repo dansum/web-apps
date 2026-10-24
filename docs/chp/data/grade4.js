@@ -245,8 +245,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "motiontypes",
           video: null,
           scene: {
             objects: [
@@ -278,8 +278,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "sound",
           video: null,
           scene: {
             objects: [

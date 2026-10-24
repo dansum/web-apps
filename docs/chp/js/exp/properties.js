@@ -736,8 +736,8 @@ function build(container, { onComplete }, restart) {
   const overview = (dur) => (narrow ? fitView([0, 0.9, 0.0], 3.4, 2.6, 0.55, dur) : fitView([0, 1.0, 0.2], 6.0, 2.4, 0.42, dur));
   const stationView = (id) => {
     const [x, z] = SPOS[id];
-    if (narrow) fitView([x, 0.7, z + 0.6], 1.9, 1.5, 0.55);
-    else fitView([x, 0.75, z + 0.7], 2.0, 1.3, 0.5);
+    if (narrow) fitView([x, 0.6, z + 0.8], 1.9, 1.7, 0.6);
+    else fitView([x, 0.6, z + 0.95], 2.1, 1.55, 0.55);
   };
   let tip = null;
   function say(anchor, html, cls = '', lift = 0.5) {
@@ -875,7 +875,7 @@ function build(container, { onComplete }, restart) {
         });
       }
       await phase(0.3, (k) => { g.rotation.z = -1.2 * (1 - k); });
-      hop(g, g.userData.home, 0.5, 0.4);
+      hop(g, g.userData.home, 0.5, 0.4).then(() => { if (p.kind !== 'oil') g.visible = false; });
       // разбъркване
       stirrer.visible = true;
       const cl = cup.position;
@@ -917,11 +917,12 @@ function build(container, { onComplete }, restart) {
       g.rotation.set(0, -ang, 0.35);
       await phase(0.5, (k) => { g.position.y = st.position.y + lerp(0.85, 0.75, k); });
       const segs = g.userData.segs;
-      const hot = new THREE.Color(0xff5a2a);
+      // Оранжевото сияние показва докъде е стигнала топлината.
+      segs.forEach((s) => s.material.emissive.setHex(0xff4500));
       await phase(3.2, (k) => {
         segs.forEach((s, i) => {
           const reach = p.yes ? k * 7 - i : (i === 0 ? k * 0.5 : 0);
-          s.material.color.copy(s.userData.base).lerp(hot, Math.max(0, Math.min(1, reach)) * (p.yes ? 0.85 : 0.35));
+          s.material.emissiveIntensity = Math.max(0, Math.min(1, reach)) * (p.yes ? 0.75 : 0.3);
         });
       });
       return { anchor: g, lift: 0.4 };
@@ -975,7 +976,10 @@ function build(container, { onComplete }, restart) {
     let cur = null;
     const total = Object.keys(SAMPLE).length;
     const upd = () => shell.score(`Попълнени клетки: ${Object.keys(results).length} от ${total} · грешки: ${mistakes}`);
+    // Докато една станция е отворена, другите не пречат на кликовете върху пробите (сменят се от менюто).
+    const stationsPickable = (on) => { for (const id of Object.keys(stations)) stations[id].userData.pickId = on ? id : undefined; };
     const intro = () => {
+      stationsPickable(true);
       shell.task(`<p>Направи опитите на всяка станция. Резултатите се записват в <b>таблицата на стената</b>.</p>
         <p><b>Избери станция</b> от менюто или кликни върху нея.</p>
         <ol class="properties-list">${STATIONS.map((s) => `<li class="${doneSt.has(s.id) ? 'done' : ''}">${s.icon} ${esc(s.label)}</li>`).join('')}</ol>${tableHTML()}`);
@@ -985,12 +989,13 @@ function build(container, { onComplete }, restart) {
     const stationTask = (id) => {
       const s = ST[id];
       shell.task(`<p><b>${esc(s.icon)} ${esc(s.label)}</b></p><p>Пред станцията има ${s.samples.length} проби. <b>Кликни върху всяка</b>, за да направиш опита.</p>
-        ${id === 'fire' ? '<p class="properties-safe">⚠️ Опити с огън се правят <b>само от възрастен</b>, далеч от лесно запалими неща. Предметът се държи с метална щипка, не с ръка.</p>' : ''}${tableHTML()}`);
+        ${id === 'heat' ? '<p class="small">Оранжевото сияние показва колко се е затоплила лъжицата.</p>' : ''}${id === 'fire' ? '<p class="properties-safe">⚠️ Опити с огън се правят <b>само от възрастен</b>, далеч от лесно запалими неща. Предметът се държи с метална щипка, не с ръка.</p>' : ''}${tableHTML()}`);
     };
     const openStation = (id) => {
       if (busy) return;
       if (doneSt.has(id)) { sayAt(id, `<b>${esc(ST[id].label)}</b> — опитите тук са готови ✓`, 'good'); return; }
       cur = id;
+      stationsPickable(false);
       menu.setActive(id);
       for (const [pid, g] of sampleRoots) {
         const sp = SAMPLE[pid];
@@ -1017,6 +1022,7 @@ function build(container, { onComplete }, restart) {
         if (doneSt.size === STATIONS.length) {
           scores.push(stepScore(mistakes, 3));
           clickHandler = null;
+          stationsPickable(true);
           menu.show(false);
           overview();
           clearTip();
@@ -1257,7 +1263,7 @@ function build(container, { onComplete }, restart) {
       st.add(n);
       nails.push(n);
     }
-    say(st, 'Пирони в пясъка… Свалям магнита!', '', anchorTop.magnet);
+    say(st, 'Пирони в пясъка… Свалям магнита!', '', 1.6);
     magBob = false;
     const y0 = magnet.position.y;
     const low = 0.62;
@@ -1268,7 +1274,7 @@ function build(container, { onComplete }, restart) {
     await phase(0.9, (k) => { magnet.position.y = lerp(low, MAG.REST, ease(k)); nails.forEach((n, i) => { n.position.y = magnet.position.y + off[i]; }); });
     magBob = true;
     stage.tick(() => { nails.forEach((n, i) => { n.position.y = magnet.position.y + off[i]; }); });
-    say(st, '🧲 Пироните полепнаха по магнита, а пясъкът остана в паничката.', 'wide good', anchorTop.magnet);
+    say(st, '🧲 Пироните полепнаха по магнита, а пясъкът остана в паничката.', 'wide good', 1.6);
   }
 
   step1();
