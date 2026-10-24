@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Резултати на класа · Варна строи</title>
+<meta name="description" content="Страница за учителя: заредете отчетите на учениците от „Варна строи“ и вижте обобщени графики за класа." />
+<meta name="theme-color" content="#0b3c5d" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128202;</text></svg>" />
+</head>
+<body class="page">
+
+<header class="page-bar">
+  <div class="brand">📊 Резултати на класа <span>· Варна строи</span></div>
+  <a href="./#uchitel">← Към играта</a>
+</header>
+
+<main class="page-main">
+  <section class="page-card">
+    <h1>Резултати на класа</h1>
+    <p>Заредете отчетите (CSV файлове), които учениците са свалили от <b>📈 Дневник на града → Отчет за учителя</b>. Може да изберете много файлове наведнъж.</p>
+    <label id="drop" class="drop">
+      <input id="files" type="file" accept=".csv,text/csv" multiple />
+      <span class="big">📂</span>
+      <span><b>Пуснете файловете тук</b> или натиснете, за да ги изберете</span>
+    </label>
+    <div class="page-actions">
+      <button class="btn" id="demo">Покажи с примерни данни</button>
+      <button class="btn" id="clear" hidden>Изчисти</button>
+      <button class="btn" id="print" hidden>🖨️ Печат</button>
+    </div>
+    <p class="meta">🔒 Файловете не се качват никъде — обработват се само в този браузър. Когато затворите страницата, данните изчезват.</p>
+    <div id="loaded"></div>
+  </section>
+
+  <div id="results" hidden></div>
+</main>
+
+<script type="module" src="js/class.js"></script>
+</body>
+</html>
