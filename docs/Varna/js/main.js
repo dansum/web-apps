@@ -270,6 +270,7 @@ canvas.addEventListener('wheel', e => {
 }, { passive: false });
 
 window.addEventListener('keydown', e => {
+  if (teacherOpen()) { if (e.key === 'Escape') showTeacher(false); return; }
   if (ui.isModalOpen()) return;
   const step = 40;
   const pan = { ArrowLeft: [step, 0], ArrowRight: [-step, 0], ArrowUp: [0, step], ArrowDown: [0, -step],
@@ -287,6 +288,24 @@ window.addEventListener('resize', () => R.resize());
 document.querySelectorAll('[data-speed]').forEach(b => b.onclick = () => setSpeed(+b.dataset.speed));
 document.getElementById('st-wb').onclick = showWellbeing;
 document.getElementById('btn-menu').onclick = menu;
+
+// ---------- раздел „За учителя“ (отваря се и с линк …/Varna/#uchitel) ----------
+const teacher = document.getElementById('teacher');
+const teacherOpen = () => !teacher.hidden;
+function showTeacher(open) {
+  teacher.hidden = !open;
+  const want = open ? '#uchitel' : '';
+  if (location.hash !== want) history.replaceState(null, '', location.pathname + location.search + want);
+}
+document.getElementById('btn-teacher').onclick = () => showTeacher(true);
+document.getElementById('teacher-close').onclick = () => showTeacher(false);
+teacher.addEventListener('click', e => { if (e.target === teacher) showTeacher(false); });
+teacher.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
+  teacher.querySelectorAll('[data-tab]').forEach(x => x.classList.toggle('on', x === b));
+  teacher.querySelectorAll('[data-pane]').forEach(p => p.classList.toggle('on', p.dataset.pane === b.dataset.tab));
+});
+window.addEventListener('hashchange', () => showTeacher(location.hash === '#uchitel'));
+if (location.hash === '#uchitel') showTeacher(true);
 
 // ---------- прозорци ----------
 function showWellbeing() {
@@ -358,7 +377,7 @@ let lastT = performance.now();
 function frame(now) {
   const dt = Math.min(100, now - lastT);
   lastT = now;
-  if (started && gameSpeed && !ui.isModalOpen()) {
+  if (started && gameSpeed && !ui.isModalOpen() && !teacherOpen()) {
     acc += dt * gameSpeed;
     if (acc >= MONTH_MS) {
       acc = 0;

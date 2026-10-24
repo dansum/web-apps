@@ -194,3 +194,39 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   #advisor { top: 112px; bottom: auto; left: 8px; right: 8px; max-width: none; }
   .local li { grid-template-columns: 120px 1fr 28px; }
 }
+
+/* ---------- за учителя ---------- */
+#btn-teacher {
+  border: 0; background: rgba(255, 255, 255, 0.12); color: #fff;
+  width: 32px; height: 28px; border-radius: 999px; font-size: 15px;
+}
+#teacher {
+  position: fixed; inset: 0; z-index: 40;
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+  background: rgba(8, 30, 48, 0.55);
+  -webkit-user-select: text; user-select: text;
+}
+#teacher[hidden] { display: none; }
+.t-card {
+  width: 100%; max-width: 820px; max-height: calc(100vh - 32px);
+  display: flex; flex-direction: column;
+  background: #fff; border-radius: 20px; box-shadow: var(--shadow); overflow: hidden;
+  animation: pop 0.25s ease-out;
+}
+.t-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 8px; }
+.t-head h2 { margin: 0; color: var(--navy); }
+.t-head .x { border: 0; background: transparent; font-size: 20px; color: var(--muted); }
+.t-tabs { display: flex; gap: 4px; padding: 0 16px; overflow-x: auto; border-bottom: 3px solid var(--navy); }
+.t-tabs button {
+  border: 0; background: transparent; padding: 8px 14px; border-radius: 10px 10px 0 0;
+  font-weight: 600; font-size: 15px; color: var(--muted); white-space: nowrap;
+}
+.t-tabs button.on { background: var(--navy); color: #fff; }
+.t-pane { display: none; padding: 12px 20px 20px; overflow-y: auto; font-size: 16px; line-height: 1.5; }
+.t-pane.on { display: block; }
+.t-pane h3 { color: var(--navy); margin: 14px 0 6px; }
+.t-pane table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.t-pane th, .t-pane td { text-align: left; padding: 7px 8px; border-bottom: 1px solid #e3e8ec; vertical-align: top; }
+.t-pane th { background: #eef4f8; color: var(--navy); }
+.t-pane a { color: #1f6fb8; }
+.t-pane li { margin: 4px 0; }

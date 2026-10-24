@@ -27,8 +27,116 @@
     <button data-speed="1" title="Нормално">▶</button>
     <button data-speed="3" title="Бързо">⏩</button>
   </div>
+  <button id="btn-teacher" title="За учителя">🎓</button>
   <button id="btn-menu" title="Меню">☰</button>
 </header>
+
+<!-- ============ ЗА УЧИТЕЛЯ ============ -->
+<section id="teacher" hidden aria-label="За учителя">
+  <div class="t-card">
+    <header class="t-head">
+      <h2>🎓 За учителя</h2>
+      <button class="x" id="teacher-close" aria-label="Затвори">✕</button>
+    </header>
+    <nav class="t-tabs" role="tablist">
+      <button role="tab" data-tab="goal" class="on">Цел</button>
+      <button role="tab" data-tab="factors">Факторите</button>
+      <button role="tab" data-tab="lesson">Урок</button>
+      <button role="tab" data-tab="questions">Въпроси</button>
+      <button role="tab" data-tab="facts">Факти и източници</button>
+    </nav>
+
+    <div class="t-pane on" data-pane="goal">
+      <p><b>„Варна строи“</b> е игра за ученици от 5. клас. Учениците строят град на карта, вдъхновена от Варна, и откриват кои фактори са важни, за да живеят хората добре.</p>
+      <h3>Какво научават учениците</h3>
+      <ul>
+        <li>Да назовават седемте фактора за добруване: дом, работа, образование, здраве, природа, транспорт и култура.</li>
+        <li>Че факторите зависят един от друг. Например заводът дава работа, но вреди на здравето и природата.</li>
+        <li>Че общинските услуги (училища, болници, паркове) се плащат всеки месец от данъците.</li>
+        <li>Как да познават забележителностите на Варна и няколко факта за историята на града.</li>
+      </ul>
+      <h3>Какво е нужно</h3>
+      <ul>
+        <li>Компютър, таблет или телефон с браузър и интернет. Не се инсталира нищо и няма регистрация.</li>
+        <li>Играта се записва в браузъра на устройството. Ако децата сменят устройството, започват отначало.</li>
+        <li>Може да се играе самостоятелно или по двама на устройство.</li>
+      </ul>
+    </div>
+
+    <div class="t-pane" data-pane="factors">
+      <table>
+        <thead><tr><th>Фактор</th><th>Какво го подобрява</th><th>Какво го разваля</th></tr></thead>
+        <tbody>
+          <tr><td>🏠 Дом</td><td>Къщи и блокове</td><td>Повече работни места, отколкото жилища</td></tr>
+          <tr><td>💼 Работа</td><td>Магазини, офиси, заводи, пристанище, хотели</td><td>Много жилища и малко работа</td></tr>
+          <tr><td>📚 Образование</td><td>Училище наблизо (за около 150 жители)</td><td>Домове далеч от училище, препълнено училище</td></tr>
+          <tr><td>🩺 Здраве</td><td>Поликлиника наблизо</td><td>Замърсяване от заводи и пристанище</td></tr>
+          <tr><td>🌳 Природа</td><td>Паркове, дървета, близост до морето</td><td>Заводи до домовете, изсечени гори</td></tr>
+          <tr><td>🚌 Транспорт</td><td>Автобусни спирки, Аспарухов мост</td><td>Домове далеч от спирка</td></tr>
+          <tr><td>🎭 Култура</td><td>Читалище и забележителностите на Варна</td><td>Липса на културни места</td></tr>
+        </tbody>
+      </table>
+      <p><b>Добруването</b> е средното от седемте фактора. Колкото е по-високо, толкова повече хора се местят в града и толкова повече данъци събира той.</p>
+      <p>Сграда, до която няма път, не работи. Над нея се появява червен знак „!“.</p>
+      <p>Като натиснете фактор в панела вдясно, домовете на картата се оцветяват в зелено (добре) или червено (зле). С инструмента 🔍 <b>Разгледай</b> се вижда какво липсва на хората в избрана къща.</p>
+    </div>
+
+    <div class="t-pane" data-pane="lesson">
+      <h3>Предложение за урок от 40 минути</h3>
+      <table>
+        <thead><tr><th>Време</th><th>Какво правим</th></tr></thead>
+        <tbody>
+          <tr><td>5 мин</td><td>Въведение: „Какво ви трябва, за да живеете добре в един град?“ Записваме отговорите на дъската.</td></tr>
+          <tr><td>20 мин</td><td>Игра. Учениците следват задачите горе вляво. Добре е да стигнат поне до задача 4 или 5.</td></tr>
+          <tr><td>10 мин</td><td>Обсъждане с въпросите от раздела „Въпроси“. Сравняваме със списъка на дъската.</td></tr>
+          <tr><td>5 мин</td><td>Рефлексия: всеки ученик избира един фактор, който би подобрил в своя квартал, и казва защо.</td></tr>
+        </tbody>
+      </table>
+      <h3>Идеи за продължение</h3>
+      <ul>
+        <li>Домашна работа: снимка или рисунка на място в квартала, свързано с един от факторите.</li>
+        <li>Работа по групи: всяка група отговаря за един фактор и го „защитава“ пред класа като общински съветници.</li>
+        <li>Връзка с „Човекът и обществото“: забележителностите на Варна и Одесос в древността.</li>
+      </ul>
+    </div>
+
+    <div class="t-pane" data-pane="questions">
+      <ol>
+        <li>Защо всяка сграда трябва да е до път?</li>
+        <li>Какво става с Дома, ако построим много заводи и малко жилища? А обратното?</li>
+        <li>Заводът дава много работа и пари. Къде е най-добре да го построим и защо?</li>
+        <li>Защо градът плаща всеки месец за училищата, болниците и парковете? Откъде идват тези пари?</li>
+        <li>Защо през лятото Варна печели повече от туристите?</li>
+        <li>Кой фактор беше най-труден за вдигане? Какво направихте?</li>
+        <li>Кой фактор е най-силен и кой — най-слаб във вашия квартал?</li>
+        <li>Ако бяхте кмет, какво бихте построили първо в истинска Варна?</li>
+      </ol>
+    </div>
+
+    <div class="t-pane" data-pane="facts">
+      <p>Фактите в играта са проверени през октомври 2026 г. Сверете ги и сами, ако ги използвате в урок.</p>
+      <table>
+        <thead><tr><th>Факт</th><th>Източник</th></tr></thead>
+        <tbody>
+          <tr><td>Варна е най-големият град по Черноморието и третият по големина в България.</td><td><a href="https://www.britannica.com/place/Varna-Bulgaria" target="_blank" rel="noopener">Britannica</a></td></tr>
+          <tr><td>Одесос е основан от гърци от Милет в началото на VI в. пр. Хр.</td><td><a href="https://www.corpus-nummorum.eu/bg/coin-of-the-month" target="_blank" rel="noopener">Corpus Nummorum</a></td></tr>
+          <tr><td>Катедралата „Успение Богородично“: първи камък през 1880 г., открита през 1886 г.; третата по големина катедрала в България.</td><td><a href="https://en.wikipedia.org/wiki/Dormition_of_the_Mother_of_God_Cathedral,_Varna" target="_blank" rel="noopener">Wikipedia</a>, <a href="https://welcome.bg/en/listing/cathedral-the-assumption-of-holy-mother-varna/" target="_blank" rel="noopener">welcome.bg</a></td></tr>
+          <tr><td>Драматичният театър е основан през 1921 г., сградата е строена 1912–1932 г., носи името на актьора Стоян Бъчваров.</td><td><a href="https://structurae.net/en/structures/stoyan-bachvarov-dramatic-theatre" target="_blank" rel="noopener">Structurae</a></td></tr>
+          <tr><td>Варненското златно съкровище е най-старото обработено злато в света (средата на V хил. пр. Хр.).</td><td><a href="https://mfa.bg/upload/106584/1varna_gotovo.pdf" target="_blank" rel="noopener">МВнР</a>, <a href="https://mgu.bg/wp-content/uploads/2025/01/Аспарухов-Б.pdf" target="_blank" rel="noopener">МГУ</a></td></tr>
+          <tr><td>Римските терми са от края на II век; най-големите на Балканите и четвъртите по големина в Европа.</td><td><a href="https://www.tourism.government.bg/bg/tourist-destinations/2308/2450" target="_blank" rel="noopener">Министерство на туризма</a>, <a href="https://opoznai.bg/view/rimski-termi-varna" target="_blank" rel="noopener">Опознай.bg</a></td></tr>
+          <tr><td>Пристанище Варна е открито през 1906 г.</td><td><a href="https://www.bgports.bg/en/?p=14990" target="_blank" rel="noopener">bgports.bg</a></td></tr>
+          <tr><td>Аспаруховият мост е открит през 1976 г. и е дълъг 2050 м.</td><td><a href="https://en.wikipedia.org/wiki/Asparuhov_Bridge" target="_blank" rel="noopener">Wikipedia</a>, <a href="https://structurae.net/en/structures/asparuhov-bridge" target="_blank" rel="noopener">Structurae</a></td></tr>
+          <tr><td>Антон Новак управлява Морската градина от 1895 г. почти 40 години.</td><td><a href="https://bg.wikipedia.org/wiki/%D0%90%D0%BD%D1%82%D0%BE%D0%BD_%D0%9D%D0%BE%D0%B2%D0%B0%D0%BA" target="_blank" rel="noopener">Wikipedia</a>, <a href="https://visit.varna.bg/bg/Sea_Garden.html" target="_blank" rel="noopener">visit.varna.bg</a></td></tr>
+          <tr><td>Първите читалища са основани през 1856 г. в Свищов, Лом и Шумен.</td><td><a href="https://tic.svishtov.bg/parvoto-chitalishte-v-bulgaria" target="_blank" rel="noopener">ТИЦ Свищов</a></td></tr>
+          <tr><td>Арх. Дабко Дабков проектира около 350 сгради във Варна, сред тях хотел „Лондон“ (1906–1912).</td><td><a href="https://www.su-varna.org/izdanij/Kultuta-13/pages_75_78.pdf" target="_blank" rel="noopener">СУ „Св. Климент Охридски“ – Варна</a></td></tr>
+          <tr><td>Големите химически заводи в региона са в Девня.</td><td><a href="https://www.capital.bg/specialni_izdaniia/kapital_gradove/2018/06/10/3189874_goliamata_industriia_na_malkata_devnia/" target="_blank" rel="noopener">Капитал</a></td></tr>
+          <tr><td>Един автобус замества около 30 коли.</td><td><a href="https://www.acea.auto/?p=10219" target="_blank" rel="noopener">ACEA</a></td></tr>
+        </tbody>
+      </table>
+      <p class="meta">Числата в самата игра (цени, радиуси, данъци) са опростени и не отговарят на реалния бюджет на Варна.</p>
+    </div>
+  </div>
+</section>
 
 <aside id="mission"></aside>
 <aside id="factors" aria-label="Фактори за добруване"></aside>
