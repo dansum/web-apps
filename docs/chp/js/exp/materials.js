@@ -126,28 +126,6 @@ function injectStyle() {
 }
 
 // ---------- текстури и материали ----------
-let puffTex = null;
-function getPuffTex() {
-  if (puffTex) return puffTex;
-  const c = document.createElement('canvas');
-  c.width = c.height = 64;
-  const ctx = c.getContext('2d');
-  const g = ctx.createRadialGradient(32, 32, 2, 32, 32, 31);
-  g.addColorStop(0, 'rgba(255,255,255,1)');
-  g.addColorStop(0.45, 'rgba(255,255,255,0.55)');
-  g.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, 64, 64);
-  puffTex = new THREE.CanvasTexture(c);
-  puffTex.colorSpace = THREE.SRGBColorSpace;
-  return puffTex;
-}
-function puffSprite(color, opacity = 0.6, size = 0.3) {
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: getPuffTex(), color, transparent: true, opacity, depthWrite: false }));
-  s.scale.setScalar(size);
-  s.renderOrder = 5;
-  return s;
-}
 function checkTexture() {
   const c = document.createElement('canvas');
   c.width = c.height = 128;
@@ -337,6 +315,7 @@ function materialModel(id) {
 }
 function setWet(g, k) {
   for (const m of g.userData.wetMeshes) m.material.color.copy(m.userData.dry).multiplyScalar(1 - 0.38 * Math.min(1, k));
+  if (g.userData.puddle) g.userData.puddle.scale.setScalar(Math.max(0.001, Math.min(1, k)));
 }
 
 // Фенерче, ръка, мече — помощни модели.
@@ -394,6 +373,12 @@ function bearModel() {
     eye.position.set(s * 0.06, 0.64, 0.15);
     g.add(ear, eye);
   }
+  const puddle = new THREE.Mesh(new THREE.CircleGeometry(0.45, 24), liquidMat(0x42a5f5, 0.6));
+  puddle.rotation.x = -Math.PI / 2;
+  puddle.position.y = 0.012;
+  puddle.scale.setScalar(0.001);
+  g.add(puddle);
+  g.userData.puddle = puddle;
   const wet = [body, head];
   for (const m of wet) m.userData.dry = m.material.color.clone();
   g.userData.wetMeshes = wet;
@@ -1223,9 +1208,10 @@ function build(container, { onComplete }, restart) {
     covers.push(cover);
   });
   const cloud = new THREE.Group();
-  for (let i = 0; i < 9; i++) {
-    const p = puffSprite(0x90a4ae, 0.95, 0.9);
-    p.position.set((i - 4) * 0.55, Math.sin(i * 1.7) * 0.15, Math.cos(i * 2.1) * 0.2);
+  const cloudM = mat(0xf1f4f6, { roughness: 1 });
+  for (let i = 0; i < 11; i++) {
+    const p = new THREE.Mesh(new THREE.SphereGeometry(0.16 + (i % 3) * 0.06, 12, 10), cloudM);
+    p.position.set((i - 5) * (narrow ? 0.3 : 0.42), Math.sin(i * 1.7) * 0.15, Math.cos(i * 2.1) * 0.2);
     p.userData.ph = i;
     cloud.add(p);
   }
@@ -1264,16 +1250,16 @@ function build(container, { onComplete }, restart) {
           u.phase = 1;
           u.vy = -0.5;
           const cs = covers[u.under].userData.sheet;
-          cs.material.color.multiplyScalar(0.995);
+          cs.material.color.multiplyScalar(0.99);
           if (COVERS[u.under].id === 'paper') cs.scale.y = Math.min(3, cs.scale.y + 0.02);
         } else {
           d.visible = false;
           continue;
         }
       }
-      if (u.phase === 1 && d.position.y < 0.75 && Math.abs(d.position.x - CX[u.under]) < 0.3) {
+      if (u.phase === 1 && d.position.y < 0.8 && Math.abs(d.position.x - CX[u.under]) < 0.45) {
         const b = bears[u.under];
-        b.userData.wet = Math.min(1, b.userData.wet + 0.03);
+        b.userData.wet = Math.min(1, b.userData.wet + 0.07);
         setWet(b, b.userData.wet);
         d.visible = false;
         continue;
@@ -1306,14 +1292,17 @@ function build(container, { onComplete }, restart) {
       if (!ok) box.querySelector('.choice[data-i="2"]').classList.add('right');
       shell.msg('Да проверим! Гледай дъжда…', '');
       raining = true;
+      try { shell.stageEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) { /* няма значение */ }
       later(5.5, () => {
         raining = false;
-        say(bears[2], '☂️ <b>Сухо!</b> Найлонът не пропуска вода.', 'good', 1.9);
+        const w0 = [bears[0].userData.wet, bears[1].userData.wet];
+        animate(0.6, (k) => { [0, 1].forEach((i) => { bears[i].userData.wet = w0[i] + (1 - w0[i]) * k; setWet(bears[i], bears[i].userData.wet); }); });
+        say(bears[2], '☂️ <b>Сухо!</b>', 'good', 1.0);
         later(0.01, () => {
-          stage.bubble(bears[0], '💧 Мокро — платът пропусна водата.', { lift: 1.9, cls: 'bad' });
-          stage.bubble(bears[1], '💧 Мокро — хартията се намокри.', { lift: 1.9, cls: 'bad' });
+          stage.bubble(bears[0], '💧 <b>Мокро!</b>', { lift: 1.0, cls: 'bad' });
+          stage.bubble(bears[1], '💧 <b>Мокро!</b>', { lift: 1.0, cls: 'bad' });
         });
-        shell.msg(ok ? 'Позна! Найлонът (пластмаса) не пропуска вода.' : 'Под найлона мечето остана сухо — той не пропуска вода.', ok ? 'good' : 'bad');
+        shell.msg((ok ? 'Позна! ' : 'Не позна. ') + 'Под найлона мечето остана сухо — найлонът (пластмаса) не пропуска вода. Платът и хартията пропуснаха водата.', ok ? 'good' : 'bad');
         const c = shell.setControls('<button class="btn primary">Следващ въпрос →</button>');
         c.querySelector('button').addEventListener('click', () => { stage.clearBubbles(); tip = null; q2(); });
       });

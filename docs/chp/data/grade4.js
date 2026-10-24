@@ -81,8 +81,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "soil",
           video: null,
           scene: {
             objects: [
@@ -116,8 +116,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "waterstates",
           video: null,
           scene: {
             objects: [
