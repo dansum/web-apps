@@ -5,6 +5,7 @@ import { BUILDINGS, TOOLS, FACTORS, MISSIONS, TERRAIN_INFO } from './buildings.j
 import { evaluate, monthTick, canPlace, needsRoad, roadNear } from './sim.js';
 import { Renderer } from './render.js';
 import * as ui from './ui.js';
+import { createJournal } from './journal.js';
 
 const SEED = 1852;
 const MONTH_MS = 3000;
@@ -18,12 +19,14 @@ const store = {
 function newState() {
   const m = makeMap(SEED);
   return { terrain: m.terrain, trees: m.trees, b: new Array(N * N).fill(null),
-    money: 3000, pop: 0, month: 0, year: 2026, mission: 0, last: null };
+    money: 3000, pop: 0, month: 0, year: 2026, mission: 0, last: null,
+    hist: [], events: [], done: [], name: '' };
 }
 
 function save() {
   store.set(SAVE_KEY, { v: 1, b: s.b, trees: Array.from(s.trees).join(''), money: s.money, pop: s.pop,
-    month: s.month, year: s.year, mission: s.mission, muted });
+    month: s.month, year: s.year, mission: s.mission, muted,
+    hist: s.hist, events: s.events, done: s.done, name: s.name });
 }
 
 function load() {
@@ -34,7 +37,9 @@ function load() {
   st.trees = Uint8Array.from(String(d.trees), c => (c === '1' ? 1 : 0));
   if (st.trees.length !== N * N) st.trees = makeMap(SEED).trees;
   Object.assign(st, { money: +d.money || 0, pop: +d.pop || 0, month: +d.month % 12 || 0, year: +d.year || 2026,
-    mission: +d.mission || 0 });
+    mission: +d.mission || 0, name: String(d.name || '').slice(0, 40),
+    hist: Array.isArray(d.hist) ? d.hist : [], events: Array.isArray(d.events) ? d.events : [],
+    done: Array.isArray(d.done) ? d.done : [] });
   muted = !!d.muted;
   return st;
 }
@@ -116,6 +121,7 @@ function place(t, i, j, quiet) {
   }
   const k = idx(i, j);
   s.b[k] = t;
+  if (BUILDINGS[t].landmark) logEvent(BUILDINGS[t].icon, `Построена: ${BUILDINGS[t].name}`);
   s.trees[k] = 0;
   s.money -= BUILDINGS[t].cost;
   sfx.place();
@@ -141,11 +147,35 @@ function afterChange() {
   save();
 }
 
+// ---------- история за „Дневник на града“ ----------
+const MAX_HIST = 600;
+function logEvent(icon, text) {
+  s.events.push({ y: s.year, m: s.month, icon, text });
+  if (s.events.length > 200) s.events.shift();
+}
+
+// Записва изминалия месец. monthTick вече е преместил датата напред.
+function record(before) {
+  const fresh = evaluate(s);
+  const m = (s.month + 11) % 12, y = s.month === 0 ? s.year - 1 : s.year;
+  s.hist.push({ y, m, money: Math.round(s.money), pop: s.pop, wb: fresh.wellbeing, f: fresh.factors,
+    income: s.last.taxes + s.last.tourism, upkeep: s.last.upkeep, missions: s.mission });
+  if (s.hist.length > MAX_HIST) s.hist.shift();
+  for (const mark of [100, 300, 600, 1000, 2000]) {
+    if (before.pop < mark && s.pop >= mark) logEvent('👥', `Градът стигна ${mark} жители`);
+  }
+  if (before.money >= 0 && s.money < 0) logEvent('⚠️', 'Бюджетът падна под нулата');
+  if (before.money < 0 && s.money >= 0) logEvent('💶', 'Бюджетът отново е на плюс');
+  journal.refresh();
+}
+
 let missionBusy = false;
 async function checkMission() {
   const m = MISSIONS[s.mission];
   if (!m || missionBusy || !m.check(s, ev)) return;
   missionBusy = true;
+  s.done.push({ n: s.mission, y: s.year, m: s.month });
+  logEvent('🏅', `Изпълнена задача ${s.mission + 1}: ${m.short}`);
   s.mission++;
   s.money += m.reward;
   save();
@@ -271,6 +301,7 @@ canvas.addEventListener('wheel', e => {
 
 window.addEventListener('keydown', e => {
   if (teacherOpen()) { if (e.key === 'Escape') showTeacher(false); return; }
+  if (journal.isOpen()) { if (e.key === 'Escape') journal.close(); return; }
   if (ui.isModalOpen()) return;
   const step = 40;
   const pan = { ArrowLeft: [step, 0], ArrowRight: [-step, 0], ArrowUp: [0, step], ArrowDown: [0, -step],
@@ -306,6 +337,9 @@ teacher.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
 });
 window.addEventListener('hashchange', () => showTeacher(location.hash === '#uchitel'));
 if (location.hash === '#uchitel') showTeacher(true);
+
+const journal = createJournal(() => s, open => { if (!open) save(); });
+document.getElementById('btn-journal').onclick = () => journal.open();
 
 // ---------- прозорци ----------
 function showWellbeing() {
@@ -377,11 +411,13 @@ let lastT = performance.now();
 function frame(now) {
   const dt = Math.min(100, now - lastT);
   lastT = now;
-  if (started && gameSpeed && !ui.isModalOpen() && !teacherOpen()) {
+  if (started && gameSpeed && !ui.isModalOpen() && !teacherOpen() && !journal.isOpen()) {
     acc += dt * gameSpeed;
     if (acc >= MONTH_MS) {
       acc = 0;
+      const before = { pop: s.pop, money: s.money };
       monthTick(s, ev);
+      record(before);
       refresh();
       checkMission();
       save();

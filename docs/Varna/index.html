@@ -27,12 +27,31 @@
     <button data-speed="1" title="Нормално">▶</button>
     <button data-speed="3" title="Бързо">⏩</button>
   </div>
+  <button id="btn-journal" title="Дневник на града: графики и задачи">📈</button>
   <button id="btn-teacher" title="За учителя">🎓</button>
   <button id="btn-menu" title="Меню">☰</button>
 </header>
 
+<!-- ============ ДНЕВНИК НА ГРАДА ============ -->
+<section id="journal" class="overlay" hidden aria-label="Дневник на града">
+  <div class="t-card">
+    <header class="t-head">
+      <h2>📈 Дневник на града</h2>
+      <button class="x" aria-label="Затвори">✕</button>
+    </header>
+    <nav class="t-tabs" role="tablist">
+      <button role="tab" data-jtab="charts" class="on">Графики</button>
+      <button role="tab" data-jtab="factors">Фактори</button>
+      <button role="tab" data-jtab="missions">Задачи</button>
+      <button role="tab" data-jtab="events">Събития</button>
+      <button role="tab" data-jtab="report">Отчет за учителя</button>
+    </nav>
+    <div class="t-pane on"></div>
+  </div>
+</section>
+
 <!-- ============ ЗА УЧИТЕЛЯ ============ -->
-<section id="teacher" hidden aria-label="За учителя">
+<section id="teacher" class="overlay" hidden aria-label="За учителя">
   <div class="t-card">
     <header class="t-head">
       <h2>🎓 За учителя</h2>
@@ -44,6 +63,7 @@
       <button role="tab" data-tab="lesson">Урок</button>
       <button role="tab" data-tab="questions">Въпроси</button>
       <button role="tab" data-tab="facts">Факти и източници</button>
+      <button role="tab" data-tab="results">📊 Резултати на класа</button>
     </nav>
 
     <div class="t-pane on" data-pane="goal">
@@ -134,6 +154,17 @@
         </tbody>
       </table>
       <p class="meta">Числата в самата игра (цени, радиуси, данъци) са опростени и не отговарят на реалния бюджет на Варна.</p>
+    </div>
+
+    <div class="t-pane" data-pane="results">
+      <p>Можете да видите резултатите на целия клас на една страница, с обобщени графики.</p>
+      <ol>
+        <li>Всеки ученик отваря <b>📈 Дневник на града → Отчет за учителя</b>, пише името си и натиска <b>„Свали отчета“</b>.</li>
+        <li>Учениците ви изпращат файловете (по имейл, в Google Classroom, на флашка).</li>
+        <li>Отваряте страницата <b>„Резултати на класа“</b> и пускате всички файлове наведнъж.</li>
+      </ol>
+      <p><a class="btn primary" href="rezultati.html" target="_blank" rel="noopener">📊 Отвори „Резултати на класа“</a></p>
+      <p class="meta">Файловете не се качват на сървър — обработват се само във вашия браузър. Имената на учениците не излизат от компютъра ви.</p>
     </div>
   </div>
 </section>
