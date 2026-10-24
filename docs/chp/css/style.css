@@ -53,6 +53,7 @@ code { background: #eef1f6; padding: 0 4px; border-radius: 4px; }
 .bar-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 .topbar .btn { background: #fff; color: var(--navy); border-color: #cfd6e4; }
 .topbar .btn:hover { border-color: var(--teal); }
+.topbar .btn.on { background: var(--teal); color: #fff; border-color: var(--teal); }
 
 /* статистика на напредъка най-горе на всяка страница */
 .statsbar { background: var(--navy); color: #fff; font-size: 0.9rem; }

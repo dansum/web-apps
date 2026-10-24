@@ -1,6 +1,7 @@
 // Общи инструменти за 3D сцените: сцена, етикети, балончета с текст, избор и влачене.
 import * as THREE from './vendor/three.module.min.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
+import { speakEl } from './voice.js';
 
 export { THREE };
 
@@ -267,9 +268,21 @@ export function createStage(container, opts = {}) {
     const b = { el, anchor, lift };
     bubbles.add(b);
     placeBubbles();
+    // На глас се четат обясненията; етикетите и уредите („tag“) и кратките надписи – не.
+    const talk = !/\btag\b|-mag\b/.test(cls);
+    const sayIt = () => { if (talk && el.textContent.trim().split(/\s+/).length >= 4) speakEl(el); };
+    let lastSet = 0;
+    sayIt();
     return {
       el,
-      set(htmlNew) { el.innerHTML = htmlNew; },
+      set(htmlNew) {
+        if (el.innerHTML === htmlNew) return;
+        el.innerHTML = htmlNew;
+        // Показания, които се сменят често, не се четат.
+        const now = performance.now();
+        if (now - lastSet > 1500) sayIt();
+        lastSet = now;
+      },
       remove() { bubbles.delete(b); el.remove(); },
     };
   }
