@@ -17,7 +17,8 @@ function injectStyle() {
   .measure-mag { padding:4px 6px 2px; }
   .measure-mag svg { display:block; }
   .measure-in { display:grid; gap:6px; margin-top:6px; }
-  .measure-in .num input { width:5.5em; }
+  .measure-in .num { white-space:nowrap; }
+  .measure-in .num input { width:4.2em; }
   .measure-q { font-weight:700; margin:8px 0 6px; }
   .measure-pour { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
   .measure-pour .btn { padding:6px 10px; }
@@ -659,7 +660,7 @@ function build(container, { skill, onComplete }, restart) {
       const it = items.find((x) => x.id === id);
       if (!it) return;
       const [obj, lift, dist] = focus(id);
-      stage.focusOn(obj, { dist, height: 0.9, lift: Math.min(lift * 0.5, 0.9), keepFollow: false });
+      stage.focusOn(obj, { dist: narrow ? dist * 1.5 : dist, height: 0.9, lift: narrow ? lift * 0.85 : Math.min(lift * 0.5, 0.9), keepFollow: false });
       say(obj, it.note, 'wide', lift);
       seen.add(id); menu.mark(id); menu.setActive(id); upd();
       if (seen.size >= need && nx.disabled) { nx.disabled = false; shell.msg('Браво! Можеш да продължиш.', 'good'); }
@@ -1092,10 +1093,10 @@ function build5(A) {
   const target = TARGETS[Math.floor(Math.random() * TARGETS.length)];
 
   const P = narrow
-    ? { beaker: [-2.15, -0.75], cyl: [-1.0, -0.7], bal: [0.35, -0.55], stone: [0.35, 0.75], bottle: [1.35, -0.95], syr: [2.2, -0.75], jar: [2.05, 0.75],
-      glass: [-2.2, 1.25], bowl: [-1.05, 1.45], flask: [0.9, 1.6] }
-    : { beaker: [-4.1, -0.6], cyl: [-2.7, -0.7], bal: [-1.0, -0.5], stone: [-1.0, 1.0], bottle: [0.5, -0.8], syr: [1.7, -0.6], jar: [3.6, -0.7],
-      glass: [0.4, 1.3], bowl: [1.9, 1.4], flask: [3.5, 1.3] };
+    ? { beaker: [-2.15, -0.75], cyl: [-1.0, -0.7], bal: [0.35, -0.55], stone: [0.35, 0.75], bottle: [1.35, -0.95], syr: [2.45, -0.35], jar: [2.05, 0.85],
+      glass: [0.35, -0.55], bowl: [1.3, -0.9], flask: [-1.0, 0.9] }
+    : { beaker: [-4.1, -0.6], cyl: [-2.7, -0.7], bal: [-1.0, -0.5], stone: [-1.0, 1.0], bottle: [0.5, -0.8], syr: [1.9, -0.6], jar: [3.5, -0.6],
+      glass: [-1.0, -0.6], bowl: [0.5, -0.6], flask: [1.4, 1.1] };
   const tag = (g, text, y = -0.05, z = 0.75) => {
     const lb = labelSprite(text, { size: 0.17, color: '#fff', bg: 'rgba(38,50,56,0.85)', border: 'rgba(38,50,56,0.85)' });
     lb.position.set(0, y, z);
@@ -1113,8 +1114,8 @@ function build5(A) {
     const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.6, 0.08, 6), glassMat(0.5));
     foot.position.y = 0.04;
     cyl.add(foot);
-    const strip = scaleStrip({ maxML: 105, k: KC, minor: 1, major: 10, labelEvery: 10, w: 0.3 });
-    strip.position.set(0.06, sh.floor + (105 * KC) / 2, sh.rin(0) + sh.t + 0.006);
+    const strip = scaleStrip({ maxML: 112, k: KC, minor: 1, major: 10, labelEvery: 10, w: 0.3 });
+    strip.position.set(0.06, sh.floor + (112 * KC) / 2, sh.rin(0) + sh.t + 0.006);
     cyl.add(strip);
     tag(cyl, 'Мерителен цилиндър');
     cyl.userData.pickId = 'cyl';
@@ -1150,6 +1151,7 @@ function build5(A) {
     lb.position.y = 0.36;
     stone.add(lb);
     stage.steadyLabel(lb, 8);
+    stone.userData.label = lb;
   }
   addHitBox(stone, 0.55);
   stone.userData.pickId = 'stone';
