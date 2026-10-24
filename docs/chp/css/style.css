@@ -116,6 +116,28 @@ main { max-width: 1180px; margin: 0 auto; padding: 16px; min-height: 70vh; }
 .signs summary { cursor: pointer; font-weight: 700; color: var(--navy); }
 .signs p { margin: 6px 0; }
 
+/* главна страница, насочена към един клас */
+.hero-focus { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; align-items: center; }
+.hero-focus h1 { font-size: 2.6rem; margin: 0; }
+.hero-focus .kicker { margin: 0; text-transform: uppercase; letter-spacing: .06em; font-weight: 800; color: #bff3e4; font-size: .85rem; }
+.btn.big { font-size: 1.05rem; padding: 12px 18px; }
+.btn.ghost-light { background: transparent; color: #fff; border-color: rgba(255,255,255,.6); }
+.hero-pct { min-width: 180px; text-align: center; }
+.hero-pct b { display: block; font-size: 2.4rem; }
+.hero-pct .pbar { background: rgba(255,255,255,.25); }
+.sec-title { margin: 22px 0 10px; }
+.xp-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.xp-card { display: flex; flex-direction: column; gap: 6px; background: var(--card); border: 2px solid #cdeedd; border-radius: 14px; padding: 10px; text-decoration: none; color: var(--ink); transition: transform .15s, box-shadow .15s; }
+.xp-card:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(10,42,102,.12); border-color: var(--go); }
+.xp-card img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 8px; background: #eef7f4; }
+.xp-card .badge { align-self: flex-start; }
+.xp-thumb { aspect-ratio: 16 / 10; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 3rem; background: linear-gradient(135deg, #e6f8f3, #dcecff); }
+.xp-card b { color: var(--navy); }
+.units-mini { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.unit-mini { display: flex; flex-direction: column; gap: 4px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px; text-decoration: none; color: var(--ink); }
+.unit-mini b { color: var(--navy); }
+.other-grades { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+
 /* курс */
 .crumbs { font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; }
 .crumbs a { text-decoration: none; }
