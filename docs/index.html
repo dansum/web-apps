@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>d4</title>
+<meta name="description" content="d4 — начална страница с уеб приложенията, игрите и симулациите на dansum. Всичко работи в браузъра, без инсталация.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f5f1;
+    --card: #ffffff;
+    --ink: #1b1d22;
+    --muted: #5d6270;
+    --line: #e3e1da;
+    --accent: #2f5bea;
+    --games: #e2572b;
+    --learn: #1f8a5b;
+    --tools: #7a4fd6;
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 6px 20px rgba(0,0,0,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121418; --card: #1b1e24; --ink: #eceef2; --muted: #9aa0ad;
+      --line: #2a2e36; --accent: #7d9bff; --games: #ff8a5c; --learn: #4fd09a; --tools: #b394ff;
+      --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121418; --card: #1b1e24; --ink: #eceef2; --muted: #9aa0ad;
+    --line: #2a2e36; --accent: #7d9bff; --games: #ff8a5c; --learn: #4fd09a; --tools: #b394ff;
+    --shadow: none;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.55 Manrope, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-feature-settings: "locl" 0;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+  header { padding: 56px 0 28px; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .logo {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 64px; height: 64px; border-radius: 18px;
+    background: var(--ink); color: var(--bg);
+    font-weight: 800; font-size: 28px; letter-spacing: -1px;
+  }
+  .theme {
+    border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    border-radius: 999px; padding: 8px 14px; font: inherit; font-size: 14px; cursor: pointer;
+  }
+  h1 { font-size: clamp(36px, 7vw, 60px); line-height: 1.05; margin: 28px 0 12px; letter-spacing: -1.5px; }
+  .lede { color: var(--muted); font-size: 18px; max-width: 620px; margin: 0; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 32px 0 20px; }
+  .chip {
+    border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 14px; cursor: pointer;
+  }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .chip .n { opacity: .6; margin-left: 4px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; padding-bottom: 48px; }
+  .card {
+    display: flex; flex-direction: column; gap: 10px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    padding: 20px; color: inherit; text-decoration: none; box-shadow: var(--shadow);
+    transition: transform .15s ease, border-color .15s ease;
+  }
+  .card:hover, .card:focus-visible { transform: translateY(-2px); border-color: var(--accent); outline: none; }
+  .card .head { display: flex; align-items: center; gap: 12px; }
+  .icon {
+    flex: none; width: 44px; height: 44px; border-radius: 12px;
+    display: grid; place-items: center; font-size: 22px;
+    background: color-mix(in srgb, var(--c) 14%, transparent);
+  }
+  .card h2 { font-size: 18px; margin: 0; line-height: 1.25; }
+  .tag { font-size: 12px; font-weight: 600; color: var(--c); text-transform: uppercase; letter-spacing: .06em; }
+  .card p { margin: 0; color: var(--muted); font-size: 15px; flex: 1; }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px; }
+  .meta span { font-size: 12px; border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; color: var(--muted); }
+  .open { font-weight: 600; font-size: 14px; color: var(--accent); }
+  .games { --c: var(--games); }
+  .learn { --c: var(--learn); }
+  .tools { --c: var(--tools); }
+  [hidden] { display: none !important; }
+  footer { border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--muted); font-size: 14px; }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="top">
+      <span class="logo" aria-hidden="true">d4</span>
+      <button class="theme" id="theme" type="button">Тема: авто</button>
+    </div>
+    <h1>d4</h1>
+    <p class="lede">Игри, симулации и учебни приложения, които работят направо в браузъра — без инсталация и без регистрация. Изберете проект и започнете.</p>
+  </header>
+
+  <main>
+    <div class="filters" role="group" aria-label="Филтър по вид">
+      <button class="chip" type="button" data-f="all" aria-pressed="true">Всички<span class="n"></span></button>
+      <button class="chip" type="button" data-f="games" aria-pressed="false">Игри<span class="n"></span></button>
+      <button class="chip" type="button" data-f="learn" aria-pressed="false">Учене<span class="n"></span></button>
+      <button class="chip" type="button" data-f="tools" aria-pressed="false">Инструменти<span class="n"></span></button>
+    </div>
+
+    <div class="grid" id="grid">
+      <a class="card learn" href="chp/">
+        <div class="head"><span class="icon">🌍</span><div><div class="tag">Учене</div><h2>Човекът и природата в 3D</h2></div></div>
+        <p>Курсове по „Човекът и природата“ за 3.–6. клас по учебните програми на МОН, с 3D интерактивни упражнения.</p>
+        <div class="meta"><span>3.–6. клас</span><span>БГ</span></div>
+        <span class="open">Отвори →</span>
+      </a>
+
+      <a class="card games" href="Varna/">
+        <div class="head"><span class="icon">🏙️</span><div><div class="tag">Игра</div><h2>Варна строи</h2></div></div>
+        <p>Игра за строене на град, вдъхновена от Варна. Учениците откриват кои фактори са важни, за да живеят хората добре в един град.</p>
+        <div class="meta"><span>5. клас</span><span>БГ</span></div>
+        <span class="open">Отвори →</span>
+      </a>
+
+      <a class="card games" href="vot/">
+        <div class="head"><span class="icon">🗳️</span><div><div class="tag">Игра</div><h2>Твоята партия</h2></div></div>
+        <p>Създай партия, реагирай на десет новини и спечели изборите. Игра за тийнейджъри за това как работи политиката в България.</p>
+        <div class="meta"><span>Тийнейджъри</span><span>БГ</span><span>Офлайн</span></div>
+        <span class="open">Отвори →</span>
+      </a>
+
+      <a class="card games" href="chesslearn/">
+        <div class="head"><span class="icon">♞</span><div><div class="tag">Игра</div><h2>Шах игрище</h2></div></div>
+        <p>Малки шахматни игри за деца около шестгодишна възраст. Работят офлайн, на английски и български.</p>
+        <div class="meta"><span>6+ години</span><span>БГ / EN</span><span>Офлайн</span></div>
+        <span class="open">Отвори →</span>
+      </a>
+
+      <a class="card games" href="shooter/">
+        <div class="head"><span class="icon">🦖</span><div><div class="tag">Игра</div><h2>Дино аркада</h2></div></div>
+        <p>Аркадна стрелба по динозаври. Целиш се с ръка пред камерата — показалецът е цевта, палецът е спусъкът. Може и с мишка или пръст.</p>
+        <div class="meta"><span>Камера</span><span>БГ</span></div>
+        <span class="open">Отвори →</span>
+      </a>
+
+      <a class="card learn" href="forest-fire-sim_202511/">
+        <div class="head"><span class="icon">🔥</span><div><div class="tag">Симулация</div><h2>Симулация на горски пожари</h2></div></div>
+        <p>Интерактивна симулация на това как се разпространява горски пожар.</p>
+        <div class="meta"><span>БГ</span></div>
+        <span class="open">Отвори →</span>
+      </a>
+
+      <a class="card learn" href="сал_202610/">
+        <div class="head"><span class="icon">📊</span><div><div class="tag">Изследване</div><h2>Доказателства за добро ползване на технологии в клас</h2></div></div>
+        <p>Интерактивна графика на размера на ефекта от изследвания на технологии и други интервенции в образованието, по статията на Сал Кан.</p>
+        <div class="meta"><span>БГ / EN</span></div>
+        <span class="open">Отвори →</span>
+      </a>
+
+      <a class="card tools" href="walk/">
+        <div class="head"><span class="icon">🚶</span><div><div class="tag">Инструмент</div><h2>Street Walks</h2></div></div>
+        <p>Разходка из известни градове в 3D модела на Google Earth с клавиатура и мишка. Изберете място от списъка или въведете координати.</p>
+        <div class="meta"><span>EN</span></div>
+        <span class="open">Отвори →</span>
+      </a>
+
+      <a class="card tools" href="care-training/">
+        <div class="head"><span class="icon">🩺</span><div><div class="tag">Инструмент</div><h2>Annual Care Training</h2></div></div>
+        <p>Обучение за домашни грижи: видео, тест от 10 въпроса и сертификат за изтегляне като PDF при успешно преминаване.</p>
+        <div class="meta"><span>EN</span><span>Сертификат</span></div>
+        <span class="open">Отвори →</span>
+      </a>
+    </div>
+  </main>
+
+  <footer>
+    d4 · проекти на <a href="https://github.com/dansum/web-apps">dansum/web-apps</a> в GitHub
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var cards = Array.prototype.slice.call(document.querySelectorAll('.card'));
+    var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
+    function kind(c) { return ['games', 'learn', 'tools'].filter(function (k) { return c.classList.contains(k); })[0]; }
+    chips.forEach(function (chip) {
+      var f = chip.dataset.f;
+      chip.querySelector('.n').textContent = f === 'all' ? cards.length : cards.filter(function (c) { return kind(c) === f; }).length;
+      chip.addEventListener('click', function () {
+        chips.forEach(function (x) { x.setAttribute('aria-pressed', String(x === chip)); });
+        cards.forEach(function (c) { c.hidden = f !== 'all' && kind(c) !== f; });
+      });
+    });
+
+    var btn = document.getElementById('theme');
+    var modes = ['auto', 'light', 'dark'];
+    var labels = { auto: 'Тема: авто', light: 'Тема: светла', dark: 'Тема: тъмна' };
+    var mode = 'auto';
+    try { mode = localStorage.getItem('d4-theme') || 'auto'; } catch (e) {}
+    function apply() {
+      if (mode === 'auto') document.documentElement.removeAttribute('data-theme');
+      else document.documentElement.setAttribute('data-theme', mode);
+      btn.textContent = labels[mode];
+    }
+    apply();
+    btn.addEventListener('click', function () {
+      mode = modes[(modes.indexOf(mode) + 1) % modes.length];
+      try { localStorage.setItem('d4-theme', mode); } catch (e) {}
+      apply();
+    });
+  })();
+</script>
+</body>
+</html>
