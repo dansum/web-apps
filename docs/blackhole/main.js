@@ -26,7 +26,8 @@ const RR = (a, b) => a + R() * (b - a);
 const pick = (arr) => arr[Math.floor(R() * arr.length)];
 
 // ================= настройки на играта =================
-const GROW = 0.045;          // колко расте дупката от глътнатата маса
+const GROW = 0.045;
+const PENALTY = { chicken: 30, sheep: 50, pig: 50, cow: 80 }; // точки, които губиш, ако животно падне в дупката          // колко расте дупката от глътнатата маса
 const LEVEL_TIME = 100;      // секунди за ниво
 const BATTLE_TIME = 120;     // секунди за битка
 const STARS = [0.4, 0.7, 0.95];
@@ -43,12 +44,11 @@ const BOTS = [
 const SIZES = { s: { L: 24, time: 120, k: 1 }, m: { L: 34, time: 180, k: 2 }, l: { L: 46, time: 300, k: 3.6 } };
 // Категории неща; max е за малка карта. small = достатъчно малки, за да се расте от тях.
 const CATS = [
-  { id: 'people', ic: '🧍', types: ['person'], max: 40, small: true },
-  { id: 'animals', ic: '🐄', types: ['chicken', 'sheep', 'pig', 'cow'], max: 30, small: true },
+  { id: 'animals', ic: '🐄', types: ['chicken', 'sheep', 'pig', 'cow'], max: 30, bad: true },
   { id: 'street', ic: '🪑', types: ['cone', 'hydrant', 'bin', 'lamp', 'bench', 'busstop'], max: 40, small: true },
   { id: 'plants', ic: '🌳', types: ['flowers', 'bush', 'tree', 'pine'], max: 40, small: true },
   { id: 'cars', ic: '🚗', types: ['car'], max: 20 },
-  { id: 'farm', ic: '🌾', types: ['hay', 'fence', 'trough', 'haystack', 'silo', 'windmill'], max: 20 },
+  { id: 'farm', ic: '🌾', types: ['pumpkin', 'crate', 'milkcan', 'hay', 'fence', 'trough', 'haystack', 'silo', 'windmill'], max: 30 },
   { id: 'park', ic: '⛲', types: ['statue', 'kiosk', 'slide', 'fountain', 'gazebo'], max: 10 },
   { id: 'big', ic: '🚌', types: ['tractor', 'truck', 'bus'], max: 8 },
   { id: 'houses', ic: '🏠', types: ['house', 'shop', 'barn'], max: 10 },
@@ -66,14 +66,15 @@ const I18N = {
     single: 'Единично ниво', singleSub: 'Ти избираш какво и колко да има',
     battle: 'Битка', battleSub: '2 минути срещу 4 дупки',
     how1: 'Плъзни пръст където и да е по екрана, за да движиш дупката.',
-    how2: 'Пропада всичко, което е по-малко от дупката. Колкото повече глътнеш, толкова повече растеш.',
-    how3: 'В битката по-голяма дупка може да глътне по-малка.',
+    how2: 'Пропада всичко, което е по-малко от дупката. Всяко глътнато нещо носи точки и те прави по-голям.',
+    how3: 'Внимавай с животните: ако паднат в дупката, губиш точки.',
+    how4: 'В битката по-голяма дупка може да глътне по-малка.', pts: 'т.',
     soundOn: 'Звук: вкл.', soundOff: 'Звук: изкл.',
     install: '📲 Инсталирай на телефона',
     installHint: 'На Android: Chrome → меню ⋮ → „Добавяне към началния екран“. Без реклами, работи и офлайн.',
     mapSize: 'Размер на картата', sizeS: 'Малка', sizeM: 'Средна', sizeL: 'Голяма',
     whatToEat: 'Какво да има', random: '🎲 Случайно',
-    needSmall: 'Добави малки неща (хора, животни, улични неща или растения), иначе дупката няма с какво да порасне.',
+    needSmall: 'Добави малки неща (улични неща или растения), иначе дупката няма с какво да порасне.',
     play: 'Играй', back: 'Назад', paused: 'Пауза', resume: 'Продължи', toMenu: 'Към менюто',
     savedNote: 'Напредъкът ти е запазен. Можеш да продължиш и по-късно от менюто.',
     next: 'Следващо ниво', newSetup: 'Нова настройка', retry: 'Пак същото', newBattle: 'Нова битка',
@@ -85,12 +86,11 @@ const I18N = {
     backIn: 'Пак си в играта!', welcomeBack: 'Продължаваш',
     levelDone: (n) => `Ниво ${n} премина!`, almost: 'Почти!', done: 'Готово!', need40: 'Нужни са 40% за звезда',
     winner: '🏆 Ти си най-голямата дупка!', place: (n) => `${n}. място`,
-    cat_people: 'Хора', catd_people: 'вървят наоколо',
-    cat_animals: 'Животни', catd_animals: 'кокошки, овце, прасета, крави',
+    cat_animals: 'Животни', catd_animals: 'внимавай: отнемат точки',
     cat_street: 'Улични неща', catd_street: 'конуси, кошчета, лампи, пейки',
     cat_plants: 'Растения', catd_plants: 'цветя, храсти, дървета',
     cat_cars: 'Коли', catd_cars: 'карат по пътищата',
-    cat_farm: 'Ферма', catd_farm: 'бали сено, огради, силози, мелници',
+    cat_farm: 'Ферма', catd_farm: 'тикви, щайги, сено, огради, силози, мелници',
     cat_park: 'Паркови', catd_park: 'статуи, павилиони, пързалки, фонтани',
     cat_big: 'Големи машини', catd_big: 'трактори, камиони, автобуси',
     cat_houses: 'Къщи', catd_houses: 'къщи, магазини, хамбари',
@@ -105,14 +105,15 @@ const I18N = {
     single: 'Single level', singleSub: 'You choose what goes on the map',
     battle: 'Battle', battleSub: '2 minutes against 4 holes',
     how1: 'Drag anywhere on the screen to move the hole.',
-    how2: 'Anything smaller than the hole falls in. The more you swallow, the bigger you get.',
-    how3: 'In a battle, a bigger hole can swallow a smaller one.',
+    how2: 'Anything smaller than the hole falls in. Everything you swallow gives points and makes you bigger.',
+    how3: 'Watch out for animals: if one falls into the hole, you lose points.',
+    how4: 'In a battle, a bigger hole can swallow a smaller one.', pts: 'pts',
     soundOn: 'Sound: on', soundOff: 'Sound: off',
     install: '📲 Install on your phone',
     installHint: 'On Android: Chrome → menu ⋮ → “Add to Home screen”. No ads, works offline.',
     mapSize: 'Map size', sizeS: 'Small', sizeM: 'Medium', sizeL: 'Large',
     whatToEat: 'What goes on the map', random: '🎲 Random',
-    needSmall: 'Add some small things (people, animals, street items or plants), or the hole will have nothing to grow on.',
+    needSmall: 'Add some small things (street items or plants), or the hole will have nothing to grow on.',
     play: 'Play', back: 'Back', paused: 'Paused', resume: 'Resume', toMenu: 'Main menu',
     savedNote: 'Your progress is saved. You can continue later from the menu.',
     next: 'Next level', newSetup: 'New setup', retry: 'Play again', newBattle: 'New battle',
@@ -124,12 +125,11 @@ const I18N = {
     backIn: 'You are back!', welcomeBack: 'Welcome back',
     levelDone: (n) => `Level ${n} complete!`, almost: 'Almost!', done: 'Done!', need40: '40% needed for a star',
     winner: '🏆 You are the biggest hole!', place: (n) => ['1st', '2nd', '3rd', '4th', '5th'][n - 1] + ' place',
-    cat_people: 'People', catd_people: 'walking around',
-    cat_animals: 'Animals', catd_animals: 'chickens, sheep, pigs, cows',
+    cat_animals: 'Animals', catd_animals: 'careful: they cost points',
     cat_street: 'Street items', catd_street: 'cones, bins, lamps, benches',
     cat_plants: 'Plants', catd_plants: 'flowers, bushes, trees',
     cat_cars: 'Cars', catd_cars: 'driving on the roads',
-    cat_farm: 'Farm', catd_farm: 'hay bales, fences, silos, windmills',
+    cat_farm: 'Farm', catd_farm: 'pumpkins, crates, hay, fences, silos, windmills',
     cat_park: 'Park features', catd_park: 'statues, kiosks, slides, fountains',
     cat_big: 'Big vehicles', catd_big: 'tractors, trucks, buses',
     cat_houses: 'Houses', catd_houses: 'houses, shops, barns',
@@ -265,14 +265,6 @@ const PAL = {
 // Каталог: r = „отпечатък“ — дупката трябва да е поне толкова голяма, за да го глътне.
 const T = {
   cone: { r: 0.3, nv: 1, b(L) { Bx(L, '#f97316', 0.6, 0.06, 0.6); Co(L, '#f97316', 0.27, 0.72, 0, 0.05); Cy(L, '#ffffff', 0.17, 0.1, 0, 0.32, 0); } },
-  person: { r: 0.35, nv: 10, b(L) {
-    const sk = pick(PAL.skin), sh = pick(PAL.shirt), pa = pick(PAL.pants);
-    Bx(L, pa, 0.13, 0.48, 0.16, 0, 0, -0.09); Bx(L, pa, 0.13, 0.48, 0.16, 0, 0, 0.09);
-    Bx(L, sh, 0.26, 0.5, 0.42, 0, 0.46, 0);
-    Bx(L, sh, 0.12, 0.42, 0.1, 0, 0.52, -0.26); Bx(L, sh, 0.12, 0.42, 0.1, 0, 0.52, 0.26);
-    Ba(L, sk, 0.17, 0, 1.12, 0, 1, G.sph);
-    Bx(L, pick(['#3f2a14', '#111827', '#a16207', '#7c2d12', '#e5e7eb']), 0.3, 0.1, 0.3, 0, 1.2, 0);
-  } },
   bin: { r: 0.35, nv: 2, b(L) { const c = pick(['#16a34a', '#2563eb', '#4b5563']); Cy(L, c, 0.28, 0.8); Cy(L, '#1f2937', 0.31, 0.07, 0, 0.8, 0); } },
   hydrant: { r: 0.3, nv: 1, b(L) { Cy(L, '#dc2626', 0.17, 0.6); Ba(L, '#dc2626', 0.17, 0, 0.6, 0, 0.8, G.sph); part(L, G.cyl, '#b91c1c', 0, 0.38, 0, 0.08, 0.5, 0.08, Math.PI / 2, 0, 0); } },
   bench: { r: 0.8, nv: 2, b(L) {
@@ -403,6 +395,9 @@ const T = {
     Co(L, '#f5f5f4', 2.0, 9, 0, 0, 0, G.cone6); Bx(L, '#7c2d12', 1.1, 1.1, 1.3, 0, 7.6, 0.4);
     for (let i = 0; i < 4; i++) part(L, G.box, '#f8fafc', Math.cos(i * Math.PI / 2 + 0.4) * 2.3, 8.2 + Math.sin(i * Math.PI / 2 + 0.4) * 2.3, 1.2, 4.6, 0.7, 0.08, 0, 0, i * Math.PI / 2 + 0.4);
   } },
+  pumpkin: { r: 0.4, nv: 2, b(L) { Ba(L, pick(['#f97316', '#ea580c']), 0.36, 0, 0.3, 0, 0.75, G.ico1); Bx(L, '#3f6212', 0.07, 0.18, 0.07, 0, 0.52); Ba(L, '#65a30d', 0.12, 0.12, 0.55, 0.05, 0.4); } },
+  crate: { r: 0.45, nv: 2, b(L) { Bx(L, '#c08a4b', 0.62, 0.62, 0.62); Bx(L, '#8b5a2b', 0.64, 0.08, 0.64, 0, 0.15); Bx(L, '#8b5a2b', 0.64, 0.08, 0.64, 0, 0.42); } },
+  milkcan: { r: 0.3, nv: 1, b(L) { Cy(L, '#cbd5e1', 0.2, 0.55); Cy(L, '#94a3b8', 0.13, 0.15, 0, 0.55, 0); Cy(L, '#94a3b8', 0.16, 0.05, 0, 0.7, 0); } },
   trough: { r: 0.9, nv: 1, b(L) { Bx(L, '#78716c', 1.8, 0.5, 0.7); Bx(L, '#60a5fa', 1.6, 0.05, 0.5, 0, 0.47); } },
 };
 
@@ -464,7 +459,7 @@ function spawn(type, x, z, ry, opts = {}) {
   const o = { id: world.nextId++, type, mesh, x, y: 0, z, ry, r: def.r, h: sy, v: Math.pow(sx * sy * sz, 0.72), dead: false, fall: null, mover: null, wob: 0 };
   objs.push(o);
   occ.push({ x, z, r: def.r });
-  world.total += o.v;
+  if (!PENALTY[type]) world.total += o.v; // животните не се броят към процента
   return o;
 }
 
@@ -553,10 +548,7 @@ function layoutPark(L) {
   scatter(['tree', 'tree', 'pine'], Math.round(L * L * 0.075), L);
   scatter(['bush', 'flowers'], Math.round(L * L * 0.03), L);
   scatter(['cone', 'bin'], 6, L);
-  for (let i = 0, k = 0; i < 400 && k < L * 1.3; i++) {
-    const x = RR(-L + 2, L - 2), z = RR(-L + 2, L - 2);
-    const o = spawn('person', x, z); if (o) { walker(o, x, z, 3.5, RR(0.7, 1.3)); k++; }
-  }
+  scatter(['bin', 'flowers', 'cone', 'hydrant', 'bench', 'bush'], Math.round(L * 1.3), L);
 }
 
 function scatter(types, n, L, area) {
@@ -629,15 +621,14 @@ function layoutCity(L0, kind) {
       }
     } else if (type === 'tower') {
       spawn('tower', cx, cz, 0, { force: true });
-      scatter(['bench', 'flowers', 'person', 'tree'], 8, 0, [a0 + 0.8, b0 + 0.8, a1 - 0.8, b1 - 0.8]);
+      scatter(['bench', 'flowers', 'bin', 'tree'], 8, 0, [a0 + 0.8, b0 + 0.8, a1 - 0.8, b1 - 0.8]);
     } else if (type === 'park') {
       P.circle(cx, cz, 3.6, '#e9d8a6');
       spawn(R() < 0.6 ? 'fountain' : 'gazebo', cx, cz, 0, { force: true });
       scatter(['tree', 'tree', 'pine', 'bench', 'bush', 'flowers', 'slide'], 16, 0, [a0 + 0.8, b0 + 0.8, a1 - 0.8, b1 - 0.8]);
-      for (let i = 0; i < 4; i++) { const x = RR(a0 + 1, a1 - 1), z = RR(b0 + 1, b1 - 1); const o = spawn('person', x, z); walker(o, x, z, 3, RR(0.6, 1.2)); }
     } else if (type === 'shops') {
       spawn('shop', cx, cz - w / 4, Math.PI, { force: true }); spawn('shop', cx, cz + w / 4, 0, { force: true });
-      scatter(['kiosk', 'bench', 'person', 'bin', 'flowers', 'cone'], 7, 0, [a0 + 0.8, b0 + 0.8, a1 - 0.8, b1 - 0.8]);
+      scatter(['kiosk', 'bench', 'hydrant', 'bin', 'flowers', 'cone'], 7, 0, [a0 + 0.8, b0 + 0.8, a1 - 0.8, b1 - 0.8]);
     } else {
       for (let x = a0 + 1.6; x < a1 - 1; x += 2.6) {
         P.line(x - 1.3, b0 + 1, x - 1.3, b0 + 5, 0.12, '#f8fafc'); P.line(x - 1.3, b1 - 5, x - 1.3, b1 - 1, 0.12, '#f8fafc');
@@ -660,9 +651,7 @@ function layoutCity(L0, kind) {
       }
       for (let k = 0; k < 2; k++) {
         const d = RR(1, len - 1);
-        const x = ax === 'x' ? x0 + d : x0, z = ax === 'x' ? z0 : z0 + d;
-        const o = spawn('person', x, z, ax === 'x' ? 0 : Math.PI / 2);
-        if (o) liner(o, ax, ax === 'x' ? z0 : x0, ax === 'x' ? x0 : z0, ax === 'x' ? x1 : z1, RR(0.8, 1.4));
+        spawn(R() < 0.5 ? 'cone' : 'flowers', ax === 'x' ? x0 + d : x0, ax === 'x' ? z0 : z0 + d);
       }
     }
   }
@@ -708,6 +697,7 @@ function layoutFarm(L) {
       P.rect(a0 + 1, b0 + 1, a1 - 1, b1 - 1, role === 'field' ? '#a8794f' : '#d9c45a');
       for (let x = a0 + 2; x < a1 - 1; x += 1.6) P.line(x, b0 + 1.3, x, b1 - 1.3, 0.3, role === 'field' ? '#8c6239' : '#c4ae45');
       scatter(['hay', 'hay', 'haystack'], Math.round((a1 - a0) * (b1 - b0) / 30), 0, [a0 + 2, b0 + 2, a1 - 2, b1 - 2]);
+      scatter(['pumpkin', 'pumpkin', 'crate', 'milkcan'], Math.round((a1 - a0) * (b1 - b0) / 22), 0, [a0 + 2, b0 + 2, a1 - 2, b1 - 2]);
       spawn('tractor', cx, cz, R() * 6);
       scatter(['tree', 'pine'], 6, 0, [a0, b0, a1, b1]);
     } else if (role === 'pen') {
@@ -731,10 +721,11 @@ function layoutFarm(L) {
       spawn('tractor', cx - 6, cz + 6, 0.5);
       spawn('windmill', cx - 8, cz + 8 > b1 - 3 ? cz : cz + 8, 0);
       for (let i = 0; i < 18; i++) { const x = RR(a0 + 2, a1 - 2), z = RR(b0 + 2, b1 - 2); const o = spawn('chicken', x, z); walker(o, x, z, 2, RR(0.6, 1.1)); }
-      scatter(['hay', 'haystack', 'trough', 'bush', 'person'], 10, 0, [a0 + 2, b0 + 2, a1 - 2, b1 - 2]);
+      scatter(['crate', 'milkcan', 'pumpkin', 'crate'], 24, 0, [a0 + 2, b0 + 2, a1 - 2, b1 - 2]);
+      scatter(['hay', 'haystack', 'trough', 'bush', 'flowers'], 10, 0, [a0 + 2, b0 + 2, a1 - 2, b1 - 2]);
     }
   });
-  for (let d = -L + 3; d < L - 2; d += 5) { if (Math.abs(d) < 4) continue; spawn('tree', -3.6, d); spawn('tree', 3.6, d + 2.5); spawn('fence', d, -3.6, 0); spawn('fence', d + 2.5, 3.6, 0); }
+  for (let d = -L + 3; d < L - 2; d += 5) { if (Math.abs(d) < 4) continue; spawn(R() < 0.5 ? 'milkcan' : 'pumpkin', d + 1.2, -5.2); spawn('crate', -5.2, d + 1.2); spawn('tree', -3.6, d); spawn('tree', 3.6, d + 2.5); spawn('fence', d, -3.6, 0); spawn('fence', d + 2.5, 3.6, 0); }
   for (const s of [-1, 1]) { const o = spawn('tractor', s * RR(8, L - 8), 0, 0); if (o) driver(o, 'x', 0, s, 1.2, 2.5); }
   spawn('windmill', L - 5, -L + 5, 0); spawn('windmill', -L + 5, L - 5, 0);
   border(P, L);
@@ -771,7 +762,7 @@ function layoutCustom(L, counts) {
 
   const onRoad = (x, z, r) => roads.some((c) => Math.abs(x - c) < roadW / 2 + 1.4 + r * 0.7 || Math.abs(z - c) < roadW / 2 + 1.4 + r * 0.7);
   const VEH = new Set(['car', 'bus', 'truck']);
-  const WALK = new Set(['person', 'chicken', 'sheep', 'pig', 'cow']);
+  const WALK = new Set(['chicken', 'sheep', 'pig', 'cow']);
   const maxR = (c) => Math.max(...c.types.map((tp) => T[tp].r));
   const order = [...CATS].sort((a, b) => maxR(b) - maxR(a));
   for (const c of order) {
@@ -797,7 +788,7 @@ function layoutCustom(L, counts) {
         const x = RR(-L + 1.5, L - 1.5), z = RR(-L + 1.5, L - 1.5);
         if (urban && onRoad(x, z, T[type].r)) continue;
         const o = spawn(type, x, z);
-        if (o) { if (WALK.has(type)) walker(o, x, z, type === 'cow' ? 3 : 2.5, type === 'person' ? RR(0.7, 1.3) : RR(0.4, 0.9)); break; }
+        if (o) { if (WALK.has(type)) walker(o, x, z, type === 'cow' ? 3 : 2.5, RR(0.4, 0.9)); break; }
       }
     }
   }
@@ -979,6 +970,7 @@ const sfx = {
   star() { [0, 4, 7, 12].forEach((s, i) => tone(523 * Math.pow(2, s / 12), 0.2, 'triangle', 0.09, 0, i * 0.07)); },
   eatHole() { tone(300, 0.6, 'sawtooth', 0.12, 50); },
   tick() { tone(1000, 0.05, 'square', 0.05); },
+  oops() { tone(330, 0.18, 'square', 0.08, 220); tone(220, 0.3, 'square', 0.08, 110, 0.15); },
   end() { [0, 4, 7].forEach((s, i) => tone(392 * Math.pow(2, s / 12), 0.25, 'triangle', 0.1, 0, i * 0.12)); },
 };
 
@@ -988,11 +980,11 @@ function toScreen(x, y, z) {
   v3.set(x, y, z).project(camera);
   return [(v3.x * 0.5 + 0.5) * window.innerWidth, (-v3.y * 0.5 + 0.5) * window.innerHeight, v3.z < 1];
 }
-function floatText(x, z, text) {
+function floatText(x, z, text, cls) {
   const [sx, sy, ok] = toScreen(x, 1.5, z);
   if (!ok) return;
   const el = document.createElement('div');
-  el.className = 'float'; el.textContent = text;
+  el.className = 'float' + (cls ? ' ' + cls : ''); el.textContent = text;
   el.style.left = sx + 'px'; el.style.top = sy + 'px';
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 900);
@@ -1118,6 +1110,18 @@ function updateFall(o, dt) {
 function consume(o, h) {
   o.dead = true;
   scene.remove(o.mesh);
+  if (PENALTY[o.type]) {
+    // животно: не уголемява дупката и отнема точки
+    const lost = Math.min(PENALTY[o.type], h.score);
+    h.score -= lost;
+    if (h === player) {
+      floatText(h.x, h.z, '−' + PENALTY[o.type], 'bad');
+      sfx.oops(); buzz([30, 40, 30]);
+      const el = $('score'); el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit');
+      hudT = 0;
+    }
+    return;
+  }
   const before = Math.floor(targetR(h) * 10);
   h.mass += o.v;
   h.eaten += o.v;
@@ -1181,7 +1185,7 @@ function botThink(h, dt) {
         let best = 0;
         const reach = 18 + h.R * 3;
         for (const o of objs) {
-          if (o.dead || o.fall || o.r > h.R * 0.93) continue;
+          if (o.dead || o.fall || o.r > h.R * 0.93 || PENALTY[o.type]) continue;
           const dx = o.x - h.x, dz = o.z - h.z;
           if (Math.abs(dx) > reach || Math.abs(dz) > reach) continue;
           const s = o.v / (Math.hypot(dx, dz) + 2);
@@ -1253,6 +1257,7 @@ function updateHud(dt) {
   $('timer').textContent = fmtTime(tl);
   $('timer').classList.toggle('low', tl <= 10);
   if (tl <= 5 && tl > 0 && Math.ceil(timeLeft) !== Math.ceil(timeLeft + 0.2)) sfx.tick();
+  $('score').textContent = player.score.toLocaleString(lang === 'bg' ? 'bg-BG' : 'en-US') + ' ' + t('pts');
   $('sizeInfo').textContent = t('size') + ' ' + Math.round(player.R * 10);
   if (mode === 'level') {
     const pct = clamp(player.eaten / world.total, 0, 1);
@@ -1273,7 +1278,7 @@ function snapshot() {
   for (const o of objs) if (!o.dead && o.fall) consume(o, o.fall.h);
   const r2 = (v) => Math.round(v * 100) / 100;
   return {
-    v: 1, cfg: cfgCur, timeLeft, elapsed, starsGot,
+    v: 2, cfg: cfgCur, timeLeft, elapsed, starsGot,
     holes: holes.map((h) => ({ x: r2(h.x), z: r2(h.z), R0: h.R0, mass: h.mass, eaten: h.eaten, score: h.score, alive: h.alive, respawn: h.respawn, safe: h.safe || 0 })),
     objs: objs.filter((o) => !o.dead).map((o) => [o.id, r2(o.x), r2(o.z), r2(o.ry), (o.mover && o.mover.dir) || 0]),
   };
@@ -1348,7 +1353,7 @@ function endRound() {
   if (mode === 'level') {
     const pct = clamp(player.eaten / world.total, 0, 1);
     const stars = STARS.filter((x) => pct >= x).length;
-    const coins = Math.round(player.score / 25) + stars * 25;
+    const coins = Math.round(Math.max(0, player.score) / 25) + stars * 25;
     save.coins += coins;
     const career = cfgCur.kind === 'career';
     if (career && stars >= 1 && cfgCur.level >= save.level) save.level = cfgCur.level + 1;
@@ -1356,7 +1361,7 @@ function endRound() {
     $('leTitle').textContent = career ? (stars ? t('levelDone', cfgCur.level) : t('almost')) : t('done');
     $('leStars').innerHTML = [0, 1, 2].map((i) => `<span class="${i < stars ? '' : 'off'}">⭐</span>`).join('');
     $('lePct').textContent = Math.round(pct * 100) + '%';
-    $('leStat').textContent = t('size') + ' ' + Math.round(player.R * 10) + ' · ' + cfgTitle(cfgCur) + (career && !stars ? ' · ' + t('need40') : '');
+    $('leStat').textContent = player.score + ' ' + t('pts') + ' · ' + t('size') + ' ' + Math.round(player.R * 10) + ' · ' + cfgTitle(cfgCur) + (career && !stars ? ' · ' + t('need40') : '');
     $('leCoins').textContent = '+' + coins + ' 🪙';
     if (career) { $('btnNext').textContent = t('next'); $('btnNext').hidden = stars === 0; nextAction = () => startCareer(cfgCur.level + 1); }
     else { $('btnNext').textContent = t('newSetup'); $('btnNext').hidden = false; nextAction = openSingle; }
@@ -1368,7 +1373,7 @@ function endRound() {
     save.coins += coins; persist();
     $('beTitle').textContent = place === 1 ? t('winner') : t('place', place);
     $('beRank').innerHTML = rankHtml();
-    $('beCoins').textContent = '+' + coins + ' 🪙';
+    $('beCoins').textContent = player.score + ' ' + t('pts') + ' · +' + coins + ' 🪙';
     setTimeout(() => show('scrBattleEnd'), 600);
   }
 }
@@ -1377,7 +1382,8 @@ function renderMenu() {
   $('coins').textContent = '🪙 ' + save.coins;
   const n = save.level;
   $('careerSub').textContent = t('careerSub', n, t(THEMES[(n - 1) % THEMES.length]));
-  const sv = store.get('dup.save', null);
+  let sv = store.get('dup.save', null);
+  if (sv && sv.v !== 2) { clearProgress(); sv = null; }
   $('btnContinue').hidden = !sv;
   if (sv) $('continueSub').textContent = t('contSub', cfgTitle(sv.cfg), fmtTime(Math.ceil(sv.timeLeft)));
   $('shop').innerHTML = '';
