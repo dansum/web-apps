@@ -950,7 +950,7 @@ function consume(o, h) {
   o.dead = true;
   scene.remove(o.mesh);
   const before = Math.floor(targetR(h) * 10);
-  h.mass += o.v * (h.bot ? 1.12 : 1);
+  h.mass += o.v;
   h.eaten += o.v;
   const pts = Math.max(1, Math.round(o.v * 10));
   h.score += pts;
