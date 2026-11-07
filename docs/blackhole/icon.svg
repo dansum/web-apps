@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd3ff"/><stop offset="1" stop-color="#bfe6ff"/></linearGradient>
+    <radialGradient id="hole" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#000"/><stop offset=".7" stop-color="#1a0b3d"/><stop offset="1" stop-color="#3b1d8f"/></radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#sky)"/>
+  <path d="M0 250 L512 250 L512 512 L0 512 Z" fill="#7fcf6a"/>
+  <rect x="0" y="250" width="512" height="18" fill="#6cbf58"/>
+  <ellipse cx="256" cy="372" rx="196" ry="92" fill="#7c3aed"/>
+  <ellipse cx="256" cy="372" rx="184" ry="84" fill="url(#hole)"/>
+  <!-- падаща кола -->
+  <g transform="translate(256 318) rotate(-28)">
+    <rect x="-70" y="-22" width="140" height="40" rx="8" fill="#ef4444"/>
+    <rect x="-38" y="-52" width="74" height="34" rx="6" fill="#9cc9f0"/>
+    <circle cx="-42" cy="20" r="14" fill="#1f2937"/><circle cx="42" cy="20" r="14" fill="#1f2937"/>
+  </g>
+  <!-- дърво -->
+  <rect x="404" y="190" width="16" height="70" fill="#7c4a1e"/>
+  <circle cx="412" cy="170" r="46" fill="#22c55e"/>
+  <rect x="70" y="150" width="70" height="110" fill="#fde68a"/>
+  <path d="M60 150 L105 108 L150 150 Z" fill="#b91c1c"/>
+</svg>
