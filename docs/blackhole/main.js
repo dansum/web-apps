@@ -487,12 +487,12 @@ function layoutCity(L0, kind) {
   }
   // пътища
   for (const c of lines) {
-    P.rect(c - roadW / 2, -E, c + roadW / 2, E, '#4b5563');
-    P.rect(-E, c - roadW / 2, E, c + roadW / 2, '#4b5563');
+    P.rect(c - roadW / 2, -L - roadW / 2, c + roadW / 2, L + roadW / 2, '#4b5563');
+    P.rect(-L - roadW / 2, c - roadW / 2, L + roadW / 2, c + roadW / 2, '#4b5563');
   }
   for (const c of lines) {
-    P.line(c, -E, c, E, 0.2, '#f8fafc', [1.6, 1.6]);
-    P.line(-E, c, E, c, 0.2, '#f8fafc', [1.6, 1.6]);
+    P.line(c, -L, c, L, 0.2, '#f8fafc', [1.6, 1.6]);
+    P.line(-L, c, L, c, 0.2, '#f8fafc', [1.6, 1.6]);
   }
   for (const cx of lines) for (const cz of lines) { P.rect(cx - roadW / 2, cz - roadW / 2, cx + roadW / 2, cz + roadW / 2, '#4b5563'); }
   for (const cx of lines) for (const cz of lines) {
@@ -728,7 +728,7 @@ function buildBattle() {
   const spots = [[-L * 0.6, -L * 0.6], [L * 0.6, -L * 0.6], [-L * 0.6, L * 0.6], [L * 0.6, L * 0.6]];
   BOTS.forEach((b, i) => {
     const h = makeHole(b.name, b.color, spots[i][0], spots[i][1], 0.9, true);
-    h.skill = 0.75 + i * 0.08;
+    h.skill = 0.92 + i * 0.05;
   });
 }
 
@@ -949,7 +949,7 @@ function consume(o, h) {
   o.dead = true;
   scene.remove(o.mesh);
   const before = Math.floor(targetR(h) * 10);
-  h.mass += o.v;
+  h.mass += o.v * (h.bot ? 1.35 : 1);
   h.eaten += o.v;
   const pts = Math.max(1, Math.round(o.v * 10));
   h.score += pts;
@@ -995,7 +995,7 @@ function botThink(h, dt) {
     for (const o of holes) {
       if (o === h || !o.alive) continue;
       const d = Math.hypot(o.x - h.x, o.z - h.z);
-      if (o.R > h.R * 1.1 && d < 6 + o.R * 2) { fx += (h.x - o.x) / (d + 0.1); fz += (h.z - o.z) / (d + 0.1); }
+      if (o.R > h.R * 1.12 && d < 3 + o.R * 1.6) { fx += (h.x - o.x) / (d + 0.1); fz += (h.z - o.z) / (d + 0.1); }
     }
     if (fx || fz) { tx = h.x + fx * 10; tz = h.z + fz * 10; }
     else {
@@ -1004,7 +1004,7 @@ function botThink(h, dt) {
       for (const o of holes) {
         if (o === h || !o.alive) continue;
         const d = Math.hypot(o.x - h.x, o.z - h.z);
-        if (h.R > o.R * 1.2 && d < 14 + h.R * 2) { const s = 40 / (d + 1); if (s > bestS) { bestS = s; tx = o.x; tz = o.z; } }
+        if (h.R > o.R * 1.15 && d < 16 + h.R * 2.5) { const s = 40 / (d + 1); if (s > bestS) { bestS = s; tx = o.x; tz = o.z; } }
       }
       // обекти
       if (tx === null) {
