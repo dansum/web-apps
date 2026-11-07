@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Дупката</title>
+<meta name="description" content="Игра за телефон: черна дупка на пода зарежда сферите над нея. Риташ ги с пръст, зареждаш ги над дупката и ги изстрелваш нагоре за точки — без да падат вътре.">
+<meta name="theme-color" content="#07060f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07060f;
+    --ink: #f3efff;
+    --muted: #a69fc4;
+    --accent: #ffb547;
+    --violet: #8b5cf6;
+    --panel: rgba(18, 14, 38, .88);
+    --line: rgba(255, 255, 255, .12);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); overflow: hidden; }
+  body {
+    font: 16px/1.45 Rubik, system-ui, -apple-system, "Segoe UI", sans-serif;
+    touch-action: none; user-select: none; -webkit-user-select: none; overscroll-behavior: none;
+  }
+  canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+  .hud {
+    position: fixed; left: 0; right: 0; top: 0; z-index: 2;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: calc(env(safe-area-inset-top) + 10px) 16px 0;
+    pointer-events: none;
+  }
+  .hud .score { font-weight: 900; font-size: 28px; letter-spacing: -.5px; }
+  .hud .sub { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .hud .mid { text-align: center; }
+  .hud .lives { font-size: 20px; letter-spacing: 2px; }
+  .hud button {
+    pointer-events: auto; width: 40px; height: 40px; border-radius: 12px;
+    border: 1px solid var(--line); background: rgba(255,255,255,.06); color: var(--ink);
+    font: inherit; font-size: 18px; cursor: pointer;
+  }
+  .hud .right { display: flex; gap: 8px; align-items: center; }
+  .combo { color: var(--accent); font-weight: 700; font-size: 14px; min-height: 18px; }
+
+  .screen {
+    position: fixed; inset: 0; z-index: 5;
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px; background: rgba(4, 3, 10, .55);
+    backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  }
+  .card {
+    width: 100%; max-width: 400px; max-height: 100%; overflow: auto;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 22px;
+    padding: 24px 20px; text-align: center; touch-action: pan-y;
+  }
+  h1 {
+    margin: 0 0 4px; font-size: 44px; font-weight: 900; letter-spacing: -1.5px; line-height: 1;
+    background: linear-gradient(180deg, #fff 10%, #ffb547 60%, #ff5d8f);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  h2 { margin: 0 0 8px; font-size: 30px; font-weight: 900; }
+  .tagline { color: var(--muted); margin: 0 0 16px; }
+  .rules { text-align: left; margin: 0 0 18px; padding: 0; list-style: none; display: grid; gap: 10px; }
+  .rules li { display: grid; grid-template-columns: 30px 1fr; gap: 8px; align-items: start; font-size: 15px; }
+  .rules .i { font-size: 20px; line-height: 1.2; text-align: center; }
+  .rules b { color: #fff; }
+  .btn {
+    display: block; width: 100%; padding: 15px; margin-top: 10px;
+    border: 0; border-radius: 14px; cursor: pointer;
+    font: inherit; font-weight: 700; font-size: 18px;
+    background: linear-gradient(180deg, #ffc867, #ff9d2e); color: #1d1005;
+  }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); font-size: 16px; padding: 12px; }
+  .best { color: var(--muted); font-size: 14px; margin-top: 12px; }
+  .big { font-size: 52px; font-weight: 900; margin: 6px 0 0; letter-spacing: -1px; }
+  .stats { color: var(--muted); font-size: 14px; margin: 4px 0 8px; }
+  .new { color: var(--accent); font-weight: 700; }
+  .install { font-size: 13px; color: var(--muted); margin-top: 14px; }
+  [hidden] { display: none !important; }
+
+  .toast {
+    position: fixed; left: 50%; top: 32%; transform: translate(-50%, -50%);
+    z-index: 3; pointer-events: none; text-align: center;
+    font-weight: 900; font-size: 34px; letter-spacing: -.5px; color: #fff;
+    text-shadow: 0 0 24px rgba(139, 92, 246, .9);
+    opacity: 0; transition: opacity .3s;
+  }
+  .toast.show { opacity: 1; }
+  .toast small { display: block; font-size: 15px; font-weight: 500; color: var(--muted); text-shadow: none; }
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="Игрално поле"></canvas>
+
+<div class="hud" id="hud" hidden>
+  <div>
+    <div class="score" id="score">0</div>
+    <div class="combo" id="combo"></div>
+  </div>
+  <div class="mid">
+    <div class="lives" id="lives" aria-label="Животи"></div>
+    <div class="sub" id="wave">Вълна 1</div>
+  </div>
+  <div class="right">
+    <button id="btnPause" type="button" aria-label="Пауза">⏸</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<section class="screen" id="scrStart">
+  <div class="card">
+    <h1>ДУПКАТА</h1>
+    <p class="tagline">Черната дупка на пода зарежда всичко над нея.</p>
+    <ul class="rules">
+      <li><span class="i">👆</span><span><b>Ритни сфера с пръст.</b> Тя отскача обратно на пръста ти: докосни я отдолу и полита нагоре, отгоре и пада надолу.</span></li>
+      <li><span class="i">🕳️</span><span><b>Движи дупката</b>, като плъзгаш пръст по пода. Сфера над дупката се зарежда и <b>вдига ниво</b>. Колкото е по-ниско, толкова по-бързо се зарежда, но и толкова по-силно я дърпа.</span></li>
+      <li><span class="i">🚀</span><span><b>Изстреляй я през горния ръб</b>, за да вземеш точките. Всяко ниво удвоява стойността, а заредените сфери отскачат по-силно.</span></li>
+      <li><span class="i">💔</span><span>Ако сфера <b>падне в дупката</b>, губиш живот. Ако удари пода, губи ниво, а сфера на ниво 1 се разбива.</span></li>
+      <li><span class="i">💣</span><span><b>Бомбите</b> също се зареждат. Нахрани дупката с тях, преди да паднат на пода.</span></li>
+      <li><span class="i">⭐</span><span><b>Звезда</b>, хвърлена в дупката, вдига нивото на всички сфери. <b>Сърце</b>, изстреляно нагоре, ти дава живот.</span></li>
+    </ul>
+    <button class="btn" id="btnPlay" type="button">Играй</button>
+    <button class="btn ghost" id="btnSound" type="button">Звук: вкл.</button>
+    <div class="best" id="bestStart"></div>
+    <div class="install" id="installHint">На Android: меню ⋮ в Chrome → „Добавяне към началния екран“, за да я играеш като приложение.</div>
+    <button class="btn ghost" id="btnInstall" type="button" hidden>📲 Инсталирай на телефона</button>
+  </div>
+</section>
+
+<section class="screen" id="scrPause" hidden>
+  <div class="card">
+    <h2>Пауза</h2>
+    <button class="btn" id="btnResume" type="button">Продължи</button>
+    <button class="btn ghost" id="btnSound2" type="button">Звук: вкл.</button>
+    <button class="btn ghost" id="btnQuit" type="button">Към началото</button>
+  </div>
+</section>
+
+<section class="screen" id="scrOver" hidden>
+  <div class="card">
+    <h2>Дупката победи</h2>
+    <div class="big" id="finalScore">0</div>
+    <div class="stats" id="finalStats"></div>
+    <div class="new" id="newBest" hidden>Нов рекорд!</div>
+    <button class="btn" id="btnAgain" type="button">Пак</button>
+    <button class="btn ghost" id="btnHome" type="button">Към началото</button>
+  </div>
+</section>
+
+<script src="game.js"></script>
+</body>
+</html>
