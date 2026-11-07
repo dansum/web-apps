@@ -1,14 +1,14 @@
 {
   "name": "Дупката",
   "short_name": "Дупката",
-  "description": "Черна дупка на пода зарежда сферите над нея. Ритни ги, зареди ги и ги изстреляй.",
+  "description": "3D игра без реклами: управляваш дупка в земята, гълташ всичко по-малко от нея и растеш.",
   "lang": "bg",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",
   "orientation": "portrait",
-  "background_color": "#07060f",
-  "theme_color": "#07060f",
+  "background_color": "#8fd3ff",
+  "theme_color": "#8fd3ff",
   "categories": ["games"],
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
