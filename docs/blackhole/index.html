@@ -116,17 +116,39 @@
   .small { font-size: 13px; color: var(--muted); margin-top: 12px; }
   [hidden] { display: none !important; }
   .loading { position: fixed; inset: 0; display: grid; place-items: center; font-weight: 700; color: #fff; z-index: 9; }
+
+  .topbar { display: flex; justify-content: space-between; align-items: center; margin: -6px -4px 6px; }
+  .lang { display: inline-flex; border: 2px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .lang button { border: 0; background: transparent; font: inherit; font-weight: 700; font-size: 13px; padding: 5px 11px; cursor: pointer; color: var(--muted); }
+  .lang button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+  .note { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+  .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 6px 0 14px; }
+  .seg button { border: 2px solid var(--line); background: #fff; border-radius: 12px; padding: 8px 4px; font: inherit; cursor: pointer; color: var(--ink); }
+  .seg button b { display: block; font-size: 15px; }
+  .seg button span { font-size: 12px; color: var(--muted); }
+  .seg button[aria-pressed="true"] { border-color: var(--accent); background: #ede9fe; }
+  .sec { text-align: left; font-weight: 900; font-size: 14px; margin: 4px 0 4px; display: flex; justify-content: space-between; align-items: center; }
+  .sec button { border: 2px solid var(--line); background: #fff; border-radius: 999px; padding: 4px 12px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .cats { display: grid; gap: 2px; text-align: left; margin-bottom: 6px; }
+  .cat { display: grid; grid-template-columns: 26px 1fr 34px; align-items: center; gap: 6px; padding: 4px 2px; }
+  .cat .ic { font-size: 19px; text-align: center; }
+  .cat .nm { font-size: 13px; font-weight: 700; }
+  .cat .nm small { display: block; font-weight: 500; color: var(--muted); font-size: 11px; line-height: 1.2; }
+  .cat .n { font-weight: 900; text-align: right; font-size: 15px; }
+  .cat input[type=range] { width: 100%; accent-color: var(--accent); grid-column: 2 / 3; margin: 0; height: 24px; }
+  .cat.off .nm, .cat.off .ic { opacity: .45; }
+  .warn { background: #fef3c7; color: #92400e; border-radius: 10px; padding: 8px 10px; font-size: 13px; text-align: left; margin: 6px 0; }
 </style>
 </head>
 <body>
 <canvas id="c" aria-label="Игрално поле"></canvas>
-<div class="loading" id="loading">Зареждане…</div>
+<div class="loading" id="loading">…</div>
 
 <div class="hud" id="hud" hidden>
   <div class="hud-row">
-    <div class="pill" id="lvlName">Ниво 1</div>
+    <div class="pill" id="lvlName"></div>
     <div class="pill timer" id="timer">1:40</div>
-    <button id="btnPause" type="button" aria-label="Пауза">⏸</button>
+    <button id="btnPause" type="button" aria-label="Pause">⏸</button>
   </div>
   <div class="progress" id="progress">
     <div class="fill" id="progFill"></div>
@@ -143,52 +165,77 @@
 
 <section class="screen" id="scrMenu" hidden>
   <div class="card">
-    <h1>ДУП<span>КАТА</span></h1>
-    <p class="tagline">Глътни всичко, което е по-малко от теб, и расти.</p>
-    <div class="coins" id="coins">🪙 0</div>
-    <button class="btn" id="btnLevel" type="button">Ниво 1<small id="lvlSub">Парк</small></button>
-    <button class="btn alt" id="btnBattle" type="button">Битка<small>2 минути срещу 4 дупки</small></button>
+    <div class="topbar">
+      <div class="coins" id="coins">🪙 0</div>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-lang="bg">БГ</button><button type="button" data-lang="en">EN</button>
+      </div>
+    </div>
+    <h1 id="logo"></h1>
+    <p class="tagline" data-i18n="tagline"></p>
+    <button class="btn alt" id="btnContinue" type="button" hidden><span data-i18n="continue"></span><small id="continueSub"></small></button>
+    <button class="btn" id="btnCareer" type="button"><span data-i18n="career"></span><small id="careerSub"></small></button>
+    <button class="btn" id="btnSingle" type="button"><span data-i18n="single"></span><small data-i18n="singleSub"></small></button>
+    <button class="btn alt" id="btnBattle" type="button"><span data-i18n="battle"></span><small data-i18n="battleSub"></small></button>
     <div class="shop" id="shop"></div>
     <ol class="how">
-      <li>Плъзни пръст където и да е по екрана, за да движиш дупката.</li>
-      <li>Пропада всичко, което е по-малко от дупката. Колкото повече глътнеш, толкова повече растеш.</li>
-      <li>В битката по-голяма дупка може да глътне по-малка.</li>
+      <li data-i18n="how1"></li>
+      <li data-i18n="how2"></li>
+      <li data-i18n="how3"></li>
     </ol>
-    <button class="btn ghost" id="btnSound" type="button">Звук: вкл.</button>
-    <button class="btn ghost" id="btnInstall" type="button" hidden>📲 Инсталирай на телефона</button>
-    <div class="small" id="installHint">На Android: Chrome → меню ⋮ → „Добавяне към началния екран“. Без реклами, работи и офлайн.</div>
+    <button class="btn ghost" id="btnSound" type="button"></button>
+    <button class="btn ghost" id="btnInstall" type="button" hidden data-i18n="install"></button>
+    <div class="small" id="installHint" data-i18n="installHint"></div>
+  </div>
+</section>
+
+<section class="screen" id="scrSingle" hidden>
+  <div class="card">
+    <h2 data-i18n="single"></h2>
+    <div class="sec" data-i18n="mapSize"></div>
+    <div class="seg" id="sizes">
+      <button type="button" data-size="s"><b data-i18n="sizeS"></b><span>2 min</span></button>
+      <button type="button" data-size="m"><b data-i18n="sizeM"></b><span>3 min</span></button>
+      <button type="button" data-size="l"><b data-i18n="sizeL"></b><span>5 min</span></button>
+    </div>
+    <div class="sec"><span data-i18n="whatToEat"></span><button type="button" id="btnRandom" data-i18n="random"></button></div>
+    <div class="cats" id="cats"></div>
+    <div class="warn" id="singleWarn" hidden data-i18n="needSmall"></div>
+    <button class="btn" id="btnSinglePlay" type="button" data-i18n="play"></button>
+    <button class="btn ghost" id="btnSingleBack" type="button" data-i18n="back"></button>
   </div>
 </section>
 
 <section class="screen" id="scrPause" hidden>
   <div class="card">
-    <h2>Пауза</h2>
-    <button class="btn" id="btnResume" type="button">Продължи</button>
-    <button class="btn ghost" id="btnSound2" type="button">Звук: вкл.</button>
-    <button class="btn ghost" id="btnQuit" type="button">Към менюто</button>
+    <h2 data-i18n="paused"></h2>
+    <button class="btn" id="btnResume" type="button" data-i18n="resume"></button>
+    <button class="btn ghost" id="btnSound2" type="button"></button>
+    <button class="btn ghost" id="btnQuit" type="button" data-i18n="toMenu"></button>
+    <p class="note" data-i18n="savedNote"></p>
   </div>
 </section>
 
 <section class="screen" id="scrLevelEnd" hidden>
   <div class="card">
-    <h2 id="leTitle">Ниво 1</h2>
+    <h2 id="leTitle"></h2>
     <div class="stars" id="leStars"></div>
     <p class="big" id="lePct">0%</p>
     <p class="stat" id="leStat"></p>
     <p class="coins" id="leCoins"></p>
-    <button class="btn" id="btnNext" type="button">Следващо ниво</button>
-    <button class="btn ghost" id="btnRetry" type="button">Пак това ниво</button>
-    <button class="btn ghost" id="btnMenu1" type="button">Към менюто</button>
+    <button class="btn" id="btnNext" type="button" data-i18n="next"></button>
+    <button class="btn ghost" id="btnRetry" type="button" data-i18n="retry"></button>
+    <button class="btn ghost" id="btnMenu1" type="button" data-i18n="toMenu"></button>
   </div>
 </section>
 
 <section class="screen" id="scrBattleEnd" hidden>
   <div class="card">
-    <h2 id="beTitle">Битката свърши</h2>
+    <h2 id="beTitle"></h2>
     <div class="rank" id="beRank"></div>
     <p class="coins" id="beCoins"></p>
-    <button class="btn alt" id="btnBattleAgain" type="button">Нова битка</button>
-    <button class="btn ghost" id="btnMenu2" type="button">Към менюто</button>
+    <button class="btn alt" id="btnBattleAgain" type="button" data-i18n="newBattle"></button>
+    <button class="btn ghost" id="btnMenu2" type="button" data-i18n="toMenu"></button>
   </div>
 </section>
 

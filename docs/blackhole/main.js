@@ -31,14 +31,114 @@ const LEVEL_TIME = 100;      // секунди за ниво
 const BATTLE_TIME = 120;     // секунди за битка
 const STARS = [0.4, 0.7, 0.95];
 const THEMES = ['park', 'city', 'farm', 'downtown'];
-const THEME_NAMES = { park: 'Парк', city: 'Квартал', farm: 'Ферма', downtown: 'Център', battle: 'Битка' };
 const PLAYER_COLOR = '#7c3aed';
+const PLAYER_NAMES = { bg: 'Ти', en: 'You' };
 const BOTS = [
-  { name: 'Бобо', color: '#ef4444' },
-  { name: 'Мира', color: '#f59e0b' },
-  { name: 'Зико', color: '#10b981' },
-  { name: 'Лора', color: '#3b82f6' },
+  { names: { bg: 'Бобо', en: 'Bobo' }, color: '#ef4444' },
+  { names: { bg: 'Мира', en: 'Mira' }, color: '#f59e0b' },
+  { names: { bg: 'Зико', en: 'Ziko' }, color: '#10b981' },
+  { names: { bg: 'Лора', en: 'Lora' }, color: '#3b82f6' },
 ];
+// Единично ниво: размер на картата → полуразмер, време и множител за броя неща
+const SIZES = { s: { L: 24, time: 120, k: 1 }, m: { L: 34, time: 180, k: 2 }, l: { L: 46, time: 300, k: 3.6 } };
+// Категории неща; max е за малка карта. small = достатъчно малки, за да се расте от тях.
+const CATS = [
+  { id: 'people', ic: '🧍', types: ['person'], max: 40, small: true },
+  { id: 'animals', ic: '🐄', types: ['chicken', 'sheep', 'pig', 'cow'], max: 30, small: true },
+  { id: 'street', ic: '🪑', types: ['cone', 'hydrant', 'bin', 'lamp', 'bench', 'busstop'], max: 40, small: true },
+  { id: 'plants', ic: '🌳', types: ['flowers', 'bush', 'tree', 'pine'], max: 40, small: true },
+  { id: 'cars', ic: '🚗', types: ['car'], max: 20 },
+  { id: 'farm', ic: '🌾', types: ['hay', 'fence', 'trough', 'haystack', 'silo', 'windmill'], max: 20 },
+  { id: 'park', ic: '⛲', types: ['statue', 'kiosk', 'slide', 'fountain', 'gazebo'], max: 10 },
+  { id: 'big', ic: '🚌', types: ['tractor', 'truck', 'bus'], max: 8 },
+  { id: 'houses', ic: '🏠', types: ['house', 'shop', 'barn'], max: 10 },
+  { id: 'blocks', ic: '🏢', types: ['block'], max: 4 },
+  { id: 'towers', ic: '🏙️', types: ['tower'], max: 3 },
+];
+
+// ================= езици =================
+const I18N = {
+  bg: {
+    title: 'Дупката', logo: 'ДУП<span>КАТА</span>',
+    tagline: 'Глътни всичко, което е по-малко от теб, и расти.',
+    continue: '▶ Продължи', contSub: (w, tm) => `${w} · остават ${tm}`,
+    career: 'Кариера', careerSub: (n, th) => `Ниво ${n} · ${th}`,
+    single: 'Единично ниво', singleSub: 'Ти избираш какво и колко да има',
+    battle: 'Битка', battleSub: '2 минути срещу 4 дупки',
+    how1: 'Плъзни пръст където и да е по екрана, за да движиш дупката.',
+    how2: 'Пропада всичко, което е по-малко от дупката. Колкото повече глътнеш, толкова повече растеш.',
+    how3: 'В битката по-голяма дупка може да глътне по-малка.',
+    soundOn: 'Звук: вкл.', soundOff: 'Звук: изкл.',
+    install: '📲 Инсталирай на телефона',
+    installHint: 'На Android: Chrome → меню ⋮ → „Добавяне към началния екран“. Без реклами, работи и офлайн.',
+    mapSize: 'Размер на картата', sizeS: 'Малка', sizeM: 'Средна', sizeL: 'Голяма',
+    whatToEat: 'Какво да има', random: '🎲 Случайно',
+    needSmall: 'Добави малки неща (хора, животни, улични неща или растения), иначе дупката няма с какво да порасне.',
+    play: 'Играй', back: 'Назад', paused: 'Пауза', resume: 'Продължи', toMenu: 'Към менюто',
+    savedNote: 'Напредъкът ти е запазен. Можеш да продължиш и по-късно от менюто.',
+    next: 'Следващо ниво', newSetup: 'Нова настройка', retry: 'Пак същото', newBattle: 'Нова битка',
+    level: 'Ниво', size: 'Размер', you: 'Ти',
+    upSize: 'Размер', upSpeed: 'Скорост', upTime: 'Време', upLvl: (a, b) => `ниво ${a}/${b}`, max: 'макс.',
+    park: 'Парк', city: 'Квартал', farm: 'Ферма', downtown: 'Център',
+    eatAll: 'Глътни колкото можеш повече', battleGo: 'Битка!', beBiggest: 'Стани най-голямата дупка',
+    gotEaten: (n) => `Глътна те ${n}!`, backSoon: 'Връщаш се след малко', ateHole: (n) => `Глътна ${n}!`,
+    backIn: 'Пак си в играта!', welcomeBack: 'Продължаваш',
+    levelDone: (n) => `Ниво ${n} премина!`, almost: 'Почти!', done: 'Готово!', need40: 'Нужни са 40% за звезда',
+    winner: '🏆 Ти си най-голямата дупка!', place: (n) => `${n}. място`,
+    cat_people: 'Хора', catd_people: 'вървят наоколо',
+    cat_animals: 'Животни', catd_animals: 'кокошки, овце, прасета, крави',
+    cat_street: 'Улични неща', catd_street: 'конуси, кошчета, лампи, пейки',
+    cat_plants: 'Растения', catd_plants: 'цветя, храсти, дървета',
+    cat_cars: 'Коли', catd_cars: 'карат по пътищата',
+    cat_farm: 'Ферма', catd_farm: 'бали сено, огради, силози, мелници',
+    cat_park: 'Паркови', catd_park: 'статуи, павилиони, пързалки, фонтани',
+    cat_big: 'Големи машини', catd_big: 'трактори, камиони, автобуси',
+    cat_houses: 'Къщи', catd_houses: 'къщи, магазини, хамбари',
+    cat_blocks: 'Блокове', catd_blocks: 'жилищни блокове',
+    cat_towers: 'Небостъргачи', catd_towers: 'най-високите сгради',
+  },
+  en: {
+    title: 'The Hole', logo: 'THE <span>HOLE</span>',
+    tagline: 'Swallow everything smaller than you and grow.',
+    continue: '▶ Continue', contSub: (w, tm) => `${w} · ${tm} left`,
+    career: 'Career', careerSub: (n, th) => `Level ${n} · ${th}`,
+    single: 'Single level', singleSub: 'You choose what goes on the map',
+    battle: 'Battle', battleSub: '2 minutes against 4 holes',
+    how1: 'Drag anywhere on the screen to move the hole.',
+    how2: 'Anything smaller than the hole falls in. The more you swallow, the bigger you get.',
+    how3: 'In a battle, a bigger hole can swallow a smaller one.',
+    soundOn: 'Sound: on', soundOff: 'Sound: off',
+    install: '📲 Install on your phone',
+    installHint: 'On Android: Chrome → menu ⋮ → “Add to Home screen”. No ads, works offline.',
+    mapSize: 'Map size', sizeS: 'Small', sizeM: 'Medium', sizeL: 'Large',
+    whatToEat: 'What goes on the map', random: '🎲 Random',
+    needSmall: 'Add some small things (people, animals, street items or plants), or the hole will have nothing to grow on.',
+    play: 'Play', back: 'Back', paused: 'Paused', resume: 'Resume', toMenu: 'Main menu',
+    savedNote: 'Your progress is saved. You can continue later from the menu.',
+    next: 'Next level', newSetup: 'New setup', retry: 'Play again', newBattle: 'New battle',
+    level: 'Level', size: 'Size', you: 'You',
+    upSize: 'Size', upSpeed: 'Speed', upTime: 'Time', upLvl: (a, b) => `level ${a}/${b}`, max: 'max',
+    park: 'Park', city: 'Suburb', farm: 'Farm', downtown: 'Downtown',
+    eatAll: 'Swallow as much as you can', battleGo: 'Battle!', beBiggest: 'Become the biggest hole',
+    gotEaten: (n) => `${n} swallowed you!`, backSoon: 'You will be back in a moment', ateHole: (n) => `You swallowed ${n}!`,
+    backIn: 'You are back!', welcomeBack: 'Welcome back',
+    levelDone: (n) => `Level ${n} complete!`, almost: 'Almost!', done: 'Done!', need40: '40% needed for a star',
+    winner: '🏆 You are the biggest hole!', place: (n) => ['1st', '2nd', '3rd', '4th', '5th'][n - 1] + ' place',
+    cat_people: 'People', catd_people: 'walking around',
+    cat_animals: 'Animals', catd_animals: 'chickens, sheep, pigs, cows',
+    cat_street: 'Street items', catd_street: 'cones, bins, lamps, benches',
+    cat_plants: 'Plants', catd_plants: 'flowers, bushes, trees',
+    cat_cars: 'Cars', catd_cars: 'driving on the roads',
+    cat_farm: 'Farm', catd_farm: 'hay bales, fences, silos, windmills',
+    cat_park: 'Park features', catd_park: 'statues, kiosks, slides, fountains',
+    cat_big: 'Big vehicles', catd_big: 'tractors, trucks, buses',
+    cat_houses: 'Houses', catd_houses: 'houses, shops, barns',
+    cat_blocks: 'Apartment blocks', catd_blocks: 'residential blocks',
+    cat_towers: 'Skyscrapers', catd_towers: 'the tallest buildings',
+  },
+};
+let lang = store.get('dup.lang', null) || ((navigator.language || 'bg').toLowerCase().startsWith('bg') ? 'bg' : 'en');
+function t(k, ...a) { const v = (I18N[lang] && I18N[lang][k]) ?? I18N.bg[k] ?? k; return typeof v === 'function' ? v(...a) : v; }
 
 const save = {
   coins: store.get('dup.coins', 0),
@@ -48,9 +148,9 @@ const save = {
 };
 function persist() { store.set('dup.coins', save.coins); store.set('dup.level', save.level); store.set('dup.up', save.up); store.set('dup.sound', save.sound); }
 const UPGRADES = [
-  { id: 'size', ic: '⭕', nm: 'Размер', max: 10 },
-  { id: 'speed', ic: '💨', nm: 'Скорост', max: 10 },
-  { id: 'time', ic: '⏱️', nm: 'Време', max: 10 },
+  { id: 'size', ic: '⭕', nm: 'upSize', max: 10 },
+  { id: 'speed', ic: '💨', nm: 'upSpeed', max: 10 },
+  { id: 'time', ic: '⏱️', nm: 'upTime', max: 10 },
 ];
 const upCost = (lvl) => Math.round(60 * Math.pow(1.55, lvl));
 const startR = () => 0.8 + 0.08 * save.up.size;
@@ -361,7 +461,7 @@ function spawn(type, x, z, ry, opts = {}) {
   mesh.matrixAutoUpdate = false;
   mesh.updateMatrix();
   scene.add(mesh);
-  const o = { type, mesh, x, y: 0, z, ry, r: def.r, h: sy, v: Math.pow(sx * sy * sz, 0.72), dead: false, fall: null, mover: null, wob: 0 };
+  const o = { id: world.nextId++, type, mesh, x, y: 0, z, ry, r: def.r, h: sy, v: Math.pow(sx * sy * sz, 0.72), dead: false, fall: null, mover: null, wob: 0 };
   objs.push(o);
   occ.push({ x, z, r: def.r });
   world.total += o.v;
@@ -641,6 +741,68 @@ function layoutFarm(L) {
   finishGround(cv, E);
 }
 
+
+// Единично ниво: картата се пълни с избраните категории и брой.
+function layoutCustom(L, counts) {
+  const E = L + 30;
+  const { cv, P } = makeGroundCanvas(E, '#7fcf6a');
+  mowStripes(P, L, '#78c763');
+  const n = (k) => counts[k] || 0;
+  const urban = n('cars') + n('big') + n('houses') + n('blocks') + n('towers') > 0;
+  const roads = [];
+  const roadW = 7;
+  if (urban) {
+    const k = Math.max(1, Math.round((2 * L) / 28));
+    const sp = (2 * L) / k;
+    for (let i = 0; i < k; i++) roads.push(-L + sp * (i + 0.5));
+    for (const c of roads) {
+      P.rect(c - roadW / 2 - 1.4, -L, c + roadW / 2 + 1.4, L, '#cfd4da');
+      P.rect(-L, c - roadW / 2 - 1.4, L, c + roadW / 2 + 1.4, '#cfd4da');
+    }
+    for (const c of roads) { P.rect(c - roadW / 2, -L, c + roadW / 2, L, '#4b5563'); P.rect(-L, c - roadW / 2, L, c + roadW / 2, '#4b5563'); }
+    for (const c of roads) { P.line(c, -L, c, L, 0.2, '#f8fafc', [1.6, 1.6]); P.line(-L, c, L, c, 0.2, '#f8fafc', [1.6, 1.6]); }
+    for (const cx of roads) for (const cz of roads) P.rect(cx - roadW / 2, cz - roadW / 2, cx + roadW / 2, cz + roadW / 2, '#4b5563');
+  } else {
+    P.ring(0, 0, L * 0.55, 2.6, '#e9d8a6');
+    P.line(-L, 0, L, 0, 2.6, '#e9d8a6'); P.line(0, -L, 0, L, 2.6, '#e9d8a6');
+  }
+  border(P, L);
+  finishGround(cv, E);
+
+  const onRoad = (x, z, r) => roads.some((c) => Math.abs(x - c) < roadW / 2 + 1.4 + r * 0.7 || Math.abs(z - c) < roadW / 2 + 1.4 + r * 0.7);
+  const VEH = new Set(['car', 'bus', 'truck']);
+  const WALK = new Set(['person', 'chicken', 'sheep', 'pig', 'cow']);
+  const maxR = (c) => Math.max(...c.types.map((tp) => T[tp].r));
+  const order = [...CATS].sort((a, b) => maxR(b) - maxR(a));
+  for (const c of order) {
+    // по-големите типове в категорията са по-редки
+    const weights = c.types.map((tp) => 1 / Math.sqrt(T[tp].r));
+    const wsum = weights.reduce((s, w) => s + w, 0);
+    const pickType = () => { let r = R() * wsum; for (let i = 0; i < c.types.length; i++) { r -= weights[i]; if (r <= 0) return c.types[i]; } return c.types[0]; };
+    for (let i = 0; i < n(c.id); i++) {
+      const type = pickType();
+      if (urban && VEH.has(type)) {
+        for (let tr = 0; tr < 20; tr++) {
+          const road = pick(roads), axis = R() < 0.5 ? 'x' : 'z', dir = R() < 0.5 ? 1 : -1, lane = 1.7;
+          const along = RR(-L + 4, L - 4);
+          const lc = axis === 'z' ? road - lane * dir : road + lane * dir;
+          const x = axis === 'x' ? along : lc, z = axis === 'x' ? lc : along;
+          const ry = axis === 'x' ? (dir > 0 ? 0 : Math.PI) : (dir > 0 ? -Math.PI / 2 : Math.PI / 2);
+          const o = spawn(type, x, z, ry);
+          if (o) { driver(o, axis, road, dir, lane, type === 'car' ? RR(4, 6.5) : RR(3, 4.5)); break; }
+        }
+        continue;
+      }
+      for (let tr = 0; tr < 40; tr++) {
+        const x = RR(-L + 1.5, L - 1.5), z = RR(-L + 1.5, L - 1.5);
+        if (urban && onRoad(x, z, T[type].r)) continue;
+        const o = spawn(type, x, z);
+        if (o) { if (WALK.has(type)) walker(o, x, z, type === 'cow' ? 3 : 2.5, type === 'person' ? RR(0.7, 1.3) : RR(0.4, 0.9)); break; }
+      }
+    }
+  }
+}
+
 // ================= дупки =================
 const discMat = new THREE.MeshBasicMaterial({
   colorWrite: false, depthWrite: false,
@@ -665,7 +827,7 @@ function wallGeo(color) {
   return g;
 }
 
-function makeHole(name, color, x, z, R0, bot) {
+function makeHole(names, color, x, z, R0, bot) {
   const grp = new THREE.Group();
   const disc = new THREE.Mesh(discGeo, discMat);
   disc.position.y = 0.003;
@@ -680,7 +842,7 @@ function makeHole(name, color, x, z, R0, bot) {
   const label = document.createElement('div');
   label.className = 'label';
   $('labels').appendChild(label);
-  const h = { name, color, x, z, vx: 0, vz: 0, R: R0, R0, mass: 0, grp, label, bot, alive: true, respawn: 0, eaten: 0, score: 0, think: 0, tx: x, tz: z };
+  const h = { names, color, x, z, vx: 0, vz: 0, R: R0, R0, mass: 0, grp, label, bot, alive: true, respawn: 0, eaten: 0, score: 0, think: 0, tx: x, tz: z };
   holes.push(h);
   return h;
 }
@@ -689,7 +851,8 @@ const targetR = (h) => Math.sqrt(h.R0 * h.R0 + GROW * h.mass);
 // ================= състояние на играта =================
 let mode = 'menu';      // menu | level | battle
 let state = 'menu';     // menu | play | pause | end
-let timeLeft = 0, levelNo = 1, theme = 'park';
+let timeLeft = 0, theme = 'park';
+let cfgCur = { kind: 'career', level: 1 };
 let elapsed = 0;
 let sweep = 0;
 
@@ -701,35 +864,41 @@ function clearWorld() {
   objs = []; occ = []; holes = []; player = null; decor = [];
 }
 
-function buildLevel(n) {
+// Светът се строи детерминирано от настройката (cfg), за да може запазена игра да се възстанови.
+function buildWorld(cfg) {
   clearWorld();
-  levelNo = n;
-  theme = THEMES[(n - 1) % THEMES.length];
-  const cycle = Math.floor((n - 1) / THEMES.length);
-  rng = mulberry32(1000 + n * 7919);
-  world = { L: 0, total: 0 };
-  if (theme === 'park') { world.L = 28 + cycle * 5; layoutPark(world.L); }
-  else if (theme === 'farm') { world.L = 36 + cycle * 5; layoutFarm(world.L); }
-  else layoutCity(theme === 'city' ? 40 + cycle * 6 : 46 + cycle * 6, theme);
-  rng = Math.random;
-  player = makeHole('Ти', PLAYER_COLOR, 0, theme === 'park' ? 9 : 0, startR(), false);
-}
-
-function buildBattle() {
-  clearWorld();
-  theme = 'battle';
-  rng = mulberry32(Math.floor(Math.random() * 1e9));
-  world = { L: 0, total: 0 };
-  layoutCity(48, R() < 0.5 ? 'city' : 'downtown');
-  rng = Math.random;
-  const L = world.L;
-  const R0 = 0.9 + 0.04 * save.up.size;
-  player = makeHole('Ти', PLAYER_COLOR, 0, 0, R0, false);
-  const spots = [[-L * 0.6, -L * 0.6], [L * 0.6, -L * 0.6], [-L * 0.6, L * 0.6], [L * 0.6, L * 0.6]];
-  BOTS.forEach((b, i) => {
-    const h = makeHole(b.name, b.color, spots[i][0], spots[i][1], 0.9, true);
-    h.skill = 0.84 + i * 0.05;
-  });
+  world = { L: 0, total: 0, nextId: 0 };
+  if (cfg.kind === 'career') {
+    const n = cfg.level;
+    theme = THEMES[(n - 1) % THEMES.length];
+    const cycle = Math.floor((n - 1) / THEMES.length);
+    rng = mulberry32(1000 + n * 7919);
+    if (theme === 'park') { world.L = 28 + cycle * 5; layoutPark(world.L); }
+    else if (theme === 'farm') { world.L = 36 + cycle * 5; layoutFarm(world.L); }
+    else layoutCity(theme === 'city' ? 40 + cycle * 6 : 46 + cycle * 6, theme);
+    rng = Math.random;
+    player = makeHole(PLAYER_NAMES, PLAYER_COLOR, 0, theme === 'park' ? 9 : 0, startR(), false);
+  } else if (cfg.kind === 'single') {
+    theme = 'single';
+    rng = mulberry32(cfg.seed);
+    world.L = SIZES[cfg.size].L;
+    layoutCustom(world.L, cfg.counts);
+    rng = Math.random;
+    player = makeHole(PLAYER_NAMES, PLAYER_COLOR, 0, 0, startR(), false);
+  } else {
+    theme = 'battle';
+    rng = mulberry32(cfg.seed);
+    layoutCity(48, R() < 0.5 ? 'city' : 'downtown');
+    rng = Math.random;
+    const L = world.L;
+    const R0 = 0.9 + 0.04 * save.up.size;
+    player = makeHole(PLAYER_NAMES, PLAYER_COLOR, 0, 0, R0, false);
+    const spots = [[-L * 0.6, -L * 0.6], [L * 0.6, -L * 0.6], [-L * 0.6, L * 0.6], [L * 0.6, L * 0.6]];
+    BOTS.forEach((b, i) => {
+      const h = makeHole(b.names, b.color, spots[i][0], spots[i][1], 0.9, true);
+      h.skill = 0.84 + i * 0.05;
+    });
+  }
 }
 
 // ================= вход =================
@@ -879,8 +1048,8 @@ function update(dt) {
         a.mass += b.mass * 0.4 + 4;
         b.mass *= 0.5;
         sfx.eatHole(); buzz(60);
-        if (b === player) banner('Глътна те ' + a.name + '!', 'Връщаш се след малко');
-        else if (a === player) { banner('Глътна ' + b.name + '!'); player.score += 50; }
+        if (b === player) banner(t('gotEaten', holeName(a)), t('backSoon'));
+        else if (a === player) { banner(t('ateHole', holeName(b))); player.score += 50; }
       }
     }
   }
@@ -1039,7 +1208,7 @@ function respawnHole(h) {
   }
   h.x = best[0]; h.z = best[1]; h.vx = h.vz = 0;
   h.alive = true; h.R = 0.2; h.safe = 3;
-  if (h === player) banner('Пак си в играта!');
+  if (h === player) banner(t('backIn'));
 }
 
 // ================= камера, HUD =================
@@ -1066,70 +1235,114 @@ function updateCamera(dt, snap) {
 }
 
 let hudT = 0;
+const holeName = (h) => (h === player ? t('you') : h.names[lang]);
 function updateHud(dt) {
   hudT -= dt;
   // етикети над дупките
   for (const h of holes) {
-    const show = mode === 'battle' && h.alive;
-    if (!show) { h.label.style.display = 'none'; continue; }
+    const showL = mode === 'battle' && h.alive;
+    if (!showL) { h.label.style.display = 'none'; continue; }
     const [sx, sy, ok] = toScreen(h.x, 0, h.z - h.R * 1.05);
     h.label.style.display = ok ? 'block' : 'none';
     h.label.style.left = sx + 'px'; h.label.style.top = sy + 'px';
-    h.label.textContent = (h.safe > 0 ? '🛡 ' : '') + h.name + ' · ' + Math.round(h.R * 10);
+    h.label.textContent = (h.safe > 0 ? '🛡 ' : '') + holeName(h) + ' · ' + Math.round(h.R * 10);
   }
   if (hudT > 0) return;
   hudT = 0.2;
-  const t = Math.max(0, Math.ceil(timeLeft));
-  $('timer').textContent = Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0');
-  $('timer').classList.toggle('low', t <= 10);
-  if (t <= 5 && t > 0 && Math.ceil(timeLeft) !== Math.ceil(timeLeft + 0.2)) sfx.tick();
-  $('sizeInfo').textContent = 'Размер ' + Math.round(player.R * 10);
+  const tl = Math.max(0, Math.ceil(timeLeft));
+  $('timer').textContent = fmtTime(tl);
+  $('timer').classList.toggle('low', tl <= 10);
+  if (tl <= 5 && tl > 0 && Math.ceil(timeLeft) !== Math.ceil(timeLeft + 0.2)) sfx.tick();
+  $('sizeInfo').textContent = t('size') + ' ' + Math.round(player.R * 10);
   if (mode === 'level') {
     const pct = clamp(player.eaten / world.total, 0, 1);
     $('progFill').style.width = (pct * 100).toFixed(1) + '%';
     ['m1', 'm2', 'm3'].forEach((id, i) => $(id).classList.toggle('on', pct >= STARS[i]));
   } else {
-    const rank = [...holes].sort((a, b) => b.R - a.R);
-    $('board').innerHTML = rank.map((h, i) => `<div class="${h === player ? 'me' : ''}"><span><i style="background:${h.color}"></i>${i + 1}. ${h.name}</span><span>${Math.round(h.R * 10)}</span></div>`).join('');
+    $('board').innerHTML = rankHtml();
   }
+}
+const fmtTime = (s) => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+function rankHtml() {
+  const rank = [...holes].sort((a, b) => b.R - a.R);
+  return rank.map((h, i) => `<div class="${h === player ? 'me' : ''}"><span><i style="background:${h.color}"></i>${i + 1}. ${holeName(h)}</span><span>${Math.round(h.R * 10)}</span></div>`).join('');
+}
+
+// ================= запазване на напредъка =================
+function snapshot() {
+  for (const o of objs) if (!o.dead && o.fall) consume(o, o.fall.h);
+  const r2 = (v) => Math.round(v * 100) / 100;
+  return {
+    v: 1, cfg: cfgCur, timeLeft, elapsed, starsGot,
+    holes: holes.map((h) => ({ x: r2(h.x), z: r2(h.z), R0: h.R0, mass: h.mass, eaten: h.eaten, score: h.score, alive: h.alive, respawn: h.respawn, safe: h.safe || 0 })),
+    objs: objs.filter((o) => !o.dead).map((o) => [o.id, r2(o.x), r2(o.z), r2(o.ry), (o.mover && o.mover.dir) || 0]),
+  };
+}
+function saveProgress() { if (state === 'play' || state === 'pause') { try { store.set('dup.save', snapshot()); } catch (e) { /* без място */ } } }
+function clearProgress() { store.set('dup.save', null); }
+function applySnapshot(s) {
+  timeLeft = s.timeLeft; elapsed = s.elapsed; starsGot = s.starsGot || 0;
+  const alive = new Map(s.objs.map((a) => [a[0], a]));
+  for (const o of objs) {
+    const a = alive.get(o.id);
+    if (!a) { o.dead = true; scene.remove(o.mesh); continue; }
+    o.x = a[1]; o.z = a[2]; o.ry = a[3];
+    if (o.mover && a[4]) o.mover.dir = a[4];
+    o.mesh.position.set(o.x, 0, o.z); o.mesh.rotation.set(0, o.ry, 0); o.mesh.updateMatrix();
+  }
+  objs = objs.filter((o) => !o.dead);
+  s.holes.forEach((d, i) => {
+    const h = holes[i]; if (!h) return;
+    Object.assign(h, { x: d.x, z: d.z, R0: d.R0, mass: d.mass, eaten: d.eaten, score: d.score, alive: d.alive, respawn: d.respawn || 0, safe: d.safe || 0 });
+    h.R = h.alive ? targetR(h) : 0.01;
+    h.grp.position.set(h.x, 0, h.z); h.grp.scale.set(h.R, 1, h.R);
+  });
 }
 
 // ================= екрани и потоци =================
+const SCREENS = ['scrMenu', 'scrSingle', 'scrPause', 'scrLevelEnd', 'scrBattleEnd'];
 function show(id) {
-  for (const s of ['scrMenu', 'scrPause', 'scrLevelEnd', 'scrBattleEnd']) $(s).hidden = s !== id;
+  for (const s of SCREENS) $(s).hidden = s !== id;
   $('hud').hidden = !(id === null || id === 'scrPause');
 }
-function startLevel(n) {
-  mode = 'level';
-  buildLevel(n);
-  timeLeft = LEVEL_TIME + extraTime();
+function cfgTitle(cfg) {
+  if (cfg.kind === 'career') return t('level') + ' ' + cfg.level + ' · ' + t(THEMES[(cfg.level - 1) % THEMES.length]);
+  if (cfg.kind === 'single') return t('single') + ' · ' + t('size' + cfg.size.toUpperCase());
+  return t('battle');
+}
+function startGame(cfg, snap) {
+  cfgCur = cfg;
+  mode = cfg.kind === 'battle' ? 'battle' : 'level';
+  buildWorld(cfg);
+  timeLeft = cfg.kind === 'career' ? LEVEL_TIME + extraTime() : cfg.kind === 'single' ? SIZES[cfg.size].time : BATTLE_TIME;
   elapsed = 0; starsGot = 0;
-  $('lvlName').textContent = 'Ниво ' + n + ' · ' + THEME_NAMES[theme];
-  $('progress').hidden = false; $('board').hidden = true;
+  if (snap) applySnapshot(snap); else clearProgress();
+  $('lvlName').textContent = cfgTitle(cfg);
+  $('progress').hidden = mode === 'battle'; $('board').hidden = mode !== 'battle';
+  hudT = 0;
   updateCamera(0, true);
   state = 'play';
+  last = performance.now();
   show(null);
-  banner(THEME_NAMES[theme], 'Глътни колкото можеш повече');
+  if (snap) banner(t('welcomeBack'), fmtTime(Math.ceil(timeLeft)));
+  else if (mode === 'battle') banner(t('battleGo'), t('beBiggest'));
+  else banner(cfg.kind === 'career' ? t(theme) : t('single'), t('eatAll'));
   audio();
 }
-function startBattle() {
-  mode = 'battle';
-  buildBattle();
-  timeLeft = BATTLE_TIME;
-  elapsed = 0;
-  $('lvlName').textContent = 'Битка';
-  $('progress').hidden = true; $('board').hidden = false;
-  updateCamera(0, true);
-  state = 'play';
-  show(null);
-  banner('Битка!', 'Стани най-голямата дупка');
-  audio();
+const startCareer = (n) => startGame({ kind: 'career', level: n });
+const startBattle = () => startGame({ kind: 'battle', seed: Math.floor(Math.random() * 1e9) });
+function pause() {
+  if (state !== 'play') return;
+  state = 'pause'; input.active = false; input.x = input.z = 0; joy.style.display = 'none';
+  saveProgress();
+  show('scrPause');
 }
-function pause() { if (state !== 'play') return; state = 'pause'; input.active = false; input.x = input.z = 0; joy.style.display = 'none'; show('scrPause'); }
 function resume() { state = 'play'; last = performance.now(); show(null); }
 
+let nextAction = null;
 function endRound() {
   state = 'end';
+  clearProgress();
   input.active = false; input.x = input.z = 0; joy.style.display = 'none';
   sfx.end();
   if (mode === 'level') {
@@ -1137,22 +1350,24 @@ function endRound() {
     const stars = STARS.filter((x) => pct >= x).length;
     const coins = Math.round(player.score / 25) + stars * 25;
     save.coins += coins;
-    if (stars >= 1 && levelNo >= save.level) save.level = levelNo + 1;
+    const career = cfgCur.kind === 'career';
+    if (career && stars >= 1 && cfgCur.level >= save.level) save.level = cfgCur.level + 1;
     persist();
-    $('leTitle').textContent = stars ? 'Ниво ' + levelNo + ' премина!' : 'Почти!';
+    $('leTitle').textContent = career ? (stars ? t('levelDone', cfgCur.level) : t('almost')) : t('done');
     $('leStars').innerHTML = [0, 1, 2].map((i) => `<span class="${i < stars ? '' : 'off'}">⭐</span>`).join('');
     $('lePct').textContent = Math.round(pct * 100) + '%';
-    $('leStat').textContent = `Размер ${Math.round(player.R * 10)} · ${THEME_NAMES[theme]}` + (stars ? '' : ' · Нужни са 40% за звезда');
+    $('leStat').textContent = t('size') + ' ' + Math.round(player.R * 10) + ' · ' + cfgTitle(cfgCur) + (career && !stars ? ' · ' + t('need40') : '');
     $('leCoins').textContent = '+' + coins + ' 🪙';
-    $('btnNext').hidden = stars === 0;
+    if (career) { $('btnNext').textContent = t('next'); $('btnNext').hidden = stars === 0; nextAction = () => startCareer(cfgCur.level + 1); }
+    else { $('btnNext').textContent = t('newSetup'); $('btnNext').hidden = false; nextAction = openSingle; }
     setTimeout(() => show('scrLevelEnd'), 600);
   } else {
     const rank = [...holes].sort((a, b) => b.R - a.R);
     const place = rank.indexOf(player) + 1;
     const coins = [80, 50, 35, 20, 10][place - 1] + Math.round(player.score / 40);
     save.coins += coins; persist();
-    $('beTitle').textContent = place === 1 ? '🏆 Ти си най-голямата дупка!' : place + '. място';
-    $('beRank').innerHTML = rank.map((h, i) => `<div class="${h === player ? 'me' : ''}"><span><i style="background:${h.color}"></i>${i + 1}. ${h.name}</span><span>${Math.round(h.R * 10)}</span></div>`).join('');
+    $('beTitle').textContent = place === 1 ? t('winner') : t('place', place);
+    $('beRank').innerHTML = rankHtml();
     $('beCoins').textContent = '+' + coins + ' 🪙';
     setTimeout(() => show('scrBattleEnd'), 600);
   }
@@ -1161,15 +1376,17 @@ function endRound() {
 function renderMenu() {
   $('coins').textContent = '🪙 ' + save.coins;
   const n = save.level;
-  $('btnLevel').firstChild.textContent = 'Ниво ' + n;
-  $('lvlSub').textContent = THEME_NAMES[THEMES[(n - 1) % THEMES.length]];
+  $('careerSub').textContent = t('careerSub', n, t(THEMES[(n - 1) % THEMES.length]));
+  const sv = store.get('dup.save', null);
+  $('btnContinue').hidden = !sv;
+  if (sv) $('continueSub').textContent = t('contSub', cfgTitle(sv.cfg), fmtTime(Math.ceil(sv.timeLeft)));
   $('shop').innerHTML = '';
   for (const u of UPGRADES) {
     const lvl = save.up[u.id], cost = upCost(lvl), maxed = lvl >= u.max;
     const b = document.createElement('button');
     b.className = 'up'; b.type = 'button';
     b.disabled = maxed || save.coins < cost;
-    b.innerHTML = `<span class="ic">${u.ic}</span><span class="nm">${u.nm}</span><span class="lv">ниво ${lvl}/${u.max}</span><span class="pr">${maxed ? 'макс.' : cost + ' 🪙'}</span>`;
+    b.innerHTML = `<span class="ic">${u.ic}</span><span class="nm">${t(u.nm)}</span><span class="lv">${t('upLvl', lvl, u.max)}</span><span class="pr">${maxed ? t('max') : cost + ' 🪙'}</span>`;
     b.addEventListener('click', () => {
       if (save.coins < cost || maxed) return;
       save.coins -= cost; save.up[u.id]++; persist(); sfx.grow(); renderMenu();
@@ -1179,27 +1396,99 @@ function renderMenu() {
   syncSound();
 }
 function toMenu() {
+  if (state === 'pause') saveProgress();
   mode = 'menu'; state = 'menu';
-  if (!world || theme === 'battle') { buildLevel(save.level); }
+  if (!world || cfgCur.kind !== 'career') buildWorld({ kind: 'career', level: save.level });
   renderMenu();
   show('scrMenu');
 }
-function syncSound() { const t = 'Звук: ' + (save.sound ? 'вкл.' : 'изкл.'); $('btnSound').textContent = t; $('btnSound2').textContent = t; }
+function syncSound() { const s = t(save.sound ? 'soundOn' : 'soundOff'); $('btnSound').textContent = s; $('btnSound2').textContent = s; }
 function toggleSound() { save.sound = !save.sound; persist(); syncSound(); }
 
-$('btnLevel').addEventListener('click', () => startLevel(save.level));
+// ---------- единично ниво: настройка ----------
+const single = Object.assign({ size: 's', counts: null }, store.get('dup.single', {}));
+function catMax(c, size) { return Math.max(1, Math.round(c.max * SIZES[size].k)); }
+function randomCounts(size) {
+  const counts = {};
+  for (const c of CATS) counts[c.id] = 0;
+  const smalls = CATS.filter((c) => c.small), rest = CATS.filter((c) => !c.small);
+  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const chosen = [...shuffle(smalls).slice(0, 2 + Math.floor(Math.random() * 2)), ...shuffle(rest).slice(0, 2 + Math.floor(Math.random() * 3))];
+  for (const c of chosen) { const m = catMax(c, size); counts[c.id] = Math.max(1, Math.round(m * (0.4 + Math.random() * 0.6))); }
+  return counts;
+}
+function openSingle() {
+  if (!single.counts) single.counts = randomCounts(single.size);
+  renderSingle();
+  show('scrSingle');
+}
+function renderSingle() {
+  for (const b of $('sizes').querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.size === single.size));
+  const box = $('cats'); box.innerHTML = '';
+  for (const c of CATS) {
+    const m = catMax(c, single.size);
+    const v = Math.min(single.counts[c.id] || 0, m);
+    single.counts[c.id] = v;
+    const row = document.createElement('label');
+    row.className = 'cat' + (v ? '' : ' off');
+    row.innerHTML = `<span class="ic">${c.ic}</span><span class="nm">${t('cat_' + c.id)}<small>${t('catd_' + c.id)}</small></span><span class="n">${v}</span><span></span><input type="range" min="0" max="${m}" value="${v}" aria-label="${t('cat_' + c.id)}">`;
+    const inp = row.querySelector('input');
+    inp.addEventListener('input', () => {
+      single.counts[c.id] = +inp.value;
+      row.querySelector('.n').textContent = inp.value;
+      row.classList.toggle('off', +inp.value === 0);
+      checkSingle();
+    });
+    box.appendChild(row);
+  }
+  checkSingle();
+}
+function checkSingle() {
+  const smallN = CATS.filter((c) => c.small).reduce((s, c) => s + (single.counts[c.id] || 0), 0);
+  $('singleWarn').hidden = smallN >= 8;
+  const total = CATS.reduce((s, c) => s + (single.counts[c.id] || 0), 0);
+  $('btnSinglePlay').disabled = total === 0;
+  store.set('dup.single', single);
+}
+$('sizes').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  const old = single.size; single.size = b.dataset.size;
+  // мащабирай броя спрямо новия размер
+  for (const c of CATS) single.counts[c.id] = Math.round((single.counts[c.id] || 0) * SIZES[single.size].k / SIZES[old].k);
+  renderSingle();
+});
+$('btnRandom').addEventListener('click', () => { single.counts = randomCounts(single.size); renderSingle(); sfx.grow(); });
+$('btnSinglePlay').addEventListener('click', () => startGame({ kind: 'single', size: single.size, counts: { ...single.counts }, seed: Math.floor(Math.random() * 1e9) }));
+$('btnSingleBack').addEventListener('click', () => show('scrMenu'));
+
+// ---------- език ----------
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.title = t('title');
+  $('logo').innerHTML = t('logo');
+  for (const el of document.querySelectorAll('[data-i18n]')) el.textContent = t(el.dataset.i18n);
+  for (const b of document.querySelectorAll('[data-lang]')) b.setAttribute('aria-pressed', String(b.dataset.lang === lang));
+  renderMenu();
+  if (!$('scrSingle').hidden) renderSingle();
+}
+for (const b of document.querySelectorAll('[data-lang]')) b.addEventListener('click', () => { lang = b.dataset.lang; store.set('dup.lang', lang); applyLang(); });
+
+$('btnContinue').addEventListener('click', () => { const sv = store.get('dup.save', null); if (sv) startGame(sv.cfg, sv); });
+$('btnCareer').addEventListener('click', () => startCareer(save.level));
+$('btnSingle').addEventListener('click', openSingle);
 $('btnBattle').addEventListener('click', startBattle);
 $('btnPause').addEventListener('click', pause);
 $('btnResume').addEventListener('click', resume);
 $('btnQuit').addEventListener('click', toMenu);
-$('btnNext').addEventListener('click', () => startLevel(levelNo + 1));
-$('btnRetry').addEventListener('click', () => startLevel(levelNo));
+$('btnNext').addEventListener('click', () => nextAction && nextAction());
+$('btnRetry').addEventListener('click', () => startGame(cfgCur));
 $('btnMenu1').addEventListener('click', toMenu);
 $('btnMenu2').addEventListener('click', toMenu);
 $('btnBattleAgain').addEventListener('click', startBattle);
 $('btnSound').addEventListener('click', toggleSound);
 $('btnSound2').addEventListener('click', toggleSound);
-document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { if (state === 'play') pause(); else saveProgress(); } });
+window.addEventListener('pagehide', saveProgress);
 window.addEventListener('popstate', () => { if (state === 'play') pause(); try { history.pushState(null, ''); } catch (e) { /* нищо */ } });
 try { history.pushState(null, ''); } catch (e) { /* нищо */ }
 
@@ -1217,13 +1506,13 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.se
 
 if (/[?&]debug\b/.test(location.search)) {
   window.__dupka = () => ({
-    mode, state, timeLeft, L: world.L, total: world.total,
+    mode, state, timeLeft, L: world.L, total: world.total, cfg: cfgCur,
     player: player && { x: player.x, z: player.z, R: player.R, eaten: player.eaten, alive: player.alive },
-    holes: holes.map((h) => ({ name: h.name, x: h.x, z: h.z, R: h.R, alive: h.alive })),
-    objs: objs.filter((o) => !o.dead && !o.fall).map((o) => ({ x: o.x, z: o.z, r: o.r, v: o.v })),
+    holes: holes.map((h) => ({ name: holeName(h), x: h.x, z: h.z, R: h.R, alive: h.alive })),
+    objs: objs.filter((o) => !o.dead && !o.fall).map((o) => ({ x: o.x, z: o.z, r: o.r, v: o.v, type: o.type })),
     calls: renderer.info.render.calls,
   });
-  window.__dupkaStart = (m, n) => (m === 'battle' ? startBattle() : startLevel(n || 1));
+  window.__dupkaStart = (m, n) => (m === 'battle' ? startBattle() : m === 'single' ? startGame({ kind: 'single', size: n || 's', counts: randomCounts(n || 's'), seed: 7 }) : startCareer(n || 1));
 }
 
 // ================= цикъл =================
@@ -1246,6 +1535,8 @@ function frame(now) {
 }
 
 resize();
+buildWorld({ kind: 'career', level: save.level });
+applyLang();
 toMenu();
 $('loading').remove();
 requestAnimationFrame(frame);
