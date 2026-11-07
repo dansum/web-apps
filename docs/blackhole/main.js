@@ -728,7 +728,7 @@ function buildBattle() {
   const spots = [[-L * 0.6, -L * 0.6], [L * 0.6, -L * 0.6], [-L * 0.6, L * 0.6], [L * 0.6, L * 0.6]];
   BOTS.forEach((b, i) => {
     const h = makeHole(b.name, b.color, spots[i][0], spots[i][1], 0.9, true);
-    h.skill = 0.92 + i * 0.05;
+    h.skill = 0.84 + i * 0.05;
   });
 }
 
@@ -856,6 +856,7 @@ function update(dt) {
   }
   for (const h of holes) {
     if (h.bot && h.alive) botThink(h, dt);
+    if (h.safe > 0) { h.safe -= dt; h.grp.children[3].visible = Math.floor(h.safe * 6) % 2 === 0 || h.safe <= 0; }
     if (!h.alive) {
       h.R = lerp(h.R, 0.01, 1 - Math.exp(-dt * 8));
       h.respawn -= dt;
@@ -872,11 +873,11 @@ function update(dt) {
   // дупка гълта дупка (битка)
   if (mode === 'battle') {
     for (const a of holes) for (const b of holes) {
-      if (a === b || !a.alive || !b.alive) continue;
+      if (a === b || !a.alive || !b.alive || b.safe > 0) continue;
       if (a.R > b.R * 1.12 && Math.hypot(a.x - b.x, a.z - b.z) < a.R - b.R * 0.4) {
         b.alive = false; b.respawn = 3;
-        a.mass += b.mass * 0.6 + 6;
-        b.mass *= 0.35;
+        a.mass += b.mass * 0.4 + 4;
+        b.mass *= 0.5;
         sfx.eatHole(); buzz(60);
         if (b === player) banner('Глътна те ' + a.name + '!', 'Връщаш се след малко');
         else if (a === player) { banner('Глътна ' + b.name + '!'); player.score += 50; }
@@ -949,7 +950,7 @@ function consume(o, h) {
   o.dead = true;
   scene.remove(o.mesh);
   const before = Math.floor(targetR(h) * 10);
-  h.mass += o.v * (h.bot ? 1.35 : 1);
+  h.mass += o.v * (h.bot ? 1.12 : 1);
   h.eaten += o.v;
   const pts = Math.max(1, Math.round(o.v * 10));
   h.score += pts;
@@ -1004,7 +1005,7 @@ function botThink(h, dt) {
       for (const o of holes) {
         if (o === h || !o.alive) continue;
         const d = Math.hypot(o.x - h.x, o.z - h.z);
-        if (h.R > o.R * 1.15 && d < 16 + h.R * 2.5) { const s = 40 / (d + 1); if (s > bestS) { bestS = s; tx = o.x; tz = o.z; } }
+        if (h.R > o.R * 1.15 && !(o.safe > 0) && d < 12 + h.R * 1.5) { const s = 40 / (d + 1); if (s > bestS) { bestS = s; tx = o.x; tz = o.z; } }
       }
       // обекти
       if (tx === null) {
@@ -1037,7 +1038,7 @@ function respawnHole(h) {
     if (md > bestD) { bestD = md; best = [x, z]; }
   }
   h.x = best[0]; h.z = best[1]; h.vx = h.vz = 0;
-  h.alive = true; h.R = 0.2;
+  h.alive = true; h.R = 0.2; h.safe = 3;
   if (h === player) banner('Пак си в играта!');
 }
 
@@ -1074,7 +1075,7 @@ function updateHud(dt) {
     const [sx, sy, ok] = toScreen(h.x, 0, h.z - h.R * 1.05);
     h.label.style.display = ok ? 'block' : 'none';
     h.label.style.left = sx + 'px'; h.label.style.top = sy + 'px';
-    h.label.textContent = h.name + ' · ' + Math.round(h.R * 10);
+    h.label.textContent = (h.safe > 0 ? '🛡 ' : '') + h.name + ' · ' + Math.round(h.R * 10);
   }
   if (hudT > 0) return;
   hudT = 0.2;
