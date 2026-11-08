@@ -31,7 +31,7 @@ const PENALTY = { chicken: 30, sheep: 50, pig: 50, cow: 80 }; // точки, к�
 const LEVEL_TIME = 100;      // секунди за ниво
 const BATTLE_TIME = 120;     // секунди за битка
 const STARS = [0.4, 0.7, 0.95];
-const THEMES = ['park', 'city', 'farm', 'downtown', 'cubes'];
+const THEMES = ['park', 'city', 'farm', 'downtown', 'cubes', 'food', 'school', 'toys', 'tech'];
 const PLAYER_COLOR = '#7c3aed';
 const PLAYER_NAMES = { bg: 'Ти', en: 'You' };
 const BOTS = [
@@ -59,6 +59,8 @@ const CATS = [
   { id: 'towers', ic: '🏙️', types: ['tower'], max: 3 },
 ];
 
+const WORLD_KINDS = ['objects', 'cubes', 'food', 'school', 'toys', 'tech'];
+const singleWorld = (cfg) => cfg.world || (cfg.cubes ? 'cubes' : 'objects');
 // Категории за нива от кубчета (order: по-големите се нареждат първи)
 const CUBE_CATS = [
   { id: 'cubes', ic: '🟥', types: ['single', 'single', 'stack'], max: 80, small: true, order: 1 },
@@ -95,13 +97,34 @@ const I18N = {
     diffNote: 'По-трудната битка носи повече монети.',
     mapSize: 'Размер на картата', sizeS: 'Малка', sizeM: 'Средна', sizeL: 'Голяма',
     whatToEat: 'Какво да има', random: '🎲 Случайно',
-    needSmall: 'Добави малки неща (улични неща или растения), иначе дупката няма с какво да порасне.',
+    needSmall: 'Добави малки неща (категориите най-отгоре), иначе дупката няма с какво да порасне.',
     play: 'Играй', back: 'Назад', paused: 'Пауза', resume: 'Продължи', toMenu: 'Към менюто',
     savedNote: 'Напредъкът ти е запазен. Можеш да продължиш и по-късно от менюто.',
     next: 'Следващо ниво', newSetup: 'Нова настройка', retry: 'Пак същото', newBattle: 'Нова битка',
     level: 'Ниво', size: 'Размер', you: 'Ти',
     upSize: 'Размер', upSpeed: 'Скорост', upTime: 'Време', upLvl: (a, b) => `ниво ${a}/${b}`, max: 'макс.',
     park: 'Парк', city: 'Квартал', farm: 'Ферма', downtown: 'Център', cubes: 'Кубчета',
+    food: 'Маса с храна', school: 'Бюро', toys: 'Детска стая', tech: 'Склад',
+    kind_objects: '🏙️ Предмети', kind_cubes: '🧊 Кубчета', kind_food: '🍎 Храна', kind_school: '✏️ Бюро', kind_toys: '🧸 Играчки', kind_tech: '💻 Склад',
+    cat_f_fruit: 'Плодове', catd_f_fruit: 'грозде, ягоди, ябълки… диня',
+    cat_f_sweet: 'Сладкиши', catd_f_sweet: 'бонбони, понички, мъфини, торти',
+    cat_f_main: 'Ястия', catd_f_main: 'яйца, сирене, хляб, сандвичи, пица, печено',
+    cat_f_dish: 'Съдове', catd_f_dish: 'чаши, бутилки, чинии, чайник, ваза',
+    cat_s_small: 'Дреболии', catd_s_small: 'кабарчета, кламери, гуми, острилки, листчета',
+    cat_s_write: 'За писане', catd_s_write: 'пастели, моливи, химикалки, маркери',
+    cat_s_tools: 'Пособия', catd_s_tools: 'линийки, ножици, калкулатори, телбоди',
+    cat_s_books: 'Книги и тетрадки', catd_s_books: 'тетрадки, книги, несесери',
+    cat_s_big: 'Големи', catd_s_big: 'глобус, лампа, лаптоп, раница',
+    cat_t_small: 'Дребни играчки', catd_t_small: 'топчета, лего, кубчета, зарове, патета',
+    cat_t_balls: 'Топки', catd_t_balls: 'от топче до плажна топка',
+    cat_t_cars: 'Колички и влакчета', catd_t_cars: 'колички, камиони, влакче',
+    cat_t_figs: 'Фигурки', catd_t_figs: 'пумпали, мечета, роботи, ракети',
+    cat_t_big: 'Големи играчки', catd_t_big: 'ксилофон, барабан, конче, палатка, къща за кукли',
+    cat_c_parts: 'Части', catd_c_parts: 'винтове, флашки, процесори, RAM, вентилатори',
+    cat_c_peri: 'Периферия', catd_c_peri: 'мишки, камери, кабели, слушалки, клавиатури',
+    cat_c_boards: 'Платки и дискове', catd_c_boards: 'дискове, рутери, захранвания, видеокарти',
+    cat_c_big: 'Устройства', catd_c_big: 'монитори, кашони, кутии, принтери, сървъри',
+    cat_c_store: 'Складови', catd_c_store: 'палети и стелажи',
     levelKind: 'Вид ниво', kindObjects: 'Предмети', kindObjectsD: 'коли, къщи, дървета…', kindCubes: 'Кубчета', kindCubesD: 'всичко е от кубчета',
     cat_cubes: 'Кубчета', catd_cubes: '1–3 едно върху друго',
     cat_bigcubes: 'Големи кубове', catd_bigcubes: 'куб от 8 кубчета',
@@ -148,13 +171,34 @@ const I18N = {
     diffNote: 'Harder battles give more coins.',
     mapSize: 'Map size', sizeS: 'Small', sizeM: 'Medium', sizeL: 'Large',
     whatToEat: 'What goes on the map', random: '🎲 Random',
-    needSmall: 'Add some small things (street items or plants), or the hole will have nothing to grow on.',
+    needSmall: 'Add some small things (the top categories), or the hole will have nothing to grow on.',
     play: 'Play', back: 'Back', paused: 'Paused', resume: 'Resume', toMenu: 'Main menu',
     savedNote: 'Your progress is saved. You can continue later from the menu.',
     next: 'Next level', newSetup: 'New setup', retry: 'Play again', newBattle: 'New battle',
     level: 'Level', size: 'Size', you: 'You',
     upSize: 'Size', upSpeed: 'Speed', upTime: 'Time', upLvl: (a, b) => `level ${a}/${b}`, max: 'max',
     park: 'Park', city: 'Suburb', farm: 'Farm', downtown: 'Downtown', cubes: 'Blocks',
+    food: 'Dinner table', school: 'Desk', toys: 'Playroom', tech: 'Warehouse',
+    kind_objects: '🏙️ Objects', kind_cubes: '🧊 Blocks', kind_food: '🍎 Food', kind_school: '✏️ Desk', kind_toys: '🧸 Toys', kind_tech: '💻 Warehouse',
+    cat_f_fruit: 'Fruit', catd_f_fruit: 'grapes, strawberries, apples… watermelon',
+    cat_f_sweet: 'Sweets', catd_f_sweet: 'candy, donuts, cupcakes, cakes',
+    cat_f_main: 'Dishes', catd_f_main: 'eggs, cheese, bread, sandwiches, pizza, roast',
+    cat_f_dish: 'Tableware', catd_f_dish: 'cups, bottles, plates, teapot, vase',
+    cat_s_small: 'Bits and bobs', catd_s_small: 'pins, clips, erasers, sharpeners, sticky notes',
+    cat_s_write: 'Writing', catd_s_write: 'crayons, pencils, pens, markers',
+    cat_s_tools: 'Tools', catd_s_tools: 'rulers, scissors, calculators, staplers',
+    cat_s_books: 'Books & notebooks', catd_s_books: 'notebooks, books, pencil cases',
+    cat_s_big: 'Big items', catd_s_big: 'globe, lamp, laptop, backpack',
+    cat_t_small: 'Small toys', catd_t_small: 'marbles, LEGO, blocks, dice, ducks',
+    cat_t_balls: 'Balls', catd_t_balls: 'from marbles to beach balls',
+    cat_t_cars: 'Cars & trains', catd_t_cars: 'toy cars, trucks, a train',
+    cat_t_figs: 'Figures', catd_t_figs: 'tops, teddies, robots, rockets',
+    cat_t_big: 'Big toys', catd_t_big: 'xylophone, drum, rocking horse, tent, dollhouse',
+    cat_c_parts: 'Parts', catd_c_parts: 'screws, USB sticks, CPUs, RAM, fans',
+    cat_c_peri: 'Peripherals', catd_c_peri: 'mice, webcams, cables, headphones, keyboards',
+    cat_c_boards: 'Boards & drives', catd_c_boards: 'drives, routers, PSUs, graphics cards',
+    cat_c_big: 'Devices', catd_c_big: 'monitors, boxes, PC cases, printers, servers',
+    cat_c_store: 'Storage', catd_c_store: 'pallets and shelving',
     levelKind: 'Level type', kindObjects: 'Objects', kindObjectsD: 'cars, houses, trees…', kindCubes: 'Blocks', kindCubesD: 'everything is made of cubes',
     cat_cubes: 'Cubes', catd_cubes: '1–3 stacked',
     cat_bigcubes: 'Big cubes', catd_bigcubes: 'a cube made of 8 cubes',
@@ -257,6 +301,8 @@ const G = {
   ico: new THREE.IcosahedronGeometry(1, 0),
   ico1: new THREE.IcosahedronGeometry(1, 1),
   sph: new THREE.SphereGeometry(1, 10, 7),
+  torus: new THREE.TorusGeometry(1, 0.35, 8, 18),
+  cyl3: new THREE.CylinderGeometry(1, 1, 1, 3),
 };
 const _e = new THREE.Euler(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3();
 function part(L, g, c, x, y, z, sx, sy, sz, rx = 0, ry = 0, rz = 0) {
@@ -448,6 +494,190 @@ const T = {
   trough: { r: 0.9, nv: 1, b(L) { Bx(L, '#78716c', 1.8, 0.5, 0.7); Bx(L, '#60a5fa', 1.6, 0.05, 0.5, 0, 0.47); } },
 };
 
+// ================= нови светове: храна, бюро, играчки, склад =================
+const PI = Math.PI;
+const lie = (L, c, r, len, x = 0, y = null, z = 0, g = G.cyl, ry = 0) => part(L, g, c, x, y === null ? r : y, z, r, len, r, 0, ry, PI / 2); // легнал цилиндър по оста x
+const ring = (L, c, R, tube, x, y, z, rx = PI / 2, ry = 0) => part(L, G.torus, c, x, y, z, R, R, tube / 0.35, rx, ry, 0);
+const IN_PAL = {
+  bright: ['#ef4444', '#f97316', '#facc15', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899'],
+  pastel: ['#fecaca', '#fde68a', '#bbf7d0', '#bfdbfe', '#ddd6fe', '#fbcfe8'],
+};
+Object.assign(T, {
+  // ---- храна ----
+  grape: { r: 0.2, nv: 2, b(L, v) { Ba(L, v ? '#65a30d' : '#7e22ce', 0.18, 0, 0.18, 0, 1, G.sph); } },
+  cherry: { r: 0.2, nv: 1, b(L) { Ba(L, '#b91c1c', 0.16, 0, 0.16, 0, 1, G.sph); part(L, G.box, '#3f6212', 0.03, 0.4, 0, 0.03, 0.28, 0.03, 0, 0, -0.3); } },
+  strawberry: { r: 0.25, nv: 1, b(L) { part(L, G.cone, '#dc2626', 0, 0.2, 0, 0.2, 0.36, 0.2, PI, 0, 0); Cy(L, '#16a34a', 0.16, 0.05, 0, 0.36, 0); } },
+  candy: { r: 0.25, nv: 4, b(L) { const c = pick(IN_PAL.bright); Ba(L, c, 0.13, 0, 0.13, 0, 1, G.sph); part(L, G.cone, c, 0.2, 0.13, 0, 0.1, 0.14, 0.1, 0, 0, PI / 2); part(L, G.cone, c, -0.2, 0.13, 0, 0.1, 0.14, 0.1, 0, 0, -PI / 2); } },
+  egg: { r: 0.25, nv: 2, b(L, v) { Ba(L, v ? '#fef3c7' : '#f8fafc', 0.17, 0, 0.22, 0, 1.3, G.sph); } },
+  cookie: { r: 0.35, nv: 2, b(L) { Cy(L, '#d6a15c', 0.33, 0.1); for (let i = 0; i < 5; i++) Bx(L, '#3f2a14', 0.07, 0.03, 0.07, Math.cos(i * 1.3) * 0.18, 0.1, Math.sin(i * 1.3) * 0.18); } },
+  apple: { r: 0.4, nv: 3, b(L, v) { Ba(L, ['#dc2626', '#65a30d', '#facc15'][v], 0.36, 0, 0.33, 0, 0.9, G.ico1); Bx(L, '#3f2a14', 0.04, 0.18, 0.04, 0, 0.62); Ba(L, '#16a34a', 0.08, 0.08, 0.7, 0, 0.4); } },
+  orange: { r: 0.4, nv: 1, b(L) { Ba(L, '#f97316', 0.37, 0, 0.36, 0, 1, G.ico1); Bx(L, '#16a34a', 0.06, 0.04, 0.06, 0, 0.72); } },
+  pear: { r: 0.4, nv: 1, b(L) { Ba(L, '#bef264', 0.33, 0, 0.3, 0, 0.9, G.ico1); Ba(L, '#bef264', 0.21, 0, 0.62, 0, 1.1, G.ico1); Bx(L, '#3f2a14', 0.04, 0.16, 0.04, 0, 0.82); } },
+  banana: { r: 0.6, nv: 1, b(L) { for (let i = -2; i <= 2; i++) part(L, G.box, '#facc15', i * 0.22, 0.12 + Math.abs(i) * 0.06, 0, 0.26, 0.18, 0.2, 0, 0, i * 0.25); Bx(L, '#3f2a14', 0.06, 0.06, 0.06, 0.55, 0.22); } },
+  donut: { r: 0.5, nv: 3, b(L) { ring(L, '#d6a15c', 0.36, 0.13, 0, 0.13, 0); ring(L, pick(['#f472b6', '#7c2d12', '#f8fafc']), 0.36, 0.1, 0, 0.2, 0); } },
+  cupcake: { r: 0.45, nv: 3, b(L) { part(L, G.cyl, '#f9a8d4', 0, 0.17, 0, 0.3, 0.34, 0.3); Ba(L, pick(['#fdf2f8', '#fde68a', '#bfdbfe']), 0.34, 0, 0.42, 0, 0.75, G.ico1); Ba(L, '#dc2626', 0.09, 0, 0.68, 0, 1, G.sph); } },
+  cheese: { r: 0.55, nv: 1, b(L) { part(L, G.cyl3, '#facc15', 0, 0.25, 0, 0.6, 0.5, 0.6); Ba(L, '#eab308', 0.07, 0.15, 0.3, 0.28, 1, G.sph); } },
+  bread: { r: 0.8, nv: 1, b(L) { Bx(L, '#d97706', 1.4, 0.45, 0.75); part(L, G.sph, '#b45309', 0, 0.45, 0, 0.7, 0.25, 0.37); for (const x of [-0.4, 0, 0.4]) Bx(L, '#fde68a', 0.06, 0.05, 0.5, x, 0.66); } },
+  sandwich: { r: 0.75, nv: 2, b(L) { const lay = ['#f5deb3', '#16a34a', '#facc15', '#ef4444', '#f5deb3']; lay.forEach((c, i) => Bx(L, c, 1.05 - (i % 2 ? 0 : 0.05), i % 4 === 0 ? 0.16 : 0.07, 1.05, 0, i * 0.1)); } },
+  cup: { r: 0.5, nv: 3, b(L) { const c = pick(['#f8fafc', '#3b82f6', '#ef4444']); Cy(L, c, 0.33, 0.7); Cy(L, '#3f2a14', 0.28, 0.02, 0, 0.69, 0); ring(L, c, 0.18, 0.06, 0.38, 0.38, 0, 0, 0); } },
+  bottle: { r: 0.4, nv: 3, b(L) { const c = pick(['#16a34a', '#0ea5e9', '#a16207']); Cy(L, c, 0.28, 1.1); Co(L, c, 0.28, 0.3, 0, 1.1, 0); Cy(L, c, 0.1, 0.35, 0, 1.3, 0); Cy(L, '#f8fafc', 0.12, 0.1, 0, 1.62, 0); Cy(L, '#fef3c7', 0.29, 0.35, 0, 0.35, 0); } },
+  plate: { r: 1.0, nv: 2, b(L) { Cy(L, '#f8fafc', 1.0, 0.08); Cy(L, '#e5e7eb', 0.7, 0.1); Ba(L, '#f97316', 0.25, 0.25, 0.3, 0.1, 0.8, G.ico1); Ba(L, '#16a34a', 0.22, -0.3, 0.25, -0.1, 0.7, G.ico1); Bx(L, '#b45309', 0.5, 0.15, 0.3, 0, 0.1, 0.35); } },
+  fruitbowl: { r: 1.1, nv: 1, b(L) { Cy(L, '#e5e7eb', 0.55, 0.15); part(L, G.cone, '#f1f5f9', 0, 0.55, 0, 1.0, 0.6, 1.0, PI, 0, 0); [['#dc2626', 0.3, 0], ['#f97316', -0.3, 0.1], ['#facc15', 0, -0.35], ['#65a30d', 0, 0.35], ['#7e22ce', 0.1, 0]].forEach(([c, x, z], i) => Ba(L, c, 0.32, x, 0.95 + (i === 4 ? 0.3 : 0), z, 1, G.ico1)); } },
+  pizza: { r: 1.4, nv: 1, b(L) { Cy(L, '#d97706', 1.4, 0.12); Cy(L, '#fbbf24', 1.25, 0.15); for (let i = 0; i < 9; i++) Cy(L, '#b91c1c', 0.15, 0.04, Math.cos(i * 0.7) * (0.3 + (i % 3) * 0.3), 0.15, Math.sin(i * 0.7) * (0.3 + (i % 3) * 0.3)); } },
+  teapot: { r: 0.9, nv: 2, b(L) { const c = pick(['#f8fafc', '#93c5fd']); Ba(L, c, 0.62, 0, 0.55, 0, 0.85, G.ico1); part(L, G.cone, c, 0.75, 0.75, 0, 0.12, 0.6, 0.12, 0, 0, -1.0); ring(L, c, 0.28, 0.07, -0.7, 0.6, 0, 0, 0); Cy(L, c, 0.3, 0.1, 0, 1.05, 0); Ba(L, c, 0.1, 0, 1.2, 0, 1, G.sph); } },
+  watermelon: { r: 1.2, nv: 1, b(L) { part(L, G.ico1, '#15803d', 0, 0.75, 0, 1.15, 0.75, 0.9); } },
+  cake: { r: 1.5, nv: 2, b(L) { Cy(L, pick(['#fbcfe8', '#7c2d12']), 1.4, 0.9); Cy(L, '#fdf2f8', 1.45, 0.14, 0, 0.88, 0); for (let i = 0; i < 8; i++) Ba(L, '#dc2626', 0.12, Math.cos(i * 0.785) * 1.1, 1.08, Math.sin(i * 0.785) * 1.1, 1, G.sph); Cy(L, '#60a5fa', 0.05, 0.4, 0, 1.0, 0); Ba(L, '#facc15', 0.07, 0, 1.47, 0, 1.4, G.sph); } },
+  vase: { r: 0.9, nv: 2, b(L) { Cy(L, pick(['#3b82f6', '#a855f7']), 0.45, 1.5); Cy(L, '#16a34a', 0.05, 0.6, 0, 1.5, 0); for (let i = 0; i < 5; i++) Ba(L, pick(['#f43f5e', '#facc15', '#f8fafc']), 0.22, Math.cos(i * 1.25) * 0.3, 2.1 + (i % 2) * 0.15, Math.sin(i * 1.25) * 0.3, 1, G.ico1); } },
+  roast: { r: 1.8, nv: 1, b(L) { Cy(L, '#f8fafc', 1.8, 0.1); Ba(L, '#b45309', 1.1, 0, 0.7, 0, 0.6, G.ico1); for (const z of [-0.5, 0.5]) { part(L, G.cyl, '#92400e', 1.0, 0.6, z, 0.18, 0.7, 0.18, 0, 0, -1.1); Ba(L, '#fef3c7', 0.1, 1.35, 0.85, z, 1, G.sph); } for (let i = 0; i < 6; i++) Ba(L, i % 2 ? '#16a34a' : '#f97316', 0.18, Math.cos(i) * 1.45, 0.2, Math.sin(i) * 1.45, 0.8, G.ico); } },
+  weddingcake: { r: 2.4, nv: 1, b(L) { Cy(L, '#f8fafc', 2.3, 1.2); Cy(L, '#fdf2f8', 1.6, 1.1, 0, 1.2, 0); Cy(L, '#f8fafc', 1.0, 1.0, 0, 2.3, 0); for (const [R2, y] of [[2.3, 1.2], [1.6, 2.3], [1.0, 3.3]]) for (let i = 0; i < 10; i++) Ba(L, '#f9a8d4', 0.13, Math.cos(i * 0.628) * R2, y, Math.sin(i * 0.628) * R2, 1, G.sph); Ba(L, '#f43f5e', 0.3, 0, 3.6, 0, 1, G.ico1); } },
+  // ---- бюро ----
+  pin: { r: 0.15, nv: 3, b(L) { Cy(L, pick(IN_PAL.bright), 0.12, 0.1, 0, 0.12, 0); Cy(L, '#cbd5e1', 0.02, 0.12); } },
+  clip: { r: 0.25, nv: 1, b(L) { for (const z of [-0.07, 0.07]) Bx(L, '#94a3b8', 0.45, 0.03, 0.025, 0, 0, z); for (const x of [-0.22, 0.22]) Bx(L, '#94a3b8', 0.025, 0.03, 0.16, x, 0, 0); } },
+  eraser: { r: 0.25, nv: 2, b(L) { Bx(L, pick(['#f9a8d4', '#f8fafc']), 0.45, 0.16, 0.24); Bx(L, '#3b82f6', 0.18, 0.165, 0.245, 0.14); } },
+  sharpener: { r: 0.25, nv: 2, b(L) { Bx(L, pick(['#ef4444', '#3b82f6', '#94a3b8']), 0.32, 0.24, 0.26); Cy(L, '#1f2937', 0.07, 0.02, 0, 0.24, 0); } },
+  crayon: { r: 0.5, nv: 6, b(L) { const c = pick(IN_PAL.bright); lie(L, c, 0.1, 0.8); part(L, G.cone, c, 0.5, 0.1, 0, 0.1, 0.2, 0.1, 0, 0, -PI / 2); lie(L, '#f8fafc', 0.105, 0.3, -0.1); } },
+  pencil: { r: 0.8, nv: 3, b(L) { lie(L, pick(['#facc15', '#ef4444', '#22c55e']), 0.1, 1.3, 0, 0.1, 0, G.cyl6); part(L, G.cone, '#f5deb3', 0.75, 0.1, 0, 0.1, 0.2, 0.1, 0, 0, -PI / 2); part(L, G.cone, '#374151', 0.85, 0.1, 0, 0.035, 0.07, 0.035, 0, 0, -PI / 2); lie(L, '#cbd5e1', 0.105, 0.08, -0.69); lie(L, '#f9a8d4', 0.1, 0.12, -0.79); } },
+  pen: { r: 0.75, nv: 3, b(L) { const c = pick(['#1d4ed8', '#111827', '#dc2626']); lie(L, '#e5e7eb', 0.08, 1.3); lie(L, c, 0.09, 0.45, -0.45); part(L, G.cone, '#94a3b8', 0.7, 0.08, 0, 0.07, 0.15, 0.07, 0, 0, -PI / 2); Bx(L, c, 0.35, 0.03, 0.03, -0.45, 0.16); } },
+  marker: { r: 0.6, nv: 4, b(L) { const c = pick(IN_PAL.bright); lie(L, '#f8fafc', 0.15, 0.85); lie(L, c, 0.16, 0.35, 0.4); lie(L, c, 0.155, 0.08, -0.4); } },
+  gluestick: { r: 0.3, nv: 2, b(L) { Cy(L, '#f8fafc', 0.18, 0.55); Cy(L, pick(['#7c3aed', '#ef4444']), 0.19, 0.25, 0, 0.55, 0); } },
+  notes: { r: 0.55, nv: 3, b(L) { Bx(L, pick(['#fde047', '#f9a8d4', '#86efac']), 0.9, 0.3, 0.9); } },
+  ruler: { r: 1.5, nv: 2, b(L) { Bx(L, pick(['#fde047', '#e0f2fe']), 3, 0.05, 0.5); for (let i = 0; i < 15; i++) Bx(L, '#1f2937', 0.02, 0.01, i % 5 ? 0.12 : 0.22, -1.4 + i * 0.2, 0.05, -0.18 + (i % 5 ? 0 : 0.05)); } },
+  scissors: { r: 0.8, nv: 2, b(L) { const c = pick(['#ef4444', '#3b82f6']); part(L, G.box, '#cbd5e1', 0.35, 0.04, 0.06, 0.9, 0.04, 0.1, 0, 0.18, 0); part(L, G.box, '#cbd5e1', 0.35, 0.06, -0.06, 0.9, 0.04, 0.1, 0, -0.18, 0); ring(L, c, 0.2, 0.06, -0.4, 0.05, 0.18); ring(L, c, 0.2, 0.06, -0.4, 0.05, -0.18); } },
+  calculator: { r: 0.75, nv: 1, b(L) { Bx(L, '#334155', 0.95, 0.18, 1.35); Bx(L, '#a7f3d0', 0.75, 0.02, 0.3, 0, 0.18, -0.42); for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) Bx(L, j === 3 ? '#f97316' : '#e5e7eb', 0.16, 0.04, 0.14, -0.3 + j * 0.2, 0.18, -0.1 + i * 0.2); } },
+  stapler: { r: 0.8, nv: 2, b(L) { const c = pick(['#111827', '#dc2626']); Bx(L, '#374151', 1.4, 0.15, 0.4); part(L, G.box, c, 0, 0.3, 0, 1.35, 0.22, 0.36, 0, 0, 0.06); } },
+  tape: { r: 0.55, nv: 1, b(L) { Bx(L, '#334155', 0.9, 0.35, 0.4); part(L, G.cyl, '#e0f2fe', 0, 0.45, 0, 0.32, 0.3, 0.32, PI / 2, 0, 0); } },
+  pencilcup: { r: 0.6, nv: 2, b(L) { Cy(L, pick(['#0ea5e9', '#f97316']), 0.38, 0.8); for (let i = 0; i < 5; i++) part(L, G.cyl6, pick(IN_PAL.bright), Math.cos(i * 1.25) * 0.15, 1.0, Math.sin(i * 1.25) * 0.15, 0.06, 0.9, 0.06, Math.sin(i) * 0.2, 0, Math.cos(i) * 0.2); } },
+  notebook: { r: 1.5, nv: 4, b(L) { const c = pick(IN_PAL.bright); Bx(L, c, 1.8, 0.05, 2.4); Bx(L, '#f8fafc', 1.75, 0.14, 2.35, 0.02, 0.05); Bx(L, c, 1.8, 0.05, 2.4, 0, 0.19); for (let z = -1.05; z < 1.1; z += 0.3) Ba(L, '#94a3b8', 0.07, -0.88, 0.12, z, 1, G.sph); } },
+  book: { r: 1.4, nv: 5, b(L) { const c = pick(['#1d4ed8', '#b91c1c', '#15803d', '#7c3aed', '#a16207']); Bx(L, c, 1.6, 0.06, 2.2); Bx(L, '#f8fafc', 1.5, 0.36, 2.1, 0.03, 0.06); Bx(L, c, 1.6, 0.06, 2.2, 0, 0.42); Bx(L, c, 0.06, 0.48, 2.2, -0.8, 0); } },
+  pencilcase: { r: 1.0, nv: 3, b(L) { const c = pick(IN_PAL.bright); Bx(L, c, 1.8, 0.5, 0.7); Bx(L, '#111827', 1.7, 0.04, 0.05, 0, 0.5); Bx(L, '#cbd5e1', 0.12, 0.12, 0.05, 0.7, 0.45, 0.04); } },
+  globe: { r: 1.0, nv: 1, b(L) { Cy(L, '#7c2d12', 0.6, 0.15); Cy(L, '#a16207', 0.06, 0.6, 0, 0.15, 0); Ba(L, '#38bdf8', 0.8, 0, 1.55, 0, 1, G.ico1); for (let i = 0; i < 5; i++) Ba(L, '#22c55e', 0.3, Math.cos(i * 1.3) * 0.6, 1.55 + Math.sin(i * 2.1) * 0.4, Math.sin(i * 1.3) * 0.6, 0.7, G.ico); } },
+  lamp: { r: 1.0, nv: 2, b(L) { const c = pick(['#111827', '#f8fafc']); Cy(L, c, 0.5, 0.12); part(L, G.box, c, 0.2, 0.9, 0, 0.08, 1.6, 0.08, 0, 0, -0.25); part(L, G.box, c, 0.65, 1.75, 0, 0.08, 1.0, 0.08, 0, 0, 1.0); part(L, G.cone, c, 1.0, 1.5, 0, 0.35, 0.5, 0.35, 0, 0, 0.6); Ba(L, '#fef3c7', 0.13, 1.05, 1.35, 0, 1, G.sph); } },
+  laptop: { r: 1.9, nv: 2, b(L) { const c = pick(['#94a3b8', '#334155']); Bx(L, c, 2.4, 0.12, 1.7); Bx(L, '#1f2937', 2.1, 0.02, 0.9, 0, 0.12, -0.2); Bx(L, '#64748b', 0.7, 0.02, 0.45, 0, 0.12, 0.5); part(L, G.box, c, 0, 0.85, -0.95, 2.4, 1.6, 0.08, -0.25, 0, 0); part(L, G.box, '#38bdf8', 0, 0.85, -0.9, 2.15, 1.35, 0.02, -0.25, 0, 0); } },
+  bookstack: { r: 1.8, nv: 2, b(L) { let y = 0; for (let i = 0; i < 5; i++) { const h = 0.3 + R() * 0.25; part(L, G.box, pick(['#1d4ed8', '#b91c1c', '#15803d', '#7c3aed', '#a16207', '#0f766e']), RR(-0.15, 0.15), y + h / 2, RR(-0.15, 0.15), 1.7 - i * 0.08, h, 2.3 - i * 0.1, 0, RR(-0.3, 0.3), 0); y += h; } } },
+  backpack: { r: 1.6, nv: 3, b(L) { const c = pick(['#dc2626', '#2563eb', '#16a34a']); Bx(L, c, 1.6, 2.0, 1.0); Ba(L, c, 0.8, 0, 2.0, 0, 0.4, G.sph); Bx(L, '#111827', 1.1, 0.8, 0.3, 0, 0.3, 0.6); Bx(L, '#111827', 0.2, 1.4, 0.15, -0.5, 0.4, -0.55); Bx(L, '#111827', 0.2, 1.4, 0.15, 0.5, 0.4, -0.55); } },
+  // ---- играчки ----
+  marble: { r: 0.15, nv: 4, b(L) { Ba(L, pick(['#38bdf8', '#f43f5e', '#a3e635', '#fbbf24']), 0.14, 0, 0.14, 0, 1, G.sph); } },
+  lego: { r: 0.35, nv: 6, b(L) { const c = pick(IN_PAL.bright); Bx(L, c, 0.64, 0.35, 0.32); for (const x of [-0.24, -0.08, 0.08, 0.24]) Cy(L, c, 0.06, 0.07, x, 0.35, 0); } },
+  toyblock: { r: 0.35, nv: 6, b(L) { const c = pick(IN_PAL.bright); Bx(L, '#f5deb3', 0.5, 0.5, 0.5); Bx(L, c, 0.3, 0.3, 0.02, 0, 0.1, 0.25); Bx(L, c, 0.02, 0.3, 0.3, 0.25, 0.1, 0); Bx(L, c, 0.3, 0.02, 0.3, 0, 0.5, 0); } },
+  dice: { r: 0.3, nv: 2, b(L, v) { Bx(L, v ? '#ef4444' : '#f8fafc', 0.42, 0.42, 0.42); const d = v ? '#f8fafc' : '#111827'; for (const [x, z] of [[-0.1, -0.1], [0, 0], [0.1, 0.1]]) Bx(L, d, 0.07, 0.02, 0.07, x, 0.42, z); } },
+  duck: { r: 0.35, nv: 1, b(L) { Ba(L, '#facc15', 0.3, 0, 0.22, 0, 0.75, G.ico1); Ba(L, '#facc15', 0.18, 0.18, 0.5, 0, 1, G.ico1); part(L, G.cone, '#f97316', 0.38, 0.48, 0, 0.07, 0.15, 0.07, 0, 0, -PI / 2); } },
+  toycar: { r: 0.6, nv: 6, b(L) { const c = pick(IN_PAL.bright); Bx(L, c, 1.0, 0.25, 0.5, 0, 0.1); Bx(L, '#bfdbfe', 0.5, 0.22, 0.45, -0.05, 0.35); for (const x of [-0.33, 0.33]) for (const z of [-0.25, 0.25]) part(L, G.cyl, '#111827', x, 0.12, z, 0.12, 0.08, 0.12, PI / 2, 0, 0); } },
+  top: { r: 0.4, nv: 3, b(L) { const c = pick(IN_PAL.bright); part(L, G.cone, c, 0, 0.18, 0, 0.35, 0.36, 0.35, PI, 0, 0); Cy(L, c, 0.35, 0.12, 0, 0.36, 0); Cy(L, '#7c2d12', 0.05, 0.3, 0, 0.48, 0); } },
+  ball: { r: 0.6, nv: 5, b(L) { const c = pick(IN_PAL.bright); Ba(L, c, 0.55, 0, 0.55, 0, 1, G.ico1); part(L, G.torus, '#f8fafc', 0, 0.55, 0, 0.55, 0.55, 0.1, 0, 0.5, 0); } },
+  teddy: { r: 0.8, nv: 2, b(L) { const c = pick(['#a16207', '#d6a15c']); Ba(L, c, 0.5, 0, 0.5, 0, 1.1, G.ico1); Ba(L, c, 0.38, 0, 1.15, 0, 1, G.ico1); for (const z of [-0.25, 0.25]) { Ba(L, c, 0.13, 0, 1.45, z, 1, G.sph); Ba(L, c, 0.18, 0.15, 0.6, z * 2.2, 1.2, G.sph); Ba(L, c, 0.2, 0.25, 0.15, z * 1.3, 1, G.sph); } Ba(L, '#fde68a', 0.14, 0.32, 1.1, 0, 0.8, G.sph); Ba(L, '#111827', 0.05, 0.43, 1.13, 0, 1, G.sph); } },
+  robot: { r: 0.7, nv: 3, b(L) { const c = pick(['#94a3b8', '#60a5fa', '#f87171']); Bx(L, c, 0.25, 0.4, 0.2, 0, 0, -0.18); Bx(L, c, 0.25, 0.4, 0.2, 0, 0, 0.18); Bx(L, c, 0.55, 0.6, 0.7, 0, 0.4); Bx(L, c, 0.45, 0.4, 0.45, 0, 1.0); Bx(L, '#fde047', 0.02, 0.1, 0.3, 0.23, 1.15); Cy(L, '#111827', 0.03, 0.25, 0, 1.4, 0); Ba(L, '#ef4444', 0.06, 0, 1.68, 0, 1, G.sph); Bx(L, c, 0.15, 0.5, 0.12, 0, 0.45, -0.45); Bx(L, c, 0.15, 0.5, 0.12, 0, 0.45, 0.45); } },
+  rocket: { r: 0.5, nv: 2, b(L) { Cy(L, '#f8fafc', 0.3, 1.4, 0, 0.2, 0); Co(L, '#ef4444', 0.3, 0.6, 0, 1.6, 0); Ba(L, '#38bdf8', 0.1, 0.28, 1.1, 0, 1, G.sph); for (let i = 0; i < 3; i++) part(L, G.box, '#ef4444', Math.cos(i * 2.1) * 0.35, 0.35, Math.sin(i * 2.1) * 0.35, 0.25, 0.5, 0.05, 0, -i * 2.1, 0); } },
+  xylophone: { r: 1.2, nv: 1, b(L) { Bx(L, '#7c2d12', 2.2, 0.2, 0.15, 0, 0, -0.5); Bx(L, '#7c2d12', 2.2, 0.2, 0.15, 0, 0, 0.5); IN_PAL.bright.forEach((c, i) => Bx(L, c, 0.2, 0.08, 1.3 - i * 0.08, -0.9 + i * 0.26, 0.2)); } },
+  drum: { r: 1.0, nv: 2, b(L) { const c = pick(['#ef4444', '#2563eb']); Cy(L, c, 0.8, 0.8); Cy(L, '#f8fafc', 0.82, 0.06, 0, 0.8, 0); Cy(L, '#facc15', 0.82, 0.08, 0, 0.1, 0); part(L, G.cyl, '#a16207', 0.3, 0.95, 0.2, 0.04, 0.9, 0.04, 0, 0, 1.2); } },
+  toytruck: { r: 1.4, nv: 3, b(L) { const c = pick(IN_PAL.bright); Bx(L, c, 0.9, 0.7, 1.0, 0.8, 0.25); Bx(L, '#bfdbfe', 0.05, 0.3, 0.8, 1.25, 0.55); Bx(L, pick(IN_PAL.bright), 1.5, 0.7, 1.0, -0.45, 0.25); for (const x of [-0.8, 0, 0.8]) for (const z of [-0.5, 0.5]) part(L, G.cyl, '#111827', x, 0.22, z, 0.22, 0.12, 0.22, PI / 2, 0, 0); } },
+  train: { r: 1.8, nv: 2, b(L) { Bx(L, '#dc2626', 1.0, 0.6, 0.7, 1.1, 0.2); Bx(L, '#dc2626', 0.5, 0.5, 0.7, 0.85, 0.8); Cy(L, '#111827', 0.12, 0.4, 1.45, 0.8, 0); Bx(L, '#2563eb', 0.9, 0.55, 0.7, 0, 0.2); Bx(L, '#16a34a', 0.9, 0.55, 0.7, -1.05, 0.2); for (const x of [-1.3, -0.8, -0.25, 0.25, 0.8, 1.35]) for (const z of [-0.36, 0.36]) part(L, G.cyl, '#111827', x, 0.15, z, 0.15, 0.06, 0.15, PI / 2, 0, 0); } },
+  blocktower: { r: 0.9, nv: 3, b(L) { for (let i = 0; i < 6; i++) part(L, G.box, pick(IN_PAL.bright), RR(-0.1, 0.1), 0.25 + i * 0.5, RR(-0.1, 0.1), 0.5, 0.5, 0.5, 0, RR(-0.4, 0.4), 0); } },
+  beachball: { r: 1.3, nv: 1, b(L) { Ba(L, '#f8fafc', 1.2, 0, 1.2, 0, 1, G.ico1); for (const [c, a] of [['#ef4444', 0], ['#3b82f6', 2.1], ['#facc15', 4.2]]) part(L, G.sph, c, Math.cos(a) * 0.35, 1.2, Math.sin(a) * 0.35, 0.9, 1.15, 0.9); } },
+  rockinghorse: { r: 1.6, nv: 2, b(L) { const c = pick(['#f8fafc', '#a16207']); for (const z of [-0.35, 0.35]) part(L, G.torus, '#7c2d12', 0, 1.0, z, 1.4, 1.0, 0.25, 0, 0, 0); Bx(L, '#7c2d12', 1.5, 0.12, 0.8, 0, 0.12); for (const x of [-0.5, 0.5]) for (const z of [-0.3, 0.3]) Bx(L, c, 0.15, 0.7, 0.15, x, 0.2, z); Bx(L, c, 1.4, 0.55, 0.6, 0, 0.9); part(L, G.box, c, 0.8, 1.55, 0, 0.35, 0.9, 0.4, 0, 0, -0.5); Bx(L, c, 0.6, 0.35, 0.35, 1.05, 1.75); Bx(L, '#ef4444', 0.6, 0.12, 0.62, 0, 1.45); } },
+  toybox: { r: 2.0, nv: 2, b(L) { const c = pick(['#2563eb', '#a16207']); Bx(L, c, 3, 1.5, 2); Bx(L, '#facc15', 3.05, 0.15, 2.05, 0, 0.7); part(L, G.box, c, 0, 2.2, -1.3, 3, 0.15, 1.9, 1.2, 0, 0); Ba(L, '#ef4444', 0.45, -0.7, 1.6, 0, 1, G.ico1); Bx(L, '#22c55e', 0.5, 0.5, 0.5, 0.6, 1.4, 0.2); Ba(L, '#a16207', 0.35, 0.1, 1.7, 0.4, 1, G.ico1); } },
+  tent: { r: 2.2, nv: 2, b(L) { Co(L, pick(['#ef4444', '#3b82f6']), 2.1, 2.2, 0, 0, 0, G.cone6); Co(L, '#f8fafc', 1.6, 1.0, 0, 2.0, 0, G.cone6); Bx(L, '#111827', 0.8, 1.1, 0.1, 0, 0, 1.75); Cy(L, '#facc15', 0.04, 0.6, 0, 3.0, 0); Bx(L, '#facc15', 0.5, 0.3, 0.02, 0.25, 3.3); } },
+  dollhouse: { r: 2.6, nv: 2, b(L) { const c = pick(['#fbcfe8', '#fde68a']); Bx(L, c, 3.6, 2.6, 2.4); Bx(L, '#f8fafc', 3.5, 0.1, 2.3, 0, 1.3); part(L, G.cone4, '#be185d', 0, 2.6 + 0.9, 0, 2.8, 1.8, 2.0, 0, PI / 4, 0); for (const x of [-1, 0, 1]) for (const y of [0.6, 1.8]) Bx(L, '#bfdbfe', 0.5, 0.5, 0.05, x, y, 1.2); Bx(L, '#7c2d12', 0.5, 0.9, 0.06, 0, 0, 1.21); } },
+  // ---- склад ----
+  screw: { r: 0.15, nv: 1, b(L) { Cy(L, '#94a3b8', 0.05, 0.3); Cy(L, '#cbd5e1', 0.12, 0.06, 0, 0.3, 0); } },
+  usb: { r: 0.25, nv: 3, b(L) { Bx(L, pick(['#111827', '#2563eb', '#dc2626']), 0.35, 0.1, 0.16); Bx(L, '#cbd5e1', 0.14, 0.07, 0.13, 0.24, 0.015); } },
+  ram: { r: 0.6, nv: 2, b(L) { Bx(L, '#15803d', 1.2, 0.05, 0.32); for (let i = 0; i < 4; i++) Bx(L, '#111827', 0.2, 0.05, 0.2, -0.42 + i * 0.28, 0.05); Bx(L, '#facc15', 1.1, 0.055, 0.05, 0, 0, 0.14); } },
+  cpu: { r: 0.35, nv: 1, b(L) { Bx(L, '#15803d', 0.5, 0.05, 0.5); Bx(L, '#cbd5e1', 0.38, 0.06, 0.38, 0, 0.05); } },
+  ssd: { r: 0.45, nv: 2, b(L) { Bx(L, '#1f2937', 0.8, 0.08, 0.55); Bx(L, pick(['#ef4444', '#3b82f6']), 0.5, 0.01, 0.35, 0, 0.08); } },
+  fan: { r: 0.5, nv: 1, b(L) { Bx(L, '#111827', 0.8, 0.2, 0.8); Cy(L, '#374151', 0.37, 0.21); Cy(L, '#111827', 0.12, 0.22); for (let i = 0; i < 5; i++) part(L, G.box, '#4b5563', Math.cos(i * 1.256) * 0.22, 0.12, Math.sin(i * 1.256) * 0.22, 0.25, 0.02, 0.1, 0, -i * 1.256, 0); } },
+  mouse: { r: 0.4, nv: 2, b(L) { part(L, G.sph, pick(['#111827', '#f8fafc']), 0, 0.12, 0, 0.42, 0.22, 0.28); Bx(L, '#64748b', 0.02, 0.03, 0.08, 0.25, 0.3); } },
+  cable: { r: 0.5, nv: 2, b(L) { for (let i = 0; i < 3; i++) ring(L, pick(['#111827', '#f8fafc']), 0.38 - i * 0.02, 0.04, 0, 0.05 + i * 0.07, 0); } },
+  headphones: { r: 0.7, nv: 2, b(L) { const c = pick(['#111827', '#ef4444']); part(L, G.torus, c, 0, 0.45, 0, 0.5, 0.5, 0.1, 0, 0, 0); for (const x of [-0.5, 0.5]) part(L, G.cyl, c, x, 0.2, 0, 0.25, 0.18, 0.25, 0, 0, PI / 2); } },
+  webcam: { r: 0.35, nv: 1, b(L) { Cy(L, '#374151', 0.2, 0.08); Cy(L, '#374151', 0.04, 0.3, 0, 0.08, 0); Ba(L, '#111827', 0.22, 0, 0.55, 0, 1, G.sph); Ba(L, '#38bdf8', 0.08, 0.2, 0.55, 0, 1, G.sph); } },
+  keyboard: { r: 1.4, nv: 2, b(L, v) { const c = v ? '#f1f5f9' : '#1f2937', k = v ? '#cbd5e1' : '#374151'; Bx(L, c, 2.6, 0.12, 0.9); for (let i = 0; i < 4; i++) for (let j = 0; j < 12; j++) Bx(L, k, 0.17, 0.06, 0.15, -1.1 + j * 0.2, 0.12, -0.3 + i * 0.2); } },
+  hdd: { r: 0.75, nv: 1, b(L) { Bx(L, '#94a3b8', 1.0, 0.2, 1.4); Bx(L, '#f8fafc', 0.6, 0.01, 0.5, 0, 0.2, -0.2); Bx(L, '#15803d', 0.8, 0.02, 0.4, 0, 0, 0.55); } },
+  gpu: { r: 1.2, nv: 2, b(L) { Bx(L, '#1f2937', 2.2, 0.4, 1.0); for (const x of [-0.5, 0.5]) { Cy(L, '#111827', 0.4, 0.42, x, 0, 0); Cy(L, '#4b5563', 0.12, 0.43, x, 0, 0); } Bx(L, '#cbd5e1', 0.06, 0.6, 1.0, -1.12, -0.05); Bx(L, pick(['#ef4444', '#22c55e']), 2.0, 0.02, 0.04, 0, 0.4, 0.5); } },
+  motherboard: { r: 1.6, nv: 1, b(L) { Bx(L, '#166534', 2.4, 0.06, 2.4); Bx(L, '#cbd5e1', 0.5, 0.12, 0.5, -0.3, 0.06, -0.3); for (let i = 0; i < 4; i++) Bx(L, '#111827', 0.08, 0.1, 1.2, 0.4 + i * 0.15, 0.06, -0.2); Bx(L, '#111827', 0.6, 0.1, 0.25, -0.6, 0.06, 0.7); Bx(L, '#64748b', 0.25, 0.3, 0.9, -1.05, 0.06, -0.5); Cy(L, '#facc15', 0.08, 0.15, 0.6, 0.06, 0.8); } },
+  psu: { r: 0.9, nv: 1, b(L) { Bx(L, '#111827', 1.2, 0.8, 1.0); Cy(L, '#374151', 0.35, 0.02, 0, 0.8, 0); Bx(L, '#facc15', 0.3, 0.2, 0.02, 0.3, 0.3, 0.5); } },
+  router: { r: 0.8, nv: 1, b(L) { Bx(L, '#f8fafc', 1.2, 0.25, 0.8); for (const x of [-0.45, 0, 0.45]) part(L, G.cyl, '#111827', x, 0.6, -0.38, 0.04, 0.7, 0.04, -0.15, 0, 0); for (let i = 0; i < 4; i++) Bx(L, '#22c55e', 0.05, 0.02, 0.02, -0.3 + i * 0.2, 0.25, 0.3); } },
+  monitor: { r: 1.6, nv: 2, b(L) { Bx(L, '#1f2937', 1.0, 0.06, 0.6); Bx(L, '#1f2937', 0.15, 0.8, 0.1, 0, 0.06, -0.1); Bx(L, '#1f2937', 2.8, 1.7, 0.12, 0, 0.6, 0); Bx(L, pick(['#38bdf8', '#a78bfa']), 2.6, 1.5, 0.01, 0, 0.7, 0.07); } },
+  pccase: { r: 1.4, nv: 3, b(L) { Bx(L, pick(['#111827', '#f8fafc', '#334155']), 1.0, 2.2, 2.0); Bx(L, '#38bdf8', 0.02, 1.6, 1.3, 0.51, 0.3, 0); Cy(L, '#22c55e', 0.06, 0.02, 0, 2.2, 0.8); } },
+  printer: { r: 1.5, nv: 1, b(L) { Bx(L, '#e5e7eb', 2.0, 0.9, 1.5); Bx(L, '#f8fafc', 1.4, 0.04, 0.6, 0, 0.9, -0.5); part(L, G.box, '#f8fafc', 0, 1.15, -0.6, 1.3, 0.5, 0.02, -0.3, 0, 0); Bx(L, '#334155', 1.3, 0.1, 0.2, 0, 0.35, 0.75); } },
+  cardbox: { r: 1.2, nv: 3, b(L) { Bx(L, '#c8955a', 1.6, 1.2, 1.4); Bx(L, '#a16207', 1.62, 0.02, 0.2, 0, 1.2); Bx(L, '#f8fafc', 0.4, 0.3, 0.01, 0.4, 0.5, 0.7); } },
+  server: { r: 1.8, nv: 1, b(L) { Bx(L, '#111827', 1.4, 3.2, 1.4); for (let y = 0.3; y < 3; y += 0.3) { Bx(L, '#374151', 1.3, 0.22, 0.02, 0, y, 0.7); Bx(L, R() < 0.5 ? '#22c55e' : '#38bdf8', 0.06, 0.06, 0.03, 0.5, y + 0.08, 0.71); } } },
+  pallet: { r: 2.2, nv: 2, b(L) { for (const z of [-0.8, 0, 0.8]) Bx(L, '#a16207', 2.6, 0.15, 0.3, 0, 0, z); for (let x = -1.1; x <= 1.15; x += 0.55) Bx(L, '#ca8a04', 0.4, 0.06, 2.0, x, 0.15); for (const x of [-0.6, 0.6]) for (const z of [-0.5, 0.5]) for (let y = 0; y < 2; y++) Bx(L, y % 2 ? '#c8955a' : '#b98546', 1.15, 0.9, 0.95, x, 0.21 + y * 0.9, z); } },
+  shelf: { r: 3.0, nv: 2, b(L) { for (const x of [-2.5, 2.5]) for (const z of [-0.6, 0.6]) Bx(L, '#f97316', 0.12, 4.2, 0.12, x, 0, z); for (const y of [0.3, 1.6, 2.9, 4.1]) Bx(L, '#64748b', 5.1, 0.1, 1.3, 0, y); for (const y of [0.4, 1.7, 3.0]) for (let i = 0; i < 4; i++) Bx(L, pick(['#c8955a', '#b98546', '#e5e7eb', '#1f2937']), 1.0, 0.9 + R() * 0.25, 1.0, -1.8 + i * 1.2, y); } },
+});
+
+// Светове на закрито: повърхност, фон и категории (types: от малки към големи)
+const INDOOR = {
+  food: { bg: '#f3e3cc', margin: '#8b5a2b', cats: [
+    { id: 'f_fruit', ic: '🍎', types: ['grape', 'cherry', 'strawberry', 'apple', 'orange', 'pear', 'banana', 'watermelon'], max: 120, small: true },
+    { id: 'f_sweet', ic: '🧁', types: ['candy', 'cookie', 'donut', 'cupcake', 'cake', 'weddingcake'], max: 90, small: true },
+    { id: 'f_main', ic: '🥪', types: ['egg', 'cheese', 'bread', 'sandwich', 'pizza', 'roast'], max: 60 },
+    { id: 'f_dish', ic: '🍽️', types: ['cup', 'bottle', 'plate', 'fruitbowl', 'teapot', 'vase'], max: 42 },
+  ] },
+  school: { bg: '#e7e2d8', margin: '#5b3a1f', cats: [
+    { id: 's_small', ic: '📎', types: ['pin', 'clip', 'eraser', 'sharpener', 'gluestick', 'notes'], max: 120, small: true },
+    { id: 's_write', ic: '✏️', types: ['crayon', 'pencil', 'pen', 'marker'], max: 90, small: true },
+    { id: 's_tools', ic: '📐', types: ['ruler', 'scissors', 'calculator', 'stapler', 'tape', 'pencilcup'], max: 48 },
+    { id: 's_books', ic: '📚', types: ['notebook', 'book', 'pencilcase', 'bookstack'], max: 36 },
+    { id: 's_big', ic: '🎒', types: ['globe', 'lamp', 'laptop', 'backpack'], max: 15 },
+  ] },
+  toys: { bg: '#dbeafe', margin: '#9a6b3c', cats: [
+    { id: 't_small', ic: '🧱', types: ['marble', 'lego', 'toyblock', 'dice', 'duck'], max: 135, small: true },
+    { id: 't_balls', ic: '⚽', types: ['marble', 'ball', 'beachball'], max: 42, small: true },
+    { id: 't_cars', ic: '🚂', types: ['toycar', 'toytruck', 'train'], max: 36 },
+    { id: 't_figs', ic: '🧸', types: ['top', 'teddy', 'robot', 'rocket', 'blocktower'], max: 42 },
+    { id: 't_big', ic: '🎪', types: ['xylophone', 'drum', 'rockinghorse', 'toybox', 'tent', 'dollhouse'], max: 21 },
+  ] },
+  tech: { bg: '#d4d8dd', margin: '#6b7280', cats: [
+    { id: 'c_parts', ic: '🔩', types: ['screw', 'usb', 'cpu', 'ssd', 'ram', 'fan'], max: 135, small: true },
+    { id: 'c_peri', ic: '🖱️', types: ['mouse', 'webcam', 'cable', 'headphones', 'keyboard'], max: 66, small: true },
+    { id: 'c_boards', ic: '🎛️', types: ['hdd', 'router', 'psu', 'gpu', 'motherboard'], max: 42 },
+    { id: 'c_big', ic: '🖥️', types: ['monitor', 'cardbox', 'pccase', 'printer', 'server'], max: 30 },
+    { id: 'c_store', ic: '📦', types: ['pallet', 'shelf'], max: 12 },
+  ] },
+};
+
+function paintIndoor(kind, P, L, E) {
+  const g = P.g;
+  if (kind === 'food') {
+    // карирана покривка
+    P.rect(-L, -L, L, L, '#fff7ed');
+    for (let x = -L; x < L; x += 2) P.rect(x, -L, x + 1, L, 'rgba(220,38,38,.45)');
+    for (let z = -L; z < L; z += 2) P.rect(-L, z, L, z + 1, 'rgba(220,38,38,.45)');
+  } else if (kind === 'school') {
+    P.rect(-L, -L, L, L, '#c8955a');
+    for (let i = 0; i < L * 3; i++) { const z = RR(-L, L); P.line(-L, z, L, z + RR(-1, 1), RR(0.05, 0.2), 'rgba(120,70,30,.25)'); }
+    P.rect(-L * 0.55, -L * 0.45, L * 0.55, L * 0.45, '#1f5f3f');            // подложка за писане
+    P.rect(-L * 0.53, -L * 0.43, L * 0.53, L * 0.43, '#2d7a52');
+  } else if (kind === 'toys') {
+    P.rect(-L, -L, L, L, '#d9b07a');
+    for (let z = -L; z < L; z += 1.5) { P.line(-L, z, L, z, 0.06, 'rgba(90,55,20,.35)'); for (let x = -L + ((z / 1.5) % 2) * 2; x < L; x += 4) P.line(x, z, x, z + 1.5, 0.06, 'rgba(90,55,20,.35)'); }
+    ['#f87171', '#fbbf24', '#34d399', '#60a5fa', '#a78bfa'].forEach((c, i) => P.circle(0, 0, L * 0.6 - i * L * 0.1, c));
+  } else {
+    P.rect(-L, -L, L, L, '#9aa3ad');
+    for (let x = -L; x < L; x += 4) P.line(x, -L, x, L, 0.05, 'rgba(0,0,0,.12)');
+    for (let z = -L; z < L; z += 4) P.line(-L, z, L, z, 0.05, 'rgba(0,0,0,.12)');
+    P.line(-L, 0, L, 0, 0.4, '#facc15'); P.line(0, -L, 0, L, 0.4, '#facc15');
+    for (let x = -L; x < L; x += 1.2) { P.line(x, -L + 0.3, x + 0.6, -L + 0.9, 0.3, '#111827'); }
+  }
+  // ръб на масата / бюрото
+  g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 0.8 * P.ppu; g.strokeRect(P.X(-L), P.X(-L), 2 * L * P.ppu, 2 * L * P.ppu);
+}
+
+function layoutIndoor(kind, L, counts) {
+  const def = INDOOR[kind], E = L + 30;
+  const { cv, P } = makeGroundCanvas(E, def.margin);
+  paintIndoor(kind, P, L, E);
+  finishGround(cv, E, true);
+  const order = [...def.cats].sort((a, b) => Math.max(...b.types.map((t) => T[t].r)) - Math.max(...a.types.map((t) => T[t].r)));
+  for (const c of order) {
+    const weights = c.types.map((tp) => 1 / Math.sqrt(T[tp].r));
+    const wsum = weights.reduce((s, w) => s + w, 0);
+    const pickType = () => { let r = R() * wsum; for (let i = 0; i < c.types.length; i++) { r -= weights[i]; if (r <= 0) return c.types[i]; } return c.types[0]; };
+    for (let i = 0; i < (counts[c.id] || 0); i++) {
+      const type = pickType();
+      for (let tr = 0; tr < 40; tr++) if (spawn(type, RR(-L + 1.5, L - 1.5), RR(-L + 1.5, L - 1.5))) break;
+    }
+  }
+}
+
 const geoCache = new Map();
 function geoFor(type, v) {
   const key = type + ':' + v;
@@ -541,8 +771,8 @@ function addDecor(L, E) {
   }
   rng = saved;
 }
-function finishGround(cv, E) {
-  addDecor(world.L, E);
+function finishGround(cv, E, indoor) {
+  if (!indoor) addDecor(world.L, E);
   const tex = new THREE.CanvasTexture(cv);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -1271,6 +1501,9 @@ function clearWorld() {
 // Светът се строи детерминирано от настройката (cfg), за да може запазена игра да се възстанови.
 function buildWorld(cfg) {
   clearWorld();
+  const wk = cfg.kind === 'career' ? THEMES[(cfg.level - 1) % THEMES.length] : cfg.kind === 'single' ? singleWorld(cfg) : 'city';
+  const bgc = INDOOR[wk] ? INDOOR[wk].bg : SKY;
+  scene.background = new THREE.Color(bgc); scene.fog.color.set(bgc);
   world = { L: 0, total: 0, nextId: 0 };
   if (cfg.kind === 'career') {
     const n = cfg.level;
@@ -1279,6 +1512,12 @@ function buildWorld(cfg) {
     rng = mulberry32(1000 + n * 7919);
     if (theme === 'park') { world.L = 28 + cycle * 5; layoutPark(world.L); }
     else if (theme === 'farm') { world.L = 36 + cycle * 5; layoutFarm(world.L); }
+    else if (INDOOR[theme]) {
+      world.L = 26 + cycle * 4;
+      const k = (world.L / 24) ** 2, counts = {};
+      for (const c of INDOOR[theme].cats) counts[c.id] = Math.round(c.max * 0.75 * k);
+      layoutIndoor(theme, world.L, counts);
+    }
     else if (theme === 'cubes') {
       world.L = 30 + cycle * 5;
       const k = (world.L / 30) ** 2, counts = {};
@@ -1292,7 +1531,8 @@ function buildWorld(cfg) {
     theme = 'single';
     rng = mulberry32(cfg.seed);
     world.L = SIZES[cfg.size].L;
-    if (cfg.cubes) layoutCubes(world.L, cfg.counts); else layoutCustom(world.L, cfg.counts);
+    const wk = singleWorld(cfg);
+    if (wk === 'cubes') layoutCubes(world.L, cfg.counts); else if (INDOOR[wk]) layoutIndoor(wk, world.L, cfg.counts); else layoutCustom(world.L, cfg.counts);
     rng = Math.random;
     player = makeHole(PLAYER_NAMES, PLAYER_COLOR, 0, 0, startR(), false);
   } else {
@@ -1734,7 +1974,7 @@ function show(id) {
 }
 function cfgTitle(cfg) {
   if (cfg.kind === 'career') return t('level') + ' ' + cfg.level + ' · ' + t(THEMES[(cfg.level - 1) % THEMES.length]);
-  if (cfg.kind === 'single') return (cfg.cubes ? t('kindCubes') : t('single')) + ' · ' + t('size' + cfg.size.toUpperCase());
+  if (cfg.kind === 'single') { const wk = singleWorld(cfg); return (wk === 'objects' ? t('single') : t('kind_' + wk)) + ' · ' + t('size' + cfg.size.toUpperCase()); }
   return t('battle') + ' · ' + t('diff_' + (cfg.diff || 'normal'));
 }
 function startGame(cfg, snap) {
@@ -1840,9 +2080,13 @@ function syncSound() { const s = t(save.sound ? 'soundOn' : 'soundOff'); $('btnS
 function toggleSound() { save.sound = !save.sound; persist(); syncSound(); }
 
 // ---------- единично ниво: настройка ----------
-const single = Object.assign({ kind: 'objects', size: 's', counts: null, ccounts: null }, store.get('dup.single', {}));
-const curCats = () => (single.kind === 'cubes' ? CUBE_CATS : CATS);
-const curCounts = () => (single.kind === 'cubes' ? single.ccounts : single.counts);
+const single = Object.assign({ kind: 'objects', size: 's', by: {} }, store.get('dup.single', {}));
+if (!single.by) single.by = {};
+if (single.counts) { single.by.objects = single.by.objects || single.counts; delete single.counts; } // стар формат
+if (single.ccounts) { single.by.cubes = single.by.cubes || single.ccounts; delete single.ccounts; }
+const catsFor = (k) => (k === 'cubes' ? CUBE_CATS : INDOOR[k] ? INDOOR[k].cats : CATS);
+const curCats = () => catsFor(single.kind);
+const curCounts = () => single.by[single.kind];
 function catMax(c, size) { return Math.max(1, Math.round(c.max * SIZES[size].k)); }
 function randomCounts(size, list = curCats()) {
   const counts = {};
@@ -1854,8 +2098,8 @@ function randomCounts(size, list = curCats()) {
   return counts;
 }
 function ensureCounts() {
-  if (!single.counts) single.counts = randomCounts(single.size, CATS);
-  if (!single.ccounts) single.ccounts = randomCounts(single.size, CUBE_CATS);
+  if (!WORLD_KINDS.includes(single.kind)) single.kind = 'objects';
+  if (!single.by[single.kind]) single.by[single.kind] = randomCounts(single.size, curCats());
 }
 function openSingle() {
   ensureCounts();
@@ -1901,11 +2145,11 @@ $('sizes').addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b) return;
   const old = single.size; single.size = b.dataset.size;
   // мащабирай броя спрямо новия размер (и за двата вида)
-  for (const [list, counts] of [[CATS, single.counts], [CUBE_CATS, single.ccounts]]) if (counts) for (const c of list) counts[c.id] = Math.round((counts[c.id] || 0) * SIZES[single.size].k / SIZES[old].k);
+  for (const k in single.by) for (const c of catsFor(k)) { const counts = single.by[k]; if (counts) counts[c.id] = Math.round((counts[c.id] || 0) * SIZES[single.size].k / SIZES[old].k); }
   renderSingle();
 });
-$('btnRandom').addEventListener('click', () => { if (single.kind === 'cubes') single.ccounts = randomCounts(single.size); else single.counts = randomCounts(single.size); renderSingle(); sfx.grow(); });
-$('btnSinglePlay').addEventListener('click', () => startGame({ kind: 'single', cubes: single.kind === 'cubes', size: single.size, counts: { ...curCounts() }, seed: Math.floor(Math.random() * 1e9) }));
+$('btnRandom').addEventListener('click', () => { single.by[single.kind] = randomCounts(single.size); renderSingle(); sfx.grow(); });
+$('btnSinglePlay').addEventListener('click', () => startGame({ kind: 'single', world: single.kind, size: single.size, counts: { ...curCounts() }, seed: Math.floor(Math.random() * 1e9) }));
 $('btnSingleBack').addEventListener('click', () => show('scrMenu'));
 
 // ---------- език ----------
@@ -1970,7 +2214,7 @@ if (/[?&]debug\b/.test(location.search)) {
     holeCubes: holeCubes.slice(0, 40).map((c) => ({ x: +c.x.toFixed(2), y: +c.y.toFixed(2), z: +c.z.toFixed(2), vx: +c.vx.toFixed(2), vz: +c.vz.toFixed(2), w: +c.w.length().toFixed(2) })),
     calls: renderer.info.render.calls,
   });
-  window.__dupkaStart = (m, n) => (m === 'battle' ? startBattle() : m === 'single' ? startGame({ kind: 'single', size: n || 's', counts: randomCounts(n || 's', CATS), seed: 7 }) : m === 'cubes' ? startGame({ kind: 'single', cubes: true, size: n || 's', counts: randomCounts(n || 's', CUBE_CATS), seed: 7 }) : startCareer(n || 1));
+  window.__dupkaStart = (m, n) => (m === 'battle' ? startBattle() : m === 'single' ? startGame({ kind: 'single', size: n || 's', counts: randomCounts(n || 's', CATS), seed: 7 }) : m === 'cubes' ? startGame({ kind: 'single', cubes: true, size: n || 's', counts: randomCounts(n || 's', CUBE_CATS), seed: 7 }) : INDOOR[m] ? startGame({ kind: 'single', world: m, size: n || 's', counts: Object.fromEntries(INDOOR[m].cats.map((c) => [c.id, Math.round(c.max * 0.75)])), seed: 7 }) : startCareer(n || 1));
 }
 
 // ================= цикъл =================
