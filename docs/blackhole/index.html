@@ -134,6 +134,7 @@
   .seg.diffs button span { display: block; line-height: 1.25; margin-top: 2px; }
   .seg.seg2 { grid-template-columns: 1fr 1fr; }
   .seg.seg2 button span { display: block; }
+  #btnSinglePlay { margin: 4px 0 14px; }
   .seg.kinds button b { font-size: 14px; }
   .seg button b { display: block; font-size: 15px; }
   .seg button span { font-size: 12px; color: var(--muted); }
@@ -205,6 +206,8 @@
 <section class="screen" id="scrSingle" hidden>
   <div class="card">
     <h2 data-i18n="single"></h2>
+    <button class="btn" id="btnSinglePlay" type="button" data-i18n="play"></button>
+    <div class="warn" id="singleWarn" hidden data-i18n="needSmall"></div>
     <div class="sec" data-i18n="levelKind"></div>
     <div class="seg kinds" id="kinds">
       <button type="button" data-kind="objects"><b data-i18n="kind_objects"></b></button>
@@ -222,8 +225,6 @@
     </div>
     <div class="sec"><span data-i18n="whatToEat"></span><button type="button" id="btnRandom" data-i18n="random"></button></div>
     <div class="cats" id="cats"></div>
-    <div class="warn" id="singleWarn" hidden data-i18n="needSmall"></div>
-    <button class="btn" id="btnSinglePlay" type="button" data-i18n="play"></button>
     <button class="btn ghost" id="btnSingleBack" type="button" data-i18n="back"></button>
   </div>
 </section>

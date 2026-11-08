@@ -612,7 +612,7 @@ const INDOOR = {
     { id: 'f_sweet', ic: '🧁', types: ['candy', 'cookie', 'donut', 'cupcake', 'cake', 'weddingcake'], max: 90, small: true },
     { id: 'f_main', ic: '🥪', types: ['egg', 'cheese', 'bread', 'sandwich', 'pizza', 'roast'], max: 60 },
     { id: 'f_dish', ic: '🍽️', types: ['cup', 'bottle', 'plate', 'fruitbowl', 'teapot', 'vase'], max: 42 },
-    { id: 'f_piles', ic: '🍅', types: ['pancakeStack', 'sushiTower', 'tomatoPyr', 'fruitPyr', 'biscuitHouse'], max: 9 },
+    { id: 'f_piles', ic: '🍅', types: ['pancakeStack', 'sushiTower', 'tomatoPyr', 'fruitPyr', 'biscuitHouse'], max: 7, scatter: true },
   ] },
   school: { bg: '#e7e2d8', margin: '#5b3a1f', cats: [
     { id: 's_small', ic: '📎', types: ['pin', 'clip', 'eraser', 'sharpener', 'gluestick', 'notes'], max: 120, small: true },
@@ -721,7 +721,7 @@ function layoutIndoor(kind, L, counts) {
     for (let k = 0; k < 6; k++) {
       const st0 = Math.floor(seed() * 1e9);
       rng = mulberry32(st0);
-      res = planRows(L, def.cats, cnt, ORDERED[kind]);
+      res = planRows(L, def.cats.filter((c) => !c.scatter), cnt, ORDERED[kind]);
       if (res.H <= room) break;
       const f = (room / res.H) * 0.97;
       for (const id in cnt) cnt[id] = cnt[id] > 0 ? Math.max(1, Math.floor(cnt[id] * f)) : 0;
@@ -736,10 +736,31 @@ function layoutIndoor(kind, L, counts) {
     }
     if (kind === 'tech') for (let i = 1; i < blocks.length; i++) { const zc = (blocks[i - 1].z1 + blocks[i].z0) / 2; P.line(-L, zc, L, zc, 0.12, '#f8fafc', [1.2, 1.2]); }
     finishGround(cv, E, true);
-    for (const it of plan) { if (PREFABS[it.tp]) addStruct(it.tp, it.x, it.z, true); else spawn(it.tp, it.x, it.z, 0, { force: true }); }
+    // купчините се разпръсват равномерно по цялата карта (най-далеч една от друга), а редиците ги заобикалят
+    const piles = [];
+    for (const c of def.cats.filter((c) => c.scatter)) {
+      for (let i = 0; i < (counts[c.id] || 0); i++) {
+        const tp = pick(c.types), pr = rOf(tp);
+        let best = null, bestD = -1;
+        for (let t = 0; t < 30; t++) {
+          const x = RR(-L + pr + 1, L - pr - 1), z = RR(-L + pr + 1, L - pr - 1);
+          let d = Infinity;
+          for (const p of piles) d = Math.min(d, Math.hypot(p.x - x, p.z - z) - p.r - pr);
+          if (d > bestD) { bestD = d; best = { x, z }; }
+        }
+        if (best && bestD > 0.5) { piles.push({ x: best.x, z: best.z, r: pr }); addStruct(tp, best.x, best.z, true); }
+      }
+    }
+    const hitsPile = (x, z, r) => piles.some((p) => (p.x - x) ** 2 + (p.z - z) ** 2 < (p.r + r * 0.8 + 0.3) ** 2);
+    for (const it of plan) { if (!hitsPile(it.x, it.z, rOf(it.tp))) spawn(it.tp, it.x, it.z, 0, { force: true }); }
     if (structs.length) finishCubes();
-    // започни в пътеката между първите две групи
-    if (blocks.length > 1) world.start = { x: 0, z: (blocks[0].z1 + blocks[1].z0) / 2 };
+    // започни в пътеката между първите две групи (на място без купчина)
+    if (blocks.length > 1) {
+      const z = (blocks[0].z1 + blocks[1].z0) / 2;
+      let x = 0;
+      for (let t = 0; t < 40 && hitsPile(x, z, 1.5); t++) x = (t % 2 ? -1 : 1) * Math.ceil((t + 1) / 2) * 1.5;
+      world.start = { x, z };
+    }
     return;
   }
   paintIndoor(kind, P, L, E);
@@ -1170,29 +1191,29 @@ const VC = {
 const pyramid = (n, colors) => { const out = []; for (let k = 0; k < n; k++) for (let i = 0; i < n - k; i++) for (let j = 0; j < n - k; j++) out.push([2 * i + k, k, 2 * j + k, pick(colors)]); return out; };
 const PREFABS = {
   // ---- купчини от храна ----
-  tomatoPyr: { s: 0.55, shape: 'ball', pile: true, r: 1.9, b: () => pyramid(4 + Math.floor(R() * 2), ['#dc2626', '#ef4444', '#b91c1c']) },
-  fruitPyr: { s: 0.6, shape: 'ball', pile: true, r: 2.1, b: () => pyramid(4 + Math.floor(R() * 2), pick([['#f97316', '#fb923c'], ['#dc2626', '#65a30d', '#facc15'], ['#facc15', '#fde047'], ['#84cc16', '#65a30d']])) },
-  sushiTower: { s: 0.5, sy: 0.36, shape: 'disc', r: 1.0, b: () => {
-    const n = 2 + Math.floor(R() * 2), H = 7 + Math.floor(R() * 5), out = [], kinds = ['#fb923c', '#f8fafc', '#14532d', '#fde047', '#ef4444'];
+  tomatoPyr: { s: 0.55, shape: 'ball', pile: true, r: 3.1, b: () => pyramid(6 + Math.floor(R() * 3), ['#dc2626', '#ef4444', '#b91c1c']) },
+  fruitPyr: { s: 0.6, shape: 'ball', pile: true, r: 3.4, b: () => pyramid(6 + Math.floor(R() * 3), pick([['#f97316', '#fb923c'], ['#dc2626', '#65a30d', '#facc15'], ['#facc15', '#fde047'], ['#84cc16', '#65a30d']])) },
+  sushiTower: { s: 0.5, sy: 0.36, shape: 'disc', r: 1.45, b: () => {
+    const n = 3 + Math.floor(R() * 2), H = 10 + Math.floor(R() * 7), out = [], kinds = ['#fb923c', '#f8fafc', '#14532d', '#fde047', '#ef4444'];
     for (let y = 0; y < H; y++) { const c = kinds[y % kinds.length]; for (let x = 0; x < n; x++) for (let z = 0; z < n; z++) out.push([x, y, z, c]); }
     return out;
   } },
-  biscuitHouse: { s: 0.55, sy: 0.2, shape: 'box', r: 2.0, b: () => {
-    const out = [], W = 5, H = 10;
+  biscuitHouse: { s: 0.55, sy: 0.2, shape: 'box', r: 2.75, b: () => {
+    const out = [], W = 7, H = 14, mid = 3;
     for (let x = 0; x < W; x++) for (let z = 0; z < W; z++) for (let y = 0; y < H; y++) {
       const edge = x === 0 || x === W - 1 || z === 0 || z === W - 1;
       let c = edge ? (y % 2 ? '#e0b37a' : '#d6a15c') : '#c08a4b';
-      if (z === W - 1 && x === 2 && y < 5) c = '#5b3a1f';                             // врата от шоколад
-      else if ((z === W - 1 || z === 0) && (x === 1 || x === 3) && (y === 6 || y === 7)) c = '#fdf2f8'; // прозорци от глазура
+      if (z === W - 1 && x === mid && y < 6) c = '#5b3a1f';                            // врата от шоколад
+      else if ((z === W - 1 || z === 0 || x === 0 || x === W - 1) && (x === 1 || x === W - 2 || z === 1 || z === W - 2) && (y === 8 || y === 9)) c = '#fdf2f8'; // прозорци от глазура
       out.push([x, y, z, c]);
     }
-    for (let x = 0; x < W; x++) for (let z = 0; z < W; z++) out.push([x, H, z, '#f9a8d4']);
-    for (const y of [H + 1, H + 2]) for (let x = 1; x < 4; x++) for (let z = 1; z < 4; z++) out.push([x, y, z, y === H + 1 ? '#f472b6' : '#f9a8d4']);
-    out.push([2, H + 3, 2, '#dc2626']);
+    // покрив на стъпала от глазура и черешка на върха
+    for (let k = 0; k <= mid; k++) for (let x = k; x < W - k; x++) for (let z = k; z < W - k; z++) out.push([x, H + k, z, k % 2 ? '#f472b6' : '#f9a8d4']);
+    out.push([mid, H + mid + 1, mid, '#dc2626']);
     return out;
   } },
-  pancakeStack: { s: 1.0, sy: 0.14, shape: 'disc', r: 0.6, b: () => {
-    const H = 10 + Math.floor(R() * 5), out = [];
+  pancakeStack: { s: 1.2, sy: 0.14, shape: 'disc', r: 0.75, b: () => {
+    const H = 16 + Math.floor(R() * 7), out = [];
     for (let y = 0; y < H; y++) out.push([0, y, 0, y % 3 ? '#e0a458' : '#d4913f']);
     out.push([0, H, 0, '#fde047']);
     return out;
