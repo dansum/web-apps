@@ -6,6 +6,9 @@ import { evaluate, monthTick, canPlace, needsRoad, roadNear } from './sim.js';
 import { Renderer } from './render.js';
 import * as ui from './ui.js';
 import { createJournal } from './journal.js';
+import { tr, EN, langSwitch, localizeDom } from './i18n.js';
+
+localizeDom();
 
 const SEED = 1852;
 const MONTH_MS = 3000;
@@ -95,9 +98,11 @@ function pickTool(id) {
   ui.toolbar(s, tool, pickTool);
   if (id === 'inspect') { ui.info(null); return; }
   const lines = [`<h3>${d.icon} ${ui.esc(d.name)}</h3>`];
-  if (d.cost) lines.push(`<p class="meta">Цена: <b>${d.cost} €</b>${d.upkeep >= 1 ? ` · поддръжка ${d.upkeep} € на месец` : ''}</p>`);
+  if (d.cost) lines.push(tr(
+    `<p class="meta">Цена: <b>${d.cost} €</b>${d.upkeep >= 1 ? ` · поддръжка ${d.upkeep} € на месец` : ''}</p>`,
+    `<p class="meta">Cost: <b>€${d.cost}</b>${d.upkeep >= 1 ? ` · upkeep €${d.upkeep} a month` : ''}</p>`));
   lines.push(`<p>${ui.esc(d.desc)}</p>`);
-  if (d.fact) lines.push(`<p class="fact">💡 <b>Знаеш ли?</b> ${ui.esc(d.fact)}</p>`);
+  if (d.fact) lines.push(`<p class="fact">💡 <b>${tr('Знаеш ли?', 'Did you know?')}</b> ${ui.esc(d.fact)}</p>`);
   ui.info(lines.join(''));
 }
 
@@ -107,8 +112,9 @@ function pickFactor(id) {
   if (!overlay) { ui.info(null); return; }
   const f = FACTORS.find(x => x.id === id), v = ev.factors ? ev.factors[id] : null;
   const map = ['home', 'work'].includes(id)
-    ? '<p class="meta">Този фактор е общ за целия град.</p>'
-    : '<p class="meta">На картата домовете са оцветени: <b style="color:#2e9e4a">зелено</b> — добре, <b style="color:#d23c3c">червено</b> — зле.</p>';
+    ? `<p class="meta">${tr('Този фактор е общ за целия град.', 'This factor is the same for the whole city.')}</p>`
+    : tr('<p class="meta">На картата домовете са оцветени: <b style="color:#2e9e4a">зелено</b> — добре, <b style="color:#d23c3c">червено</b> — зле.</p>',
+      '<p class="meta">The homes on the map are coloured: <b style="color:#2e9e4a">green</b> — good, <b style="color:#d23c3c">red</b> — poor.</p>');
   ui.info(`<h3>${f.icon} ${f.name}: ${v ?? '—'}</h3><p>${f.why}</p><p class="tip">👉 ${f.tip}</p>${map}`);
 }
 
@@ -121,11 +127,11 @@ function place(t, i, j, quiet) {
   }
   const k = idx(i, j);
   s.b[k] = t;
-  if (BUILDINGS[t].landmark) logEvent(BUILDINGS[t].icon, `Построена: ${BUILDINGS[t].name}`);
+  if (BUILDINGS[t].landmark) logEvent({ kind: 'built', t });
   s.trees[k] = 0;
   s.money -= BUILDINGS[t].cost;
   sfx.place();
-  if (needsRoad(t) && !roadNear(s, i, j) && !quiet) ui.toast('Сградата няма път до себе си и не работи. Построй път до нея!', 'warn');
+  if (needsRoad(t) && !roadNear(s, i, j) && !quiet) ui.toast(tr('Сградата няма път до себе си и не работи. Построй път до нея!', 'This building has no road next to it, so it does not work. Build a road to it!'), 'warn');
   afterChange();
   return true;
 }
@@ -149,8 +155,8 @@ function afterChange() {
 
 // ---------- история за „Дневник на града“ ----------
 const MAX_HIST = 600;
-function logEvent(icon, text) {
-  s.events.push({ y: s.year, m: s.month, icon, text });
+function logEvent(e) {
+  s.events.push({ y: s.year, m: s.month, ...e });
   if (s.events.length > 200) s.events.shift();
 }
 
@@ -162,10 +168,10 @@ function record(before) {
     income: s.last.taxes + s.last.tourism, upkeep: s.last.upkeep, missions: s.mission });
   if (s.hist.length > MAX_HIST) s.hist.shift();
   for (const mark of [100, 300, 600, 1000, 2000]) {
-    if (before.pop < mark && s.pop >= mark) logEvent('👥', `Градът стигна ${mark} жители`);
+    if (before.pop < mark && s.pop >= mark) logEvent({ kind: 'pop', mark });
   }
-  if (before.money >= 0 && s.money < 0) logEvent('⚠️', 'Бюджетът падна под нулата');
-  if (before.money < 0 && s.money >= 0) logEvent('💶', 'Бюджетът отново е на плюс');
+  if (before.money >= 0 && s.money < 0) logEvent({ kind: 'debt' });
+  if (before.money < 0 && s.money >= 0) logEvent({ kind: 'recovered' });
   journal.refresh();
 }
 
@@ -175,20 +181,24 @@ async function checkMission() {
   if (!m || missionBusy || !m.check(s, ev)) return;
   missionBusy = true;
   s.done.push({ n: s.mission, y: s.year, m: s.month });
-  logEvent('🏅', `Изпълнена задача ${s.mission + 1}: ${m.short}`);
+  logEvent({ kind: 'mission', n: s.mission });
   s.mission++;
   s.money += m.reward;
   save();
   refresh();
   sfx.win();
-  await ui.modal(`<div class="big">🎉</div><h2>Браво!</h2><p class="done">✅ ${ui.esc(m.text)}</p>
-    <p class="lesson"><b>Какво научихме:</b> ${ui.esc(m.lesson)}</p><p class="meta">Награда: <b>+${m.reward} €</b> в бюджета</p>`,
-  [MISSIONS[s.mission] ? 'Към следващата задача' : 'Продължи']);
+  await ui.modal(`<div class="big">🎉</div><h2>${tr('Браво!', 'Well done!')}</h2><p class="done">✅ ${ui.esc(m.text)}</p>
+    <p class="lesson"><b>${tr('Какво научихме:', 'What we learned:')}</b> ${ui.esc(m.lesson)}</p>
+    <p class="meta">${tr(`Награда: <b>+${m.reward} €</b> в бюджета`, `Reward: <b>+€${m.reward}</b> for the city budget`)}</p>`,
+  [MISSIONS[s.mission] ? tr('Към следващата задача', 'On to the next task') : tr('Продължи', 'Continue')]);
   missionBusy = false;
   if (!MISSIONS[s.mission]) {
-    await ui.modal(`<div class="big">🏆</div><h2>Варна е град за хората!</h2>
+    await ui.modal(tr(`<div class="big">🏆</div><h2>Варна е град за хората!</h2>
       <p>Изпълни всички задачи. Хората в твоя град имат дом и работа, училище и лекар наблизо, паркове, транспорт и култура.</p>
-      <p>Можеш да продължиш да строиш. Опитай всички фактори да станат над 90!</p>`, ['Продължи']);
+      <p>Можеш да продължиш да строиш. Опитай всички фактори да станат над 90!</p>`,
+    `<div class="big">🏆</div><h2>Varna is a city for people!</h2>
+      <p>You have completed every task. The people in your city have homes and jobs, a school and a doctor nearby, parks, transport and culture.</p>
+      <p>You can keep building. Try to get every factor above 90!</p>`), [tr('Продължи', 'Continue')]);
   }
   checkMission();
 }
@@ -200,12 +210,12 @@ function inspect(i, j) {
   focus = null;
   if (!t) {
     const ter = TERRAIN_INFO[s.terrain[k]];
-    const extra = s.trees[k] ? '<p>Тук растат дървета. Те правят въздуха около домовете по-чист.</p>' : '';
+    const extra = s.trees[k] ? `<p>${tr('Тук растат дървета. Те правят въздуха около домовете по-чист.', 'Trees grow here. They make the air around the homes cleaner.')}</p>` : '';
     ui.info(`<h3>${ter.icon} ${ter.name}</h3><p>${ter.desc}</p>${extra}`);
     return;
   }
   const d = BUILDINGS[t], lines = [`<h3>${d.icon} ${ui.esc(d.name)}</h3>`];
-  if (ev.inactive.has(k)) lines.push('<p class="warn">⚠️ До тази сграда няма път, затова тя не работи. Построй път до нея!</p>');
+  if (ev.inactive.has(k)) lines.push(`<p class="warn">⚠️ ${tr('До тази сграда няма път, затова тя не работи. Построй път до нея!', 'There is no road next to this building, so it does not work. Build a road to it!')}</p>`);
   lines.push(`<p>${ui.esc(d.desc)}</p>`);
   const loc = ev.local.get(k);
   if (loc) {
@@ -214,18 +224,18 @@ function inspect(i, j) {
       return `<li><span>${f.icon} ${f.name}</span><span class="bar"><i style="width:${v}%;background:${ui.barColor(v)}"></i></span><b>${v}</b></li>`;
     }).join('') + '</ul>');
     const hints = [];
-    if (loc.edu < 50) hints.push('няма достатъчно места в училище наблизо');
-    if (loc.health < 50) hints.push(loc.pollution > 15 ? 'въздухът е замърсен от завод' : 'няма поликлиника наблизо');
-    if (loc.nature < 50) hints.push('няма парк или дървета наблизо');
-    if (loc.transport < 50) hints.push('няма автобусна спирка наблизо');
-    if (hints.length) lines.push(`<p class="tip">👉 За хората тук: ${hints.join('; ')}.</p>`);
+    if (loc.edu < 50) hints.push(tr('няма достатъчно места в училище наблизо', 'there are not enough school places nearby'));
+    if (loc.health < 50) hints.push(loc.pollution > 15 ? tr('въздухът е замърсен от завод', 'a factory is polluting the air') : tr('няма поликлиника наблизо', 'there is no health centre nearby'));
+    if (loc.nature < 50) hints.push(tr('няма парк или дървета наблизо', 'there are no parks or trees nearby'));
+    if (loc.transport < 50) hints.push(tr('няма автобусна спирка наблизо', 'there is no bus stop nearby'));
+    if (hints.length) lines.push(`<p class="tip">👉 ${tr('За хората тук', 'For the people here')}: ${hints.join('; ')}.</p>`);
   }
   if (d.serve) {
     focus = { i, j, r: d.serve.r, color: 'rgba(255,255,255,.22)' };
-    lines.push(`<p class="meta">Светлият кръг показва кои домове обслужва.</p>`);
+    lines.push(`<p class="meta">${tr('Светлият кръг показва кои домове обслужва.', 'The light circle shows which homes it serves.')}</p>`);
   }
   if (d.pollution) focus = { i, j, r: d.pollution.r, color: 'rgba(120,70,30,.3)' };
-  if (d.fact) lines.push(`<p class="fact">💡 <b>Знаеш ли?</b> ${ui.esc(d.fact)}</p>`);
+  if (d.fact) lines.push(`<p class="fact">💡 <b>${tr('Знаеш ли?', 'Did you know?')}</b> ${ui.esc(d.fact)}</p>`);
   ui.info(lines.join(''));
 }
 
@@ -320,12 +330,13 @@ document.querySelectorAll('[data-speed]').forEach(b => b.onclick = () => setSpee
 document.getElementById('st-wb').onclick = showWellbeing;
 document.getElementById('btn-menu').onclick = menu;
 
-// ---------- раздел „За учителя“ (отваря се и с линк …/Varna/#uchitel) ----------
+// ---------- раздел „За учителя“ (отваря се и с линк …/Varna/#uchitel или #teacher) ----------
+const TEACHER_HASH = ['#uchitel', '#teacher'];
 const teacher = document.getElementById('teacher');
 const teacherOpen = () => !teacher.hidden;
 function showTeacher(open) {
   teacher.hidden = !open;
-  const want = open ? '#uchitel' : '';
+  const want = open ? (EN ? '#teacher' : '#uchitel') : '';
   if (location.hash !== want) history.replaceState(null, '', location.pathname + location.search + want);
 }
 document.getElementById('btn-teacher').onclick = () => showTeacher(true);
@@ -335,8 +346,8 @@ teacher.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
   teacher.querySelectorAll('[data-tab]').forEach(x => x.classList.toggle('on', x === b));
   teacher.querySelectorAll('[data-pane]').forEach(p => p.classList.toggle('on', p.dataset.pane === b.dataset.tab));
 });
-window.addEventListener('hashchange', () => showTeacher(location.hash === '#uchitel'));
-if (location.hash === '#uchitel') showTeacher(true);
+window.addEventListener('hashchange', () => showTeacher(TEACHER_HASH.includes(location.hash)));
+if (TEACHER_HASH.includes(location.hash)) showTeacher(true);
 
 const journal = createJournal(() => s, open => { if (!open) save(); });
 document.getElementById('btn-journal').onclick = () => journal.open();
@@ -348,28 +359,34 @@ function showWellbeing() {
     return `<li><span>${f.icon} ${f.name}</span><span class="bar"><i style="width:${v ?? 0}%;background:${ui.barColor(v ?? 0)}"></i></span><b>${v ?? '—'}</b></li>`;
   }).join('');
   const l = s.last;
-  const budget = l ? `<p class="meta">Миналия месец: данъци +${l.taxes} €, туристи +${l.tourism} €, поддръжка −${l.upkeep} €.</p>` : '';
-  ui.modal(`<h2>${ui.face(ev.wellbeing)} Добруване: ${ev.wellbeing ?? '—'}</h2>
-    <p>Добруването показва колко добре живеят хората в града. То е средното от седемте фактора:</p>
+  const budget = !l ? '' : tr(
+    `<p class="meta">Миналия месец: данъци +${l.taxes} €, туристи +${l.tourism} €, поддръжка −${l.upkeep} €.</p>`,
+    `<p class="meta">Last month: taxes +€${l.taxes}, tourists +€${l.tourism}, upkeep −€${l.upkeep}.</p>`);
+  ui.modal(`<h2>${ui.face(ev.wellbeing)} ${tr('Добруване', 'Well-being')}: ${ev.wellbeing ?? '—'}</h2>
+    <p>${tr('Добруването показва колко добре живеят хората в града. То е средното от седемте фактора:', 'Well-being shows how well people live in the city. It is the average of the seven factors:')}</p>
     <ul class="local">${rows}</ul>
-    <p>Когато Добруването е високо, в града идват нови хора, а градът събира повече данъци.</p>${budget}`, ['Затвори']);
+    <p>${tr('Когато Добруването е високо, в града идват нови хора, а градът събира повече данъци.', 'When Well-being is high, new people move to the city and the city collects more taxes.')}</p>${budget}`, [tr('Затвори', 'Close')]);
 }
 
 async function menu() {
   const prev = gameSpeed;
   setSpeed(0);
-  const n = await ui.modal(`<h2>Меню</h2>`, ['Продължи', 'Как се играе', muted ? 'Звук: изключен' : 'Звук: включен', 'Нова игра']);
+  const n = await ui.modal(`<h2>${tr('Меню', 'Menu')}</h2><p class="menu-lang">${tr('Език', 'Language')}: <span class="lang-switch"></span></p>`,
+    [tr('Продължи', 'Continue'), tr('Как се играе', 'How to play'),
+      muted ? tr('Звук: изключен', 'Sound: off') : tr('Звук: включен', 'Sound: on'), tr('Нова игра', 'New game')],
+    card => langSwitch(card.querySelector('.lang-switch'), save));
   if (n === 1) await help();
-  if (n === 2) { muted = !muted; save(); ui.toast(muted ? 'Звукът е изключен' : 'Звукът е включен'); }
+  if (n === 2) { muted = !muted; save(); ui.toast(muted ? tr('Звукът е изключен', 'Sound is off') : tr('Звукът е включен', 'Sound is on')); }
   if (n === 3) {
-    const sure = await ui.modal('<h2>Нова игра?</h2><p>Сегашният град ще бъде изтрит.</p>', ['Не', 'Да, започни отначало']);
+    const sure = await ui.modal(tr('<h2>Нова игра?</h2><p>Сегашният град ще бъде изтрит.</p>', '<h2>New game?</h2><p>Your current city will be deleted.</p>'),
+      [tr('Не', 'No'), tr('Да, започни отначало', 'Yes, start again')]);
     if (sure === 1) { s = newState(); R.center(); overlay = null; ui.info(null); afterChange(); }
   }
   setSpeed(prev || 1);
 }
 
 function help() {
-  return ui.modal(`<h2>Как се играе</h2>
+  return ui.modal(tr(`<h2>Как се играе</h2>
     <ul class="howto">
       <li><b>Строй:</b> избери сграда в лентата долу и натисни място на картата.</li>
       <li><b>Пътища:</b> всяка сграда трябва да е до път. Пътищата се рисуват с натискане и плъзгане.</li>
@@ -378,16 +395,33 @@ function help() {
       <li><b>Фактори:</b> натисни фактор вдясно и картата ще покаже кои домове са добре и кои — не.</li>
       <li><b>Разгледай 🔍:</b> натисни къща, за да видиш какво липсва на хората в нея.</li>
       <li><b>Пари:</b> идват от данъците на жителите и фирмите и от туристите през лятото. Училищата, болниците и парковете струват пари всеки месец.</li>
-    </ul>`, ['Разбрах']);
+      <li><b>Дневник 📈:</b> графики за твоя град и отчет за учителя.</li>
+    </ul>`, `<h2>How to play</h2>
+    <ul class="howto">
+      <li><b>Build:</b> choose a building in the bar at the bottom and tap a place on the map.</li>
+      <li><b>Roads:</b> every building must be next to a road. Draw roads by pressing and dragging.</li>
+      <li><b>Moving the map:</b> drag with the mouse (or the right button), with two fingers on a phone, or with the arrow keys.</li>
+      <li><b>Zoom:</b> the mouse wheel or two fingers.</li>
+      <li><b>Factors:</b> tap a factor on the right, and the map shows which homes are doing well and which are not.</li>
+      <li><b>Inspect 🔍:</b> tap a house to see what the people living there are missing.</li>
+      <li><b>Money:</b> comes from taxes paid by residents and businesses, and from tourists in summer. Schools, hospitals and parks cost money every month.</li>
+      <li><b>Journal 📈:</b> charts about your city and a report for your teacher.</li>
+    </ul>`), [tr('Разбрах', 'Got it')]);
 }
 
 async function intro() {
   const saved = load();
-  const buttons = saved ? ['Продължи играта', 'Нова игра'] : ['Започни'];
-  const n = await ui.modal(`<div class="big">⚓🏙️🌊</div><h1>Варна строи</h1>
-    <p>Варна е най-големият град по нашето Черноморие и третият по големина в България. Преди повече от 2500 години тук гърците основават град <b>Одесос</b>.</p>
-    <p><b>Сега ти си кметът!</b> Построй град, в който хората живеят добре. Следи седемте фактора за добруване:</p>
-    <p class="chips">${FACTORS.map(f => `<span>${f.icon} ${f.name}</span>`).join('')}</p>`, buttons);
+  const buttons = saved ? [tr('Продължи играта', 'Continue the game'), tr('Нова игра', 'New game')] : [tr('Започни', 'Start')];
+  const n = await ui.modal(`<p class="intro-lang"><span class="lang-switch"></span></p>
+    <div class="big">⚓🏙️🌊</div><h1>${tr('Варна строи', 'Varna Builds')}</h1>
+    ${tr(`<p>Варна е най-големият град по нашето Черноморие и третият по големина в България. Преди повече от 2500 години тук гърците основават град <b>Одесос</b>.</p>
+    <p><b>Сега ти си кметът!</b> Построй град, в който хората живеят добре. Следи седемте фактора за добруване:</p>`,
+    `<p>Varna is the largest city on the Bulgarian Black Sea coast and the third-largest city in Bulgaria. More than 2,500 years ago, Greek settlers founded the city of <b>Odessos</b> here.</p>
+    <p><b>Now you are the mayor!</b> Build a city where people live well. Keep an eye on the seven factors of well-being:</p>`)}
+    <p class="chips">${FACTORS.map(f => `<span>${f.icon} ${f.name}</span>`).join('')}</p>
+    <p class="meta">${tr('За по-малките: <a href="malki.html">„Весело градче“ — версия за 6-годишни</a>', 'For younger children: <a href="malki.html">“Happy Town” — a version for 6-year-olds</a>')}</p>`,
+  // Играта още не е започнала: не записваме, за да не изтрием записания град.
+  buttons, card => langSwitch(card.querySelector('.lang-switch'), null));
   if (saved && n === 0) s = saved;
   else if (!saved || n === 1) {
     s = newState();
@@ -395,15 +429,21 @@ async function intro() {
   }
   started = true;
   afterChange();
-  ui.advisor(MISSIONS[s.mission] ? 'Здравей! Аз съм чайката Мара. Горе вляво е задачата ти. Започни с път и няколко къщи до него.' : 'Добре дошъл обратно, кмете!');
+  ui.advisor(MISSIONS[s.mission]
+    ? tr('Здравей! Аз съм чайката Мара. Горе вляво е задачата ти. Започни с път и няколко къщи до него.',
+      'Hello! I am Mara the seagull. Your task is at the top left. Start with a road and a few houses next to it.')
+    : tr('Радвам се, че се върна, кмете!', 'Welcome back, mayor!'));
 }
 
 function tip() {
   if (!ev.factors) return;
   const worst = FACTORS.reduce((a, f) => (ev.factors[f.id] < ev.factors[a.id] ? f : a), FACTORS[0]);
-  if (s.money < 0) ui.advisor('Бюджетът е на минус! Построй работни места — фирмите плащат данъци. Не строй скъпи сгради, докато нямаш пари.');
-  else if (ev.inactive.size) ui.advisor('Някои сгради нямат път до себе си и не работят. Потърси червените знаци „!“ на картата.');
-  else if (ev.factors[worst.id] < 60) ui.advisor(`Най-слабият фактор е ${worst.icon} ${worst.name} (${ev.factors[worst.id]}). ${worst.tip}`);
+  if (s.money < 0) ui.advisor(tr('Бюджетът е на минус! Построй работни места — фирмите плащат данъци. Не строй скъпи сгради, докато нямаш пари.',
+    'The budget is below zero! Build workplaces — businesses pay taxes. Do not build expensive buildings until you have the money.'));
+  else if (ev.inactive.size) ui.advisor(tr('Някои сгради нямат път до себе си и не работят. Потърси червените знаци „!“ на картата.',
+    'Some buildings have no road next to them and do not work. Look for the red “!” signs on the map.'));
+  else if (ev.factors[worst.id] < 60) ui.advisor(tr(`Най-слабият фактор е ${worst.icon} ${worst.name} (${ev.factors[worst.id]}). ${worst.tip}`,
+    `Your weakest factor is ${worst.icon} ${worst.name} (${ev.factors[worst.id]}). ${worst.tip}`));
 }
 
 // ---------- главен цикъл ----------

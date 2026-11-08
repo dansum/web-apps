@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+<script>try { var q = new URLSearchParams(location.search).get('lang'), v = q || localStorage.getItem('varna-lang'); if (v === 'en' || v === 'bg') document.documentElement.lang = v; } catch (e) {}</script>
+<title>Весело градче · Варна строи</title>
+<meta name="title-en" content="Happy Town · Varna Builds" />
+<meta name="description" content="Много проста игра за строене на град за деца на 6 години: къщите се усмихват, когато наблизо има училище, парк, магазин и лекар." />
+<meta name="theme-color" content="#0b3c5d" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/kids.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#129528;</text></svg>" />
+</head>
+<body class="kids">
+
+<canvas id="town" aria-label="Градчето" data-en-aria-label="The town"></canvas>
+
+<header class="k-top">
+  <a class="k-big-link" href="./" title="Голямата игра „Варна строи“" data-en-title="The big game “Varna Builds”">🏙️</a>
+  <div class="k-stars" id="stars" aria-label="Звезди" data-en-aria-label="Stars"></div>
+  <div class="k-right">
+    <button class="k-icon" id="sound" title="Звук" data-en-title="Sound">🔊</button>
+    <span class="lang-switch" id="lang" role="group" aria-label="Език / Language"></span>
+  </div>
+</header>
+
+<section class="k-task" id="task" aria-live="polite">
+  <div class="k-task-icons" id="task-icons"></div>
+  <div class="k-task-text" id="task-text"></div>
+  <button class="k-say" id="say" title="Прочети на глас" data-en-title="Read aloud">🗣️</button>
+</section>
+
+<nav class="k-tools" id="tools"></nav>
+
+<div class="k-modal" id="win" hidden>
+  <div class="k-card">
+    <div class="k-win-stars" id="win-stars"></div>
+    <div class="k-win-text" id="win-text"></div>
+    <button class="k-go" id="win-go">▶</button>
+  </div>
+</div>
+
+<div class="k-modal" id="start">
+  <div class="k-card">
+    <div class="k-start-art">🏠🌳🏫🏪🏥</div>
+    <h1><span lang="bg">ВЕСЕЛО ГРАДЧЕ</span><span lang="en">HAPPY TOWN</span></h1>
+    <p class="k-start-faces">😟 ➜ 😀</p>
+    <button class="k-go" id="start-go">▶</button>
+    <p class="k-grownups"><span lang="bg">За възрастните: къщите се усмихват, когато наблизо има всичко, от което хората имат нужда. Бутонът 🗣️ чете задачата на глас.</span><span lang="en">For grown-ups: houses smile when everything people need is nearby. The 🗣️ button reads the task aloud.</span>
+      <button class="k-reset" id="reset"><span lang="bg">Започни отначало</span><span lang="en">Start again</span></button></p>
+  </div>
+</div>
+
+<script type="module" src="js/kids.js"></script>
+</body>
+</html>
