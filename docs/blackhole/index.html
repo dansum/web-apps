@@ -129,6 +129,7 @@
   .note { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
   .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 6px 0 14px; }
   .seg button { border: 2px solid var(--line); background: #fff; border-radius: 12px; padding: 8px 4px; font: inherit; cursor: pointer; color: var(--ink); }
+  .seg.diffs button span { display: block; line-height: 1.25; margin-top: 2px; }
   .seg button b { display: block; font-size: 15px; }
   .seg button span { font-size: 12px; color: var(--muted); }
   .seg button[aria-pressed="true"] { border-color: var(--accent); background: #ede9fe; }
@@ -210,6 +211,22 @@
     <div class="warn" id="singleWarn" hidden data-i18n="needSmall"></div>
     <button class="btn" id="btnSinglePlay" type="button" data-i18n="play"></button>
     <button class="btn ghost" id="btnSingleBack" type="button" data-i18n="back"></button>
+  </div>
+</section>
+
+<section class="screen" id="scrBattle" hidden>
+  <div class="card">
+    <h2 data-i18n="battle"></h2>
+    <p class="tagline" data-i18n="battleSub"></p>
+    <div class="sec" data-i18n="difficulty"></div>
+    <div class="seg diffs" id="diffs">
+      <button type="button" data-diff="easy"><b data-i18n="diff_easy"></b><span data-i18n="diffd_easy"></span></button>
+      <button type="button" data-diff="normal"><b data-i18n="diff_normal"></b><span data-i18n="diffd_normal"></span></button>
+      <button type="button" data-diff="hard"><b data-i18n="diff_hard"></b><span data-i18n="diffd_hard"></span></button>
+    </div>
+    <p class="note" data-i18n="diffNote"></p>
+    <button class="btn alt" id="btnBattlePlay" type="button" data-i18n="play"></button>
+    <button class="btn ghost" id="btnBattleBack" type="button" data-i18n="back"></button>
   </div>
 </section>
 
