@@ -41,17 +41,34 @@
     font-feature-settings: "locl" 0;
   }
   .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
-  header { padding: 56px 0 28px; }
-  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+  /* Top bar with the two switches */
+  .bar {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px;
+    padding: 16px 0;
+  }
+  .seg {
+    display: inline-flex; padding: 3px; gap: 2px;
+    border: 1px solid var(--line); background: var(--card); border-radius: 999px;
+  }
+  .seg button {
+    border: 0; background: transparent; color: var(--muted);
+    font: inherit; font-size: 14px; font-weight: 600;
+    padding: 6px 12px; border-radius: 999px; cursor: pointer; min-width: 44px;
+  }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .theme {
+    border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    border-radius: 999px; padding: 8px 14px; font: inherit; font-size: 14px; cursor: pointer;
+  }
+
+  header { padding: 24px 0 28px; }
   .logo {
     display: inline-flex; align-items: center; justify-content: center;
     width: 64px; height: 64px; border-radius: 18px;
     background: var(--ink); color: var(--bg);
     font-weight: 800; font-size: 28px; letter-spacing: -1px;
-  }
-  .theme {
-    border: 1px solid var(--line); background: var(--card); color: var(--ink);
-    border-radius: 999px; padding: 8px 14px; font: inherit; font-size: 14px; cursor: pointer;
   }
   h1 { font-size: clamp(36px, 7vw, 60px); line-height: 1.05; margin: 28px 0 12px; letter-spacing: -1.5px; }
   .lede { color: var(--muted); font-size: 18px; max-width: 620px; margin: 0; }
@@ -79,6 +96,7 @@
   .card h2 { font-size: 18px; margin: 0; line-height: 1.25; }
   .tag { font-size: 12px; font-weight: 600; color: var(--c); text-transform: uppercase; letter-spacing: .06em; }
   .card p { margin: 0; color: var(--muted); font-size: 15px; flex: 1; }
+  body.short .card p { font-size: 17px; color: var(--ink); }
   .meta { display: flex; flex-wrap: wrap; gap: 6px; }
   .meta span { font-size: 12px; border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; color: var(--muted); }
   .open { font-weight: 600; font-size: 14px; color: var(--accent); }
@@ -92,132 +110,292 @@
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <div class="top">
-      <span class="logo" aria-hidden="true">d4</span>
-      <button class="theme" id="theme" type="button">Тема: авто</button>
+  <div class="bar">
+    <div class="seg" role="group" id="lang" aria-label="Език">
+      <button type="button" data-v="bg" lang="bg">БГ</button>
+      <button type="button" data-v="en" lang="en">EN</button>
+      <button type="button" data-v="de" lang="de">DE</button>
     </div>
+    <div class="seg" role="group" id="len" aria-label="Текст">
+      <button type="button" data-v="full"></button>
+      <button type="button" data-v="short"></button>
+    </div>
+    <button class="theme" id="theme" type="button"></button>
+  </div>
+
+  <header>
+    <span class="logo" aria-hidden="true">d4</span>
     <h1>d4</h1>
-    <p class="lede">Игри, симулации и учебни приложения, които работят направо в браузъра — без инсталация и без регистрация. Изберете проект и започнете.</p>
+    <p class="lede" id="lede"></p>
   </header>
 
   <main>
-    <div class="filters" role="group" aria-label="Филтър по вид">
-      <button class="chip" type="button" data-f="all" aria-pressed="true">Всички<span class="n"></span></button>
-      <button class="chip" type="button" data-f="games" aria-pressed="false">Игри<span class="n"></span></button>
-      <button class="chip" type="button" data-f="learn" aria-pressed="false">Учене<span class="n"></span></button>
-      <button class="chip" type="button" data-f="tools" aria-pressed="false">Инструменти<span class="n"></span></button>
+    <div class="filters" role="group" id="filters">
+      <button class="chip" type="button" data-f="all" aria-pressed="true"><span class="t"></span><span class="n"></span></button>
+      <button class="chip" type="button" data-f="games" aria-pressed="false"><span class="t"></span><span class="n"></span></button>
+      <button class="chip" type="button" data-f="learn" aria-pressed="false"><span class="t"></span><span class="n"></span></button>
+      <button class="chip" type="button" data-f="tools" aria-pressed="false"><span class="t"></span><span class="n"></span></button>
     </div>
 
-    <div class="grid" id="grid">
-      <a class="card learn" href="chp/">
-        <div class="head"><span class="icon">🌍</span><div><div class="tag">Учене</div><h2>Човекът и природата в 3D</h2></div></div>
-        <p>Курсове по „Човекът и природата“ за 3.–6. клас по учебните програми на МОН, с 3D интерактивни упражнения.</p>
-        <div class="meta"><span>3.–6. клас</span><span>БГ</span></div>
-        <span class="open">Отвори →</span>
-      </a>
-
-      <a class="card games" href="Varna/">
-        <div class="head"><span class="icon">🏙️</span><div><div class="tag">Игра</div><h2>Варна строи</h2></div></div>
-        <p>Игра за строене на град, вдъхновена от Варна. Учениците откриват кои фактори са важни, за да живеят хората добре в един град.</p>
-        <div class="meta"><span>5. клас</span><span>БГ</span></div>
-        <span class="open">Отвори →</span>
-      </a>
-
-      <a class="card games" href="vot/">
-        <div class="head"><span class="icon">🗳️</span><div><div class="tag">Игра</div><h2>Твоята партия</h2></div></div>
-        <p>Създай партия, реагирай на десет новини и спечели изборите. Игра за тийнейджъри за това как работи политиката в България.</p>
-        <div class="meta"><span>Тийнейджъри</span><span>БГ</span><span>Офлайн</span></div>
-        <span class="open">Отвори →</span>
-      </a>
-
-      <a class="card games" href="chesslearn/">
-        <div class="head"><span class="icon">♞</span><div><div class="tag">Игра</div><h2>Шах игрище</h2></div></div>
-        <p>Малки шахматни игри за деца около шестгодишна възраст. Работят офлайн, на английски и български.</p>
-        <div class="meta"><span>6+ години</span><span>БГ / EN</span><span>Офлайн</span></div>
-        <span class="open">Отвори →</span>
-      </a>
-
-      <a class="card games" href="blackhole/">
-        <div class="head"><span class="icon">🕳️</span><div><div class="tag">Игра</div><h2>Дупката</h2></div></div>
-        <p>3D игра без реклами: управляваш дупка в земята и гълташ всичко по-малко от нея — пейки, коли, къщи, блокове. Нива и битка срещу 4 дупки.</p>
-        <div class="meta"><span>Android</span><span>3D</span><span>Без реклами</span><span>Офлайн</span></div>
-        <span class="open">Отвори →</span>
-      </a>
-
-      <a class="card games" href="shooter/">
-        <div class="head"><span class="icon">🦖</span><div><div class="tag">Игра</div><h2>Дино аркада</h2></div></div>
-        <p>Аркадна стрелба по динозаври. Целиш се с ръка пред камерата — показалецът е цевта, палецът е спусъкът. Може и с мишка или пръст.</p>
-        <div class="meta"><span>Камера</span><span>БГ</span></div>
-        <span class="open">Отвори →</span>
-      </a>
-
-      <a class="card learn" href="forest-fire-sim_202511/">
-        <div class="head"><span class="icon">🔥</span><div><div class="tag">Симулация</div><h2>Симулация на горски пожари</h2></div></div>
-        <p>Интерактивна симулация на това как се разпространява горски пожар.</p>
-        <div class="meta"><span>БГ</span></div>
-        <span class="open">Отвори →</span>
-      </a>
-
-      <a class="card learn" href="сал_202610/">
-        <div class="head"><span class="icon">📊</span><div><div class="tag">Изследване</div><h2>Доказателства за добро ползване на технологии в клас</h2></div></div>
-        <p>Интерактивна графика на размера на ефекта от изследвания на технологии и други интервенции в образованието, по статията на Сал Кан.</p>
-        <div class="meta"><span>БГ / EN</span></div>
-        <span class="open">Отвори →</span>
-      </a>
-
-      <a class="card tools" href="walk/">
-        <div class="head"><span class="icon">🚶</span><div><div class="tag">Инструмент</div><h2>Street Walks</h2></div></div>
-        <p>Разходка из известни градове в 3D модела на Google Earth с клавиатура и мишка. Изберете място от списъка или въведете координати.</p>
-        <div class="meta"><span>EN</span></div>
-        <span class="open">Отвори →</span>
-      </a>
-
-      <a class="card tools" href="care-training/">
-        <div class="head"><span class="icon">🩺</span><div><div class="tag">Инструмент</div><h2>Annual Care Training</h2></div></div>
-        <p>Обучение за домашни грижи: видео, тест от 10 въпроса и сертификат за изтегляне като PDF при успешно преминаване.</p>
-        <div class="meta"><span>EN</span><span>Сертификат</span></div>
-        <span class="open">Отвори →</span>
-      </a>
-    </div>
+    <div class="grid" id="grid"></div>
   </main>
 
-  <footer>
-    d4 · проекти на <a href="https://github.com/dansum/web-apps">dansum/web-apps</a> в GitHub
-  </footer>
+  <footer id="footer"></footer>
 </div>
 
 <script>
-  (function () {
-    var cards = Array.prototype.slice.call(document.querySelectorAll('.card'));
-    var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
-    function kind(c) { return ['games', 'learn', 'tools'].filter(function (k) { return c.classList.contains(k); })[0]; }
-    chips.forEach(function (chip) {
-      var f = chip.dataset.f;
-      chip.querySelector('.n').textContent = f === 'all' ? cards.length : cards.filter(function (c) { return kind(c) === f; }).length;
-      chip.addEventListener('click', function () {
-        chips.forEach(function (x) { x.setAttribute('aria-pressed', String(x === chip)); });
-        cards.forEach(function (c) { c.hidden = f !== 'all' && kind(c) !== f; });
+(function () {
+  /* ---------- Interface text ---------- */
+  var UI = {
+    bg: {
+      langLabel: 'Език', lenLabel: 'Текст', full: 'Пълен', short: 'Кратък',
+      filterLabel: 'Филтър по вид', all: 'Всички', games: 'Игри', learn: 'Учене', tools: 'Инструменти',
+      open: 'Отвори →', theme: { auto: 'Тема: автоматична', light: 'Тема: светла', dark: 'Тема: тъмна' },
+      lede: {
+        full: 'Игри, симулации и учебни приложения, които работят направо в браузъра — без инсталация и без регистрация. Избери проект и започни.',
+        short: 'Тук има игри и уроци. Избери си едно и го отвори. Не трябва да сваляш нищо.'
+      },
+      footer: 'd4 · проекти на <a href="https://github.com/dansum/web-apps">dansum/web-apps</a> в GitHub'
+    },
+    en: {
+      langLabel: 'Language', lenLabel: 'Text', full: 'Full', short: 'Short',
+      filterLabel: 'Filter by type', all: 'All', games: 'Games', learn: 'Learning', tools: 'Tools',
+      open: 'Open →', theme: { auto: 'Theme: auto', light: 'Theme: light', dark: 'Theme: dark' },
+      lede: {
+        full: 'Games, simulations and learning apps that run right in the browser — nothing to install, no sign-up. Pick a project and get started.',
+        short: 'Here are games and lessons. Pick one and open it. You don’t need to download anything.'
+      },
+      footer: 'd4 · projects from <a href="https://github.com/dansum/web-apps">dansum/web-apps</a> on GitHub'
+    },
+    de: {
+      langLabel: 'Sprache', lenLabel: 'Text', full: 'Lang', short: 'Kurz',
+      filterLabel: 'Nach Art filtern', all: 'Alle', games: 'Spiele', learn: 'Lernen', tools: 'Werkzeuge',
+      open: 'Öffnen →', theme: { auto: 'Design: automatisch', light: 'Design: hell', dark: 'Design: dunkel' },
+      lede: {
+        full: 'Spiele, Simulationen und Lern-Apps, die direkt im Browser laufen — ohne Installation und ohne Anmeldung. Wähle ein Projekt und leg los.',
+        short: 'Hier gibt es Spiele und Lernsachen. Such dir eins aus und öffne es. Du musst nichts herunterladen.'
+      },
+      footer: 'd4 · Projekte aus <a href="https://github.com/dansum/web-apps">dansum/web-apps</a> auf GitHub'
+    }
+  };
+
+  /* ---------- Projects ---------- */
+  // kind: games | learn | tools.  tag/title/full/short/meta per language.
+  var PROJECTS = [
+    { href: 'chp/', icon: '🌍', kind: 'learn',
+      bg: { tag: 'Учене', title: 'Човекът и природата в 3D', meta: ['3.–6. клас', 'БГ'],
+        full: 'Курсове по „Човекът и природата“ за 3.–6. клас по учебните програми на МОН, с 3D интерактивни упражнения.',
+        short: 'Уроци за растения, животни, вода, въздух и магнити. Въртиш 3D картинки и решаваш задачи.' },
+      en: { tag: 'Learning', title: 'Humans and Nature in 3D', meta: ['Grades 3–6', 'BG'],
+        full: 'Courses in “Humans and Nature” (science) for grades 3–6, following the Bulgarian national curriculum, with interactive 3D exercises.',
+        short: 'Lessons about plants, animals, water, air and magnets. You spin 3D pictures and solve problems.' },
+      de: { tag: 'Lernen', title: 'Mensch und Natur in 3D', meta: ['Klasse 3–6', 'BG'],
+        full: 'Kurse im Fach „Mensch und Natur“ für die Klassen 3–6 nach dem bulgarischen Lehrplan, mit interaktiven 3D-Übungen.',
+        short: 'Lernen über Pflanzen, Tiere, Wasser, Luft und Magnete. Du drehst 3D-Bilder und löst Aufgaben.' } },
+
+    { href: 'Varna/', icon: '🏙️', kind: 'games',
+      bg: { tag: 'Игра', title: 'Варна строи', meta: ['5. клас', 'БГ'],
+        full: 'Игра за строене на град, вдъхновена от Варна. Учениците откриват кои фактори са важни, за да живеят хората добре в един град.',
+        short: 'Строиш свой град като Варна. Разбираш какво трябва на хората, за да са щастливи.' },
+      en: { tag: 'Game', title: 'Build Varna', meta: ['Grade 5', 'BG'],
+        full: 'A city-building game inspired by Varna. Students find out which factors matter for people to live well in a city.',
+        short: 'Build your own city like Varna. Find out what people need to be happy.' },
+      de: { tag: 'Spiel', title: 'Warna baut', meta: ['Klasse 5', 'BG'],
+        full: 'Ein Städtebauspiel, inspiriert von der Stadt Warna. Die Schülerinnen und Schüler entdecken, was wichtig ist, damit Menschen gut in einer Stadt leben.',
+        short: 'Bau deine eigene Stadt wie Warna. Finde heraus, was Menschen brauchen, um glücklich zu sein.' } },
+
+    { href: 'vot/', icon: '🗳️', kind: 'games',
+      bg: { tag: 'Игра', title: 'Твоята партия', meta: ['Тийнейджъри', 'БГ', 'Офлайн'],
+        full: 'Създай партия, реагирай на десет новини и спечели изборите. Игра за тийнейджъри за това как работи политиката в България.',
+        short: 'Правиш своя партия. Реагираш на новини. Опитваш да спечелиш изборите.' },
+      en: { tag: 'Game', title: 'Your Party', meta: ['Teens', 'BG', 'Offline'],
+        full: 'Found a party, react to ten news stories and win the election. A game for teenagers about how politics works in Bulgaria.',
+        short: 'Start your own party. React to the news. Try to win the election.' },
+      de: { tag: 'Spiel', title: 'Deine Partei', meta: ['Jugendliche', 'BG', 'Offline'],
+        full: 'Gründe eine Partei, reagiere auf zehn Meldungen aus den Nachrichten und gewinne die Wahl. Ein Spiel für Jugendliche darüber, wie Politik in Bulgarien funktioniert.',
+        short: 'Gründe deine eigene Partei. Reagiere auf Neuigkeiten. Versuch, die Wahl zu gewinnen.' } },
+
+    { href: 'chesslearn/', icon: '♞', kind: 'games',
+      bg: { tag: 'Игра', title: 'Шах игрище', meta: ['6+ години', 'БГ / EN', 'Офлайн'],
+        full: 'Малки шахматни игри за деца около шестгодишна възраст. Работят офлайн, на английски и български.',
+        short: 'Лесни игри с шахматни фигури. За малки деца. Учиш как се движат фигурите.' },
+      en: { tag: 'Game', title: 'Chess Playground', meta: ['Age 6+', 'BG / EN', 'Offline'],
+        full: 'Tiny chess games for children around six years old. They work offline, in English and Bulgarian.',
+        short: 'Easy games with chess pieces. For young kids. Learn how the pieces move.' },
+      de: { tag: 'Spiel', title: 'Schach-Spielplatz', meta: ['Ab 6 Jahren', 'BG / EN', 'Offline'],
+        full: 'Kleine Schachspiele für Kinder im Alter von etwa sechs Jahren. Sie funktionieren offline, auf Englisch und Bulgarisch.',
+        short: 'Einfache Spiele mit Schachfiguren. Für kleine Kinder. Lerne, wie die Figuren ziehen.' } },
+
+    { href: 'blackhole/', icon: '🕳️', kind: 'games',
+      bg: { tag: 'Игра', title: 'Дупката', meta: ['Android', '3D', 'Без реклами', 'Офлайн'],
+        full: '3D игра без реклами: управляваш дупка в земята и гълташ всичко по-малко от нея — пейки, коли, къщи, блокове. Нива и битка срещу 4 дупки на компютъра.',
+        short: 'Ти си дупка в земята. Гълташ разни неща и ставаш все по-голяма. Няма реклами.' },
+      en: { tag: 'Game', title: 'The Hole', meta: ['Android', '3D', 'No ads', 'Offline'],
+        full: 'An ad-free 3D game: steer a hole in the ground and swallow everything smaller than it — benches, cars, houses, apartment blocks. Includes levels and a battle against 4 computer-controlled holes.',
+        short: 'You are a hole in the ground. Swallow things and grow bigger. No ads.' },
+      de: { tag: 'Spiel', title: 'Das Loch', meta: ['Android', '3D', 'Ohne Werbung', 'Offline'],
+        full: 'Ein 3D-Spiel ohne Werbung: Du steuerst ein Loch im Boden und verschluckst alles, was kleiner ist — Bänke, Autos, Häuser, Hochhäuser. Mit Levels und einem Kampf gegen 4 vom Computer gesteuerte Löcher.',
+        short: 'Du bist ein Loch im Boden. Schluck Sachen und werde immer größer. Keine Werbung.' } },
+
+    { href: 'shooter/', icon: '🦖', kind: 'games',
+      bg: { tag: 'Игра', title: 'Дино аркада', meta: ['Камера', 'БГ'],
+        full: 'Аркадна стрелба по динозаври. Целиш се с ръка пред камерата — показалецът е цевта, палецът е спусъкът. Може и с мишка или пръст. Има и тенис срещу Дино.',
+        short: 'Стреляш по динозаври с ръка пред камерата. Може и с мишката. Има и тенис.' },
+      en: { tag: 'Game', title: 'Dino Arcade', meta: ['Camera', 'BG'],
+        full: 'An arcade dinosaur shooter. Aim with your hand in front of the camera — your index finger is the barrel, your thumb is the trigger. Mouse or touch also work. There is tennis against Dino, too.',
+        short: 'Shoot dinosaurs with your hand in front of the camera. A mouse works too. You can also play tennis.' },
+      de: { tag: 'Spiel', title: 'Dino-Arcade', meta: ['Kamera', 'BG'],
+        full: 'Ein Arcade-Schießspiel mit Dinosauriern. Du zielst mit der Hand vor der Kamera — der Zeigefinger ist der Lauf, der Daumen der Abzug. Maus oder Finger gehen auch. Dazu gibt es Tennis gegen Dino.',
+        short: 'Schieß mit der Hand vor der Kamera auf Dinos. Mit der Maus geht es auch. Du kannst auch Tennis spielen.' } },
+
+    { href: 'forest-fire-sim_202511/', icon: '🔥', kind: 'learn',
+      bg: { tag: 'Симулация', title: 'Симулация на горски пожари', meta: ['БГ'],
+        full: 'Интерактивна симулация на горски пожар: дърветата растат, мълнии палят огън, а пожарникарите го гасят. Настройките могат да се променят.',
+        short: 'Мълния пали гората. Гледаш как огънят минава от дърво на дърво и как пожарникарите го гасят.' },
+      en: { tag: 'Simulation', title: 'Forest Fire Simulation', meta: ['BG'],
+        full: 'An interactive forest fire simulation: trees grow, lightning starts fires and firefighters put them out. You can change the settings.',
+        short: 'Lightning sets the forest on fire. Watch the fire jump from tree to tree and the firefighters put it out.' },
+      de: { tag: 'Simulation', title: 'Waldbrand-Simulation', meta: ['BG'],
+        full: 'Eine interaktive Waldbrand-Simulation: Bäume wachsen, Blitze lösen Feuer aus und die Feuerwehr löscht sie. Die Einstellungen lassen sich ändern.',
+        short: 'Ein Blitz setzt den Wald in Brand. Schau zu, wie das Feuer von Baum zu Baum springt und die Feuerwehr es löscht.' } },
+
+    { href: 'сал_202610/', icon: '📊', kind: 'learn',
+      bg: { tag: 'Изследване', title: 'Доказателства за добро ползване на технологии в клас', meta: ['БГ / EN'],
+        full: 'Интерактивна графика на размера на ефекта от изследвания на технологии и други интервенции в образованието, по статията на Сал Кан.',
+        short: 'Графика, която показва кое помага на децата да учат по-добре.' },
+      en: { tag: 'Research', title: 'EdTech evidence: effect sizes in Sal Khan’s survey', meta: ['BG / EN'],
+        full: 'An interactive chart of effect sizes from studies of technology and other interventions in education, based on the article by Sal Khan.',
+        short: 'A chart that shows what helps kids learn better.' },
+      de: { tag: 'Forschung', title: 'EdTech-Belege: Effektstärken aus Sal Khans Überblick', meta: ['BG / EN'],
+        full: 'Ein interaktives Diagramm der Effektstärken aus Studien zu Technik und anderen Maßnahmen in der Bildung, nach dem Artikel von Sal Khan.',
+        short: 'Ein Diagramm, das zeigt, was Kindern beim Lernen hilft.' } },
+
+    { href: 'walk/', icon: '🚶', kind: 'tools',
+      bg: { tag: 'Инструмент', title: 'Разходки по улиците', meta: ['EN'],
+        full: 'Разходка из известни градове в 3D модела на Google Earth с клавиатура и мишка. Избери място от списъка или въведи координати.',
+        short: 'Разхождаш се по улиците на големи градове в 3D. Ходиш с клавишите.' },
+      en: { tag: 'Tool', title: 'Street Walks', meta: ['EN'],
+        full: 'Walk through famous cities in Google Earth’s 3D model, with keyboard and mouse. Pick a place from the list or enter coordinates anywhere in the world.',
+        short: 'Walk the streets of big cities in 3D. Move with the keys.' },
+      de: { tag: 'Werkzeug', title: 'Stadtspaziergänge', meta: ['EN'],
+        full: 'Spaziere mit Tastatur und Maus durch berühmte Städte im 3D-Modell von Google Earth. Wähle einen Ort aus der Liste oder gib Koordinaten ein.',
+        short: 'Lauf in 3D durch die Straßen großer Städte. Du gehst mit den Tasten.' } },
+
+    { href: 'care-training/', icon: '🩺', kind: 'tools',
+      bg: { tag: 'Инструмент', title: 'Годишно обучение за домашни грижи', meta: ['EN', 'Сертификат'],
+        full: 'Обучение за домашни грижи: видео, тест от 10 въпроса и сертификат за изтегляне като PDF при успешно преминаване.',
+        short: 'Урок за хора, които се грижат за болни или възрастни хора вкъщи. Гледаш видео и решаваш тест.' },
+      en: { tag: 'Tool', title: 'Annual Care Training', meta: ['EN', 'Certificate'],
+        full: 'In-home care training: watch a video, take a 10-question quiz and, on passing, download a certificate as PDF.',
+        short: 'A lesson for people who look after sick or elderly people at home. Watch a video and take a test.' },
+      de: { tag: 'Werkzeug', title: 'Jährliche Pflegeschulung', meta: ['EN', 'Zertifikat'],
+        full: 'Schulung für die häusliche Pflege: Video ansehen, Test mit 10 Fragen machen und nach dem Bestehen ein Zertifikat als PDF herunterladen.',
+        short: 'Ein Kurs für Menschen, die kranke oder alte Menschen zu Hause pflegen. Video schauen und Test machen.' } }
+  ];
+
+  /* ---------- State ---------- */
+  function load(key, ok, def) {
+    try { var v = localStorage.getItem(key); if (ok.indexOf(v) >= 0) return v; } catch (e) {}
+    return def;
+  }
+  function save(key, v) { try { localStorage.setItem(key, v); } catch (e) {} }
+
+  var browserLang = (navigator.language || 'bg').slice(0, 2);
+  var state = {
+    lang: load('d4-lang', ['bg', 'en', 'de'], ['bg', 'en', 'de'].indexOf(browserLang) >= 0 ? browserLang : 'bg'),
+    len: load('d4-len', ['full', 'short'], 'full'),
+    filter: 'all',
+    theme: load('d4-theme', ['auto', 'light', 'dark'], 'auto')
+  };
+
+  var grid = document.getElementById('grid');
+  var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  function renderCards() {
+    var t = UI[state.lang];
+    grid.textContent = '';
+    PROJECTS.forEach(function (p) {
+      var d = p[state.lang];
+      var a = el('a', 'card ' + p.kind);
+      a.href = p.href;
+      a.hidden = state.filter !== 'all' && state.filter !== p.kind;
+      var head = el('div', 'head');
+      head.appendChild(el('span', 'icon', p.icon));
+      var box = el('div');
+      box.appendChild(el('div', 'tag', d.tag));
+      box.appendChild(el('h2', null, d.title));
+      head.appendChild(box);
+      a.appendChild(head);
+      a.appendChild(el('p', null, d[state.len]));
+      var meta = el('div', 'meta');
+      d.meta.forEach(function (m) { meta.appendChild(el('span', null, m)); });
+      a.appendChild(meta);
+      a.appendChild(el('span', 'open', t.open));
+      grid.appendChild(a);
+    });
+  }
+
+  function render() {
+    var t = UI[state.lang];
+    document.documentElement.lang = state.lang;
+    document.body.classList.toggle('short', state.len === 'short');
+
+    document.getElementById('lang').setAttribute('aria-label', t.langLabel);
+    var lenGroup = document.getElementById('len');
+    lenGroup.setAttribute('aria-label', t.lenLabel);
+    lenGroup.querySelector('[data-v="full"]').textContent = t.full;
+    lenGroup.querySelector('[data-v="short"]').textContent = t.short;
+    [['lang', state.lang], ['len', state.len]].forEach(function (g) {
+      document.querySelectorAll('#' + g[0] + ' button').forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b.dataset.v === g[1]));
       });
     });
 
-    var btn = document.getElementById('theme');
-    var modes = ['auto', 'light', 'dark'];
-    var labels = { auto: 'Тема: авто', light: 'Тема: светла', dark: 'Тема: тъмна' };
-    var mode = 'auto';
-    try { mode = localStorage.getItem('d4-theme') || 'auto'; } catch (e) {}
-    function apply() {
-      if (mode === 'auto') document.documentElement.removeAttribute('data-theme');
-      else document.documentElement.setAttribute('data-theme', mode);
-      btn.textContent = labels[mode];
-    }
-    apply();
-    btn.addEventListener('click', function () {
-      mode = modes[(modes.indexOf(mode) + 1) % modes.length];
-      try { localStorage.setItem('d4-theme', mode); } catch (e) {}
-      apply();
+    document.getElementById('lede').textContent = t.lede[state.len];
+    document.getElementById('footer').innerHTML = t.footer;
+    document.getElementById('filters').setAttribute('aria-label', t.filterLabel);
+    chips.forEach(function (c) {
+      var f = c.dataset.f;
+      c.querySelector('.t').textContent = t[f];
+      c.querySelector('.n').textContent = f === 'all' ? PROJECTS.length
+        : PROJECTS.filter(function (p) { return p.kind === f; }).length;
+      c.setAttribute('aria-pressed', String(f === state.filter));
     });
-  })();
+
+    if (state.theme === 'auto') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', state.theme);
+    document.getElementById('theme').textContent = t.theme[state.theme];
+
+    renderCards();
+  }
+
+  /* ---------- Events ---------- */
+  document.getElementById('lang').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    state.lang = b.dataset.v; save('d4-lang', state.lang); render();
+  });
+  document.getElementById('len').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    state.len = b.dataset.v; save('d4-len', state.len); render();
+  });
+  chips.forEach(function (c) {
+    c.addEventListener('click', function () { state.filter = c.dataset.f; render(); });
+  });
+  document.getElementById('theme').addEventListener('click', function () {
+    var modes = ['auto', 'light', 'dark'];
+    state.theme = modes[(modes.indexOf(state.theme) + 1) % modes.length];
+    save('d4-theme', state.theme); render();
+  });
+
+  render();
+})();
 </script>
 </body>
 </html>
