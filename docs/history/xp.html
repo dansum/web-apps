@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Преглед на преживяване · История в 3D</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="./#/"><img src="assets/logo-obr.svg" alt="Образование без раници"><span class="sep"></span><span>История <b>3D</b> · преглед</span></a></header>
+  <main>
+    <p class="small">Страница за разработчици: показва едно преживяване без курса. Напредъкът не се записва. Пример: <code>xp.html?exp=vladeteli</code></p>
+    <div class="ex-area" id="area"></div>
+  </main>
+  <script type="module">
+    const exp = new URLSearchParams(location.search).get('exp') || 'vladeteli';
+    const area = document.getElementById('area');
+    const mod = await import(`./js/exp/${exp.replace(/[^a-z0-9_-]/gi, '')}.js`);
+    window.__result = null;
+    mod.mount(area, { skill: {}, course: {}, onComplete(r) { window.__result = r; return { levelName: 'преглед', before: 0, after: 0 }; } });
+  </script>
+</body>
+</html>

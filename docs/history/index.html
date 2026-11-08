@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>История в 3D</title>
+  <meta name="description" content="Курсове по история за 3.–10. клас по учебните програми на МОН, с интерактивни упражнения, карти и извори.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#/"><img src="assets/logo-obr.svg" alt="Образование без раници"><span class="sep"></span><span>История <b>3D</b></span></a>
+    <div class="bar-actions">
+      <button id="voice" class="btn" hidden></button>
+      <button id="who" class="btn ghost" title="Смени името"></button>
+      <button id="dl" class="btn" title="Запиши напредъка в текстов файл">⬇ Свали напредъка</button>
+      <button id="ul" class="btn" title="Зареди файл с напредък">⬆ Качи напредъка</button>
+      <input id="ul-input" type="file" accept=".txt,text/plain" hidden>
+    </div>
+  </header>
+  <div class="statsbar" id="stats" hidden></div>
+  <main id="view"><p class="small">Зареждане…</p></main>
+  <footer class="foot">
+    <p>Учебно съдържание по програмите на МОН за 3.–10. клас. Напредъкът се пази в този браузър и във файла, който сваляш. Не се изпраща никъде.</p>
+    <p><a href="план.md">План на съдържанието и работата</a> · <a href="konspekti-mon.md">Програмите на МОН</a> · <a href="../chp/принципи.md">Принципи на решението</a> · 3D: three.js (MIT)</p>
+  </footer>
+  <div class="dropmsg">Пусни файла с напредъка тук</div>
+  <script type="module" src="js/app.js"></script>
+<script src="../consent.js" defer></script>
+</body>
+</html>
