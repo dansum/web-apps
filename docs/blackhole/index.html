@@ -134,6 +134,7 @@
   .seg.diffs button span { display: block; line-height: 1.25; margin-top: 2px; }
   .seg.seg2 { grid-template-columns: 1fr 1fr; }
   .seg.seg2 button span { display: block; }
+  .seg.kinds button b { font-size: 14px; }
   .seg button b { display: block; font-size: 15px; }
   .seg button span { font-size: 12px; color: var(--muted); }
   .seg button[aria-pressed="true"] { border-color: var(--accent); background: #ede9fe; }
@@ -205,9 +206,13 @@
   <div class="card">
     <h2 data-i18n="single"></h2>
     <div class="sec" data-i18n="levelKind"></div>
-    <div class="seg seg2" id="kinds">
-      <button type="button" data-kind="objects"><b data-i18n="kindObjects"></b><span data-i18n="kindObjectsD"></span></button>
-      <button type="button" data-kind="cubes"><b data-i18n="kindCubes"></b><span data-i18n="kindCubesD"></span></button>
+    <div class="seg kinds" id="kinds">
+      <button type="button" data-kind="objects"><b data-i18n="kind_objects"></b></button>
+      <button type="button" data-kind="cubes"><b data-i18n="kind_cubes"></b></button>
+      <button type="button" data-kind="food"><b data-i18n="kind_food"></b></button>
+      <button type="button" data-kind="school"><b data-i18n="kind_school"></b></button>
+      <button type="button" data-kind="toys"><b data-i18n="kind_toys"></b></button>
+      <button type="button" data-kind="tech"><b data-i18n="kind_tech"></b></button>
     </div>
     <div class="sec" data-i18n="mapSize"></div>
     <div class="seg" id="sizes">
