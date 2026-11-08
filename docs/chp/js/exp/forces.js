@@ -748,8 +748,9 @@ export function mount(container, { onComplete }) {
       if (u >= 1) { cartS.force = null; arCart.visible = false; if (F.onEnd) F.onEnd(); }
     }
     const sp = cartV.length();
-    if (sp > 1e-3 && !cartS.force && cartS.decel > 0) {
-      const ns = Math.max(0, sp - cartS.decel * dt);
+    if (sp > 0 && !cartS.force && cartS.decel > 0) {
+      let ns = sp - cartS.decel * dt;
+      if (ns < 2e-3) ns = 0; // иначе скоростта може да остане безкрайно малка и количката никога да не „спре“
       cartV.multiplyScalar(ns / sp);
       if (ns === 0 && cartS.onStop) { const f = cartS.onStop; cartS.onStop = null; f(); }
     }
