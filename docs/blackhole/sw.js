@@ -1,5 +1,5 @@
 // Офлайн кеш за „Дупката“: първо мрежата (за да идват обновленията), при липса на връзка — кешът.
-const CACHE = 'dupkata-v6';
+const CACHE = 'dupkata-v7';
 const FILES = ['./', 'index.html', 'main.js', 'three.module.min.js', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'];
 
 self.addEventListener('install', (e) => {

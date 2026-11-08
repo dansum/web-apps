@@ -1001,14 +1001,36 @@ function settle(st) {
   }
 }
 
-function startCubeHole(c, h) {
-  const st = c.st;
+// Земно ускорение (9,81 м/с²), леко засилено, за да не изглежда забавено от разстояние.
+const CUBE_G = 9.81 * 1.5;
+const _dq = new THREE.Quaternion(), _wv = new THREE.Vector3();
+// Връща дупката, в която кубче с център (x, z) и размер s би паднало, или null.
+function holeUnder(x, z, s) {
+  for (const h of holes) {
+    if (!h.alive || s > h.R * 0.95) continue;
+    const dx = x - h.x, dz = z - h.z;
+    if (dx * dx + dz * dz < (h.R - s * 0.05) ** 2) return h;
+  }
+  return null;
+}
+function startCubeHole(c, h, keepV) {
+  const st = c.st, s = st.s;
   st.grid.delete(ckey(c.ix, c.iy, c.iz));
-  c.x = st.ox + (c.ix + 0.5) * st.s; c.z = st.oz + (c.iz + 0.5) * st.s;
+  c.x = st.ox + (c.ix + 0.5) * s; c.z = st.oz + (c.iz + 0.5) * s;
   c.y -= st.fall ? st.fall.y : 0;
-  c.state = 'hole'; c.h = h; c.vy = 0; c.ang = 0;
+  c.state = 'hole'; c.h = h;
+  if (!keepV) c.vy = 0;
   c.q = new THREE.Quaternion();
-  c.axis = new THREE.Vector3(Math.random() - 0.5, 0, Math.random() - 0.5).normalize();
+  // Колкото по-близо до ръба е кубчето, толкова повече се накланя навътре и се плъзга встрани.
+  let nx = c.x - h.x, nz = c.z - h.z;
+  const d = Math.hypot(nx, nz) || 1e-6; nx /= d; nz /= d;
+  const edge = clamp((d - (h.R - s * 0.8)) / (s * 0.8), 0, 1);
+  const push = edge * (0.8 + Math.random() * 0.8) + Math.random() * 0.25;
+  c.vx = -nx * push + (Math.random() - 0.5) * 0.3;
+  c.vz = -nz * push + (Math.random() - 0.5) * 0.3;
+  // ъглова скорост: около оста по ръба (горната част пада към центъра) + малко случайност
+  const tip = edge * (3 + Math.random() * 3);
+  c.w = new THREE.Vector3(-nz * tip + (Math.random() - 0.5) * 1.2, (Math.random() - 0.5) * 0.8, nx * tip + (Math.random() - 0.5) * 1.2);
   holeCubes.push(c);
   st.dirty = true;
 }
@@ -1038,7 +1060,7 @@ function updateCubes(dt) {
     // твърда постройка потъва като едно цяло
     if (st.fall) {
       const f = st.fall;
-      f.vy += 22 * dt; f.y += f.vy * dt;
+      f.vy += CUBE_G * dt; f.y += f.vy * dt;
       if (f.y >= f.d) {
         st.fall = null;
         st.grid.clear();
@@ -1054,7 +1076,8 @@ function updateCubes(dt) {
       if (!h.alive || st.s > h.R * 0.95) continue;
       const dx = st.cx - h.x, dz = st.cz - h.z, lim = h.R + st.r;
       if (dx > lim || dx < -lim || dz > lim || dz < -lim) continue;
-      const rr = (h.R - st.s * 0.35) ** 2;
+      // кубчето пада, щом центърът му е над дупката (на ръба се накланя)
+      const rr = (h.R - st.s * 0.05) ** 2;
       for (const c of st.cubes) {
         if (c.state !== 'rest' || c.iy !== 0) continue;
         const x = st.ox + (c.ix + 0.5) * st.s - h.x, z = st.oz + (c.iz + 0.5) * st.s - h.z;
@@ -1072,9 +1095,14 @@ function updateCubes(dt) {
         for (let iy = Math.ceil(c.y / s - 0.5) - 1; iy >= 0; iy--) if (st.grid.has(ckey(c.ix, iy, c.iz))) { f = iy; break; }
         const land = Math.max(f + 1, res.has(col) ? res.get(col) + 1 : 0);
         res.set(col, land);
-        c.vy -= 25 * dt; c.y += c.vy * dt;
+        c.vy -= CUBE_G * dt; c.y += c.vy * dt;
         const ty = (land + 0.5) * s;
-        if (c.y <= ty) { c.y = ty; c.iy = land; c.state = 'rest'; c.vy = 0; st.grid.set(ckey(c.ix, land, c.iz), c); st.dirty = true; }
+        if (c.y <= ty) {
+          // ако под колоната е дупка, кубчето продължава да пада направо в нея, без да спира
+          const hu = land === 0 ? holeUnder(st.ox + (c.ix + 0.5) * s, st.oz + (c.iz + 0.5) * s, s) : null;
+          if (hu) { startCubeHole(c, hu, true); continue; }
+          c.y = ty; c.iy = land; c.state = 'rest'; c.vy = 0; st.grid.set(ckey(c.ix, land, c.iz), c); st.dirty = true;
+        }
         setCubeMatrix(c);
       }
       st.drops = st.drops.filter((c) => c.state === 'drop');
@@ -1084,13 +1112,27 @@ function updateCubes(dt) {
   // кубчета, които падат в дупка
   if (holeCubes.length) {
     for (const c of holeCubes) {
-      const h = c.h;
-      const k = 1 - Math.exp(-dt * 3);
-      c.x += (h.x - c.x) * k; c.z += (h.z - c.z) * k;
-      c.vy -= 22 * dt; c.y += c.vy * dt;
-      c.ang += dt * 5;
-      c.q.setFromAxisAngle(c.axis, c.ang);
-      if (c.y < -(c.st.s + 4)) consumeCube(c); else setCubeMatrix(c);
+      const h = c.h, s = c.st.s;
+      c.vy -= CUBE_G * dt;
+      c.x += c.vx * dt; c.y += c.vy * dt; c.z += c.vz * dt;
+      // въртене според ъгловата скорост
+      const wl = c.w.length();
+      if (wl > 1e-4) { _wv.copy(c.w).divideScalar(wl); _dq.setFromAxisAngle(_wv, wl * dt); c.q.premultiply(_dq); }
+      // стените на шахтата: кубчето се удря, отскача слабо и се завърта
+      if (c.y < s * 0.5) {
+        const rx = c.x - h.x, rz = c.z - h.z, d = Math.hypot(rx, rz), lim = Math.max(0.02, h.R - s * 0.55);
+        if (d > lim) {
+          const nx = rx / d, nz = rz / d;
+          c.x = h.x + nx * lim; c.z = h.z + nz * lim;
+          const vr = c.vx * nx + c.vz * nz;
+          if (vr > 0) {
+            c.vx -= 1.3 * vr * nx; c.vz -= 1.3 * vr * nz;
+            c.w.x += -nz * vr * 3 + (Math.random() - 0.5); c.w.z += nx * vr * 3 + (Math.random() - 0.5);
+          }
+          c.vy *= 0.985; // леко триене в стената
+        }
+      }
+      if (c.y < -(s + 4)) consumeCube(c); else setCubeMatrix(c);
     }
     holeCubes = holeCubes.filter((c) => c.state === 'hole');
     changed = true;
@@ -1907,6 +1949,7 @@ if (/[?&]debug\b/.test(location.search)) {
     objs: objs.filter((o) => !o.dead && !o.fall).map((o) => ({ x: o.x, z: o.z, r: o.r, v: o.v, type: o.type }))
       .concat(cubes.filter((c) => c.state === 'rest' && c.iy === 0).map((c) => ({ x: c.st.ox + (c.ix + 0.5) * c.st.s, z: c.st.oz + (c.iz + 0.5) * c.st.s, r: c.st.s, v: c.v * c.st.cubes.length / 4, type: 'cube:' + c.st.type }))),
     cubesLeft: cubes.filter((c) => c.state !== 'dead').length, cubesTotal: cubes.length,
+    holeCubes: holeCubes.slice(0, 40).map((c) => ({ x: +c.x.toFixed(2), y: +c.y.toFixed(2), z: +c.z.toFixed(2), vx: +c.vx.toFixed(2), vz: +c.vz.toFixed(2), w: +c.w.length().toFixed(2) })),
     calls: renderer.info.render.calls,
   });
   window.__dupkaStart = (m, n) => (m === 'battle' ? startBattle() : m === 'single' ? startGame({ kind: 'single', size: n || 's', counts: randomCounts(n || 's', CATS), seed: 7 }) : m === 'cubes' ? startGame({ kind: 'single', cubes: true, size: n || 's', counts: randomCounts(n || 's', CUBE_CATS), seed: 7 }) : startCareer(n || 1));
