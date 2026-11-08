@@ -59,7 +59,7 @@ function render() {
   const N = list.length;
   const tiles = [
     [tr('Ученици', 'Students'), N, ''],
-    [tr('Средно Добруване', 'Average well-being'), avg(list.map(s => s.wb)), tr('от 100, в последния месец', 'out of 100, in the last month')],
+    [tr('Средно Добруване', 'Average happiness'), avg(list.map(s => s.wb)), tr('от 100, в последния месец', 'out of 100, in the last month')],
     [tr('Средно задачи', 'Average tasks'), avg(list.map(s => s.missions)), tr(`от ${MISSIONS.length}`, `out of ${MISSIONS.length}`), 1],
     [tr('Средно жители', 'Average residents'), avg(list.map(s => s.pop)), tr('в последния месец', 'in the last month')],
     [tr('Средно месеци', 'Average months'), avg(list.map(s => s.months)), tr('изиграни', 'played')],
@@ -118,14 +118,14 @@ function render() {
     const mean = x.map((_, i) => avg(list.map(s => (s.rows[i] ? s.rows[i][key] : null))));
     charts.append(lineChart({ title, xLabels: x, ...opts, series: [...series, { name: tr('Средно за класа', 'Class average'), values: mean }] }));
   };
-  over('wb', tr('Добруване по месеци (0–100)', 'Well-being by month (0–100)'), { yMin: 0, yMax: 100 });
+  over('wb', tr('Добруване по месеци (0–100)', 'Happiness by month (0–100)'), { yMin: 0, yMax: 100 });
   over('pop', tr('Жители по месеци', 'Residents by month'), { yMin: 0 });
   over('money', tr('Пари в бюджета по месеци (€)', 'Money in the budget by month (€)'));
   out.insertAdjacentHTML('beforeend', `<p class="meta">${tr('На линейните графики сивите линии са отделните ученици, синята е средното за класа. Посочете линия, за да видите чия е.', 'On the line charts, the grey lines are individual students and the blue line is the class average. Point at a line to see whose it is.')}</p>`);
 
   const cols = [
     ['name', tr('Ученик', 'Student')], ['months', tr('Месеци', 'Months')], ['missions', tr('Задачи', 'Tasks')],
-    ['wb', tr('Добруване', 'Well-being')], ['pop', tr('Жители', 'Residents')], ['money', tr('Пари (€)', 'Money (€)')],
+    ['wb', tr('Добруване', 'Happiness')], ['pop', tr('Жители', 'Residents')], ['money', tr('Пари (€)', 'Money (€)')],
     ['weakest', tr('Най-слаб фактор', 'Weakest factor')],
   ];
   const val = (s, k) => (k === 'weakest' ? (s.weakest ? s.last.f[s.weakest.id] : 999) : s[k]);

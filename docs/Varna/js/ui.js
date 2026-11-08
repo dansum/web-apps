@@ -14,7 +14,7 @@ export function stats(s, ev) {
   $('st-money').classList.toggle('neg', s.money < 0);
   $('st-pop').textContent = `👥 ${s.pop}`;
   $('st-date').textContent = `${SEASON[s.month] >= 1.6 ? '☀️' : s.month < 2 || s.month === 11 ? '❄️' : '🌤️'} ${MONTHS[s.month]} ${s.year}`;
-  $('st-wb').innerHTML = `${face(ev.wellbeing)} <span>${tr('Добруване', 'Well-being')} ${ev.wellbeing ?? '—'}</span>`;
+  $('st-wb').innerHTML = `${face(ev.wellbeing)} <span>${tr('Добруване', 'Happiness')} ${ev.wellbeing ?? '—'}</span>`;
 }
 
 export function speed(v) {
@@ -23,7 +23,7 @@ export function speed(v) {
 
 export function factors(ev, selected, onPick) {
   const el = $('factors');
-  el.innerHTML = `<h3>${tr('Добруване на града', 'City well-being')}</h3>` + FACTORS.map(f => {
+  el.innerHTML = `<h3>${tr('Добруване на града', 'City happiness')}</h3>` + FACTORS.map(f => {
     const v = ev.factors ? ev.factors[f.id] : null;
     return `<button class="factor${selected === f.id ? ' on' : ''}" data-f="${f.id}" title="${esc(f.name)}: ${tr('натисни, за да видиш картата', 'tap to see it on the map')}">
       <span class="ic">${f.icon}</span><span class="nm">${f.name}</span>

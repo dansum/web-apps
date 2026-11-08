@@ -225,7 +225,7 @@ function inspect(i, j) {
     }).join('') + '</ul>');
     const hints = [];
     if (loc.edu < 50) hints.push(tr('няма достатъчно места в училище наблизо', 'there are not enough school places nearby'));
-    if (loc.health < 50) hints.push(loc.pollution > 15 ? tr('въздухът е замърсен от завод', 'a factory is polluting the air') : tr('няма поликлиника наблизо', 'there is no health centre nearby'));
+    if (loc.health < 50) hints.push(loc.pollution > 15 ? tr('въздухът е замърсен от завод', 'a factory is polluting the air') : tr('няма поликлиника наблизо', 'there is no small hospital nearby'));
     if (loc.nature < 50) hints.push(tr('няма парк или дървета наблизо', 'there are no parks or trees nearby'));
     if (loc.transport < 50) hints.push(tr('няма автобусна спирка наблизо', 'there is no bus stop nearby'));
     if (hints.length) lines.push(`<p class="tip">👉 ${tr('За хората тук', 'For the people here')}: ${hints.join('; ')}.</p>`);
@@ -362,10 +362,10 @@ function showWellbeing() {
   const budget = !l ? '' : tr(
     `<p class="meta">Миналия месец: данъци +${l.taxes} €, туристи +${l.tourism} €, поддръжка −${l.upkeep} €.</p>`,
     `<p class="meta">Last month: taxes +€${l.taxes}, tourists +€${l.tourism}, upkeep −€${l.upkeep}.</p>`);
-  ui.modal(`<h2>${ui.face(ev.wellbeing)} ${tr('Добруване', 'Well-being')}: ${ev.wellbeing ?? '—'}</h2>
-    <p>${tr('Добруването показва колко добре живеят хората в града. То е средното от седемте фактора:', 'Well-being shows how well people live in the city. It is the average of the seven factors:')}</p>
+  ui.modal(`<h2>${ui.face(ev.wellbeing)} ${tr('Добруване', 'Happiness')}: ${ev.wellbeing ?? '—'}</h2>
+    <p>${tr('Добруването показва колко добре живеят хората в града. То е средното от седемте фактора:', 'Happiness shows how well people live in the city. It is the average of the seven factors:')}</p>
     <ul class="local">${rows}</ul>
-    <p>${tr('Когато Добруването е високо, в града идват нови хора, а градът събира повече данъци.', 'When Well-being is high, new people move to the city and the city collects more taxes.')}</p>${budget}`, [tr('Затвори', 'Close')]);
+    <p>${tr('Когато Добруването е високо, в града идват нови хора, а градът събира повече данъци.', 'When Happiness is high, new people move to the city and the city collects more taxes.')}</p>${budget}`, [tr('Затвори', 'Close')]);
 }
 
 async function menu() {
@@ -413,11 +413,11 @@ async function intro() {
   const saved = load();
   const buttons = saved ? [tr('Продължи играта', 'Continue the game'), tr('Нова игра', 'New game')] : [tr('Започни', 'Start')];
   const n = await ui.modal(`<p class="intro-lang"><span class="lang-switch"></span></p>
-    <div class="big">⚓🏙️🌊</div><h1>${tr('Варна строи', 'Varna Builds')}</h1>
+    <div class="big">⚓🏙️🌊</div><h1>${tr('Варна строи', 'Build Varna')}</h1>
     ${tr(`<p>Варна е най-големият град по нашето Черноморие и третият по големина в България. Преди повече от 2500 години тук гърците основават град <b>Одесос</b>.</p>
     <p><b>Сега ти си кметът!</b> Построй град, в който хората живеят добре. Следи седемте фактора за добруване:</p>`,
     `<p>Varna is the largest city on the Bulgarian Black Sea coast and the third-largest city in Bulgaria. More than 2,500 years ago, Greek settlers founded the city of <b>Odessos</b> here.</p>
-    <p><b>Now you are the mayor!</b> Build a city where people live well. Keep an eye on the seven factors of well-being:</p>`)}
+    <p><b>Now you are the mayor!</b> Build a city where people live well. Keep an eye on the seven factors of happiness:</p>`)}
     <p class="chips">${FACTORS.map(f => `<span>${f.icon} ${f.name}</span>`).join('')}</p>
     <p class="meta">${tr('За по-малките: <a href="malki.html">„Весело градче“ — версия за 6-годишни</a>', 'For younger children: <a href="malki.html">“Happy Town” — a version for 6-year-olds</a>')}</p>`,
   // Играта още не е започнала: не записваме, за да не изтрием записания град.
