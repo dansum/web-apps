@@ -350,6 +350,7 @@ function renderArticle(id) {
   if (!f) return notFound();
   const { course, unit, article } = f;
   document.title = article.title;
+  if (article.quality === 'high' && article.experience && hasWebGL()) return renderLiveArticle(f);
   view.innerHTML = `
     ${crumbs([['#/', 'Курсове'], [`#/c/${course.id}`, `${course.id}. клас`], [`#/c/${course.id}`, unit.title], [null, 'Статия']])}
     <header class="skill-head"><h1>📖 ${esc(article.title)}</h1><div>${devBadge(article)} ${monBadges(article)}</div></header>
@@ -395,6 +396,27 @@ function renderArticle(id) {
     location.hash = `#/c/${course.id}`;
   });
   if (steps.length) draw();
+}
+
+// Статия като жива 3D сцена (js/exp/<experience>.js, договорът е в js/exp/README.md).
+async function renderLiveArticle({ course, unit, article }) {
+  view.innerHTML = `
+    ${crumbs([['#/', 'Курсове'], [`#/c/${course.id}`, `${course.id}. клас`], [`#/c/${course.id}`, unit.title], [null, 'Статия']])}
+    <header class="skill-head"><h1>📖 ${esc(article.title)}</h1><div>${devBadge(article)} ${monBadges(article)}</div></header>
+    <div class="ex-area"><p class="small">Зареждане на 3D статията…</p></div>`;
+  const area = view.querySelector('.ex-area');
+  try {
+    const mod = await import(`./exp/${article.experience}.js`);
+    area.innerHTML = '';
+    const inst = mod.mount(area, {
+      article, course,
+      onComplete() { store.markArticle(article.id); return { back: `#/c/${course.id}` }; },
+    });
+    cleanup.push(() => inst.dispose());
+  } catch (e) {
+    console.error(e);
+    area.innerHTML = `<p class="warn">Статията не можа да се зареди: ${esc(e.message)}</p>`;
+  }
 }
 
 function pickTestQuestions(skills, max, perSkill) {
