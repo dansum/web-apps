@@ -634,7 +634,7 @@ const INDOOR = {
   ] },
 };
 
-function paintIndoor(kind, P, L, E) {
+function paintIndoor(kind, P, L, E, blocks) {
   const g = P.g;
   if (kind === 'food') {
     // карирана покривка
@@ -654,16 +654,89 @@ function paintIndoor(kind, P, L, E) {
     P.rect(-L, -L, L, L, '#9aa3ad');
     for (let x = -L; x < L; x += 4) P.line(x, -L, x, L, 0.05, 'rgba(0,0,0,.12)');
     for (let z = -L; z < L; z += 4) P.line(-L, z, L, z, 0.05, 'rgba(0,0,0,.12)');
-    P.line(-L, 0, L, 0, 0.4, '#facc15'); P.line(0, -L, 0, L, 0.4, '#facc15');
+    if (!blocks) { P.line(-L, 0, L, 0, 0.4, '#facc15'); P.line(0, -L, 0, L, 0.4, '#facc15'); }
     for (let x = -L; x < L; x += 1.2) { P.line(x, -L + 0.3, x + 0.6, -L + 0.9, 0.3, '#111827'); }
   }
   // ръб на масата / бюрото
   g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 0.8 * P.ppu; g.strokeRect(P.X(-L), P.X(-L), 2 * L * P.ppu, 2 * L * P.ppu);
 }
 
+// Подредени светове: предметите се нареждат в редици, групирани по вид (като на витрина / в склад).
+const ORDERED = {
+  food: { gap: (r) => 0.15 + r * 0.2, typeGap: 0.5, rowGap: 0.35, catGap: 1.8 },
+  tech: { gap: (r) => 0.25 + r * 0.12, typeGap: 0.6, rowGap: 0.7, catGap: 2.6 },
+};
+function planRows(L, cats, counts, o) {
+  const maxX = L - 1.5, rows = [], blocks = [];
+  let z = 0;
+  for (const c of cats) {
+    const n = counts[c.id] || 0;
+    if (!n) continue;
+    const weights = c.types.map((tp) => 1 / Math.sqrt(T[tp].r));
+    const wsum = weights.reduce((s, w) => s + w, 0);
+    const pickType = () => { let r = R() * wsum; for (let i = 0; i < c.types.length; i++) { r -= weights[i]; if (r <= 0) return c.types[i]; } return c.types[0]; };
+    const list = [];
+    for (let i = 0; i < n; i++) list.push(pickType());
+    list.sort((a, b) => T[a].r - T[b].r || (a < b ? -1 : a > b ? 1 : 0)); // по размер, после по вид
+    if (blocks.length) z += o.catGap;
+    const block = { z0: z, z1: z, rows: [] };
+    let row = null, prev = null;
+    const newRow = () => { if (row) z = row.z0 + row.h + o.rowGap; row = { z0: z, h: 0, x: -maxX, items: [] }; rows.push(row); block.rows.push(row); prev = null; };
+    newRow();
+    for (const tp of list) {
+      const r = T[tp].r, cell = 2 * r + o.gap(r);
+      let x = row.x + (prev && tp !== prev ? o.typeGap : 0);
+      if (x + cell > maxX && row.items.length) { newRow(); x = row.x; }
+      row.items.push({ tp, x: x + cell / 2 });
+      row.x = x + cell; row.h = Math.max(row.h, cell); prev = tp;
+    }
+    block.z1 = row.z0 + row.h;
+    z = block.z1;
+    blocks.push(block);
+  }
+  // центрирай по височина; редовете, които не се събират, отпадат
+  const off = -z / 2;
+  const plan = [];
+  for (const b of blocks) { b.z0 += off; b.z1 += off; }
+  for (const row of rows) {
+    const zc = row.z0 + off + row.h / 2;
+    if (Math.abs(zc) + row.h / 2 > L - 1) continue;
+    const shift = (maxX - row.x) / 2; // центрирай реда хоризонтално
+    for (const it of row.items) plan.push({ tp: it.tp, x: it.x + shift, z: zc });
+  }
+  return { plan, H: z, blocks: blocks.filter((b) => b.z1 > -L && b.z0 < L) };
+}
+
 function layoutIndoor(kind, L, counts) {
   const def = INDOOR[kind], E = L + 30;
   const { cv, P } = makeGroundCanvas(E, def.margin);
+  if (ORDERED[kind]) {
+    // ако не се събира, намали броя на всеки вид пропорционално (вместо да отпадат цели редици)
+    let cnt = { ...counts }, res;
+    const room = 2 * (L - 1.2), seed = rng;
+    for (let k = 0; k < 6; k++) {
+      const st0 = Math.floor(seed() * 1e9);
+      rng = mulberry32(st0);
+      res = planRows(L, def.cats, cnt, ORDERED[kind]);
+      if (res.H <= room) break;
+      const f = (room / res.H) * 0.97;
+      for (const id in cnt) cnt[id] = cnt[id] > 0 ? Math.max(1, Math.floor(cnt[id] * f)) : 0;
+    }
+    rng = seed;
+    const { plan, blocks } = res;
+    paintIndoor(kind, P, L, E, blocks);
+    const m = L - 0.8;
+    for (const b of blocks) {
+      if (kind === 'food') { P.rect(-m, b.z0 - 0.4, m, b.z1 + 0.4, 'rgba(255,253,247,.92)'); P.line(-m, b.z0 - 0.4, m, b.z0 - 0.4, 0.08, '#d6d3d1'); P.line(-m, b.z1 + 0.4, m, b.z1 + 0.4, 0.08, '#d6d3d1'); }
+      else { P.g.strokeStyle = '#facc15'; P.g.lineWidth = 0.18 * P.ppu; P.g.strokeRect(P.X(-m), P.X(b.z0 - 0.5), 2 * m * P.ppu, (b.z1 - b.z0 + 1) * P.ppu); }
+    }
+    if (kind === 'tech') for (let i = 1; i < blocks.length; i++) { const zc = (blocks[i - 1].z1 + blocks[i].z0) / 2; P.line(-L, zc, L, zc, 0.12, '#f8fafc', [1.2, 1.2]); }
+    finishGround(cv, E, true);
+    for (const it of plan) spawn(it.tp, it.x, it.z, 0, { force: true });
+    // започни в пътеката между първите две групи
+    if (blocks.length > 1) world.start = { x: 0, z: (blocks[0].z1 + blocks[1].z0) / 2 };
+    return;
+  }
   paintIndoor(kind, P, L, E);
   finishGround(cv, E, true);
   const order = [...def.cats].sort((a, b) => Math.max(...b.types.map((t) => T[t].r)) - Math.max(...a.types.map((t) => T[t].r)));
@@ -1526,7 +1599,7 @@ function buildWorld(cfg) {
     }
     else layoutCity(theme === 'city' ? 40 + cycle * 6 : 46 + cycle * 6, theme);
     rng = Math.random;
-    player = makeHole(PLAYER_NAMES, PLAYER_COLOR, 0, theme === 'park' ? 9 : 0, startR(), false);
+    player = makeHole(PLAYER_NAMES, PLAYER_COLOR, world.start ? world.start.x : 0, world.start ? world.start.z : theme === 'park' ? 9 : 0, startR(), false);
   } else if (cfg.kind === 'single') {
     theme = 'single';
     rng = mulberry32(cfg.seed);
@@ -1534,7 +1607,7 @@ function buildWorld(cfg) {
     const wk = singleWorld(cfg);
     if (wk === 'cubes') layoutCubes(world.L, cfg.counts); else if (INDOOR[wk]) layoutIndoor(wk, world.L, cfg.counts); else layoutCustom(world.L, cfg.counts);
     rng = Math.random;
-    player = makeHole(PLAYER_NAMES, PLAYER_COLOR, 0, 0, startR(), false);
+    player = makeHole(PLAYER_NAMES, PLAYER_COLOR, world.start ? world.start.x : 0, world.start ? world.start.z : 0, startR(), false);
   } else {
     theme = 'battle';
     rng = mulberry32(cfg.seed);
