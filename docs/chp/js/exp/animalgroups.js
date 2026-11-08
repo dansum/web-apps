@@ -305,10 +305,10 @@ function snakeModel() {
   const bk = bonesKit(g);
   const m = mat(0x5d6b3a, { flat: true });
   const belly = mat(0xe3d36a);
-  const N = 16;
+  const N = 22;
   const segs = [];
   for (let i = 0; i < N; i++) {
-    const r = i === 0 ? 0.075 : 0.068 - i * 0.0028;
+    const r = i === 0 ? 0.075 : Math.max(0.03, 0.068 - i * 0.0017);
     const s = new THREE.Group();
     const b = sph(r, m, 10);
     b.scale.set(1.25, 0.8, 1);
@@ -321,14 +321,14 @@ function snakeModel() {
       bk.ball([0.02, 0.01, 0], 0.045, s);
     } else {
       bk.ball([0, 0.01, 0], r * 0.28, s);
-      if (i < N - 3) for (const k of [1, -1]) bk.seg([0, 0.01, 0], [0, -0.02, k * r * 0.75], 0.006, s);
+      if (i < N - 4) for (const k of [1, -1]) bk.seg([0, 0.01, 0], [0, -0.02, k * r * 0.75], 0.006, s);
     }
     g.add(s);
     segs.push(s);
   }
   g.userData.anim = (t, k = 1) => {
     segs.forEach((s, i) => {
-      s.position.set(-i * 0.105, 0.065, Math.sin(t * 4 - i * 0.55) * 0.09 * (0.3 + i / N) * k);
+      s.position.set(-i * 0.075, 0.065, Math.sin(t * 4 - i * 0.55) * 0.09 * (0.3 + i / N) * k);
     });
   };
   g.userData.anim(0);
@@ -486,7 +486,6 @@ function penguinModel() {
   }
   bk.spine([[-0.05, 0.2, 0], [-0.05, 0.68, 0]], 0.022);
   bk.ball([0.02, 0.8, 0], 0.08);
-  bk.ribs(0.4, 0.6, 0, 0, 0, 0);
   g.userData.anim = (t, k = 1) => { g.rotation.x = Math.sin(t * 4) * 0.08 * k; };
   return g;
 }
@@ -828,28 +827,28 @@ const A = {
   ladybug: { label: 'Калинка', icon: '🐞', group: 'insect', build: ladybugModel,
     note: '<b>Калинка — насекомо.</b> Има 6 крака. Под твърдите червени крилца са скрити тънки крила, с които лети.',
     clue: ['Има 6 крака и 2 пипала.', 'Тялото ѝ е от 3 части.', 'Има крила и лети.'] },
-  trout: { label: 'Пъстърва', icon: '🐟', group: 'fish', build: () => fishModel(),
+  trout: { def: 'Пъстървата', label: 'Пъстърва', icon: '🐟', group: 'fish', build: () => fishModel(),
     note: '<b>Пъстърва — риба.</b> Живее във вода, диша с хриле и плува с перки. Тялото ѝ е покрито с люспи.' },
   carp: { label: 'Шаран', icon: '🐟', group: 'fish', build: () => fishModel(0xc9a24a, 0xf3e5b5, 0x8a6a2a),
     clue: ['Живее в езера и реки.', 'Диша с хриле, а не с бели дробове.', 'Плува с перки, тялото е покрито с люспи.'] },
   dolphin: { label: 'Делфин', icon: '🐬', group: 'mammal', build: dolphinModel, tricky: true,
     clue: ['Живее в морето и плува с перки.', 'Изплува, за да диша въздух с бели дробове.', 'Кожата е гладка, без люспи.', 'Малкото суче мляко от майка си.'],
     ok: 'Да! Делфинът прилича на риба, но е бозайник: диша въздух и кърми малкото си с мляко.' },
-  frog: { label: 'Жаба', icon: '🐸', group: 'amph', build: frogModel,
+  frog: { def: 'Жабата', label: 'Жаба', icon: '🐸', group: 'amph', build: frogModel,
     note: '<b>Жаба — земноводно.</b> Кожата ѝ е гола и влажна, без люспи. Живее и на сушата, и във водата, а яйцата си снася във водата.',
     clue: ['Кожата е гола и влажна, без люспи.', 'Снася яйцата си във водата.', 'От яйцата излизат попови лъжички, които живеят във водата.'] },
   salamander: { label: 'Дъждовник', icon: '🦎', group: 'amph', build: () => lizardModel(0x22252a, 0xf2c200, true), tricky: true,
     clue: ['Прилича на гущер.', 'Кожата му е гола и влажна, без люспи.', 'Малките му се развиват във вода.'],
     ok: 'Да! Дъждовникът прилича на гущер, но кожата му е гола и влажна. Той е земноводно.' },
-  lizard: { label: 'Гущер', icon: '🦎', group: 'rept', build: () => lizardModel(),
+  lizard: { def: 'Гущерът', label: 'Гущер', icon: '🦎', group: 'rept', build: () => lizardModel(),
     note: '<b>Гущер — влечуго.</b> Кожата му е суха и покрита с люспи. Снася яйцата си на сушата.',
     clue: ['Кожата е суха и покрита с люспи.', 'Снася яйца на сушата.', 'Пълзи с 4 къси крака.'] },
   snake: { label: 'Смок', icon: '🐍', group: 'rept', build: snakeModel,
     note: '<b>Смок — влечуго.</b> Змиите нямат крака, но имат много дълъг гръбнак. Кожата им е покрита с люспи. Смокът е безобиден.' },
   turtle: { label: 'Костенурка', icon: '🐢', group: 'rept', build: turtleModel, tricky: true,
-    clue: ['Има твърда черупка от рогови щитове.', 'Главата и краката са покрити с люспи.', 'Снася яйцата си на сушата.'],
+    clue: ['Има твърда черупка, покрита с щитове.', 'Главата и краката са покрити с люспи.', 'Снася яйцата си на сушата.'],
     ok: 'Да! Костенурката е влечуго: има люспи и щитове и снася яйцата си на сушата.' },
-  sparrow: { label: 'Врабче', icon: '🐦', group: 'bird', build: sparrowModel,
+  sparrow: { def: 'Врабчето', label: 'Врабче', icon: '🐦', group: 'bird', build: sparrowModel,
     note: '<b>Врабче — птица.</b> Тялото му е покрито с пера. Има клюн и крила и снася яйца в гнездо.' },
   stork: { label: 'Щъркел', icon: '🪶', group: 'bird', build: storkModel,
     clue: ['Тялото е покрито с пера.', 'Има дълъг клюн и крила.', 'Снася яйца в голямо гнездо.'] },
@@ -859,10 +858,10 @@ const A = {
   bat: { label: 'Прилеп', icon: '🦇', group: 'mammal', build: batModel, tricky: true,
     clue: ['Лети с крила от тънка кожа, а не от пера.', 'Тялото е покрито с козина.', 'Малките сучат мляко от майка си.'],
     ok: 'Да! Прилепът лети, но е бозайник: има козина и кърми малките си с мляко.' },
-  rabbit: { label: 'Заек', icon: '🐰', group: 'mammal', build: () => quadruped({ color: 0xa1887f, belly: 0xd7ccc8, r: 0.18, len: 0.28, legLen: 0.12, headR: 0.14, ears: 'long', tail: 'puff' }),
+  rabbit: { def: 'Заекът', label: 'Заек', icon: '🐰', group: 'mammal', build: () => quadruped({ color: 0xa1887f, belly: 0xd7ccc8, r: 0.18, len: 0.28, legLen: 0.12, headR: 0.14, ears: 'long', tail: 'puff' }),
     note: '<b>Заек — бозайник.</b> Тялото му е покрито с козина. Малките сучат мляко от майка си.',
     clue: ['Тялото е покрито с козина.', 'Малките сучат мляко от майка си.', 'Има 4 крака.'] },
-  dog: { label: 'Куче', icon: '🐕', group: 'mammal', build: () => quadruped({ color: 0xc68a4a, belly: 0xf0d9b5, r: 0.2, len: 0.5, legLen: 0.32, headR: 0.16, ears: 'round', snout: 0.16, snoutColor: 0xd9a46a, tail: 'thin' }),
+  dog: { label: 'Куче', icon: '🐕', group: 'mammal', build: () => quadruped({ color: 0xc68a4a, belly: 0xf0d9b5, r: 0.16, len: 0.52, legLen: 0.4, headR: 0.15, ears: 'pointy', snout: 0.2, snoutColor: 0xe0b07a, tail: 'thin', neck: 0.6 }),
     note: '<b>Куче — бозайник.</b> Има козина, а кученцата сучат мляко от майка си.' },
   spider: { label: 'Паяк', icon: '🕷', group: 'other', build: spiderModel, tricky: true,
     note: '<b>Паяк — безгръбначно.</b> Но <b>не е</b> насекомо: има 8 крака, няма пипала и крила, а тялото му е от 2 части.',
@@ -1058,8 +1057,8 @@ export function mount(container, { onComplete }) {
   for (const [x, z] of [[-1.85, 1], [1.85, 1], [-1.85, -1], [1.85, -1]]) ter.add(at(box(0.05, 1.4, 0.05, 0x3e2723), x, 1.7, z));
   ter.add(at(box(3.8, 0.06, 2.1, 0x3e2723), 0, 2.42, 0));
   const branch = cyl(0.05, 0.07, 1.6, 0x795548, 6);
-  branch.rotation.set(0.3, 0, 1.25);
-  branch.position.set(0.2, 1.3, 0.55);
+  branch.rotation.set(0.15, 0, 1.4);
+  branch.position.set(-0.3, 1.25, -0.72);
   ter.add(branch);
   const trock = sph(0.28, 0xa1887f, 6);
   trock.scale.y = 0.6;
@@ -1111,9 +1110,9 @@ export function mount(container, { onComplete }) {
     const anim = g.userData.anim;
     if (r.kind === 'slither') {
       // Тялото следва пътеката на главата и се извива настрани.
-      const k = 0.85 * 0.105 / Math.max(r.rx, r.rz);
+      const k = 0.85 * 0.075 / ((r.rx + r.rz) / 2);
       it.segs.forEach((s, i) => {
-        const ui = u - i * k * 1.35;
+        const ui = u - i * k;
         const cx = r.c[0] + r.rx * Math.cos(ui);
         const cz = r.c[1] + r.rz * Math.sin(ui);
         const tx = -r.rx * Math.sin(ui);
@@ -1208,7 +1207,7 @@ export function mount(container, { onComplete }) {
     stage.flyTo(p, tgt, dur);
   }
   const isNarrow = () => (shell.stageEl.clientWidth || 600) / (shell.stageEl.clientHeight || 400) < 1.1;
-  const overview = () => view([0.5, 8.5, 12.5], [0.5, 1, -2.6]);
+  const overview = () => view([-0.6, 9.5, 14.5], [-0.6, 1, -2.4]);
   let tip = null;
   function say(anchor, html, cls = '', lift = 1) {
     if (tip) tip.remove();
@@ -1235,7 +1234,8 @@ export function mount(container, { onComplete }) {
   function setXrayLook(on) {
     scene.background.set(on ? 0x14283f : BG.getHex());
     scene.fog.color.copy(scene.background);
-    stage.hemi.intensity = on ? 0.55 : 1.1;
+    stage.hemi.intensity = on ? 0.35 : 1.1;
+    stage.sun.intensity = on ? 0.35 : 1.6;
   }
 
   function makeToken(a, size, prefix) {
@@ -1248,7 +1248,7 @@ export function mount(container, { onComplete }) {
     m.position.y = 0.1;
     g.add(m);
     const top = new THREE.Box3().setFromObject(m).max.y;
-    const l = labelSprite(a.label, { size: narrow ? 0.3 : 0.24 });
+    const l = labelSprite(a.label, { size: narrow ? 0.3 : 0.27 });
     l.position.y = Math.max(0.75, top + 0.3);
     g.add(l);
     g.userData = { pickId: prefix + a.id, dragId: prefix + a.id, a, model: m, ph: Math.random() * 6, label: l, puck };
@@ -1270,3 +1270,432 @@ export function mount(container, { onComplete }) {
     }
     return ring;
   }
+
+  // ---------- 1. Опознай ----------
+  function step1() {
+    shell.step(0);
+    clearTip(); clearSort(); setXrayLook(false);
+    sortWorld.visible = false;
+    menu.setItems(MENU);
+    menu.show(true);
+    const seen = new Set();
+    const NEED = 8;
+    shell.task(`<p>Добре дошъл в музея! Тук има голям аквариум, терариум и двор с езерце.</p>
+      <p><b>Разгледай поне ${NEED} животни.</b> Кликни върху тях или ги избери от менюто в ъгъла. Виж как се движи всяко и с какво е покрито тялото му.</p>`);
+    const ctrl = shell.setControls('<div class="row"><button class="btn all">🔭 Целият музей</button><button class="btn primary nx" disabled>Напред →</button></div>');
+    const next = ctrl.querySelector('.nx');
+    ctrl.querySelector('.all').addEventListener('click', () => { clearTip(); menu.setActive(null); overview(); });
+    const upd = () => shell.score(`Разгледани: ${seen.size} от ${MENU.length}`);
+    upd();
+    const visit = (id) => {
+      const it = OBJ[id];
+      if (!it) return;
+      const r = it.r;
+      stage.focusOn(it.anchor, { dist: r.dist, height: r.dist * 0.45, lift: r.lift * 0.5 });
+      say(it.anchor, `${A[id].icon} ${A[id].note}`, 'wide', r.lift + 0.15);
+      seen.add(id);
+      menu.mark(id);
+      menu.setActive(id);
+      upd();
+      if (seen.size >= NEED) { next.disabled = false; shell.msg('Браво! Можеш да продължиш или да разгледаш още животни.', 'good'); }
+    };
+    clickHandler = (id) => { if (!id || !OBJ[id]) { clearTip(); return; } visit(id); };
+    menuHandler = visit;
+    next.addEventListener('click', () => { menu.show(false); menuHandler = null; step2(); });
+    overview();
+  }
+
+  // ---------- 2. Рентген: гръбначни и безгръбначни ----------
+  const XR_IDS = ['trout', 'frog', 'lizard', 'sparrow', 'rabbit', 'snail', 'worm', 'butterfly', 'spider'];
+  const NO_BONES = {
+    snail: 'Охлювът няма нито една кост. Мекото му тяло се пази в черупка.',
+    worm: 'Червеят няма нито една кост. Тялото му е меко.',
+    butterfly: 'Пеперудата няма кости. Твърда е само тънката обвивка отвън.',
+    spider: 'Паякът няма кости. Твърда е само обвивката на тялото му отвън.',
+  };
+  function step2() {
+    shell.step(1);
+    clearTip(); clearSort();
+    sortWorld.visible = true;
+    const narrow = isNarrow();
+    if (narrow) { stage.stopFollow(); stage.flyTo([0, 10.2, SZ + 5.5], [0, 0, SZ + 0.5], 1); } else view([0, 6.0, SZ + 6.6], [0, 0, SZ + 0.6]);
+    const R = narrow ? 1.35 : 1.9;
+    const rings = [
+      { vert: true, z: ringAt(0x1e88e5, R, narrow ? -1.5 : -3.2, narrow ? -2.1 : -1.6, 'r-vert', 'Гръбначни', narrow), n: 0 },
+      { vert: false, z: ringAt(0xef8f00, R, narrow ? 1.5 : 3.2, narrow ? -2.1 : -1.6, 'r-invert', 'Безгръбначни', narrow), n: 0 },
+    ];
+    const order = XR_IDS.slice().sort(() => Math.random() - 0.5);
+    order.forEach((id, i) => {
+      const g = makeToken(A[id], 1.0, 'x-');
+      if (narrow) g.position.set((i % 3 - 1) * 1.75, 0, 0.5 + Math.floor(i / 3) * 1.45);
+      else if (i < 5) g.position.set(-4 + i * 2, 0, 1.5);
+      else g.position.set(-3 + (i - 5) * 2, 0, 3.0);
+      g.userData.home = g.position.clone();
+      g.userData.locked = true;
+    });
+    let xr = false;
+    let used = false;
+    let mistakes = 0;
+    let placed = 0;
+    const tries = new Map();
+    shell.task(`<p>Някои животни имат вътре в тялото <b>гръбначен стълб</b> — гръбнак от кости. Те са <b>гръбначни</b>. Другите нямат гръбнак — те са <b>безгръбначни</b>.</p>
+      <p>Включи <b>рентгена</b> и виж кои животни имат кости. После провлачи всяко животно в правилния кръг.</p>`);
+    const ctrl = shell.setControls('<div class="row"><button class="btn animalgroups-xray">🩻 Включи рентгена</button></div>');
+    const xbtn = ctrl.querySelector('.animalgroups-xray');
+    const upd = () => shell.score(`Подредени: ${placed} от ${XR_IDS.length} · грешки: ${mistakes}`);
+    upd();
+    const setX = (on) => {
+      xr = on;
+      setXrayLook(on);
+      for (const g of tokens) xray(g.userData.model, on);
+      xbtn.classList.toggle('on', on);
+      xbtn.textContent = on ? '🩻 Изключи рентгена' : '🩻 Включи рентгена';
+    };
+    xbtn.addEventListener('click', () => {
+      setX(!xr);
+      if (!used) {
+        used = true;
+        for (const g of tokens) g.userData.locked = false;
+        shell.msg('Виж: в някои животни светят гръбнак и кости, а в други няма нито една кост. Сега провлачи животните в кръговете.', 'good');
+      }
+    });
+    clickHandler = (id, hit) => {
+      if (!hit || !hit.root.userData.a) return clearTip();
+      if (!used) { shell.msg('Първо включи рентгена.', 'bad'); return; }
+      if (!hit.root.userData.locked) say(hit.root, esc(hit.root.userData.a.label), 'tag', 1.3);
+    };
+    stopDrag = stage.enableDrag({
+      planeY: 0,
+      onStart: () => { clearTip(); stage.stopFollow(); },
+      onDrop: (g, p, start) => {
+        const ring = rings.find((r) => Math.hypot(p.x - r.z.position.x, p.z - r.z.position.z) < R + 0.15);
+        if (!ring) { g.position.copy(start); return; }
+        const a = g.userData.a;
+        const v = isVert(a);
+        if (ring.vert === v) {
+          g.userData.locked = true;
+          const k = R / 1.9;
+          const SL = [[-0.75, -0.35], [0.75, -0.35], [0, 0.35], [-0.95, 0.85], [0.95, 0.85]][ring.n];
+          g.position.set(ring.z.position.x + SL[0] * k, 0, ring.z.position.z + SL[1] * k + (narrow ? 0.15 : 0));
+          g.scale.setScalar(narrow ? 0.62 : 0.8);
+          g.userData.label.visible = !narrow;
+          ring.n++;
+          placed++;
+          say(g, v ? `✔ ${esc(a.def || a.label)} има гръбначен стълб. Това е гръбначно животно.` : `✔ ${NO_BONES[a.id]} Това е безгръбначно животно.`, 'good', 1.1);
+          shell.msg('Вярно!', 'good');
+        } else {
+          mistakes++;
+          const n = (tries.get(a.id) || 0) + 1;
+          tries.set(a.id, n);
+          g.position.copy(start);
+          let why = v
+            ? 'Не е там. Погледни с рентгена: има ли това животно гръбнак вътре в тялото си?'
+            : 'Не е там. Погледни с рентгена: виждаш ли кости вътре в тялото? Твърдата черупка или обвивка отвън не е гръбнак.';
+          if (n >= 2) why += ' Подсказка: при гръбначните рентгенът показва дълга верига от кости по гърба — гръбначния стълб.';
+          say(g, '✘ Помисли пак.', 'bad', 1.1);
+          shell.msg(why, 'bad');
+        }
+        upd();
+        if (placed === XR_IDS.length) {
+          stopDrag(); stopDrag = null;
+          scores.push(stepScore(mistakes, 3));
+          shell.msg('Браво! Рибите, земноводните, влечугите, птиците и бозайниците са гръбначни. Насекомите, паяците, охлювите и червеите са безгръбначни.', 'good');
+          const c = shell.setControls('<div class="row"><button class="btn animalgroups-xray">🩻 Рентген</button><button class="btn primary nx">Напред →</button></div>');
+          c.querySelector('.animalgroups-xray').addEventListener('click', (e) => { setX(!xr); e.currentTarget.classList.toggle('on', xr); });
+          c.querySelector('.animalgroups-xray').classList.toggle('on', xr);
+          c.querySelector('.nx').addEventListener('click', () => { setXrayLook(false); step3(); });
+        }
+      },
+    });
+  }
+
+  // ---------- 3. Подреди по групи ----------
+  const G_IDS = ['ladybug', 'carp', 'frog', 'lizard', 'stork', 'rabbit', 'dolphin', 'bat', 'turtle', 'penguin', 'salamander', 'spider'];
+  const TRAP = {
+    dolphin: { fish: 'Делфинът живее във вода и има перки, но прочети картата: как диша и с какво храни малкото си?' },
+    bat: { bird: 'Прилепът лети, но има ли пера? Какво покрива тялото му?' },
+    turtle: { amph: 'Костенурката обича водата, но гола и влажна ли е кожата ѝ?' },
+    salamander: { rept: 'Дъждовникът прилича на гущер, но има ли люспи? Каква е кожата му?' },
+    penguin: { fish: 'Пингвинът плува отлично, но какво покрива тялото му — люспи или пера?' },
+    spider: { insect: 'Преброй краката на паяка! Колко крака имат насекомите?' },
+  };
+  const HINT = 'Подсказка: пера — птици; суха кожа с люспи — влечуги; гола влажна кожа — земноводни; козина и мляко — бозайници; хриле и перки — риби; 6 крака — насекоми.';
+  function step3() {
+    shell.step(2);
+    clearTip(); clearSort();
+    sortWorld.visible = true;
+    const narrow = isNarrow();
+    if (narrow) { stage.stopFollow(); stage.flyTo([0, 13.5, SZ + 5.0], [0, 0, SZ - 0.8], 1); } else view([1, 6.2, SZ + 6.3], [1, 0, SZ + 0.1]);
+    const R = narrow ? 1.08 : 1.15;
+    const rings = GROUP_IDS.map((k, i) => {
+      const x = narrow ? (i % 2 ? 1.4 : -1.4) : -2.7 + (i % 3) * 2.7;
+      const z = narrow ? -4.6 + Math.floor(i / 2) * 2.4 : -2.6 + Math.floor(i / 3) * 2.6;
+      return { k, z: ringAt(GROUPS[k].color, R, x, z, 'r-' + k, GROUPS[k].name, narrow), n: 0 };
+    });
+    rings.push({ k: 'other', z: ringAt(GROUPS.other.color, 0.95, narrow ? 1.4 : 5.0, narrow ? 2.6 : -1.3, 'r-other', 'Не е от тези групи', narrow), n: 0 });
+    const PAD = narrow ? [-1.2, 2.6] : [0, 2.7];
+    const pad = new THREE.Mesh(new THREE.RingGeometry(0.62, 0.7, 32), new THREE.MeshBasicMaterial({ color: 0xf0d67a }));
+    pad.rotation.x = -Math.PI / 2;
+    pad.position.set(PAD[0], 0.03, PAD[1]);
+    sortWorld.add(pad);
+    const easy = G_IDS.filter((id) => !A[id].tricky).sort(() => Math.random() - 0.5);
+    const hard = G_IDS.filter((id) => A[id].tricky);
+    const order = easy.slice(0, 3).concat(easy.slice(3).concat(hard).sort(() => Math.random() - 0.5));
+    let idx = 0;
+    let mistakes = 0;
+    let cur = null;
+    let tries = 0;
+    shell.setControls('');
+    const upd = () => shell.score(`Животно ${Math.min(idx + 1, order.length)} от ${order.length} · грешки: ${mistakes}`);
+    const showCard = () => {
+      const a = A[order[idx]];
+      shell.task(`<p>Прочети картата на животното и го провлачи в кръга на неговата група. Ако не е от шестте групи, сложи го в сивия кръг.</p>
+        <div class="animalgroups-card"><b>${esc(a.icon)} ${esc(a.label)}</b><ul>${a.clue.map((c) => `<li>${esc(c)}</li>`).join('')}</ul></div>`);
+    };
+    const spawn = () => {
+      const a = A[order[idx]];
+      cur = makeToken(a, 1.0, 'g-');
+      cur.position.set(PAD[0], 0, PAD[1]);
+      tries = 0;
+      showCard();
+      upd();
+    };
+    clickHandler = (id, hit) => {
+      if (!hit || !hit.root.userData.a) return clearTip();
+      if (!hit.root.userData.locked) say(hit.root, esc(hit.root.userData.a.label), 'tag', 1.3);
+    };
+    stopDrag = stage.enableDrag({
+      planeY: 0,
+      onStart: () => { clearTip(); stage.stopFollow(); },
+      onDrop: (g, p, start) => {
+        const ring = rings.find((r) => Math.hypot(p.x - r.z.position.x, p.z - r.z.position.z) < r.z.userData.radius + 0.12);
+        if (!ring) { g.position.copy(start); return; }
+        const a = g.userData.a;
+        if (ring.k === a.group) {
+          g.userData.locked = true;
+          const rr = ring.z.userData.radius;
+          const SL = [[-0.45, 0.1], [0.45, 0.1], [-0.45, 0.6], [0.45, 0.6]][ring.n % 4];
+          g.position.set(ring.z.position.x + SL[0] * rr, 0, ring.z.position.z + SL[1] * rr);
+          g.scale.setScalar(0.55);
+          g.userData.label.visible = false;
+          ring.n++;
+          idx++;
+          say(g, `✔ ${esc(a.ok || `${a.label} — ${ONE[a.group]}. ${GROUPS[a.group].crit}`)}`, 'good wide', 0.9);
+          shell.msg('Вярно!', 'good');
+          if (idx < order.length) { setTimeout(spawn, 350); return; }
+          stopDrag(); stopDrag = null;
+          scores.push(stepScore(mistakes, 3));
+          upd();
+          shell.task('<p>Всички животни са в своите групи.</p>');
+          shell.msg('Браво! Важно е не къде живее или дали лети животното, а какво покрива тялото му, как диша и как храни малките си.', 'good');
+          const c = shell.setControls('<button class="btn primary">Напред →</button>');
+          c.querySelector('button').addEventListener('click', step4);
+          return;
+        }
+        mistakes++;
+        tries++;
+        g.position.copy(start);
+        let why = (TRAP[a.id] && TRAP[a.id][ring.k])
+          || (ring.k === 'other' ? 'Това животно е от една от шестте групи. Прочети пак картата.' : `Не е там. ${GROUPS[ring.k].crit} Прочети пак картата.`);
+        if (tries >= 2) why += ' ' + HINT;
+        say(g, '✘ Помисли пак.', 'bad', 1.1);
+        shell.msg(why, 'bad');
+        upd();
+      },
+    });
+    spawn();
+  }
+
+  // ---------- 4. Вода и суша ----------
+  const H_IDS = ['carp', 'jelly', 'lily', 'seaweed', 'rabbit', 'butterfly', 'oak', 'cactus'];
+  function step4() {
+    shell.step(3);
+    clearTip(); clearSort();
+    sortWorld.visible = true;
+    const narrow = isNarrow();
+    if (narrow) { stage.stopFollow(); stage.flyTo([0, 9.0, SZ + 5.4], [0, 0, SZ - 0.4], 1); } else view([0, 5.8, SZ + 6.6], [0, 0, SZ + 0.1]);
+    const W = narrow ? 2.45 : 4.6;
+    const Z0 = narrow ? -3.6 : -3.4;
+    const Z1 = narrow ? -0.2 : 0.2;
+    const gap = narrow ? 0.12 : 0.25;
+    const D = Z1 - Z0;
+    const zc = (Z0 + Z1) / 2;
+    // вода: басейн с ниски каменни стени
+    const pool = new THREE.Group();
+    pool.position.set(-gap - W / 2, 0, zc);
+    for (const [x, z, w, d] of [[0, -D / 2, W + 0.2, 0.2], [0, D / 2, W + 0.2, 0.2], [-W / 2, 0, 0.2, D], [W / 2, 0, 0.2, D]]) pool.add(at(box(w, 0.36, d, 0x9e9e9e), x, 0.18, z));
+    pool.add(at(box(W, 0.04, D, 0x2f6f9a), 0, 0.02, 0));
+    const surf = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshStandardMaterial({ color: 0x4aa6e0, transparent: true, opacity: 0.45, roughness: 0.1, depthWrite: false }));
+    surf.rotation.x = -Math.PI / 2;
+    surf.position.y = 0.3;
+    surf.userData.ringId = 'r-water';
+    pool.add(surf);
+    sortWorld.add(pool);
+    const land = new THREE.Mesh(new THREE.BoxGeometry(W, 0.06, D), mat(0x7cb342));
+    land.position.set(gap + W / 2, 0.03, zc);
+    land.userData.ringId = 'r-land';
+    sortWorld.add(land);
+    for (const [txt, x, c] of [['Вода', -gap - W / 2, '#1e88e5'], ['Суша', gap + W / 2, '#558b2f']]) {
+      const l = labelSprite(txt, { size: narrow ? 0.4 : 0.36, color: '#fff', bg: c, border: c });
+      l.position.set(x, 0.75, Z0 - 0.1);
+      sortWorld.add(l);
+    }
+    const spots = { water: [], land: [] };
+    for (const [home, sx] of [['water', -1], ['land', 1]]) {
+      for (const [fx, fz] of [[0.25, 0.3], [0.72, 0.3], [0.28, 0.75], [0.75, 0.72]]) spots[home].push([sx * (gap + W * (sx < 0 ? 1 - fx : fx)), Z0 + D * fz]);
+    }
+    const order = H_IDS.slice().sort(() => Math.random() - 0.5);
+    order.forEach((id, i) => {
+      const g = makeToken(A[id], 0.9, 'h-');
+      if (narrow) g.position.set(-2.1 + (i % 4) * 1.4, 0, 1.2 + Math.floor(i / 4) * 1.45);
+      else g.position.set(-4.2 + i * 1.2, 0, 1.9 + (i % 2) * 0.9);
+    });
+    let mistakes = 0;
+    let placed = 0;
+    const tries = new Map();
+    const used = { water: 0, land: 0 };
+    shell.task(`<p>Живи същества има навсякъде — и във водата, и на сушата.</p>
+      <p><b>Провлачи всяко растение и животно</b> там, където живее: във <b>водата</b> или на <b>сушата</b>.</p>`);
+    shell.setControls('');
+    const upd = () => shell.score(`Подредени: ${placed} от ${H_IDS.length} · грешки: ${mistakes}`);
+    upd();
+    clickHandler = (id, hit) => {
+      if (!hit || !hit.root.userData.a) return clearTip();
+      say(hit.root, esc(hit.root.userData.a.label), 'tag', 1.2);
+    };
+    // Подреденото „оживява“ в своята среда.
+    function liveIn(g, home) {
+      const a = g.userData.a;
+      const m = g.userData.model;
+      g.remove(g.userData.puck);
+      g.userData.label.visible = false;
+      const [sx, sz] = spots[home][used[home]++];
+      g.position.set(sx, 0, sz);
+      const base = home === 'water' ? (a.plant ? (a.id === 'lily' ? 0.22 : 0.0) : a.id === 'jelly' ? -0.1 : 0.08) : 0.05;
+      const ph = Math.random() * 6;
+      tokens.splice(tokens.indexOf(g), 1);
+      lives.push((dt, t) => {
+        if (m.userData.anim) m.userData.anim(t + ph, 1);
+        if (a.id === 'carp') { const u = t * 0.8 + ph; m.position.set(Math.cos(u) * 0.35, base, Math.sin(u) * 0.2); m.rotation.y = -u - Math.PI / 2; }
+        else if (a.id === 'jelly') m.position.y = base + Math.sin(t * 1.5 + ph) * 0.08;
+        else if (a.id === 'butterfly') { const u = t * 0.7 + ph; m.position.set(Math.sin(u) * 0.35, 0.5 + Math.sin(u * 3) * 0.15, Math.sin(2 * u) * 0.2); m.rotation.y = Math.cos(u) > 0 ? 0 : Math.PI; }
+        else if (a.id === 'rabbit') { const u = t * 0.6 + ph; m.position.set(Math.cos(u) * 0.3, base + Math.abs(Math.sin(t * 6)) * 0.05, Math.sin(u) * 0.18); m.rotation.y = -u - Math.PI / 2; }
+        else if (a.id === 'lily') m.position.y = base + Math.sin(t * 1.2 + ph) * 0.01;
+        else m.position.y = base;
+      });
+    }
+    stopDrag = stage.enableDrag({
+      planeY: 0,
+      onStart: () => { clearTip(); stage.stopFollow(); },
+      onDrop: (g, p, start) => {
+        const inZ = p.z > Z0 - 0.3 && p.z < Z1 + 0.3;
+        const zone = !inZ ? null : p.x < -0.05 && p.x > -gap - W - 0.3 ? 'water' : p.x > 0.05 && p.x < gap + W + 0.3 ? 'land' : null;
+        if (!zone) { g.position.copy(start); return; }
+        const a = g.userData.a;
+        if (zone === a.home) {
+          g.userData.locked = true;
+          placed++;
+          liveIn(g, zone);
+          say(g, `✔ ${esc(a.why)}`, 'good', 1.0);
+          shell.msg('Вярно!', 'good');
+        } else {
+          mistakes++;
+          const n = (tries.get(a.id) || 0) + 1;
+          tries.set(a.id, n);
+          g.position.copy(start);
+          let why = 'Помисли къде го срещаме в природата: в езера, реки и морета или в поля, гори и пустини?';
+          if (n >= 2) why += ' Подсказка: ' + a.why;
+          say(g, '✘ Помисли пак.', 'bad', 1.1);
+          shell.msg(why, 'bad');
+        }
+        upd();
+        if (placed === H_IDS.length) {
+          stopDrag(); stopDrag = null;
+          shell.msg('Браво! И във водата, и на сушата живеят много различни растения и животни. Това е видовото разнообразие.', 'good');
+          const c = shell.setControls('<button class="btn primary">Напред →</button>');
+          c.querySelector('button').addEventListener('click', () => { shell.msg(''); questions(); });
+        }
+      },
+    });
+
+    function questions() {
+      clearTip();
+      shell.task('<div class="animalgroups-qs"></div>');
+      shell.setControls('');
+      const qs = container.querySelector('.animalgroups-qs');
+      choiceQ(qs, {
+        part: 1,
+        q: '<b>Предскажи:</b> учени откриват ново животно. Тялото му е покрито с пера, има клюн и снася яйца. В коя група ще го сложат?',
+        opts: ['Птици', 'Влечуги', 'Бозайници'],
+        right: 0,
+        bad: 'Прочети пак признаците. Коя група има пера?',
+        ok: 'Вярно! Пера имат само птиците. Затова всяко животно с пера е птица — дори да не може да лети, като пингвина.',
+        then: (b2) => choiceQ(b2, {
+          part: 2,
+          q: 'Жабата е земноводно. Къде живеят земноводните?',
+          opts: ['И във водата, и на сушата — малките им се развиват във вода', 'Само в пустинята, далеч от вода', 'Само в солените морета'],
+          right: 0,
+          bad: 'Спомни си: къде снася яйцата си жабата и къде живее, когато порасне?',
+          ok: 'Вярно! Попови лъжички растат във водата, а възрастните жаби живеят и на сушата, близо до вода.',
+          then: finishAll,
+        }),
+      });
+    }
+    const updQ = (part) => shell.score(`Въпрос ${part} от 2 · грешки: ${mistakes}`);
+    function choiceQ(boxEl, { part, q, opts, right, bad, ok, then }) {
+      updQ(part);
+      const ord = opts.map((o, k) => k).sort(() => Math.random() - 0.5);
+      const wrap = document.createElement('div');
+      wrap.className = 'animalgroups-q';
+      wrap.innerHTML = `<p>${q}</p><div class="choices">${ord.map((k) => `<button class="choice" data-i="${k}">${esc(opts[k])}</button>`).join('')}</div><div class="animalgroups-next"></div>`;
+      boxEl.appendChild(wrap);
+      wrap.querySelectorAll('.choice').forEach((b) => b.addEventListener('click', () => {
+        if (b.disabled) return;
+        if (+b.dataset.i !== right) {
+          mistakes++;
+          updQ(part);
+          b.classList.add('wrong');
+          b.disabled = true;
+          shell.msg(bad, 'bad');
+          return;
+        }
+        b.classList.add('right');
+        wrap.querySelectorAll('.choice').forEach((x) => { x.disabled = true; });
+        shell.msg(ok, 'good');
+        const nb = document.createElement('div');
+        wrap.querySelector('.animalgroups-next').appendChild(nb);
+        if (then === finishAll) { then(); return; }
+        const go = document.createElement('button');
+        go.className = 'btn primary';
+        go.textContent = 'Напред →';
+        shell.setControls('').appendChild(go);
+        go.addEventListener('click', () => { shell.setControls(''); shell.msg(''); wrap.querySelectorAll('.choice:not(.right)').forEach((x) => x.remove()); then(nb); });
+      }));
+      wrap.scrollIntoView({ block: 'nearest' });
+    }
+    function finishAll() {
+      scores.push(stepScore(mistakes, 3));
+      const btn = shell.setControls('<button class="btn primary">Виж резултата</button>').querySelector('button');
+      btn.addEventListener('click', () => {
+        clearTip();
+        const ratio = scores.reduce((s, x) => s + x, 0) / scores.length;
+        shell.finish(ratio, onComplete, restart);
+      });
+    }
+  }
+
+  function restart() {
+    scores.length = 0;
+    clearSort();
+    step1();
+  }
+
+  step1();
+  return {
+    dispose() {
+      if (stopDrag) stopDrag();
+      stage.dispose();
+      style.remove();
+    },
+  };
+}
