@@ -106,6 +106,7 @@
   [hidden] { display: none !important; }
   footer { border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--muted); font-size: 14px; }
   footer a { color: var(--accent); }
+  footer .ck { border: 0; background: none; padding: 0; font: inherit; color: var(--accent); text-decoration: underline; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -155,7 +156,7 @@
         full: 'Игри, симулации и учебни приложения, които работят направо в браузъра — без инсталация и без регистрация. Избери проект и започни.',
         short: 'Тук има игри и уроци. Избери си едно и го отвори. Не трябва да сваляш нищо.'
       },
-      footer: 'd4 · проекти на <a href="https://github.com/dansum/web-apps">dansum/web-apps</a> в GitHub'
+      footer: 'd4 · проекти на <a href="https://github.com/dansum/web-apps">dansum/web-apps</a> в GitHub · <button type="button" class="ck" onclick="d4Consent.reset()">Бисквитки</button>'
     },
     en: {
       langLabel: 'Language', lenLabel: 'Text', full: 'Full', short: 'Short',
@@ -165,7 +166,7 @@
         full: 'Games, simulations and learning apps that run right in the browser — nothing to install, no sign-up. Pick a project and get started.',
         short: 'Here are games and lessons. Pick one and open it. You don’t need to download anything.'
       },
-      footer: 'd4 · projects from <a href="https://github.com/dansum/web-apps">dansum/web-apps</a> on GitHub'
+      footer: 'd4 · projects from <a href="https://github.com/dansum/web-apps">dansum/web-apps</a> on GitHub · <button type="button" class="ck" onclick="d4Consent.reset()">Cookies</button>'
     },
     de: {
       langLabel: 'Sprache', lenLabel: 'Text', full: 'Lang', short: 'Kurz',
@@ -175,7 +176,7 @@
         full: 'Spiele, Simulationen und Lern-Apps, die direkt im Browser laufen — ohne Installation und ohne Anmeldung. Wähle ein Projekt und leg los.',
         short: 'Hier gibt es Spiele und Lernsachen. Such dir eins aus und öffne es. Du musst nichts herunterladen.'
       },
-      footer: 'd4 · Projekte aus <a href="https://github.com/dansum/web-apps">dansum/web-apps</a> auf GitHub'
+      footer: 'd4 · Projekte aus <a href="https://github.com/dansum/web-apps">dansum/web-apps</a> auf GitHub · <button type="button" class="ck" onclick="d4Consent.reset()">Cookies</button>'
     }
   };
 
@@ -407,5 +408,6 @@
   render();
 })();
 </script>
+<script src="consent.js" defer></script>
 </body>
 </html>
