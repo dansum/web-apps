@@ -110,6 +110,7 @@ const I18N = {
     cat_f_sweet: 'Сладкиши', catd_f_sweet: 'бонбони, понички, мъфини, торти',
     cat_f_main: 'Ястия', catd_f_main: 'яйца, сирене, хляб, сандвичи, пица, печено',
     cat_f_dish: 'Съдове', catd_f_dish: 'чаши, бутилки, чинии, чайник, ваза',
+    cat_f_piles: 'Купчини', catd_f_piles: 'пирамиди от домати и плодове, кули от суши и палачинки, къща от бисквити',
     cat_s_small: 'Дреболии', catd_s_small: 'кабарчета, кламери, гуми, острилки, листчета',
     cat_s_write: 'За писане', catd_s_write: 'пастели, моливи, химикалки, маркери',
     cat_s_tools: 'Пособия', catd_s_tools: 'линийки, ножици, калкулатори, телбоди',
@@ -184,6 +185,7 @@ const I18N = {
     cat_f_sweet: 'Sweets', catd_f_sweet: 'candy, donuts, cupcakes, cakes',
     cat_f_main: 'Dishes', catd_f_main: 'eggs, cheese, bread, sandwiches, pizza, roast',
     cat_f_dish: 'Tableware', catd_f_dish: 'cups, bottles, plates, teapot, vase',
+    cat_f_piles: 'Piles', catd_f_piles: 'tomato and fruit pyramids, sushi and pancake towers, a biscuit house',
     cat_s_small: 'Bits and bobs', catd_s_small: 'pins, clips, erasers, sharpeners, sticky notes',
     cat_s_write: 'Writing', catd_s_write: 'crayons, pencils, pens, markers',
     cat_s_tools: 'Tools', catd_s_tools: 'rulers, scissors, calculators, staplers',
@@ -610,6 +612,7 @@ const INDOOR = {
     { id: 'f_sweet', ic: '🧁', types: ['candy', 'cookie', 'donut', 'cupcake', 'cake', 'weddingcake'], max: 90, small: true },
     { id: 'f_main', ic: '🥪', types: ['egg', 'cheese', 'bread', 'sandwich', 'pizza', 'roast'], max: 60 },
     { id: 'f_dish', ic: '🍽️', types: ['cup', 'bottle', 'plate', 'fruitbowl', 'teapot', 'vase'], max: 42 },
+    { id: 'f_piles', ic: '🍅', types: ['pancakeStack', 'sushiTower', 'tomatoPyr', 'fruitPyr', 'biscuitHouse'], max: 9 },
   ] },
   school: { bg: '#e7e2d8', margin: '#5b3a1f', cats: [
     { id: 's_small', ic: '📎', types: ['pin', 'clip', 'eraser', 'sharpener', 'gluestick', 'notes'], max: 120, small: true },
@@ -661,6 +664,7 @@ function paintIndoor(kind, P, L, E, blocks) {
   g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 0.8 * P.ppu; g.strokeRect(P.X(-L), P.X(-L), 2 * L * P.ppu, 2 * L * P.ppu);
 }
 
+const rOf = (tp) => (T[tp] ? T[tp].r : PREFABS[tp].r);
 // Подредени светове: предметите се нареждат в редици, групирани по вид (като на витрина / в склад).
 const ORDERED = {
   food: { gap: (r) => 0.15 + r * 0.2, typeGap: 0.5, rowGap: 0.35, catGap: 1.8 },
@@ -672,19 +676,19 @@ function planRows(L, cats, counts, o) {
   for (const c of cats) {
     const n = counts[c.id] || 0;
     if (!n) continue;
-    const weights = c.types.map((tp) => 1 / Math.sqrt(T[tp].r));
+    const weights = c.types.map((tp) => 1 / Math.sqrt(rOf(tp)));
     const wsum = weights.reduce((s, w) => s + w, 0);
     const pickType = () => { let r = R() * wsum; for (let i = 0; i < c.types.length; i++) { r -= weights[i]; if (r <= 0) return c.types[i]; } return c.types[0]; };
     const list = [];
     for (let i = 0; i < n; i++) list.push(pickType());
-    list.sort((a, b) => T[a].r - T[b].r || (a < b ? -1 : a > b ? 1 : 0)); // по размер, после по вид
+    list.sort((a, b) => rOf(a) - rOf(b) || (a < b ? -1 : a > b ? 1 : 0)); // по размер, после по вид
     if (blocks.length) z += o.catGap;
     const block = { z0: z, z1: z, rows: [] };
     let row = null, prev = null;
     const newRow = () => { if (row) z = row.z0 + row.h + o.rowGap; row = { z0: z, h: 0, x: -maxX, items: [] }; rows.push(row); block.rows.push(row); prev = null; };
     newRow();
     for (const tp of list) {
-      const r = T[tp].r, cell = 2 * r + o.gap(r);
+      const r = rOf(tp), cell = 2 * r + o.gap(r);
       let x = row.x + (prev && tp !== prev ? o.typeGap : 0);
       if (x + cell > maxX && row.items.length) { newRow(); x = row.x; }
       row.items.push({ tp, x: x + cell / 2 });
@@ -732,7 +736,8 @@ function layoutIndoor(kind, L, counts) {
     }
     if (kind === 'tech') for (let i = 1; i < blocks.length; i++) { const zc = (blocks[i - 1].z1 + blocks[i].z0) / 2; P.line(-L, zc, L, zc, 0.12, '#f8fafc', [1.2, 1.2]); }
     finishGround(cv, E, true);
-    for (const it of plan) spawn(it.tp, it.x, it.z, 0, { force: true });
+    for (const it of plan) { if (PREFABS[it.tp]) addStruct(it.tp, it.x, it.z, true); else spawn(it.tp, it.x, it.z, 0, { force: true }); }
+    if (structs.length) finishCubes();
     // започни в пътеката между първите две групи
     if (blocks.length > 1) world.start = { x: 0, z: (blocks[0].z1 + blocks[1].z0) / 2 };
     return;
@@ -1162,7 +1167,36 @@ const VC = {
   glass: '#1e3a5f', trunk: '#7c4a1e',
 };
 // Готови постройки: s = размер на кубчето (м), rigid = потъва като едно цяло.
+const pyramid = (n, colors) => { const out = []; for (let k = 0; k < n; k++) for (let i = 0; i < n - k; i++) for (let j = 0; j < n - k; j++) out.push([2 * i + k, k, 2 * j + k, pick(colors)]); return out; };
 const PREFABS = {
+  // ---- купчини от храна ----
+  tomatoPyr: { s: 0.55, shape: 'ball', pile: true, r: 1.9, b: () => pyramid(4 + Math.floor(R() * 2), ['#dc2626', '#ef4444', '#b91c1c']) },
+  fruitPyr: { s: 0.6, shape: 'ball', pile: true, r: 2.1, b: () => pyramid(4 + Math.floor(R() * 2), pick([['#f97316', '#fb923c'], ['#dc2626', '#65a30d', '#facc15'], ['#facc15', '#fde047'], ['#84cc16', '#65a30d']])) },
+  sushiTower: { s: 0.5, sy: 0.36, shape: 'disc', r: 1.0, b: () => {
+    const n = 2 + Math.floor(R() * 2), H = 7 + Math.floor(R() * 5), out = [], kinds = ['#fb923c', '#f8fafc', '#14532d', '#fde047', '#ef4444'];
+    for (let y = 0; y < H; y++) { const c = kinds[y % kinds.length]; for (let x = 0; x < n; x++) for (let z = 0; z < n; z++) out.push([x, y, z, c]); }
+    return out;
+  } },
+  biscuitHouse: { s: 0.55, sy: 0.2, shape: 'box', r: 2.0, b: () => {
+    const out = [], W = 5, H = 10;
+    for (let x = 0; x < W; x++) for (let z = 0; z < W; z++) for (let y = 0; y < H; y++) {
+      const edge = x === 0 || x === W - 1 || z === 0 || z === W - 1;
+      let c = edge ? (y % 2 ? '#e0b37a' : '#d6a15c') : '#c08a4b';
+      if (z === W - 1 && x === 2 && y < 5) c = '#5b3a1f';                             // врата от шоколад
+      else if ((z === W - 1 || z === 0) && (x === 1 || x === 3) && (y === 6 || y === 7)) c = '#fdf2f8'; // прозорци от глазура
+      out.push([x, y, z, c]);
+    }
+    for (let x = 0; x < W; x++) for (let z = 0; z < W; z++) out.push([x, H, z, '#f9a8d4']);
+    for (const y of [H + 1, H + 2]) for (let x = 1; x < 4; x++) for (let z = 1; z < 4; z++) out.push([x, y, z, y === H + 1 ? '#f472b6' : '#f9a8d4']);
+    out.push([2, H + 3, 2, '#dc2626']);
+    return out;
+  } },
+  pancakeStack: { s: 1.0, sy: 0.14, shape: 'disc', r: 0.6, b: () => {
+    const H = 10 + Math.floor(R() * 5), out = [];
+    for (let y = 0; y < H; y++) out.push([0, y, 0, y % 3 ? '#e0a458' : '#d4913f']);
+    out.push([0, H, 0, '#fde047']);
+    return out;
+  } },
   single: { s: 0.5, b: () => [[0, 0, 0, pick(VC.bright)]] },
   stack: { s: 0.5, b: () => { const n = 2 + Math.floor(R() * 2), a = pick(VC.bright), c = pick(VC.bright); return Array.from({ length: n }, (_, i) => [0, i, 0, i % 2 ? c : a]); } },
   bigcube: { s: 0.5, b: () => { const c = pick(VC.bright), out = []; for (let x = 0; x < 2; x++) for (let y = 0; y < 2; y++) for (let z = 0; z < 2; z++) out.push([x, y, z, c]); return out; } },
@@ -1241,18 +1275,30 @@ const PREFABS = {
   } },
 };
 
+// Парчетата могат да са кубчета (box), топки (ball) или дискове (disc); всяка форма е отделна инстанцирана мрежа.
+// Режими на опора: „колона“ (парчето стои върху парчето под него), „твърдо“ (потъва като едно цяло)
+// и „пирамида“ (топката лежи върху четирите под нея; без поне две опори се търкулва встрани).
+const pieceGeos = { box: cubeGeo, ball: new THREE.SphereGeometry(0.5, 14, 10), disc: new THREE.CylinderGeometry(0.5, 0.5, 1, 18) };
+let pieceMeshes = {}, rollers = [];
+const pieceX = (c) => (c.loose ? c.x : c.st.ox + (c.st.pile ? c.ix / 2 + 0.5 : c.ix + 0.5) * c.st.s);
+const pieceZ = (c) => (c.loose ? c.z : c.st.oz + (c.st.pile ? c.iz / 2 + 0.5 : c.iz + 0.5) * c.st.s);
+const restY = (st, iy) => st.base + iy * st.sy;
+function markPieces() { for (const k in pieceMeshes) pieceMeshes[k].instanceMatrix.needsUpdate = true; }
+
 function addStruct(type, cx, cz, force) {
   const pf = PREFABS[type];
   const cells = pf.b();
+  const pile = !!pf.pile, s = pf.s, shape = pf.shape || 'box';
+  const sy = pf.sy || (pile ? s * 0.707 : s);
   let W = 0, D = 0;
-  for (const c of cells) { W = Math.max(W, c[0] + 1); D = Math.max(D, c[2] + 1); }
-  const s = pf.s, r = Math.hypot(W, D) * s / 2;
+  for (const c of cells) { W = Math.max(W, pile ? c[0] / 2 + 1 : c[0] + 1); D = Math.max(D, pile ? c[2] / 2 + 1 : c[2] + 1); }
+  const r = Math.hypot(W, D) * s / 2;
   if (!force && !free(cx, cz, r)) return null;
   occ.push({ x: cx, z: cz, r });
-  const st = { type, s, rigid: !!pf.rigid, ox: cx - W * s / 2, oz: cz - D * s / 2, cx, cz, r, grid: new Map(), cubes: [], drops: [], fall: null, dirty: false, left: cells.length, pts: 0 };
-  const v = Math.pow(s * s * s, 0.72) * 1.1;
+  const st = { type, s, sy, shape, pile, base: shape === 'ball' ? s / 2 : sy / 2, rigid: !!pf.rigid, ox: cx - W * s / 2, oz: cz - D * s / 2, cx, cz, r, grid: new Map(), cubes: [], drops: [], fall: null, dirty: false, left: cells.length, pts: 0 };
+  const v = Math.pow(s * s * sy, 0.72) * 1.1;
   for (const [x, y, z, col] of cells) {
-    const c = { id: cubes.length, st, ix: x, iy: y, iz: z, y: (y + 0.5) * s, state: 'rest', vy: 0, v, color: col };
+    const c = { id: cubes.length, st, ix: x, iy: y, iz: z, y: restY(st, y), state: 'rest', vy: 0, v, color: col };
     st.grid.set(ckey(x, y, z), c);
     st.cubes.push(c); cubes.push(c);
     world.total += v;
@@ -1262,31 +1308,38 @@ function addStruct(type, cx, cz, force) {
 }
 
 function finishCubes() {
-  cubeMesh = new THREE.InstancedMesh(cubeGeo, cubeMat, Math.max(1, cubes.length));
-  cubeMesh.castShadow = true; cubeMesh.receiveShadow = true; cubeMesh.frustumCulled = false;
+  const counts = {};
+  for (const c of cubes) { const sh = c.st.shape; c.ii = counts[sh] || 0; counts[sh] = c.ii + 1; }
+  cubeMesh = new THREE.Group();
+  pieceMeshes = {};
+  for (const sh in counts) {
+    const m = new THREE.InstancedMesh(pieceGeos[sh], cubeMat, counts[sh]);
+    m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false;
+    pieceMeshes[sh] = m; cubeMesh.add(m);
+  }
   const jr = mulberry32(cubes.length + 17);
   for (const c of cubes) {
-    _cc.set(c.color).multiplyScalar(0.92 + jr() * 0.16); // лека разлика между кубчетата
-    cubeMesh.setColorAt(c.id, _cc);
+    _cc.set(c.color).multiplyScalar(0.92 + jr() * 0.16); // лека разлика между парчетата
+    pieceMeshes[c.st.shape].setColorAt(c.ii, _cc);
     setCubeMatrix(c);
   }
-  cubeMesh.instanceMatrix.needsUpdate = true;
-  if (cubeMesh.instanceColor) cubeMesh.instanceColor.needsUpdate = true;
+  for (const k in pieceMeshes) { pieceMeshes[k].instanceMatrix.needsUpdate = true; if (pieceMeshes[k].instanceColor) pieceMeshes[k].instanceColor.needsUpdate = true; }
   scene.add(cubeMesh);
 }
 function setCubeMatrix(c) {
-  const st = c.st, s = st.s;
-  if (c.state === 'dead') { _cm.makeScale(0, 0, 0); cubeMesh.setMatrixAt(c.id, _cm); return; }
-  if (c.state === 'hole') { _cpp.set(c.x, c.y, c.z); _cqq.copy(c.q); }
-  else { _cpp.set(st.ox + (c.ix + 0.5) * s, c.y - (st.fall ? st.fall.y : 0), st.oz + (c.iz + 0.5) * s); _cqq.identity(); }
-  _css.set(s * 0.985, s * 0.985, s * 0.985);
+  const st = c.st, s = st.s, mesh = pieceMeshes[st.shape];
+  if (c.state === 'dead') { _cm.makeScale(0, 0, 0); mesh.setMatrixAt(c.ii, _cm); return; }
+  if (c.state === 'hole' || c.loose) { _cpp.set(c.x, c.y, c.z); if (c.q) _cqq.copy(c.q); else _cqq.identity(); }
+  else { _cpp.set(pieceX(c), c.y - (st.fall ? st.fall.y : 0), pieceZ(c)); _cqq.identity(); }
+  const k = st.shape === 'box' ? 0.985 : 0.97;
+  if (st.shape === 'ball') _css.set(s * k, s * k, s * k); else _css.set(s * k, st.sy * k, s * k);
   _cm.compose(_cpp, _cqq, _css);
-  cubeMesh.setMatrixAt(c.id, _cm);
+  mesh.setMatrixAt(c.ii, _cm);
 }
 
 function settle(st) {
   st.dirty = false;
-  const rest = st.cubes.filter((c) => c.state === 'rest');
+  const rest = st.cubes.filter((c) => c.state === 'rest' && !c.loose);
   if (!rest.length) return;
   if (st.rigid) {
     let min = Infinity;
@@ -1296,18 +1349,36 @@ function settle(st) {
   }
   rest.sort((a, b) => a.iy - b.iy);
   for (const c of rest) {
-    if (c.iy > 0 && !st.grid.has(ckey(c.ix, c.iy - 1, c.iz))) {
+    if (c.iy === 0) continue;
+    if (st.pile) {
+      // топка в пирамида: опира се на четирите под нея; с по-малко от две се търкулва към празната страна
+      let n = 0, mx = 0, mz = 0;
+      for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+        if (st.grid.has(ckey(c.ix + dx, c.iy - 1, c.iz + dz))) n++; else { mx += dx; mz += dz; }
+      }
+      if (n < 2) startRoll(c, mx, mz);
+    } else if (!st.grid.has(ckey(c.ix, c.iy - 1, c.iz))) {
       st.grid.delete(ckey(c.ix, c.iy, c.iz));
       c.state = 'drop'; c.vy = 0;
       st.drops.push(c);
     }
   }
 }
+function startRoll(c, mx, mz) {
+  const st = c.st;
+  st.grid.delete(ckey(c.ix, c.iy, c.iz));
+  c.x = pieceX(c); c.z = pieceZ(c); c.loose = true;
+  const l = Math.hypot(mx, mz) || 1, sp = 0.6 + Math.random() * 0.8;
+  const a = Math.random() * Math.PI * 2;
+  c.vx = (mx / l) * sp + (mx || mz ? 0 : Math.cos(a) * sp); c.vz = (mz / l) * sp + (mx || mz ? 0 : Math.sin(a) * sp);
+  c.vy = 0; c.state = 'roll'; c.q = c.q || new THREE.Quaternion();
+  rollers.push(c);
+}
 
 // Земно ускорение (9,81 м/с²), леко засилено, за да не изглежда забавено от разстояние.
 const CUBE_G = 9.81 * 1.5;
 const _dq = new THREE.Quaternion(), _wv = new THREE.Vector3();
-// Връща дупката, в която кубче с център (x, z) и размер s би паднало, или null.
+// Връща дупката, в която парче с център (x, z) и размер s би паднало, или null.
 function holeUnder(x, z, s) {
   for (const h of holes) {
     if (!h.alive || s > h.R * 0.95) continue;
@@ -1318,20 +1389,18 @@ function holeUnder(x, z, s) {
 }
 function startCubeHole(c, h, keepV) {
   const st = c.st, s = st.s;
-  st.grid.delete(ckey(c.ix, c.iy, c.iz));
-  c.x = st.ox + (c.ix + 0.5) * s; c.z = st.oz + (c.iz + 0.5) * s;
-  c.y -= st.fall ? st.fall.y : 0;
+  if (!c.loose) { st.grid.delete(ckey(c.ix, c.iy, c.iz)); c.x = pieceX(c); c.z = pieceZ(c); c.y -= st.fall ? st.fall.y : 0; }
+  c.loose = true;
   c.state = 'hole'; c.h = h;
   if (!keepV) c.vy = 0;
-  c.q = new THREE.Quaternion();
-  // Колкото по-близо до ръба е кубчето, толкова повече се накланя навътре и се плъзга встрани.
+  c.q = c.q || new THREE.Quaternion();
+  // Колкото по-близо до ръба е парчето, толкова повече се накланя навътре и се плъзга встрани.
   let nx = c.x - h.x, nz = c.z - h.z;
   const d = Math.hypot(nx, nz) || 1e-6; nx /= d; nz /= d;
   const edge = clamp((d - (h.R - s * 0.8)) / (s * 0.8), 0, 1);
   const push = edge * (0.8 + Math.random() * 0.8) + Math.random() * 0.25;
-  c.vx = -nx * push + (Math.random() - 0.5) * 0.3;
-  c.vz = -nz * push + (Math.random() - 0.5) * 0.3;
-  // ъглова скорост: около оста по ръба (горната част пада към центъра) + малко случайност
+  c.vx = (c.vx || 0) * 0.5 - nx * push + (Math.random() - 0.5) * 0.3;
+  c.vz = (c.vz || 0) * 0.5 - nz * push + (Math.random() - 0.5) * 0.3;
   const tip = edge * (3 + Math.random() * 3);
   c.w = new THREE.Vector3(-nz * tip + (Math.random() - 0.5) * 1.2, (Math.random() - 0.5) * 0.8, nx * tip + (Math.random() - 0.5) * 1.2);
   holeCubes.push(c);
@@ -1364,56 +1433,52 @@ function updateCubes(dt) {
     if (st.fall) {
       const f = st.fall, s = st.s;
       f.vy += CUBE_G * dt; f.y += f.vy * dt;
-      // кубчетата, стигнали нивото на земята: над дупката продължават в нея със същата скорост,
-      // иначе цялата постройка стъпва на земята
       let landK = null;
       for (const c of st.cubes) {
-        if (c.state !== 'rest' || c.y - f.y > s * 0.5) continue;
-        const h = holeUnder(st.ox + (c.ix + 0.5) * s, st.oz + (c.iz + 0.5) * s, s);
+        if (c.state !== 'rest' || c.y - f.y > st.base + 1e-4) continue;
+        const h = holeUnder(pieceX(c), pieceZ(c), s);
         if (h) { c.vy = -f.vy; startCubeHole(c, h, true); changed = true; }
         else landK = landK === null ? c.iy : Math.min(landK, c.iy);
       }
       if (landK !== null || !st.cubes.some((c) => c.state === 'rest')) {
         st.fall = null;
         st.grid.clear();
-        for (const c of st.cubes) if (c.state === 'rest') { c.iy -= landK || 0; c.y = (c.iy + 0.5) * s; st.grid.set(ckey(c.ix, c.iy, c.iz), c); }
+        for (const c of st.cubes) if (c.state === 'rest') { c.iy -= landK || 0; c.y = restY(st, c.iy); st.grid.set(ckey(c.ix, c.iy, c.iz), c); }
         st.dirty = true;
       }
       for (const c of st.cubes) if (c.state === 'rest') setCubeMatrix(c);
       changed = true;
       if (st.fall) continue;
     }
-    // гълтане: кубчета на земята над дупка
+    // гълтане: парчета на земята над дупка
     for (const h of holes) {
       if (!h.alive || st.s > h.R * 0.95) continue;
-      const dx = st.cx - h.x, dz = st.cz - h.z, lim = h.R + st.r;
+      const dx = st.cx - h.x, dz = st.cz - h.z, lim = h.R + st.r + 3;
       if (dx > lim || dx < -lim || dz > lim || dz < -lim) continue;
-      // кубчето пада, щом центърът му е над дупката (на ръба се накланя)
       const rr = (h.R - st.s * 0.05) ** 2;
       for (const c of st.cubes) {
         if (c.state !== 'rest' || c.iy !== 0) continue;
-        const x = st.ox + (c.ix + 0.5) * st.s - h.x, z = st.oz + (c.iz + 0.5) * st.s - h.z;
+        const x = pieceX(c) - h.x, z = pieceZ(c) - h.z;
         if (x * x + z * z < rr) { startCubeHole(c, h); changed = true; }
       }
     }
     if (st.dirty) settle(st);
-    // падащи кубчета (по колони)
+    // падащи парчета (по колони)
     if (st.drops.length) {
       st.drops.sort((a, b) => a.y - b.y);
       const res = new Map(), s = st.s;
       for (const c of st.drops) {
         const col = c.ix * 256 + c.iz;
         let f = -1;
-        for (let iy = Math.ceil(c.y / s - 0.5) - 1; iy >= 0; iy--) if (st.grid.has(ckey(c.ix, iy, c.iz))) { f = iy; break; }
-        // ако колоната стъпва на земя над дупка, кубчетата падат заедно в нея, без да се спират едно на друго
-        const through = f === -1 && holeUnder(st.ox + (c.ix + 0.5) * s, st.oz + (c.iz + 0.5) * s, s);
+        for (let iy = Math.ceil((c.y - st.base) / st.sy - 1e-6) - 1; iy >= 0; iy--) if (st.grid.has(ckey(c.ix, iy, c.iz))) { f = iy; break; }
+        // ако колоната стъпва на земя над дупка, парчетата падат заедно в нея, без да се спират едно на друго
+        const through = f === -1 && holeUnder(pieceX(c), pieceZ(c), s);
         let land = 0;
         if (!through) { land = Math.max(f + 1, res.has(col) ? res.get(col) + 1 : 0); res.set(col, land); }
         c.vy -= CUBE_G * dt; c.y += c.vy * dt;
-        const ty = (land + 0.5) * s;
+        const ty = restY(st, land);
         if (c.y <= ty) {
-          // ако под колоната е дупка, кубчето продължава да пада направо в нея, без да спира
-          const hu = land === 0 ? holeUnder(st.ox + (c.ix + 0.5) * s, st.oz + (c.iz + 0.5) * s, s) : null;
+          const hu = land === 0 ? holeUnder(pieceX(c), pieceZ(c), s) : null;
           if (hu) { startCubeHole(c, hu, true); continue; }
           c.y = ty; c.iy = land; c.state = 'rest'; c.vy = 0; st.grid.set(ckey(c.ix, land, c.iz), c); st.dirty = true;
         }
@@ -1423,16 +1488,37 @@ function updateCubes(dt) {
       changed = true;
     }
   }
-  // кубчета, които падат в дупка
+  // търкалящи се топки (паднали от пирамида)
+  if (rollers.length) {
+    const Lw = world.L;
+    for (const c of rollers) {
+      const st = c.st, s = st.s, rad = s / 2;
+      c.vy -= CUBE_G * dt;
+      c.x = clamp(c.x + c.vx * dt, -Lw + rad, Lw - rad); c.z = clamp(c.z + c.vz * dt, -Lw + rad, Lw - rad); c.y += c.vy * dt;
+      const sp = Math.hypot(c.vx, c.vz);
+      if (sp > 1e-3) { _wv.set(c.vz, 0, -c.vx).divideScalar(sp); _dq.setFromAxisAngle(_wv, (sp / rad) * dt); c.q.premultiply(_dq); }
+      if (c.y <= st.base) {
+        const h = holeUnder(c.x, c.z, s);
+        if (h) { startCubeHole(c, h, true); continue; }
+        c.y = st.base;
+        c.vy = c.vy < -1.5 ? -c.vy * 0.25 : 0;              // малък отскок
+        const fr = Math.exp(-1.2 * dt); c.vx *= fr; c.vz *= fr; // триене при търкаляне
+        if (c.vy === 0 && sp < 0.06) { c.state = 'rest'; c.iy = 0; }
+      }
+      setCubeMatrix(c);
+    }
+    rollers = rollers.filter((c) => c.state === 'roll');
+    changed = true;
+  }
+  // парчета, които падат в дупка
   if (holeCubes.length) {
     for (const c of holeCubes) {
       const h = c.h, s = c.st.s;
       c.vy -= CUBE_G * dt;
       c.x += c.vx * dt; c.y += c.vy * dt; c.z += c.vz * dt;
-      // въртене според ъгловата скорост
       const wl = c.w.length();
       if (wl > 1e-4) { _wv.copy(c.w).divideScalar(wl); _dq.setFromAxisAngle(_wv, wl * dt); c.q.premultiply(_dq); }
-      // стените на шахтата: кубчето се удря, отскача слабо и се завърта
+      // стените на шахтата: парчето се удря, отскача слабо и се завърта
       if (c.y < s * 0.5) {
         const rx = c.x - h.x, rz = c.z - h.z, d = Math.hypot(rx, rz), lim = Math.max(0.02, h.R - s * 0.55);
         if (d > lim) {
@@ -1443,7 +1529,7 @@ function updateCubes(dt) {
             c.vx -= 1.3 * vr * nx; c.vz -= 1.3 * vr * nz;
             c.w.x += -nz * vr * 3 + (Math.random() - 0.5); c.w.z += nx * vr * 3 + (Math.random() - 0.5);
           }
-          c.vy *= 0.985; // леко триене в стената
+          c.vy *= 0.985;
         }
       }
       if (c.y < -(s + 4)) consumeCube(c); else setCubeMatrix(c);
@@ -1451,36 +1537,42 @@ function updateCubes(dt) {
     holeCubes = holeCubes.filter((c) => c.state === 'hole');
     changed = true;
   }
-  if (changed) cubeMesh.instanceMatrix.needsUpdate = true;
+  if (changed) markPieces();
 }
 
-// За запазване: изядените кубчета в дупката се зачитат веднага, потъващите постройки се довършват.
+// За запазване: падащите в дупка се зачитат веднага, потъващите постройки и търкалящите се топки се довършват.
 function cubesSnapshot() {
   for (const c of holeCubes) consumeCube(c);
   holeCubes = [];
+  for (const c of rollers) { c.state = 'rest'; c.iy = 0; c.y = c.st.base; c.vx = c.vz = c.vy = 0; }
+  rollers = [];
   for (const st of structs) {
     if (st.fall) {
-      let k = Math.floor(st.fall.y / st.s);
+      let k = Math.floor(st.fall.y / st.sy);
       for (const c of st.cubes) if (c.state === 'rest') k = Math.min(k, c.iy);
       st.fall = null;
-      for (const c of st.cubes) if (c.state === 'rest') { c.iy -= k; c.y = (c.iy + 0.5) * st.s; }
+      for (const c of st.cubes) if (c.state === 'rest') { c.iy -= k; c.y = restY(st, c.iy); }
     }
   }
-  return cubes.filter((c) => c.state === 'rest' || c.state === 'drop').map((c) => [c.id, c.state === 'rest' ? c.iy : Math.max(0, Math.round(c.y / c.st.s - 0.5))]);
+  const r2 = (v) => Math.round(v * 100) / 100;
+  return cubes.filter((c) => c.state === 'rest' || c.state === 'drop').map((c) =>
+    c.loose ? [c.id, 0, r2(c.x), r2(c.z)] : [c.id, c.state === 'rest' ? c.iy : Math.max(0, Math.round((c.y - c.st.base) / c.st.sy))]);
 }
 function cubesRestore(list) {
-  const alive = new Map(list);
+  const alive = new Map(list.map((a) => [a[0], a]));
   for (const c of cubes) {
-    if (!alive.has(c.id)) { c.state = 'dead'; c.st.left--; setCubeMatrix(c); continue; }
-    c.iy = alive.get(c.id); c.y = (c.iy + 0.5) * c.st.s; c.state = 'rest';
+    const a = alive.get(c.id);
+    if (!a) { c.state = 'dead'; c.st.left--; setCubeMatrix(c); continue; }
+    c.iy = a[1]; c.y = restY(c.st, c.iy); c.state = 'rest';
+    if (a.length > 2) { c.loose = true; c.x = a[2]; c.z = a[3]; c.iy = 0; c.y = c.st.base; }
   }
   for (const st of structs) {
     st.grid.clear(); st.drops = [];
-    for (const c of st.cubes) if (c.state === 'rest') st.grid.set(ckey(c.ix, c.iy, c.iz), c);
+    for (const c of st.cubes) if (c.state === 'rest' && !c.loose) st.grid.set(ckey(c.ix, c.iy, c.iz), c);
     st.dirty = true;
   }
   for (const c of cubes) setCubeMatrix(c);
-  cubeMesh.instanceMatrix.needsUpdate = true;
+  markPieces();
 }
 
 // Карта от кубчета
@@ -1552,7 +1644,27 @@ function makeHole(names, color, x, z, R0, bot) {
   holes.push(h);
   return h;
 }
-const targetR = (h) => Math.sqrt(h.R0 * h.R0 + GROW * h.mass);
+const targetR = (h) => Math.sqrt(h.R0 * h.R0 + GROW * (world && world.growMul || 1) * h.mass);
+
+// Гаранция, че всичко на картата може да се глътне: симулираме гълтане от най-малкото към най-голямото
+// (без подобрения, с малък запас) и ако някой предмет никога не влиза в дупката, увеличаваме растежа
+// точно толкова, колкото трябва.
+function computeGrowMul() {
+  const items = [];
+  for (const o of objs) if (!PENALTY[o.type]) items.push([o.r, o.v]);
+  for (const c of cubes) items.push([c.st.s, c.v]);
+  if (!items.length) return 1;
+  items.sort((a, b) => a[0] - b[0]);
+  const R0 = 0.8, SLACK = 0.88; // реално гълтане при r ≤ 0,95·R; тук искаме r ≤ 0,88·R
+  const ok = (m) => { let mass = 0; for (const [r, v] of items) { if (r > Math.sqrt(R0 * R0 + GROW * m * mass) * SLACK) return false; mass += v; } return true; };
+  if (ok(1)) return 1;
+  let hi = 2;
+  while (!ok(hi) && hi < 64) hi *= 2;
+  if (!ok(hi)) return 1; // няма достатъчно малки неща в началото — тук множител не помага
+  let lo = hi / 2;
+  for (let i = 0; i < 24; i++) { const mid = (lo + hi) / 2; if (ok(mid)) hi = mid; else lo = mid; }
+  return hi * 1.08;
+}
 
 // ================= състояние на играта =================
 let mode = 'menu';      // menu | level | battle
@@ -1567,8 +1679,8 @@ function clearWorld() {
   for (const h of holes) { scene.remove(h.grp); h.label.remove(); h.grp.traverse((m) => { if (m.material && m.material !== discMat) m.material.dispose(); }); }
   if (groundMesh) { scene.remove(groundMesh); groundMesh.geometry.dispose(); if (groundMat.map) groundMat.map.dispose(); groundMesh = null; }
   for (const m of decor) scene.remove(m);
-  if (cubeMesh) { scene.remove(cubeMesh); cubeMesh.dispose(); cubeMesh = null; }
-  objs = []; occ = []; holes = []; player = null; decor = []; cubes = []; structs = []; holeCubes = [];
+  if (cubeMesh) { scene.remove(cubeMesh); for (const k in pieceMeshes) pieceMeshes[k].dispose(); cubeMesh = null; pieceMeshes = {}; }
+  objs = []; occ = []; holes = []; player = null; decor = []; cubes = []; structs = []; holeCubes = []; rollers = [];
 }
 
 // Светът се строи детерминирано от настройката (cfg), за да може запазена игра да се възстанови.
@@ -1583,7 +1695,7 @@ function buildWorld(cfg) {
     theme = THEMES[(n - 1) % THEMES.length];
     const cycle = Math.floor((n - 1) / THEMES.length);
     rng = mulberry32(1000 + n * 7919);
-    if (theme === 'park') { world.L = 28 + cycle * 5; layoutPark(world.L); }
+    if (theme === 'park') { world.L = Math.round((28 + cycle * 5) * 1.2); layoutPark(world.L); } // паркът е с 20% по-голям
     else if (theme === 'farm') { world.L = 36 + cycle * 5; layoutFarm(world.L); }
     else if (INDOOR[theme]) {
       world.L = 26 + cycle * 4;
@@ -1599,6 +1711,7 @@ function buildWorld(cfg) {
     }
     else layoutCity(theme === 'city' ? 40 + cycle * 6 : 46 + cycle * 6, theme);
     rng = Math.random;
+    world.growMul = computeGrowMul();
     player = makeHole(PLAYER_NAMES, PLAYER_COLOR, world.start ? world.start.x : 0, world.start ? world.start.z : theme === 'park' ? 9 : 0, startR(), false);
   } else if (cfg.kind === 'single') {
     theme = 'single';
@@ -1607,12 +1720,14 @@ function buildWorld(cfg) {
     const wk = singleWorld(cfg);
     if (wk === 'cubes') layoutCubes(world.L, cfg.counts); else if (INDOOR[wk]) layoutIndoor(wk, world.L, cfg.counts); else layoutCustom(world.L, cfg.counts);
     rng = Math.random;
+    world.growMul = computeGrowMul();
     player = makeHole(PLAYER_NAMES, PLAYER_COLOR, world.start ? world.start.x : 0, world.start ? world.start.z : 0, startR(), false);
   } else {
     theme = 'battle';
     rng = mulberry32(cfg.seed);
     layoutCity(48, R() < 0.5 ? 'city' : 'downtown');
     rng = Math.random;
+    world.growMul = computeGrowMul();
     const L = world.L;
     const R0 = 0.9 + 0.04 * save.up.size;
     player = makeHole(PLAYER_NAMES, PLAYER_COLOR, 0, 0, R0, false);
@@ -2280,8 +2395,8 @@ if (/[?&]debug\b/.test(location.search)) {
     player: player && { x: player.x, z: player.z, R: player.R, eaten: player.eaten, alive: player.alive },
     holes: holes.map((h) => ({ name: holeName(h), x: h.x, z: h.z, R: h.R, alive: h.alive })),
     objs: objs.filter((o) => !o.dead && !o.fall).map((o) => ({ x: o.x, z: o.z, r: o.r, v: o.v, type: o.type }))
-      .concat(cubes.filter((c) => c.state === 'rest' && c.iy === 0).map((c) => ({ x: c.st.ox + (c.ix + 0.5) * c.st.s, z: c.st.oz + (c.iz + 0.5) * c.st.s, r: c.st.s, v: c.v * c.st.cubes.length / 4, type: 'cube:' + c.st.type }))),
-    cubesLeft: cubes.filter((c) => c.state !== 'dead').length, cubesTotal: cubes.length,
+      .concat(cubes.filter((c) => c.state === 'rest' && c.iy === 0).map((c) => ({ x: pieceX(c), z: pieceZ(c), r: c.st.s, v: c.v * c.st.cubes.length / 4, type: 'cube:' + c.st.type }))),
+    cubesLeft: cubes.filter((c) => c.state !== 'dead').length, cubesTotal: cubes.length, growMul: world.growMul, rolling: rollers.length, structs: structs.map((st) => ({ type: st.type, x: st.cx, z: st.cz, left: st.left, n: st.cubes.length })),
     moving: cubes.filter((c) => c.state === 'drop' || c.state === 'hole').map((c) => [c.id, c.state === 'hole' ? 1 : 0, +c.vy.toFixed(2), +c.y.toFixed(2)]),
     rigidFalls: structs.filter((st) => st.fall).map((st) => +st.fall.vy.toFixed(2)),
     holeCubes: holeCubes.slice(0, 40).map((c) => ({ x: +c.x.toFixed(2), y: +c.y.toFixed(2), z: +c.z.toFixed(2), vx: +c.vx.toFixed(2), vz: +c.vz.toFixed(2), w: +c.w.length().toFixed(2) })),
