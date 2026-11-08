@@ -405,9 +405,9 @@ function build(container, { onComplete }, restart) {
   const lv = { lamp: 0, fire: 0, panel: 0, smog: 0, night: 0, spin: 1.2 };
 
   // ---------- земя, хълмове, път ----------
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(32, 22), mat(0x8cc56a));
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(36, 30), mat(0x8cc56a));
   ground.rotation.x = -Math.PI / 2;
-  ground.position.z = -1;
+  ground.position.z = 1;
   scene.add(ground);
   for (const [x, z, r] of [[-6.8, -4.8, 2.3], [-12, -7, 2.4], [3, -8.5, 2.8], [12.5, -2, 2.2], [-3.5, -8, 2.2]]) {
     const hl = new THREE.Mesh(new THREE.SphereGeometry(r, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), mat(0x7cb85a, { flat: true }));
@@ -1136,8 +1136,9 @@ function build(container, { onComplete }, restart) {
     clickHandler = null;
     clearTip();
     let mistakes = 0; let wrongHere = 0;
-    const ZZ = 6.3; const ZR = 1.05;
-    const zx = [-3.2, 0, 3.2];
+    const nar = narrowUI();
+    const ZZ = 6.3; const ZR = nar ? 0.85 : 1.05;
+    const zx = nar ? [-2.3, 0, 2.3] : [-3.2, 0, 3.2];
     const sortG = new THREE.Group();
     scene.add(sortG);
     const zones = [zoneRing(0xef6c00, ZR), zoneRing(0x1565c0, ZR), zoneRing(0x2e7d32, ZR)];
@@ -1164,9 +1165,9 @@ function build(container, { onComplete }, restart) {
       return g;
     });
     const inZone = [0, 0, 0];
-    const slots = [[-0.4, -0.15], [0.4, 0.15]];
+    const slots = nar ? [[-0.3, -0.12], [0.3, 0.12]] : [[-0.4, -0.15], [0.4, 0.15]];
     let cur = 0;
-    const view3 = () => fitView([0, 0.4, 5.6], narrowUI() ? 4.4 : 4.8, 1.8, 0.85);
+    const view3 = () => fitView([0, 0.4, 5.7], nar ? 3.3 : 4.8, 1.8, 0.85);
     view3();
     const upd = () => shell.score(`Подредени: ${cur} от ${items.length} · грешки: ${mistakes}`);
     shell.task(`<p>Енергията ни трябва навсякъде: <b>у дома</b> (в бита), <b>в транспорта</b> и на <b>живите организми</b>.</p>

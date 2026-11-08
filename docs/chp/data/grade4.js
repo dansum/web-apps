@@ -521,8 +521,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "animallife",
           video: null,
           scene: {
             objects: [
