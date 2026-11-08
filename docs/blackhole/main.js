@@ -1695,7 +1695,7 @@ function buildWorld(cfg) {
     theme = THEMES[(n - 1) % THEMES.length];
     const cycle = Math.floor((n - 1) / THEMES.length);
     rng = mulberry32(1000 + n * 7919);
-    if (theme === 'park') { world.L = 28 + cycle * 5; layoutPark(world.L); }
+    if (theme === 'park') { world.L = Math.round((28 + cycle * 5) * 1.2); layoutPark(world.L); } // паркът е с 20% по-голям
     else if (theme === 'farm') { world.L = 36 + cycle * 5; layoutFarm(world.L); }
     else if (INDOOR[theme]) {
       world.L = 26 + cycle * 4;
