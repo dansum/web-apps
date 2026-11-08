@@ -1644,7 +1644,27 @@ function makeHole(names, color, x, z, R0, bot) {
   holes.push(h);
   return h;
 }
-const targetR = (h) => Math.sqrt(h.R0 * h.R0 + GROW * h.mass);
+const targetR = (h) => Math.sqrt(h.R0 * h.R0 + GROW * (world && world.growMul || 1) * h.mass);
+
+// Гаранция, че всичко на картата може да се глътне: симулираме гълтане от най-малкото към най-голямото
+// (без подобрения, с малък запас) и ако някой предмет никога не влиза в дупката, увеличаваме растежа
+// точно толкова, колкото трябва.
+function computeGrowMul() {
+  const items = [];
+  for (const o of objs) if (!PENALTY[o.type]) items.push([o.r, o.v]);
+  for (const c of cubes) items.push([c.st.s, c.v]);
+  if (!items.length) return 1;
+  items.sort((a, b) => a[0] - b[0]);
+  const R0 = 0.8, SLACK = 0.88; // реално гълтане при r ≤ 0,95·R; тук искаме r ≤ 0,88·R
+  const ok = (m) => { let mass = 0; for (const [r, v] of items) { if (r > Math.sqrt(R0 * R0 + GROW * m * mass) * SLACK) return false; mass += v; } return true; };
+  if (ok(1)) return 1;
+  let hi = 2;
+  while (!ok(hi) && hi < 64) hi *= 2;
+  if (!ok(hi)) return 1; // няма достатъчно малки неща в началото — тук множител не помага
+  let lo = hi / 2;
+  for (let i = 0; i < 24; i++) { const mid = (lo + hi) / 2; if (ok(mid)) hi = mid; else lo = mid; }
+  return hi * 1.08;
+}
 
 // ================= състояние на играта =================
 let mode = 'menu';      // menu | level | battle
@@ -1691,6 +1711,7 @@ function buildWorld(cfg) {
     }
     else layoutCity(theme === 'city' ? 40 + cycle * 6 : 46 + cycle * 6, theme);
     rng = Math.random;
+    world.growMul = computeGrowMul();
     player = makeHole(PLAYER_NAMES, PLAYER_COLOR, world.start ? world.start.x : 0, world.start ? world.start.z : theme === 'park' ? 9 : 0, startR(), false);
   } else if (cfg.kind === 'single') {
     theme = 'single';
@@ -1699,12 +1720,14 @@ function buildWorld(cfg) {
     const wk = singleWorld(cfg);
     if (wk === 'cubes') layoutCubes(world.L, cfg.counts); else if (INDOOR[wk]) layoutIndoor(wk, world.L, cfg.counts); else layoutCustom(world.L, cfg.counts);
     rng = Math.random;
+    world.growMul = computeGrowMul();
     player = makeHole(PLAYER_NAMES, PLAYER_COLOR, world.start ? world.start.x : 0, world.start ? world.start.z : 0, startR(), false);
   } else {
     theme = 'battle';
     rng = mulberry32(cfg.seed);
     layoutCity(48, R() < 0.5 ? 'city' : 'downtown');
     rng = Math.random;
+    world.growMul = computeGrowMul();
     const L = world.L;
     const R0 = 0.9 + 0.04 * save.up.size;
     player = makeHole(PLAYER_NAMES, PLAYER_COLOR, 0, 0, R0, false);
@@ -2373,7 +2396,7 @@ if (/[?&]debug\b/.test(location.search)) {
     holes: holes.map((h) => ({ name: holeName(h), x: h.x, z: h.z, R: h.R, alive: h.alive })),
     objs: objs.filter((o) => !o.dead && !o.fall).map((o) => ({ x: o.x, z: o.z, r: o.r, v: o.v, type: o.type }))
       .concat(cubes.filter((c) => c.state === 'rest' && c.iy === 0).map((c) => ({ x: pieceX(c), z: pieceZ(c), r: c.st.s, v: c.v * c.st.cubes.length / 4, type: 'cube:' + c.st.type }))),
-    cubesLeft: cubes.filter((c) => c.state !== 'dead').length, cubesTotal: cubes.length, rolling: rollers.length, structs: structs.map((st) => ({ type: st.type, x: st.cx, z: st.cz, left: st.left, n: st.cubes.length })),
+    cubesLeft: cubes.filter((c) => c.state !== 'dead').length, cubesTotal: cubes.length, growMul: world.growMul, rolling: rollers.length, structs: structs.map((st) => ({ type: st.type, x: st.cx, z: st.cz, left: st.left, n: st.cubes.length })),
     moving: cubes.filter((c) => c.state === 'drop' || c.state === 'hole').map((c) => [c.id, c.state === 'hole' ? 1 : 0, +c.vy.toFixed(2), +c.y.toFixed(2)]),
     rigidFalls: structs.filter((st) => st.fall).map((st) => +st.fall.vy.toFixed(2)),
     holeCubes: holeCubes.slice(0, 40).map((c) => ({ x: +c.x.toFixed(2), y: +c.y.toFixed(2), z: +c.z.toFixed(2), vx: +c.vx.toFixed(2), vz: +c.vz.toFixed(2), w: +c.w.length().toFixed(2) })),
