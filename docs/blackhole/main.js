@@ -988,7 +988,7 @@ function settle(st) {
   if (st.rigid) {
     let min = Infinity;
     for (const c of rest) min = Math.min(min, c.iy);
-    if (min > 0 && !st.fall) st.fall = { k: min, d: min * st.s, y: 0, vy: 0 };
+    if (min > 0 && !st.fall) st.fall = { y: 0, vy: 0 };
     return;
   }
   rest.sort((a, b) => a.iy - b.iy);
@@ -1059,12 +1059,21 @@ function updateCubes(dt) {
     if (st.left <= 0) continue;
     // твърда постройка потъва като едно цяло
     if (st.fall) {
-      const f = st.fall;
+      const f = st.fall, s = st.s;
       f.vy += CUBE_G * dt; f.y += f.vy * dt;
-      if (f.y >= f.d) {
+      // кубчетата, стигнали нивото на земята: над дупката продължават в нея със същата скорост,
+      // иначе цялата постройка стъпва на земята
+      let landK = null;
+      for (const c of st.cubes) {
+        if (c.state !== 'rest' || c.y - f.y > s * 0.5) continue;
+        const h = holeUnder(st.ox + (c.ix + 0.5) * s, st.oz + (c.iz + 0.5) * s, s);
+        if (h) { c.vy = -f.vy; startCubeHole(c, h, true); changed = true; }
+        else landK = landK === null ? c.iy : Math.min(landK, c.iy);
+      }
+      if (landK !== null || !st.cubes.some((c) => c.state === 'rest')) {
         st.fall = null;
         st.grid.clear();
-        for (const c of st.cubes) if (c.state === 'rest') { c.iy -= f.k; c.y = (c.iy + 0.5) * st.s; st.grid.set(ckey(c.ix, c.iy, c.iz), c); }
+        for (const c of st.cubes) if (c.state === 'rest') { c.iy -= landK || 0; c.y = (c.iy + 0.5) * s; st.grid.set(ckey(c.ix, c.iy, c.iz), c); }
         st.dirty = true;
       }
       for (const c of st.cubes) if (c.state === 'rest') setCubeMatrix(c);
@@ -1093,8 +1102,10 @@ function updateCubes(dt) {
         const col = c.ix * 256 + c.iz;
         let f = -1;
         for (let iy = Math.ceil(c.y / s - 0.5) - 1; iy >= 0; iy--) if (st.grid.has(ckey(c.ix, iy, c.iz))) { f = iy; break; }
-        const land = Math.max(f + 1, res.has(col) ? res.get(col) + 1 : 0);
-        res.set(col, land);
+        // ако колоната стъпва на земя над дупка, кубчетата падат заедно в нея, без да се спират едно на друго
+        const through = f === -1 && holeUnder(st.ox + (c.ix + 0.5) * s, st.oz + (c.iz + 0.5) * s, s);
+        let land = 0;
+        if (!through) { land = Math.max(f + 1, res.has(col) ? res.get(col) + 1 : 0); res.set(col, land); }
         c.vy -= CUBE_G * dt; c.y += c.vy * dt;
         const ty = (land + 0.5) * s;
         if (c.y <= ty) {
@@ -1145,7 +1156,12 @@ function cubesSnapshot() {
   for (const c of holeCubes) consumeCube(c);
   holeCubes = [];
   for (const st of structs) {
-    if (st.fall) { const k = st.fall.k; st.fall = null; for (const c of st.cubes) if (c.state === 'rest') { c.iy -= k; c.y = (c.iy + 0.5) * st.s; } }
+    if (st.fall) {
+      let k = Math.floor(st.fall.y / st.s);
+      for (const c of st.cubes) if (c.state === 'rest') k = Math.min(k, c.iy);
+      st.fall = null;
+      for (const c of st.cubes) if (c.state === 'rest') { c.iy -= k; c.y = (c.iy + 0.5) * st.s; }
+    }
   }
   return cubes.filter((c) => c.state === 'rest' || c.state === 'drop').map((c) => [c.id, c.state === 'rest' ? c.iy : Math.max(0, Math.round(c.y / c.st.s - 0.5))]);
 }
@@ -1949,6 +1965,8 @@ if (/[?&]debug\b/.test(location.search)) {
     objs: objs.filter((o) => !o.dead && !o.fall).map((o) => ({ x: o.x, z: o.z, r: o.r, v: o.v, type: o.type }))
       .concat(cubes.filter((c) => c.state === 'rest' && c.iy === 0).map((c) => ({ x: c.st.ox + (c.ix + 0.5) * c.st.s, z: c.st.oz + (c.iz + 0.5) * c.st.s, r: c.st.s, v: c.v * c.st.cubes.length / 4, type: 'cube:' + c.st.type }))),
     cubesLeft: cubes.filter((c) => c.state !== 'dead').length, cubesTotal: cubes.length,
+    moving: cubes.filter((c) => c.state === 'drop' || c.state === 'hole').map((c) => [c.id, c.state === 'hole' ? 1 : 0, +c.vy.toFixed(2), +c.y.toFixed(2)]),
+    rigidFalls: structs.filter((st) => st.fall).map((st) => +st.fall.vy.toFixed(2)),
     holeCubes: holeCubes.slice(0, 40).map((c) => ({ x: +c.x.toFixed(2), y: +c.y.toFixed(2), z: +c.z.toFixed(2), vx: +c.vx.toFixed(2), vz: +c.vz.toFixed(2), w: +c.w.length().toFixed(2) })),
     calls: renderer.info.render.calls,
   });
