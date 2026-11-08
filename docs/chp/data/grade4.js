@@ -15,7 +15,8 @@ export default {
       article: {
         id: "4-1-a",
         title: "Пътят на една капка вода",
-        quality: "low",
+        quality: "high",
+        experience: "stories4",
         scene: {
           objects: [
             { id: "sea", label: "Море", shape: "plane", color: "#3a86c8", pos: [-3, 0, 1], scale: 2, note: "Слънцето нагрява водата в морето и тя се изпарява." },
@@ -217,7 +218,8 @@ export default {
       article: {
         id: "4-2-a",
         title: "Земята, Слънцето и Луната",
-        quality: "low",
+        quality: "high",
+        experience: "stories4",
         scene: {
           objects: [
             { id: "sun", label: "Слънце", shape: "sphere", color: "#ffcc33", pos: [-2, 0.8, 0], scale: 1.6, note: "Слънцето е звезда. То само излъчва светлина и топлина." },
@@ -310,8 +312,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "light",
           video: null,
           scene: {
             objects: [
@@ -344,8 +346,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "forces",
           video: null,
           scene: {
             objects: [
@@ -378,8 +380,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "energy",
           video: null,
           scene: {
             objects: [
@@ -451,7 +453,8 @@ export default {
       article: {
         id: "4-3-a",
         title: "Как растението прави храна",
-        quality: "low",
+        quality: "high",
+        experience: "stories4",
         scene: {
           objects: [
             { id: "sun", label: "Слънце", shape: "sphere", color: "#ffcc33", pos: [-3, 2.8, -1], scale: 0.8, note: "Слънчевата светлина дава енергия на растението." },
@@ -485,8 +488,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "plants",
           video: null,
           scene: {
             objects: [
@@ -521,8 +524,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "animallife",
           video: null,
           scene: {
             objects: [
@@ -556,8 +559,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "animalgroups",
           video: null,
           scene: {
             objects: [
@@ -593,8 +596,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "ecosystems",
           video: null,
           scene: {
             objects: [
@@ -628,8 +631,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "organs4",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -665,8 +669,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "foodhealth",
+          review: true,
           video: null,
           scene: {
             objects: [
