@@ -510,6 +510,7 @@ function build(container, { onComplete }, restart) {
       const s = new THREE.Mesh(c.geometry, m);
       s.position.copy(c.position); s.scale.copy(c.scale); s.rotation.copy(c.rotation);
       s.raycast = () => {};
+      s.frustumCulled = false; // матрицата е проективна — обичайната проверка не важи
       g.add(s);
     }
     g.visible = false;
@@ -521,6 +522,9 @@ function build(container, { onComplete }, restart) {
   const nScr = new V3(0, 0, 1); const nTab = new V3(0, 1, 0);
   const L4 = new THREE.Vector4();
   const Smat = new THREE.Matrix4();
+  // Отсичането по ръбовете на екрана в шейдъра работи с координати преди делението на w,
+  // затова мащабираме матрицата така, че w ≈ 1 в средата на мечето (проекцията не се променя).
+  const normW = (m) => { const e = m.elements; const w = e[3] * 0 + e[7] * 0.4 + e[15]; if (Math.abs(w) > 1e-6) m.multiplyScalar(1 / w); };
 
   // ---------- лампа ----------
   const lamp = new THREE.Group();
@@ -576,12 +580,14 @@ function build(container, { onComplete }, restart) {
     if (scrShadow.visible) {
       shadowMatrix(Smat, nScr, -(SCR_Z + 0.015), L4);
       scrShadow.matrix.multiplyMatrices(Smat, toy.matrixWorld);
+      normW(scrShadow.matrix);
       scrShadow.matrixWorldNeedsUpdate = true;
     }
     tabShadow.visible = lampOn && tableShadowOn && headW.y > 0.95;
     if (tabShadow.visible) {
       shadowMatrix(Smat, nTab, -0.006, L4);
       tabShadow.matrix.multiplyMatrices(Smat, toy.matrixWorld);
+      normW(tabShadow.matrix);
       tabShadow.matrixWorldNeedsUpdate = true;
     }
   });
@@ -604,11 +610,11 @@ function build(container, { onComplete }, restart) {
     torch: () => fitView([-4.6, 0.6, RZ], 1.3, 0.8, 0.45, -0.5),
     cards: () => fitView([-1.7, 0.7, RZ], 2.2, 0.9, 0.45, -0.5),
     screens: () => fitView([0.8, 0.7, RZ], 1.5, 0.9, 0.35, -0.75),
-    rigB: () => fitView([BX, 0.75, -0.05], 1.9, 1.15, 0.4, 0),
+    rigB: () => fitView([BX, 0.5, 0.35], 2.0, 1.55, 0.78, 0),
     toy: () => fitView([BX, 0.5, -0.4], 1.2, 0.8, 0.35, 0),
     lamp: () => fitView([BX, 0.7, 0.1], 1.9, 1.2, 0.5, 0.35),
     sun: () => fitView([WIN.x - 0.3, 1.7, 0.2], 1.5, 2.1, 0.25, -0.25),
-    table: () => fitView([BX, 0.6, -0.5], 1.8, 1.4, 0.75, 0),
+    table: () => fitView([BX, 0.7, -0.4], 2.0, 1.5, 0.6, 1.0),
   };
   let tip = null;
   function say(anchor, html, cls = '', lift = 0.5) {
@@ -885,7 +891,7 @@ function build(container, { onComplete }, restart) {
           if (!R.cond()) return;
           checking = null;
           enable(false);
-          say(new V3(shadowCenterX(), 1.3, SCR_Z), R.done, 'wide good', 0.3);
+          say(new V3(BX - 1.2, 0.2, 0.6), R.done, 'wide good', 0.2);
           shell.msg('Предсказа правилно и го провери!', 'good');
           ri++;
           setTimeout(() => { if (!alive) return; if (ri < ROUNDS.length) round(); else predict(); }, 1400);
