@@ -671,6 +671,7 @@ export default {
           assumption: null,
           quality: "high",
           experience: "foodhealth",
+          review: true,
           video: null,
           scene: {
             objects: [
