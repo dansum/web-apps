@@ -931,7 +931,7 @@ function build(container, { onComplete }, restart) {
       if (!o.isMesh || o.userData.keep || o.userData.isHitBox) return;
       if (on) {
         if (o.userData.op0 === undefined) { o.userData.op0 = o.material.opacity; o.userData.tr0 = o.material.transparent; }
-        o.material.transparent = true; o.material.opacity = 0.3; o.material.depthWrite = false; o.material.needsUpdate = true;
+        o.material.transparent = true; o.material.opacity = 0.45; o.material.depthWrite = false; o.material.needsUpdate = true;
       } else if (o.userData.op0 !== undefined) {
         o.material.transparent = o.userData.tr0; o.material.opacity = o.userData.op0; o.material.depthWrite = true; o.material.needsUpdate = true;
       }
@@ -1054,11 +1054,13 @@ function build(container, { onComplete }, restart) {
 
   // ---------- сортиране (стъпки 2 и 3) ----------
   const TOKB = { fish: () => fishModel(0xff8f00), tadpole: tadpoleModel, frog: frogModel, duck: duckModel, horse: horseModel, cat: () => catModel(), hen: henModel, butterfly: butterflyModel };
-  const RING_X = 2.4; const RING_Z = 6.7;
+  const RING_Z = 6.7;
   function sortTask(cfg, done) {
     const objs = [];
+    const nar = narrowUI();
+    const RING_X = nar ? 1.75 : 2.4;
     const rings = cfg.bins.map((name, i) => {
-      const z = zoneRing(cfg.colors[i], 1.35);
+      const z = zoneRing(cfg.colors[i], nar ? 1.15 : 1.35);
       z.position.set(i ? RING_X : -RING_X, 0.03, RING_Z);
       const l = labelSprite(name, { size: 0.36, color: '#fff', bg: cfg.css[i], border: cfg.css[i] });
       l.position.set(0, 0.45, 1.55);
@@ -1080,15 +1082,16 @@ function build(container, { onComplete }, restart) {
       m.rotation.y = -0.5;
       const l = labelSprite(AN[it.id].label.split(' ')[0] === 'Попова' ? 'Попова лъжичка' : AN[it.id].label.split(' ')[0], { size: 0.24 });
       l.position.y = 1.0;
-      holder.add(l);
-      stage.steadyLabel(l, 10);
       holder.position.set(slotsXZ[k][0], 0, slotsXZ[k][1]);
       holder.userData = { pickId: 't-' + it.id, dragId: 't-' + it.id, it };
-      addHitBox(holder, 0.9);
+      addHitBox(holder, 0.8); // без етикета, за да не закрива задния ред
+      l.raycast = () => {};
+      holder.add(l);
+      stage.steadyLabel(l, 10);
       scene.add(holder); objs.push(holder);
       return holder;
     });
-    fitView([0, 0.3, 5.6], 4.3, 3.0, 0.85);
+    fitView([0, 0.3, 5.6], nar ? 3.0 : 4.3, 3.0, 0.85);
     let mistakes = 0; let placed = 0; let wrongRow = 0;
     const upd = () => shell.score(`Подредени: ${placed} от ${items.length} · грешки: ${mistakes}`);
     upd();
@@ -1301,7 +1304,7 @@ function build(container, { onComplete }, restart) {
   // котка
   const mom = catModel();
   mom.userData.legs.forEach((l) => { l.visible = false; });
-  mom.position.y = -0.11;
+  mom.position.y = -0.24;
   mom.scale.setScalar(1.8);
   const kits = [[0x555555, 0xbbbbbb], [0xffffff, 0xffffff], [0xf0a040, 0xffe2b8]].map(([col, bel]) => catModel(col, bel));
   parts.cat.add(mom, ...kits);
@@ -1348,7 +1351,7 @@ function build(container, { onComplete }, restart) {
         kt.scale.setScalar(s);
         const bx = -0.25 + i * 0.22;
         if (k < 0.7) {
-          kt.position.set(bx, -0.03, 0.33);
+          kt.position.set(bx, -0.05, 0.36);
           kt.rotation.y = Math.PI / 2;
           kt.userData.head.rotation.z = k >= 0.45 ? Math.sin(t * 6 + i) * 0.12 - 0.15 : -0.3;
         } else {
