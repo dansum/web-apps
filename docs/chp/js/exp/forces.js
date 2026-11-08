@@ -7,7 +7,7 @@ import { createShell, stepScore } from './shell.js';
 const CSS = `
 .forces-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 6px 0; }
 .forces-acts .btn { padding: 8px 6px; font-size: 0.9rem; }
-.forces-acts .btn.tried { border-color: #2e7d32; }
+.forces-acts .btn.forces-tried { border-color: #2e7d32; }
 .forces-q { margin-top: 10px; }
 .forces-q > p { margin: 4px 0 6px; }
 .forces-legend { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 0.8rem; margin: 4px 0; }
@@ -805,15 +805,16 @@ export function mount(container, { onComplete }) {
   });
 
   // ---------- камера, балончета ----------
-  function view(pos, tgt, dur = 1) {
+  function view(pos, tgt, dur = 1, wide = false) {
     const w = shell.stageEl.clientWidth || 600;
     const h = shell.stageEl.clientHeight || 400;
-    const k = Math.min(2.4, Math.max(1, 1.6 / (w / h)));
+    // На тесен екран камерата се отдръпва, за да се вижда цялата сцена (по-малко за близките изгледи).
+    const k = Math.min(2.4, Math.max(1, (wide ? 1.6 : 1.25) / (w / h)));
     const p = pos.map((v, i) => tgt[i] + (v - tgt[i]) * k);
     stage.stopFollow();
     stage.flyTo(p, tgt, dur);
   }
-  const overview = () => view([1, 11, 15], [1, 0.5, 0]);
+  const overview = () => view([1, 11, 15], [1, 0.5, 0], 1, true);
   const CAMS = {
     cart: [[-4.7, 4.8, 7.6], [-4.7, 0.3, 2.6]],
     kid: [[-5.6, 3.0, 7.0], [-6.6, 0.8, 2.6]],
@@ -822,7 +823,7 @@ export function mount(container, { onComplete }) {
     clay: [[5.0, 2.4, 6.0], [5.0, 1.0, 2.6]],
     spring: [[5.0, 2.4, 6.0], [5.0, 1.0, 2.6]],
   };
-  const camTo = (id) => view(...CAMS[id]);
+  const camTo = (id) => view(...CAMS[id], 1, id === 'slide');
   let tip = null;
   function say(anchor, html, cls = '', lift = 1) {
     if (tip) tip.remove();
@@ -947,10 +948,10 @@ export function mount(container, { onComplete }) {
     const setTask = () => shell.task(`<p><b>🛒 Мускулна сила.</b> Детето може да бута и да дърпа количката. Синята стрелка показва накъде действа силата.</p>
       <p>${GOALS[goal]}</p><p class="small">Цел ${goal} от 3</p>`);
     const ctrl = shell.setControls(`<div class="forces-acts">
-      <button class="btn act" data-a="fwd">➡ Бутни напред</button>
-      <button class="btn act" data-a="back">⬅ Дръпни назад</button>
-      <button class="btn act" data-a="side">⬇ Бутни към пейката</button></div>`);
-    const btns = [...ctrl.querySelectorAll('.act')];
+      <button class="btn forces-act" data-a="fwd">➡ Бутни напред</button>
+      <button class="btn forces-act" data-a="back">⬅ Дръпни назад</button>
+      <button class="btn forces-act" data-a="side">⬇ Бутни към пейката</button></div>`);
+    const btns = [...ctrl.querySelectorAll('.forces-act')];
     const enable = (on) => btns.forEach((b) => { b.disabled = !on; });
     const setupGoal = () => {
       clearTrail();
@@ -1033,7 +1034,7 @@ export function mount(container, { onComplete }) {
         throwBall(0, 0, {
           onDone: () => {
             say(ball, '✔ Топката падна надолу. Червената стрелка показва земното притегляне — то дърпа топката към земята.', 'good wide', 0.6);
-            const b = shell.setControls('<button class="btn act throw">🤾 Хвърли топката встрани</button>').querySelector('button');
+            const b = shell.setControls('<button class="btn forces-throw">🤾 Хвърли топката встрани</button>').querySelector('button');
             b.addEventListener('click', () => {
               b.disabled = true;
               clearTip(); clearTrail(); ballHome();
@@ -1067,8 +1068,8 @@ export function mount(container, { onComplete }) {
     const tried = new Set();
     shell.task(`<p><b>🛝 Триене.</b> Пусни <b>една и съща кутия</b> по всяка от четирите настилки. Тя тръгва от едно и също място.</p>
       <p>Оранжевата стрелка показва триенето — то забавя кутията. Сравни докъде стига тя.</p><div class="forces-qs"></div>`);
-    const ctrl = shell.setControls(`<div class="forces-acts">${LANES.map((L, i) => `<button class="btn act lane" data-l="${i}">${L.icon} ${L.name}</button>`).join('')}</div>`);
-    const btns = [...ctrl.querySelectorAll('.lane')];
+    const ctrl = shell.setControls(`<div class="forces-acts">${LANES.map((L, i) => `<button class="btn forces-lane" data-l="${i}">${L.icon} ${L.name}</button>`).join('')}</div>`);
+    const btns = [...ctrl.querySelectorAll('.forces-lane')];
     say(sbox, 'Избери настилка.', 'tag', 0.6);
     btns.forEach((b) => b.addEventListener('click', () => {
       if (acts.size) return;
@@ -1079,7 +1080,7 @@ export function mount(container, { onComplete }) {
       boxAtTop(i);
       later(() => slideBox(i, L.d, () => {
         tried.add(i);
-        b.classList.add('tried');
+        b.classList.add('forces-tried');
         if (!flags.children.find((f) => f.userData.lane === i)) addFlag(i, L.d, `${L.name}: ${nice(L.d)} м`).userData.lane = i;
         say(sbox, `По ${L.name === 'лед' ? 'леда' : L.name === 'дърво' ? 'дървото' : L.name === 'килим' ? 'килима' : 'пясъка'} кутията стигна ${nice(L.d)} м.`, 'tag', 0.6);
         btns.forEach((x) => { x.disabled = false; });
@@ -1112,9 +1113,9 @@ export function mount(container, { onComplete }) {
     const tried = new Set();
     shell.task(`<p><b>✊ Сила и форма.</b> Ръката ще стисне пластелина и пружината. Гледай какво става с тях, <b>докато</b> ръката ги натиска и <b>след като</b> ги пусне.</p><div class="forces-qs"></div>`);
     const ctrl = shell.setControls(`<div class="forces-acts">
-      <button class="btn act sq" data-k="clay">✊ Стисни пластелина</button>
-      <button class="btn act sq" data-k="spring">✊ Стисни пружината</button></div>`);
-    const btns = [...ctrl.querySelectorAll('.sq')];
+      <button class="btn forces-sq" data-k="clay">✊ Стисни пластелина</button>
+      <button class="btn forces-sq" data-k="spring">✊ Стисни пружината</button></div>`);
+    const btns = [...ctrl.querySelectorAll('.forces-sq')];
     btns.forEach((b) => b.addEventListener('click', () => {
       if (squeezing) return;
       const k = b.dataset.k;
@@ -1123,7 +1124,7 @@ export function mount(container, { onComplete }) {
       if (k === 'clay') { shape.clay = 1; applyShapes(); }
       squeeze(k, () => {
         tried.add(k);
-        b.classList.add('tried');
+        b.classList.add('forces-tried');
         say(k === 'clay' ? clay : springG, k === 'clay' ? 'Пластелинът след ръката' : 'Пружината след ръката', 'tag', k === 'clay' ? 0.5 : 0.9);
         btns.forEach((x) => { x.disabled = false; });
         if (tried.size === 2) { shell.setControls(''); askShape(); }
@@ -1166,13 +1167,13 @@ export function mount(container, { onComplete }) {
     sortWorld.visible = true;
     const narrow = (shell.stageEl.clientWidth || 600) / (shell.stageEl.clientHeight || 400) < 1.1;
     const SZ = sortWorld.position.z;
-    if (narrow) { stage.stopFollow(); stage.flyTo([0, 14, SZ + 4.6], [0, 0, SZ + 0.6], 1); } else view([0, 8.2, SZ + 9], [0, 0, SZ + 1.2]);
+    if (narrow) { stage.stopFollow(); stage.flyTo([0, 12.5, SZ + 3.8], [0, 0, SZ + 0.5], 1); } else view([0, 8.2, SZ + 9], [0, 0, SZ + 1.2]);
     const RR = narrow ? 1.1 : 1.5;
     const rings = FORCE_IDS.map((k, i) => {
       const z = zoneRing(FORCES[k].color, RR);
       if (narrow) z.position.set((i - 1) * 2.4, 0.02, -2.6);
       else z.position.set((i - 1) * 4.4, 0.02, -1.6);
-      const l = labelSprite(FORCES[k].name, { size: narrow ? 0.4 : 0.38, color: '#fff', bg: FORCES[k].css, border: FORCES[k].css });
+      const l = labelSprite(FORCES[k].name, { size: narrow ? 0.3 : 0.38, color: '#fff', bg: FORCES[k].css, border: FORCES[k].css });
       l.position.set(0, 0.3, -RR - 0.35);
       z.add(l);
       sortWorld.add(z);
