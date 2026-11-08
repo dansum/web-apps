@@ -41,6 +41,9 @@ const BOTS = [
   { names: { bg: 'Лора', en: 'Lora' }, color: '#3b82f6' },
 ];
 // Единично ниво: размер на картата → полуразмер, време и множител за броя неща
+// Сложност на битката: колко бързо растат противниците и колко монети носи
+const DIFFS = { easy: { grow: 0.55, coins: 0.6 }, normal: { grow: 1, coins: 1 }, hard: { grow: 1.4, coins: 1.6 } };
+const botGrow = () => (cfgCur && cfgCur.kind === 'battle' ? DIFFS[cfgCur.diff || 'normal'].grow : 1);
 const SIZES = { s: { L: 24, time: 120, k: 1 }, m: { L: 34, time: 180, k: 2 }, l: { L: 46, time: 300, k: 3.6 } };
 // Категории неща; max е за малка карта. small = достатъчно малки, за да се расте от тях.
 const CATS = [
@@ -72,6 +75,9 @@ const I18N = {
     soundOn: 'Звук: вкл.', soundOff: 'Звук: изкл.',
     install: '📲 Инсталирай на телефона',
     installHint: 'На Android: Chrome → меню ⋮ → „Добавяне към началния екран“. Без реклами, работи и офлайн.',
+    difficulty: 'Сложност', diff_easy: 'Лесна', diff_normal: 'Нормална', diff_hard: 'Трудна',
+    diffd_easy: 'противниците растат бавно', diffd_normal: 'противниците растат колкото теб', diffd_hard: 'противниците растат бързо',
+    diffNote: 'По-трудната битка носи повече монети.',
     mapSize: 'Размер на картата', sizeS: 'Малка', sizeM: 'Средна', sizeL: 'Голяма',
     whatToEat: 'Какво да има', random: '🎲 Случайно',
     needSmall: 'Добави малки неща (улични неща или растения), иначе дупката няма с какво да порасне.',
@@ -111,6 +117,9 @@ const I18N = {
     soundOn: 'Sound: on', soundOff: 'Sound: off',
     install: '📲 Install on your phone',
     installHint: 'On Android: Chrome → menu ⋮ → “Add to Home screen”. No ads, works offline.',
+    difficulty: 'Difficulty', diff_easy: 'Easy', diff_normal: 'Normal', diff_hard: 'Hard',
+    diffd_easy: 'opponents grow slowly', diffd_normal: 'opponents grow as fast as you', diffd_hard: 'opponents grow fast',
+    diffNote: 'Harder battles give more coins.',
     mapSize: 'Map size', sizeS: 'Small', sizeM: 'Medium', sizeL: 'Large',
     whatToEat: 'What goes on the map', random: '🎲 Random',
     needSmall: 'Add some small things (street items or plants), or the hole will have nothing to grow on.',
@@ -1037,7 +1046,7 @@ function update(dt) {
       if (a === b || !a.alive || !b.alive || b.safe > 0) continue;
       if (a.R > b.R * 1.12 && Math.hypot(a.x - b.x, a.z - b.z) < a.R - b.R * 0.4) {
         b.alive = false; b.respawn = 3;
-        a.mass += b.mass * 0.4 + 4;
+        a.mass += (b.mass * 0.4 + 4) * (a.bot ? botGrow() : 1);
         b.mass *= 0.5;
         sfx.eatHole(); buzz(60);
         if (b === player) banner(t('gotEaten', holeName(a)), t('backSoon'));
@@ -1123,7 +1132,7 @@ function consume(o, h) {
     return;
   }
   const before = Math.floor(targetR(h) * 10);
-  h.mass += o.v;
+  h.mass += o.v * (h.bot ? botGrow() : 1);
   h.eaten += o.v;
   const pts = Math.max(1, Math.round(o.v * 10));
   h.score += pts;
@@ -1305,7 +1314,7 @@ function applySnapshot(s) {
 }
 
 // ================= екрани и потоци =================
-const SCREENS = ['scrMenu', 'scrSingle', 'scrPause', 'scrLevelEnd', 'scrBattleEnd'];
+const SCREENS = ['scrMenu', 'scrSingle', 'scrBattle', 'scrPause', 'scrLevelEnd', 'scrBattleEnd'];
 function show(id) {
   for (const s of SCREENS) $(s).hidden = s !== id;
   $('hud').hidden = !(id === null || id === 'scrPause');
@@ -1313,7 +1322,7 @@ function show(id) {
 function cfgTitle(cfg) {
   if (cfg.kind === 'career') return t('level') + ' ' + cfg.level + ' · ' + t(THEMES[(cfg.level - 1) % THEMES.length]);
   if (cfg.kind === 'single') return t('single') + ' · ' + t('size' + cfg.size.toUpperCase());
-  return t('battle');
+  return t('battle') + ' · ' + t('diff_' + (cfg.diff || 'normal'));
 }
 function startGame(cfg, snap) {
   cfgCur = cfg;
@@ -1335,7 +1344,13 @@ function startGame(cfg, snap) {
   audio();
 }
 const startCareer = (n) => startGame({ kind: 'career', level: n });
-const startBattle = () => startGame({ kind: 'battle', seed: Math.floor(Math.random() * 1e9) });
+let battleDiff = store.get('dup.diff', 'normal');
+if (!DIFFS[battleDiff]) battleDiff = 'normal';
+const startBattle = () => startGame({ kind: 'battle', diff: battleDiff, seed: Math.floor(Math.random() * 1e9) });
+function openBattle() {
+  for (const b of $('diffs').querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.diff === battleDiff));
+  show('scrBattle');
+}
 function pause() {
   if (state !== 'play') return;
   state = 'pause'; input.active = false; input.x = input.z = 0; joy.style.display = 'none';
@@ -1369,7 +1384,7 @@ function endRound() {
   } else {
     const rank = [...holes].sort((a, b) => b.R - a.R);
     const place = rank.indexOf(player) + 1;
-    const coins = [80, 50, 35, 20, 10][place - 1] + Math.round(player.score / 40);
+    const coins = Math.round(([80, 50, 35, 20, 10][place - 1] + Math.round(Math.max(0, player.score) / 40)) * DIFFS[cfgCur.diff || 'normal'].coins);
     save.coins += coins; persist();
     $('beTitle').textContent = place === 1 ? t('winner') : t('place', place);
     $('beRank').innerHTML = rankHtml();
@@ -1482,7 +1497,13 @@ for (const b of document.querySelectorAll('[data-lang]')) b.addEventListener('cl
 $('btnContinue').addEventListener('click', () => { const sv = store.get('dup.save', null); if (sv) startGame(sv.cfg, sv); });
 $('btnCareer').addEventListener('click', () => startCareer(save.level));
 $('btnSingle').addEventListener('click', openSingle);
-$('btnBattle').addEventListener('click', startBattle);
+$('btnBattle').addEventListener('click', openBattle);
+$('diffs').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  battleDiff = b.dataset.diff; store.set('dup.diff', battleDiff); openBattle();
+});
+$('btnBattlePlay').addEventListener('click', startBattle);
+$('btnBattleBack').addEventListener('click', () => show('scrMenu'));
 $('btnPause').addEventListener('click', pause);
 $('btnResume').addEventListener('click', resume);
 $('btnQuit').addEventListener('click', toMenu);
