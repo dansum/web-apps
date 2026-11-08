@@ -6,7 +6,7 @@ import { tr, EN } from './i18n.js';
 
 export const COLUMNS = [
   ['name', 'ученик', 'student'], ['year', 'година', 'year'], ['month', 'месец', 'month'],
-  ['money', 'пари', 'money'], ['pop', 'жители', 'residents'], ['wb', 'добруване', 'well-being'],
+  ['money', 'пари', 'money'], ['pop', 'жители', 'residents'], ['wb', 'добруване', 'happiness'],
   ['home', 'дом', 'home'], ['work', 'работа', 'work'], ['edu', 'образование', 'education'],
   ['health', 'здраве', 'health'], ['nature', 'природа', 'nature'], ['transport', 'транспорт', 'transport'],
   ['culture', 'култура', 'culture'],
@@ -55,9 +55,11 @@ export function parseCSV(text, fallbackName) {
   const head = splitLine(lines[0], sep).map(h => h.toLowerCase());
   const pos = {};
   for (const [k, bg, en] of COLUMNS) pos[k] = head.indexOf(bg) >= 0 ? head.indexOf(bg) : head.indexOf(en);
+  // Отчетите от първата английска версия имат колона well-being вместо happiness.
+  if (pos.wb < 0) pos.wb = head.indexOf('well-being');
   if (pos.year < 0 || pos.month < 0 || pos.wb < 0) {
     return { rows: [], error: tr('Това не прилича на отчет от „Варна строи“ — липсват колоните „година“, „месец“ или „добруване“.',
-      'This does not look like a “Varna Builds” report — the “year”, “month” or “well-being” columns are missing.') };
+      'This does not look like a “Build Varna” report — the “year”, “month” or “happiness” columns are missing.') };
   }
   const num = (cells, k) => {
     if (pos[k] < 0) return null;

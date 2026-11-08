@@ -47,7 +47,7 @@ export function createJournal(getState, onToggle) {
       grid.append(
         lineChart({ title: tr('Пари в бюджета (€)', 'Money in the budget (€)'), series: [{ name: tr('Пари', 'Money'), values: col('money') }], xLabels: x }),
         lineChart({ title: tr('Жители', 'Residents'), series: [{ name: tr('Жители', 'Residents'), values: col('pop') }], xLabels: x, yMin: 0 }),
-        lineChart({ title: tr('Добруване (0–100)', 'Well-being (0–100)'), series: [{ name: tr('Добруване', 'Well-being'), values: col('wb') }], xLabels: x, yMin: 0, yMax: 100 }),
+        lineChart({ title: tr('Добруване (0–100)', 'Happiness (0–100)'), series: [{ name: tr('Добруване', 'Happiness'), values: col('wb') }], xLabels: x, yMin: 0, yMax: 100 }),
         lineChart({ title: tr('Приходи и разходи на месец (€)', 'Income and spending per month (€)'), xLabels: x, yMin: 0, series: [
           { name: tr('Приходи', 'Income'), values: col('income'), color: COLORS.s1 },
           { name: tr('Разходи', 'Spending'), values: col('upkeep'), color: COLORS.s2 },
@@ -86,7 +86,7 @@ export function createJournal(getState, onToggle) {
         <label class="field">Твоето име <input id="j-name" maxlength="40" autocomplete="off" placeholder="напр. Мария П." value="${esc(s.name)}" /></label>
         <p><button class="btn primary" id="j-dl">⬇️ Свали отчета (CSV)</button></p>
         <p class="meta">Изиграни месеци: <b>${s.hist.length}</b> · изпълнени задачи: <b>${s.mission} от ${MISSIONS.length}</b>. Файлът се отваря и в Excel.</p>`, `
-        <p>Download a report about your city and give it to your teacher. It has one row for each month you played: money, residents, Well-being, the seven factors and the tasks you completed.</p>
+        <p>Download a report about your city and give it to your teacher. It has one row for each month you played: money, residents, Happiness, the seven factors and the tasks you completed.</p>
         <label class="field">Your name <input id="j-name" maxlength="40" autocomplete="off" placeholder="e.g. Maria P." value="${esc(s.name)}" /></label>
         <p><button class="btn primary" id="j-dl">⬇️ Download the report (CSV)</button></p>
         <p class="meta">Months played: <b>${s.hist.length}</b> · tasks completed: <b>${s.mission} of ${MISSIONS.length}</b>. The file also opens in Excel.</p>`);
@@ -99,7 +99,7 @@ export function createJournal(getState, onToggle) {
         const blob = new Blob([toCSV(s.name, s.hist)], { type: 'text/csv;charset=utf-8' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `${EN ? 'varna-builds' : 'varna-stroi'}_${latin(s.name)}.csv`;
+        a.download = `${EN ? 'build-varna' : 'varna-stroi'}_${latin(s.name)}.csv`;
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(a.href), 1000);
       };

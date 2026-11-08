@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
 <script>try { var q = new URLSearchParams(location.search).get('lang'), v = q || localStorage.getItem('varna-lang'); if (v === 'en' || v === 'bg') document.documentElement.lang = v; } catch (e) {}</script>
 <title>Варна строи</title>
-<meta name="title-en" content="Varna Builds" />
+<meta name="title-en" content="Build Varna" />
 <meta name="description" content="Игра за строене на град, вдъхновена от Варна. За ученици от 5. клас: научи кои фактори са важни, за да живеят хората добре в един град." />
 <meta name="theme-color" content="#0b3c5d" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -19,11 +19,11 @@
 <canvas id="map" aria-label="Картата на града" data-en-aria-label="The city map"></canvas>
 
 <header id="topbar">
-  <div class="brand">⚓ <span lang="bg">Варна строи</span><span lang="en">Varna Builds</span></div>
+  <div class="brand">⚓ <span lang="bg">Варна строи</span><span lang="en">Build Varna</span></div>
   <div class="stat" id="st-money" title="Пари в бюджета на града" data-en-title="Money in the city budget"></div>
   <div class="stat" id="st-pop" title="Жители" data-en-title="Residents"></div>
   <div class="stat" id="st-date" title="Месец и година" data-en-title="Month and year"></div>
-  <button class="stat wb" id="st-wb" title="Добруване — средното от всички фактори" data-en-title="Well-being — the average of all the factors"></button>
+  <button class="stat wb" id="st-wb" title="Добруване — средното от всички фактори" data-en-title="Happiness — the average of all the factors"></button>
   <div class="speed" role="group" aria-label="Скорост" data-en-aria-label="Speed">
     <button data-speed="0" title="Пауза (интервал)" data-en-title="Pause (space bar)">⏸</button>
     <button data-speed="1" title="Нормално" data-en-title="Normal">▶</button>
@@ -88,10 +88,10 @@
         </ul>
       </div>
       <div lang="en">
-        <p><b>Varna Builds</b> is a game for students aged 11–12 (5th grade in Bulgaria). Students build a city on a map inspired by Varna and discover which factors matter for people to live well.</p>
+        <p><b>Build Varna</b> is a game for students aged 11–12 (5th grade in Bulgaria). Students build a city on a map inspired by Varna and discover which factors matter for people to live well.</p>
         <h3>What students learn</h3>
         <ul>
-          <li>To name the seven factors of well-being: home, work, education, health, nature, transport and culture.</li>
+          <li>To name the seven factors of happiness: home, work, education, health, nature, transport and culture.</li>
           <li>That the factors depend on each other. For example, a factory provides jobs but harms health and nature.</li>
           <li>That public services (schools, hospitals, parks) are paid for every month out of taxes.</li>
           <li>To recognise Varna’s landmarks and a few facts about the city’s history.</li>
@@ -125,10 +125,10 @@
           <tr><td>🏠 Home</td><td>Houses and blocks of flats</td><td>More jobs than homes</td></tr>
           <tr><td>💼 Work</td><td>Shops, offices, factories, the port, hotels</td><td>Lots of homes and few jobs</td></tr>
           <tr><td>📚 Education</td><td>A school nearby (for about 150 residents)</td><td>Homes far from a school, an overcrowded school</td></tr>
-          <tr><td>🩺 Health</td><td>A health centre nearby</td><td>Pollution from factories and the port</td></tr>
+          <tr><td>🩺 Health</td><td>A small hospital nearby</td><td>Pollution from factories and the port</td></tr>
           <tr><td>🌳 Nature</td><td>Parks, trees, being close to the sea</td><td>Factories next to homes, cut-down forests</td></tr>
           <tr><td>🚌 Transport</td><td>Bus stops, the Asparuhov Bridge</td><td>Homes far from a bus stop</td></tr>
-          <tr><td>🎭 Culture</td><td>A chitalishte (community centre) and Varna’s landmarks</td><td>No places for culture</td></tr>
+          <tr><td>🎭 Culture</td><td>A community center and Varna’s landmarks</td><td>No places for culture</td></tr>
         </tbody>
       </table>
       <div lang="bg">
@@ -137,7 +137,7 @@
         <p>Като натиснете фактор в панела вдясно, домовете на картата се оцветяват в зелено (добре) или червено (зле). С инструмента 🔍 <b>Разгледай</b> се вижда какво липсва на хората в избрана къща.</p>
       </div>
       <div lang="en">
-        <p><b>Well-being</b> is the average of the seven factors. The higher it is, the more people move to the city and the more taxes the city collects.</p>
+        <p><b>Happiness</b> is the average of the seven factors. The higher it is, the more people move to the city and the more taxes the city collects.</p>
         <p>A building with no road next to it does not work. A red “!” sign appears above it.</p>
         <p>When you tap a factor in the panel on the right, the homes on the map turn green (good) or red (poor). The 🔍 <b>Inspect</b> tool shows what the people in a chosen house are missing.</p>
       </div>
@@ -178,7 +178,7 @@
           <li>Homework: a photo or drawing of a place in the neighbourhood linked to one of the factors.</li>
           <li>Group work: each group is responsible for one factor and “defends” it in front of the class, like members of a city council.</li>
           <li>Links to history and geography: Varna’s landmarks, ancient Odessos, and the city and its economy.</li>
-          <li>In an English lesson: vocabulary for places in a city (school, health centre, bus stop, port, factory) and the language of needs (“We need a park because…”).</li>
+          <li>In an English lesson: vocabulary for places in a city (school, small hospital, bus stop, port, factory) and the language of needs (“We need a park because…”).</li>
         </ul>
       </div>
     </div>
@@ -221,7 +221,7 @@
           <tr><td><span lang="bg">Пристанище Варна е открито през 1906 г.</span><span lang="en">The Port of Varna opened in 1906.</span></td><td><a href="https://www.bgports.bg/en/?p=14990" target="_blank" rel="noopener">bgports.bg</a></td></tr>
           <tr><td><span lang="bg">Аспаруховият мост е открит през 1976 г. и е дълъг 2050 м.</span><span lang="en">The Asparuhov Bridge opened in 1976 and is 2,050 m long.</span></td><td><a href="https://en.wikipedia.org/wiki/Asparuhov_Bridge" target="_blank" rel="noopener">Wikipedia</a>, <a href="https://structurae.net/en/structures/asparuhov-bridge" target="_blank" rel="noopener">Structurae</a></td></tr>
           <tr><td><span lang="bg">Антон Новак управлява Морската градина от 1895 г. почти 40 години.</span><span lang="en">Anton Novak ran the Sea Garden from 1895 for almost 40 years.</span></td><td><a href="https://bg.wikipedia.org/wiki/%D0%90%D0%BD%D1%82%D0%BE%D0%BD_%D0%9D%D0%BE%D0%B2%D0%B0%D0%BA" target="_blank" rel="noopener">Wikipedia</a>, <a href="https://visit.varna.bg/bg/Sea_Garden.html" target="_blank" rel="noopener">visit.varna.bg</a></td></tr>
-          <tr><td><span lang="bg">Първите читалища са основани през 1856 г. в Свищов, Лом и Шумен.</span><span lang="en">The first chitalishta (community centres) were founded in 1856 in Svishtov, Lom and Shumen.</span></td><td><a href="https://tic.svishtov.bg/parvoto-chitalishte-v-bulgaria" target="_blank" rel="noopener"><span lang="bg">ТИЦ Свищов</span><span lang="en">Svishtov Tourist Information Centre</span></a></td></tr>
+          <tr><td><span lang="bg">Първите читалища са основани през 1856 г. в Свищов, Лом и Шумен.</span><span lang="en">The first community centers (chitalishta) were founded in 1856 in Svishtov, Lom and Shumen.</span></td><td><a href="https://tic.svishtov.bg/parvoto-chitalishte-v-bulgaria" target="_blank" rel="noopener"><span lang="bg">ТИЦ Свищов</span><span lang="en">Svishtov Tourist Information Centre</span></a></td></tr>
           <tr><td><span lang="bg">Арх. Дабко Дабков проектира около 350 сгради във Варна, сред тях хотел „Лондон“ (1906–1912).</span><span lang="en">The architect Dabko Dabkov designed about 350 buildings in Varna, including the London Hotel (1906–1912).</span></td><td><a href="https://www.su-varna.org/izdanij/Kultuta-13/pages_75_78.pdf" target="_blank" rel="noopener"><span lang="bg">СУ „Св. Климент Охридски“ – Варна</span><span lang="en">St Kliment Ohridski Secondary School, Varna</span></a></td></tr>
           <tr><td><span lang="bg">Големите химически заводи в региона са в Девня.</span><span lang="en">The region’s big chemical plants are in Devnya.</span></td><td><a href="https://www.capital.bg/specialni_izdaniia/kapital_gradove/2018/06/10/3189874_goliamata_industriia_na_malkata_devnia/" target="_blank" rel="noopener"><span lang="bg">Капитал</span><span lang="en">Capital (newspaper)</span></a></td></tr>
           <tr><td><span lang="bg">Един автобус замества около 30 коли.</span><span lang="en">One bus replaces about 30 cars.</span></td><td><a href="https://www.acea.auto/?p=10219" target="_blank" rel="noopener">ACEA</a></td></tr>
@@ -281,7 +281,7 @@
 </section>
 
 <aside id="mission"></aside>
-<aside id="factors" aria-label="Фактори за добруване" data-en-aria-label="Well-being factors"></aside>
+<aside id="factors" aria-label="Фактори за добруване" data-en-aria-label="Happiness factors"></aside>
 
 <nav id="toolbar">
   <div id="groups"></div>
