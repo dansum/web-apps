@@ -38,6 +38,8 @@
   .hud-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
   .pill { background: rgba(255,255,255,.88); border-radius: 999px; padding: 6px 14px; font-weight: 700;
     box-shadow: 0 2px 10px rgba(0,0,0,.12); white-space: nowrap; }
+  #lvlName { min-width: 0; flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; }
+  .hud-row > .timer, .hud-row > button { flex: none; }
   .timer { font-size: 22px; font-weight: 900; min-width: 76px; text-align: center; }
   .timer.low { color: #e11d48; }
   .hud button { pointer-events: auto; width: 42px; height: 42px; border-radius: 14px; border: 0;
@@ -130,6 +132,8 @@
   .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 6px 0 14px; }
   .seg button { border: 2px solid var(--line); background: #fff; border-radius: 12px; padding: 8px 4px; font: inherit; cursor: pointer; color: var(--ink); }
   .seg.diffs button span { display: block; line-height: 1.25; margin-top: 2px; }
+  .seg.seg2 { grid-template-columns: 1fr 1fr; }
+  .seg.seg2 button span { display: block; }
   .seg button b { display: block; font-size: 15px; }
   .seg button span { font-size: 12px; color: var(--muted); }
   .seg button[aria-pressed="true"] { border-color: var(--accent); background: #ede9fe; }
@@ -200,6 +204,11 @@
 <section class="screen" id="scrSingle" hidden>
   <div class="card">
     <h2 data-i18n="single"></h2>
+    <div class="sec" data-i18n="levelKind"></div>
+    <div class="seg seg2" id="kinds">
+      <button type="button" data-kind="objects"><b data-i18n="kindObjects"></b><span data-i18n="kindObjectsD"></span></button>
+      <button type="button" data-kind="cubes"><b data-i18n="kindCubes"></b><span data-i18n="kindCubesD"></span></button>
+    </div>
     <div class="sec" data-i18n="mapSize"></div>
     <div class="seg" id="sizes">
       <button type="button" data-size="s"><b data-i18n="sizeS"></b><span>2 min</span></button>
