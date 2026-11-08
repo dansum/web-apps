@@ -4,6 +4,7 @@ import { ask } from './quiz.js';
 import { mountLowfi } from './lowfi.js';
 import { hasWebGL, esc, shuffle } from './kit.js';
 import * as voice from './voice.js';
+import * as demo from './demo.js';
 
 const GRADES = ['3', '4', '5', '6'];
 const PRACTICE_N = 5;
@@ -138,6 +139,7 @@ function renderHome() {
         <div class="row">
           <a class="btn primary big" href="#/s/${esc(next.id)}">${store.level(next.id) ? 'Продължи' : 'Започни'}: ${esc(next.title)} →</a>
           <a class="btn ghost-light" href="#/c/${FOCUS}">Целият курс</a>
+          <a class="btn ghost-light" href="#/demo">▶ Демо: как работи</a>
         </div>
       </div>
       <div class="hero-pct"><b>${pct}%</b><span>от курса</span>${progressBar(pct)}</div>
@@ -530,6 +532,7 @@ function route() {
   cleanup = [];
   const h = location.hash.replace(/^#\/?/, '');
   const [kind, arg] = h.split('/');
+  if (kind === 'demo') { location.replace('#/'); demo.start(route); return; }
   window.scrollTo(0, 0);
   drawStats(courseOfRoute(kind, arg));
   if (!kind) return renderHome();
@@ -592,6 +595,8 @@ function setupVoice() {
 
 function setupBar() {
   setupVoice();
+  document.getElementById('demo').addEventListener('click', () => (demo.active() ? demo.end() : (location.hash = '#/demo')));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && demo.active()) demo.end(); });
   drawName();
   document.getElementById('who').addEventListener('click', () => {
     const n = prompt('Как се казваш? (Името влиза в името на файла с напредъка.)', store.getState().name || '');

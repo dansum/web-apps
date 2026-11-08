@@ -28,11 +28,26 @@ export function tasksToday() {
 export function setLastCourse(id) {
   if (state.lastCourse === id) return;
   state.lastCourse = id;
+  if (realState) return;
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* няма значение */ }
 }
 
 let state = empty();
 const listeners = new Set();
+// Демо режим: показва примерен напредък, без да пипа истинския (не се записва никъде).
+let realState = null;
+export const inDemo = () => realState !== null;
+export function beginDemo(sample) {
+  if (!realState) realState = state;
+  state = { ...empty(), ...sample };
+  for (const fn of listeners) fn(state);
+}
+export function endDemo() {
+  if (!realState) return;
+  state = realState;
+  realState = null;
+  for (const fn of listeners) fn(state);
+}
 
 function readLocal() {
   try {
@@ -46,9 +61,11 @@ readLocal();
 
 function save() {
   state.updated = new Date().toISOString();
-  try {
-    localStorage.setItem(KEY, JSON.stringify(state));
-  } catch (e) { /* частен режим: работим само в паметта */ }
+  if (!realState) {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+    } catch (e) { /* частен режим: работим само в паметта */ }
+  }
   for (const fn of listeners) fn(state);
 }
 

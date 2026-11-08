@@ -966,7 +966,9 @@ function build(container, { onComplete }, restart) {
     return { anchor: p.st === 'magnet' ? stations.magnet : g, lift: p.st === 'magnet' ? 2.1 : 0.5 };
   }
 
+  let inStep2 = false;
   function step2() {
+    inStep2 = true;
     shell.step(1);
     clearTip();
     menu.setItems(STATIONS.map((s) => ({ id: s.id, label: s.label, icon: s.icon })));
@@ -1276,6 +1278,16 @@ function build(container, { onComplete }, restart) {
     stage.tick(() => { nails.forEach((n, i) => { n.position.y = magnet.position.y + off[i]; }); });
     say(st, '🧲 Пироните полепнаха по магнита, а пясъкът остана в паничката.', 'wide good', 1.6);
   }
+
+  // Демо режим (js/demo.js): показва станция и пуска опит без намесата на детето.
+  container.__demo = {
+    visit(id) { if (!inStep2 && menuHandler) menuHandler(id); },
+    async experiment(stationId, sampleId) {
+      if (!inStep2) step2();
+      await clickHandler(stationId);
+      await clickHandler(sampleId);
+    },
+  };
 
   step1();
   return {
