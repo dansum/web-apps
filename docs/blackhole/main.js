@@ -31,7 +31,7 @@ const PENALTY = { chicken: 30, sheep: 50, pig: 50, cow: 80 }; // точки, к�
 const LEVEL_TIME = 100;      // секунди за ниво
 const BATTLE_TIME = 120;     // секунди за битка
 const STARS = [0.4, 0.7, 0.95];
-const THEMES = ['park', 'city', 'farm', 'downtown'];
+const THEMES = ['park', 'city', 'farm', 'downtown', 'cubes'];
 const PLAYER_COLOR = '#7c3aed';
 const PLAYER_NAMES = { bg: 'Ти', en: 'You' };
 const BOTS = [
@@ -58,6 +58,21 @@ const CATS = [
   { id: 'blocks', ic: '🏢', types: ['block'], max: 4 },
   { id: 'towers', ic: '🏙️', types: ['tower'], max: 3 },
 ];
+
+// Категории за нива от кубчета (order: по-големите се нареждат първи)
+const CUBE_CATS = [
+  { id: 'cubes', ic: '🟥', types: ['single', 'single', 'stack'], max: 80, small: true, order: 1 },
+  { id: 'bigcubes', ic: '🧊', types: ['bigcube'], max: 20, small: true, order: 2 },
+  { id: 'flowers', ic: '🌷', types: ['flower'], max: 30, small: true, order: 1 },
+  { id: 'vcars', ic: '🚗', types: ['car'], max: 12, small: true, order: 3 },
+  { id: 'vtrees', ic: '🌳', types: ['tree', 'pine', 'tree', 'bigtree'], max: 20, small: true, order: 4 },
+  { id: 'vhouses', ic: '🏠', types: ['house'], max: 6, small: true, order: 5 },
+  { id: 'vbuildings', ic: '🏢', types: ['building'], max: 6, order: 6 },
+  { id: 'vtowers', ic: '🗼', types: ['tower'], max: 3, order: 7 },
+  { id: 'pyramids', ic: '🔺', types: ['pyramid'], max: 2, order: 8 },
+  { id: 'mega', ic: '🏙️', types: ['mega'], max: 2, order: 9 },
+];
+const CUBE_CAREER = { cubes: 70, bigcubes: 14, flowers: 24, vcars: 10, vtrees: 16, vhouses: 5, vbuildings: 5, vtowers: 3, pyramids: 1, mega: 1 };
 
 // ================= езици =================
 const I18N = {
@@ -86,7 +101,18 @@ const I18N = {
     next: 'Следващо ниво', newSetup: 'Нова настройка', retry: 'Пак същото', newBattle: 'Нова битка',
     level: 'Ниво', size: 'Размер', you: 'Ти',
     upSize: 'Размер', upSpeed: 'Скорост', upTime: 'Време', upLvl: (a, b) => `ниво ${a}/${b}`, max: 'макс.',
-    park: 'Парк', city: 'Квартал', farm: 'Ферма', downtown: 'Център',
+    park: 'Парк', city: 'Квартал', farm: 'Ферма', downtown: 'Център', cubes: 'Кубчета',
+    levelKind: 'Вид ниво', kindObjects: 'Предмети', kindObjectsD: 'коли, къщи, дървета…', kindCubes: 'Кубчета', kindCubesD: 'всичко е от кубчета',
+    cat_cubes: 'Кубчета', catd_cubes: '1–3 едно върху друго',
+    cat_bigcubes: 'Големи кубове', catd_bigcubes: 'куб от 8 кубчета',
+    cat_flowers: 'Цветя', catd_flowers: 'стрък и цвят',
+    cat_vcars: 'Коли', catd_vcars: 'потъват цели',
+    cat_vtrees: 'Дървета', catd_vtrees: 'потъват цели, като едно цяло',
+    cat_vhouses: 'Къщи', catd_vhouses: 'с покрив, врата и прозорци',
+    cat_vbuildings: 'Сгради', catd_vbuildings: 'напр. 3 × 2 кубчета и 10 на височина',
+    cat_vtowers: 'Кули', catd_vtowers: 'по-големи кубчета',
+    cat_pyramids: 'Пирамиди', catd_pyramids: 'големи кубчета',
+    cat_mega: 'Небостъргачи', catd_mega: 'най-големите кубчета',
     eatAll: 'Глътни колкото можеш повече', battleGo: 'Битка!', beBiggest: 'Стани най-голямата дупка',
     gotEaten: (n) => `Глътна те ${n}!`, backSoon: 'Връщаш се след малко', ateHole: (n) => `Глътна ${n}!`,
     backIn: 'Пак си в играта!', welcomeBack: 'Продължаваш',
@@ -128,7 +154,18 @@ const I18N = {
     next: 'Next level', newSetup: 'New setup', retry: 'Play again', newBattle: 'New battle',
     level: 'Level', size: 'Size', you: 'You',
     upSize: 'Size', upSpeed: 'Speed', upTime: 'Time', upLvl: (a, b) => `level ${a}/${b}`, max: 'max',
-    park: 'Park', city: 'Suburb', farm: 'Farm', downtown: 'Downtown',
+    park: 'Park', city: 'Suburb', farm: 'Farm', downtown: 'Downtown', cubes: 'Blocks',
+    levelKind: 'Level type', kindObjects: 'Objects', kindObjectsD: 'cars, houses, trees…', kindCubes: 'Blocks', kindCubesD: 'everything is made of cubes',
+    cat_cubes: 'Cubes', catd_cubes: '1–3 stacked',
+    cat_bigcubes: 'Big cubes', catd_bigcubes: 'a cube made of 8 cubes',
+    cat_flowers: 'Flowers', catd_flowers: 'stem and bloom',
+    cat_vcars: 'Cars', catd_vcars: 'sink in one piece',
+    cat_vtrees: 'Trees', catd_vtrees: 'sink in one piece',
+    cat_vhouses: 'Houses', catd_vhouses: 'with roof, door and windows',
+    cat_vbuildings: 'Buildings', catd_vbuildings: 'e.g. 3 × 2 cubes, 10 tall',
+    cat_vtowers: 'Towers', catd_vtowers: 'bigger cubes',
+    cat_pyramids: 'Pyramids', catd_pyramids: 'big cubes',
+    cat_mega: 'Skyscrapers', catd_mega: 'the biggest cubes',
     eatAll: 'Swallow as much as you can', battleGo: 'Battle!', beBiggest: 'Become the biggest hole',
     gotEaten: (n) => `${n} swallowed you!`, backSoon: 'You will be back in a moment', ateHole: (n) => `You swallowed ${n}!`,
     backIn: 'You are back!', welcomeBack: 'Welcome back',
@@ -199,14 +236,15 @@ window.addEventListener('resize', resize);
 
 // Материал за всички обекти: цветове по върхове, плоско осветяване и потъмняване под земята.
 const objMat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
-objMat.onBeforeCompile = (sh) => {
+function darkenBelowGround(sh) {
   sh.vertexShader = sh.vertexShader
     .replace('#include <common>', '#include <common>\nvarying float vWY;')
-    .replace('#include <project_vertex>', '#include <project_vertex>\nvWY = (modelMatrix * vec4(transformed, 1.0)).y;');
+    .replace('#include <project_vertex>', '#include <project_vertex>\n#ifdef USE_INSTANCING\nvWY = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).y;\n#else\nvWY = (modelMatrix * vec4(transformed, 1.0)).y;\n#endif');
   sh.fragmentShader = sh.fragmentShader
     .replace('#include <common>', '#include <common>\nvarying float vWY;')
     .replace('#include <dithering_fragment>', '#include <dithering_fragment>\ngl_FragColor.rgb *= clamp(1.0 + vWY * 0.32, 0.06, 1.0);');
-};
+}
+objMat.onBeforeCompile = darkenBelowGround;
 
 // ================= модели от прости форми =================
 const G = {
@@ -803,6 +841,311 @@ function layoutCustom(L, counts) {
   }
 }
 
+// ================= кубчета =================
+// Нива от кубчета: всяка постройка е решетка от еднакви кубчета. Дупката гълта кубчетата на земята,
+// а тези отгоре падат надолу. Дърветата и колите („твърди“) потъват като едно цяло.
+const cubeGeo = new THREE.BoxGeometry(1, 1, 1);
+const cubeMat = new THREE.MeshLambertMaterial();
+cubeMat.onBeforeCompile = darkenBelowGround;
+let cubeMesh = null, cubes = [], structs = [], holeCubes = [];
+const _cm = new THREE.Matrix4(), _cqq = new THREE.Quaternion(), _cpp = new THREE.Vector3(), _css = new THREE.Vector3(), _cc = new THREE.Color(), _ax = new THREE.Vector3();
+const ckey = (x, y, z) => (y * 256 + x) * 256 + z;
+
+const VC = {
+  bright: ['#ef4444', '#f97316', '#facc15', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899'],
+  leaf: ['#22c55e', '#16a34a', '#4ade80', '#15803d', '#65a30d'],
+  wall: ['#f5f5f4', '#fde68a', '#fecaca', '#bfdbfe', '#d9f99d', '#e9d5ff', '#fed7aa', '#cbd5e1'],
+  roof: ['#dc2626', '#b45309', '#1d4ed8', '#374151', '#9a3412'],
+  glass: '#1e3a5f', trunk: '#7c4a1e',
+};
+// Готови постройки: s = размер на кубчето (м), rigid = потъва като едно цяло.
+const PREFABS = {
+  single: { s: 0.5, b: () => [[0, 0, 0, pick(VC.bright)]] },
+  stack: { s: 0.5, b: () => { const n = 2 + Math.floor(R() * 2), a = pick(VC.bright), c = pick(VC.bright); return Array.from({ length: n }, (_, i) => [0, i, 0, i % 2 ? c : a]); } },
+  bigcube: { s: 0.5, b: () => { const c = pick(VC.bright), out = []; for (let x = 0; x < 2; x++) for (let y = 0; y < 2; y++) for (let z = 0; z < 2; z++) out.push([x, y, z, c]); return out; } },
+  flower: { s: 0.5, b: () => [[0, 0, 0, '#16a34a'], [0, 1, 0, pick(['#f43f5e', '#facc15', '#f472b6', '#a78bfa', '#fb923c', '#ffffff'])]] },
+  car: { s: 0.5, rigid: true, b: () => {
+    const c = pick(VC.bright), out = [];
+    for (let x = 0; x < 4; x++) for (let z = 0; z < 2; z++) out.push([x, 0, z, (x === 0 || x === 3) ? '#1f2937' : c]);
+    for (let x = 0; x < 4; x++) for (let z = 0; z < 2; z++) out.push([x, 1, z, x === 3 ? '#fef3c7' : c]);
+    for (let x = 1; x < 3; x++) for (let z = 0; z < 2; z++) out.push([x, 2, z, '#9cc9f0']);
+    return out;
+  } },
+  tree: { s: 0.5, rigid: true, b: () => {
+    const g = pick(VC.leaf), out = [];
+    for (let y = 0; y < 3; y++) out.push([1, y, 1, VC.trunk]);
+    for (let x = 0; x < 3; x++) for (let z = 0; z < 3; z++) out.push([x, 3, z, g]);
+    for (let x = 0; x < 3; x++) for (let z = 0; z < 3; z++) if ((x === 1 || z === 1)) out.push([x, 4, z, g]);
+    out.push([1, 5, 1, g]);
+    return out;
+  } },
+  pine: { s: 0.5, rigid: true, b: () => {
+    const g = pick(['#166534', '#15803d', '#14532d']), out = [];
+    for (let y = 0; y < 2; y++) out.push([1, y, 1, VC.trunk]);
+    for (let x = 0; x < 3; x++) for (let z = 0; z < 3; z++) out.push([x, 2, z, g]);
+    for (let x = 0; x < 3; x++) for (let z = 0; z < 3; z++) if (x === 1 || z === 1) out.push([x, 3, z, g]);
+    out.push([1, 4, 1, g]); out.push([1, 5, 1, g]);
+    return out;
+  } },
+  bigtree: { s: 0.5, rigid: true, b: () => {
+    const g = pick(VC.leaf), out = [];
+    for (let y = 0; y < 5; y++) out.push([2, y, 2, VC.trunk]);
+    for (const y of [5, 6]) for (let x = 0; x < 5; x++) for (let z = 0; z < 5; z++) if (!((x === 0 || x === 4) && (z === 0 || z === 4))) out.push([x, y, z, g]);
+    for (let x = 1; x < 4; x++) for (let z = 1; z < 4; z++) out.push([x, 7, z, g]);
+    out.push([2, 8, 2, g]);
+    return out;
+  } },
+  house: { s: 0.5, b: () => {
+    const w = pick(VC.wall), rf = pick(VC.roof), out = [];
+    for (let x = 0; x < 5; x++) for (let y = 0; y < 4; y++) for (let z = 0; z < 5; z++) {
+      let c = w;
+      if (z === 4 && x === 2 && y < 2) c = '#7c2d12';
+      else if ((z === 4 || z === 0) && (x === 1 || x === 3) && y === 2) c = '#9cc9f0';
+      else if ((x === 0 || x === 4) && z === 2 && y === 2) c = '#9cc9f0';
+      out.push([x, y, z, c]);
+    }
+    for (let x = 0; x < 5; x++) for (let z = 0; z < 5; z++) out.push([x, 4, z, rf]);
+    for (let x = 1; x < 4; x++) for (let z = 1; z < 4; z++) out.push([x, 5, z, rf]);
+    out.push([2, 6, 2, rf]);
+    return out;
+  } },
+  building: { s: 0.75, b: () => {
+    // например 3 × 2 кубчета основа и 10 на височина
+    const W = 2 + Math.floor(R() * 3), D = 2 + Math.floor(R() * 3), H = 6 + Math.floor(R() * 7), c = pick(VC.wall), out = [];
+    for (let x = 0; x < W; x++) for (let z = 0; z < D; z++) for (let y = 0; y < H; y++) {
+      const edge = x === 0 || x === W - 1 || z === 0 || z === D - 1;
+      out.push([x, y, z, y === H - 1 ? '#64748b' : edge && y % 2 === 1 && (x + z) % 2 === 0 ? VC.glass : c]);
+    }
+    return out;
+  } },
+  tower: { s: 1.0, b: () => {
+    const H = 9 + Math.floor(R() * 7), a = pick(VC.bright), b = '#f8fafc', out = [];
+    for (let x = 0; x < 2; x++) for (let z = 0; z < 2; z++) for (let y = 0; y < H; y++) out.push([x, y, z, Math.floor(y / 2) % 2 ? a : b]);
+    return out;
+  } },
+  pyramid: { s: 1.0, b: () => {
+    const out = [];
+    for (let l = 0; l < 3; l++) for (let x = l; x < 5 - l; x++) for (let z = l; z < 5 - l; z++) out.push([x, l, z, ['#e9c46a', '#f4d58d', '#d4a73c'][(x + z + l) % 3]]);
+    return out;
+  } },
+  mega: { s: 1.25, b: () => {
+    const H = 11 + Math.floor(R() * 7), c = pick(['#cbd5e1', '#93c5fd', '#a5b4fc', '#e2e8f0']), out = [];
+    for (let x = 0; x < 4; x++) for (let z = 0; z < 4; z++) for (let y = 0; y < H; y++) {
+      const edge = x === 0 || x === 3 || z === 0 || z === 3;
+      out.push([x, y, z, y === H - 1 ? '#475569' : edge && y % 2 === 0 ? VC.glass : c]);
+    }
+    return out;
+  } },
+};
+
+function addStruct(type, cx, cz, force) {
+  const pf = PREFABS[type];
+  const cells = pf.b();
+  let W = 0, D = 0;
+  for (const c of cells) { W = Math.max(W, c[0] + 1); D = Math.max(D, c[2] + 1); }
+  const s = pf.s, r = Math.hypot(W, D) * s / 2;
+  if (!force && !free(cx, cz, r)) return null;
+  occ.push({ x: cx, z: cz, r });
+  const st = { type, s, rigid: !!pf.rigid, ox: cx - W * s / 2, oz: cz - D * s / 2, cx, cz, r, grid: new Map(), cubes: [], drops: [], fall: null, dirty: false, left: cells.length, pts: 0 };
+  const v = Math.pow(s * s * s, 0.72) * 1.1;
+  for (const [x, y, z, col] of cells) {
+    const c = { id: cubes.length, st, ix: x, iy: y, iz: z, y: (y + 0.5) * s, state: 'rest', vy: 0, v, color: col };
+    st.grid.set(ckey(x, y, z), c);
+    st.cubes.push(c); cubes.push(c);
+    world.total += v;
+  }
+  structs.push(st);
+  return st;
+}
+
+function finishCubes() {
+  cubeMesh = new THREE.InstancedMesh(cubeGeo, cubeMat, Math.max(1, cubes.length));
+  cubeMesh.castShadow = true; cubeMesh.receiveShadow = true; cubeMesh.frustumCulled = false;
+  const jr = mulberry32(cubes.length + 17);
+  for (const c of cubes) {
+    _cc.set(c.color).multiplyScalar(0.92 + jr() * 0.16); // лека разлика между кубчетата
+    cubeMesh.setColorAt(c.id, _cc);
+    setCubeMatrix(c);
+  }
+  cubeMesh.instanceMatrix.needsUpdate = true;
+  if (cubeMesh.instanceColor) cubeMesh.instanceColor.needsUpdate = true;
+  scene.add(cubeMesh);
+}
+function setCubeMatrix(c) {
+  const st = c.st, s = st.s;
+  if (c.state === 'dead') { _cm.makeScale(0, 0, 0); cubeMesh.setMatrixAt(c.id, _cm); return; }
+  if (c.state === 'hole') { _cpp.set(c.x, c.y, c.z); _cqq.copy(c.q); }
+  else { _cpp.set(st.ox + (c.ix + 0.5) * s, c.y - (st.fall ? st.fall.y : 0), st.oz + (c.iz + 0.5) * s); _cqq.identity(); }
+  _css.set(s * 0.985, s * 0.985, s * 0.985);
+  _cm.compose(_cpp, _cqq, _css);
+  cubeMesh.setMatrixAt(c.id, _cm);
+}
+
+function settle(st) {
+  st.dirty = false;
+  const rest = st.cubes.filter((c) => c.state === 'rest');
+  if (!rest.length) return;
+  if (st.rigid) {
+    let min = Infinity;
+    for (const c of rest) min = Math.min(min, c.iy);
+    if (min > 0 && !st.fall) st.fall = { k: min, d: min * st.s, y: 0, vy: 0 };
+    return;
+  }
+  rest.sort((a, b) => a.iy - b.iy);
+  for (const c of rest) {
+    if (c.iy > 0 && !st.grid.has(ckey(c.ix, c.iy - 1, c.iz))) {
+      st.grid.delete(ckey(c.ix, c.iy, c.iz));
+      c.state = 'drop'; c.vy = 0;
+      st.drops.push(c);
+    }
+  }
+}
+
+function startCubeHole(c, h) {
+  const st = c.st;
+  st.grid.delete(ckey(c.ix, c.iy, c.iz));
+  c.x = st.ox + (c.ix + 0.5) * st.s; c.z = st.oz + (c.iz + 0.5) * st.s;
+  c.y -= st.fall ? st.fall.y : 0;
+  c.state = 'hole'; c.h = h; c.vy = 0; c.ang = 0;
+  c.q = new THREE.Quaternion();
+  c.axis = new THREE.Vector3(Math.random() - 0.5, 0, Math.random() - 0.5).normalize();
+  holeCubes.push(c);
+  st.dirty = true;
+}
+function consumeCube(c) {
+  const h = c.h, st = c.st;
+  c.state = 'dead';
+  setCubeMatrix(c);
+  const before = Math.floor(targetR(h) * 10);
+  h.mass += c.v * (h.bot ? botGrow() : 1);
+  h.eaten += c.v;
+  const pts = Math.max(1, Math.round(c.v * 10));
+  h.score += pts;
+  st.left--;
+  if (h === player) {
+    st.pts += pts;
+    popSound(st.s * 0.8);
+    // цяла постройка изядена → показваме общия сбор
+    if (st.left === 0 && st.cubes.length >= 6) { floatText(h.x, h.z, '+' + st.pts); buzz(10); }
+    if (Math.floor(targetR(h) * 10) > before && Math.floor(targetR(h)) > Math.floor(before / 10)) sfx.grow();
+  }
+}
+
+function updateCubes(dt) {
+  let changed = false;
+  for (const st of structs) {
+    if (st.left <= 0) continue;
+    // твърда постройка потъва като едно цяло
+    if (st.fall) {
+      const f = st.fall;
+      f.vy += 22 * dt; f.y += f.vy * dt;
+      if (f.y >= f.d) {
+        st.fall = null;
+        st.grid.clear();
+        for (const c of st.cubes) if (c.state === 'rest') { c.iy -= f.k; c.y = (c.iy + 0.5) * st.s; st.grid.set(ckey(c.ix, c.iy, c.iz), c); }
+        st.dirty = true;
+      }
+      for (const c of st.cubes) if (c.state === 'rest') setCubeMatrix(c);
+      changed = true;
+      if (st.fall) continue;
+    }
+    // гълтане: кубчета на земята над дупка
+    for (const h of holes) {
+      if (!h.alive || st.s > h.R * 0.95) continue;
+      const dx = st.cx - h.x, dz = st.cz - h.z, lim = h.R + st.r;
+      if (dx > lim || dx < -lim || dz > lim || dz < -lim) continue;
+      const rr = (h.R - st.s * 0.35) ** 2;
+      for (const c of st.cubes) {
+        if (c.state !== 'rest' || c.iy !== 0) continue;
+        const x = st.ox + (c.ix + 0.5) * st.s - h.x, z = st.oz + (c.iz + 0.5) * st.s - h.z;
+        if (x * x + z * z < rr) { startCubeHole(c, h); changed = true; }
+      }
+    }
+    if (st.dirty) settle(st);
+    // падащи кубчета (по колони)
+    if (st.drops.length) {
+      st.drops.sort((a, b) => a.y - b.y);
+      const res = new Map(), s = st.s;
+      for (const c of st.drops) {
+        const col = c.ix * 256 + c.iz;
+        let f = -1;
+        for (let iy = Math.ceil(c.y / s - 0.5) - 1; iy >= 0; iy--) if (st.grid.has(ckey(c.ix, iy, c.iz))) { f = iy; break; }
+        const land = Math.max(f + 1, res.has(col) ? res.get(col) + 1 : 0);
+        res.set(col, land);
+        c.vy -= 25 * dt; c.y += c.vy * dt;
+        const ty = (land + 0.5) * s;
+        if (c.y <= ty) { c.y = ty; c.iy = land; c.state = 'rest'; c.vy = 0; st.grid.set(ckey(c.ix, land, c.iz), c); st.dirty = true; }
+        setCubeMatrix(c);
+      }
+      st.drops = st.drops.filter((c) => c.state === 'drop');
+      changed = true;
+    }
+  }
+  // кубчета, които падат в дупка
+  if (holeCubes.length) {
+    for (const c of holeCubes) {
+      const h = c.h;
+      const k = 1 - Math.exp(-dt * 3);
+      c.x += (h.x - c.x) * k; c.z += (h.z - c.z) * k;
+      c.vy -= 22 * dt; c.y += c.vy * dt;
+      c.ang += dt * 5;
+      c.q.setFromAxisAngle(c.axis, c.ang);
+      if (c.y < -(c.st.s + 4)) consumeCube(c); else setCubeMatrix(c);
+    }
+    holeCubes = holeCubes.filter((c) => c.state === 'hole');
+    changed = true;
+  }
+  if (changed) cubeMesh.instanceMatrix.needsUpdate = true;
+}
+
+// За запазване: изядените кубчета в дупката се зачитат веднага, потъващите постройки се довършват.
+function cubesSnapshot() {
+  for (const c of holeCubes) consumeCube(c);
+  holeCubes = [];
+  for (const st of structs) {
+    if (st.fall) { const k = st.fall.k; st.fall = null; for (const c of st.cubes) if (c.state === 'rest') { c.iy -= k; c.y = (c.iy + 0.5) * st.s; } }
+  }
+  return cubes.filter((c) => c.state === 'rest' || c.state === 'drop').map((c) => [c.id, c.state === 'rest' ? c.iy : Math.max(0, Math.round(c.y / c.st.s - 0.5))]);
+}
+function cubesRestore(list) {
+  const alive = new Map(list);
+  for (const c of cubes) {
+    if (!alive.has(c.id)) { c.state = 'dead'; c.st.left--; setCubeMatrix(c); continue; }
+    c.iy = alive.get(c.id); c.y = (c.iy + 0.5) * c.st.s; c.state = 'rest';
+  }
+  for (const st of structs) {
+    st.grid.clear(); st.drops = [];
+    for (const c of st.cubes) if (c.state === 'rest') st.grid.set(ckey(c.ix, c.iy, c.iz), c);
+    st.dirty = true;
+  }
+  for (const c of cubes) setCubeMatrix(c);
+  cubeMesh.instanceMatrix.needsUpdate = true;
+}
+
+// Карта от кубчета
+function layoutCubes(L, counts) {
+  const E = L + 30;
+  const { cv, P } = makeGroundCanvas(E, '#bfe8a9');
+  for (let x = -L; x < L; x += 2) for (let z = -L; z < L; z += 2) if (((x + z) / 2) % 2 === 0) P.rect(x, z, x + 2, z + 2, '#b2e09a');
+  P.rect(-1.5, -L, 1.5, L, '#f1e3b8'); P.rect(-L, -1.5, L, 1.5, '#f1e3b8');
+  border(P, L);
+  finishGround(cv, E);
+  block(0, 0, 1.2);
+  const order = [...CUBE_CATS].sort((a, b) => b.order - a.order);
+  for (const c of order) {
+    const n = counts[c.id] || 0;
+    for (let i = 0; i < n; i++) {
+      const type = pick(c.types);
+      for (let tr = 0; tr < 40; tr++) {
+        const x = RR(-L + 2, L - 2), z = RR(-L + 2, L - 2);
+        if (Math.abs(x) < 2 || Math.abs(z) < 2) continue; // пътеките остават свободни
+        if (addStruct(type, x, z)) break;
+      }
+    }
+  }
+  finishCubes();
+}
+
 // ================= дупки =================
 const discMat = new THREE.MeshBasicMaterial({
   colorWrite: false, depthWrite: false,
@@ -835,8 +1178,10 @@ function makeHole(names, color, x, z, R0, bot) {
   const wall = new THREE.Mesh(wallGeo(color), new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false }));
   const bottom = new THREE.Mesh(discGeo, new THREE.MeshBasicMaterial({ color: '#000000', fog: false }));
   bottom.position.y = -39;
-  const ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color }));
+  // ръбът се вижда и през сгради, за да знаеш винаги къде е дупката
+  const ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color, depthTest: false, transparent: true, opacity: 0.95 }));
   ring.position.y = 0.025;
+  ring.renderOrder = 10;
   grp.add(disc, wall, bottom, ring);
   scene.add(grp);
   const label = document.createElement('div');
@@ -861,7 +1206,8 @@ function clearWorld() {
   for (const h of holes) { scene.remove(h.grp); h.label.remove(); h.grp.traverse((m) => { if (m.material && m.material !== discMat) m.material.dispose(); }); }
   if (groundMesh) { scene.remove(groundMesh); groundMesh.geometry.dispose(); if (groundMat.map) groundMat.map.dispose(); groundMesh = null; }
   for (const m of decor) scene.remove(m);
-  objs = []; occ = []; holes = []; player = null; decor = [];
+  if (cubeMesh) { scene.remove(cubeMesh); cubeMesh.dispose(); cubeMesh = null; }
+  objs = []; occ = []; holes = []; player = null; decor = []; cubes = []; structs = []; holeCubes = [];
 }
 
 // Светът се строи детерминирано от настройката (cfg), за да може запазена игра да се възстанови.
@@ -875,6 +1221,12 @@ function buildWorld(cfg) {
     rng = mulberry32(1000 + n * 7919);
     if (theme === 'park') { world.L = 28 + cycle * 5; layoutPark(world.L); }
     else if (theme === 'farm') { world.L = 36 + cycle * 5; layoutFarm(world.L); }
+    else if (theme === 'cubes') {
+      world.L = 30 + cycle * 5;
+      const k = (world.L / 30) ** 2, counts = {};
+      for (const id in CUBE_CAREER) counts[id] = Math.round(CUBE_CAREER[id] * k * (1 + cycle * 0.15));
+      layoutCubes(world.L, counts);
+    }
     else layoutCity(theme === 'city' ? 40 + cycle * 6 : 46 + cycle * 6, theme);
     rng = Math.random;
     player = makeHole(PLAYER_NAMES, PLAYER_COLOR, 0, theme === 'park' ? 9 : 0, startR(), false);
@@ -882,7 +1234,7 @@ function buildWorld(cfg) {
     theme = 'single';
     rng = mulberry32(cfg.seed);
     world.L = SIZES[cfg.size].L;
-    layoutCustom(world.L, cfg.counts);
+    if (cfg.cubes) layoutCubes(world.L, cfg.counts); else layoutCustom(world.L, cfg.counts);
     rng = Math.random;
     player = makeHole(PLAYER_NAMES, PLAYER_COLOR, 0, 0, startR(), false);
   } else {
@@ -1083,6 +1435,7 @@ function update(dt) {
     }
   }
   if (++sweep % 120 === 0) objs = objs.filter((o) => !o.dead);
+  if (cubeMesh) updateCubes(dt);
 
   // край
   if (mode === 'level') {
@@ -1290,6 +1643,7 @@ function snapshot() {
     v: 2, cfg: cfgCur, timeLeft, elapsed, starsGot,
     holes: holes.map((h) => ({ x: r2(h.x), z: r2(h.z), R0: h.R0, mass: h.mass, eaten: h.eaten, score: h.score, alive: h.alive, respawn: h.respawn, safe: h.safe || 0 })),
     objs: objs.filter((o) => !o.dead).map((o) => [o.id, r2(o.x), r2(o.z), r2(o.ry), (o.mover && o.mover.dir) || 0]),
+    cubes: cubeMesh ? cubesSnapshot() : null,
   };
 }
 function saveProgress() { if (state === 'play' || state === 'pause') { try { store.set('dup.save', snapshot()); } catch (e) { /* без място */ } } }
@@ -1305,6 +1659,7 @@ function applySnapshot(s) {
     o.mesh.position.set(o.x, 0, o.z); o.mesh.rotation.set(0, o.ry, 0); o.mesh.updateMatrix();
   }
   objs = objs.filter((o) => !o.dead);
+  if (cubeMesh && s.cubes) cubesRestore(s.cubes);
   s.holes.forEach((d, i) => {
     const h = holes[i]; if (!h) return;
     Object.assign(h, { x: d.x, z: d.z, R0: d.R0, mass: d.mass, eaten: d.eaten, score: d.score, alive: d.alive, respawn: d.respawn || 0, safe: d.safe || 0 });
@@ -1321,7 +1676,7 @@ function show(id) {
 }
 function cfgTitle(cfg) {
   if (cfg.kind === 'career') return t('level') + ' ' + cfg.level + ' · ' + t(THEMES[(cfg.level - 1) % THEMES.length]);
-  if (cfg.kind === 'single') return t('single') + ' · ' + t('size' + cfg.size.toUpperCase());
+  if (cfg.kind === 'single') return (cfg.cubes ? t('kindCubes') : t('single')) + ' · ' + t('size' + cfg.size.toUpperCase());
   return t('battle') + ' · ' + t('diff_' + (cfg.diff || 'normal'));
 }
 function startGame(cfg, snap) {
@@ -1427,35 +1782,43 @@ function syncSound() { const s = t(save.sound ? 'soundOn' : 'soundOff'); $('btnS
 function toggleSound() { save.sound = !save.sound; persist(); syncSound(); }
 
 // ---------- единично ниво: настройка ----------
-const single = Object.assign({ size: 's', counts: null }, store.get('dup.single', {}));
+const single = Object.assign({ kind: 'objects', size: 's', counts: null, ccounts: null }, store.get('dup.single', {}));
+const curCats = () => (single.kind === 'cubes' ? CUBE_CATS : CATS);
+const curCounts = () => (single.kind === 'cubes' ? single.ccounts : single.counts);
 function catMax(c, size) { return Math.max(1, Math.round(c.max * SIZES[size].k)); }
-function randomCounts(size) {
+function randomCounts(size, list = curCats()) {
   const counts = {};
-  for (const c of CATS) counts[c.id] = 0;
-  const smalls = CATS.filter((c) => c.small), rest = CATS.filter((c) => !c.small);
+  for (const c of list) counts[c.id] = 0;
+  const smalls = list.filter((c) => c.small), rest = list.filter((c) => !c.small);
   const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const chosen = [...shuffle(smalls).slice(0, 2 + Math.floor(Math.random() * 2)), ...shuffle(rest).slice(0, 2 + Math.floor(Math.random() * 3))];
   for (const c of chosen) { const m = catMax(c, size); counts[c.id] = Math.max(1, Math.round(m * (0.4 + Math.random() * 0.6))); }
   return counts;
 }
+function ensureCounts() {
+  if (!single.counts) single.counts = randomCounts(single.size, CATS);
+  if (!single.ccounts) single.ccounts = randomCounts(single.size, CUBE_CATS);
+}
 function openSingle() {
-  if (!single.counts) single.counts = randomCounts(single.size);
+  ensureCounts();
   renderSingle();
   show('scrSingle');
 }
 function renderSingle() {
+  for (const b of $('kinds').querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.kind === single.kind));
   for (const b of $('sizes').querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.size === single.size));
   const box = $('cats'); box.innerHTML = '';
-  for (const c of CATS) {
+  const counts = curCounts();
+  for (const c of curCats()) {
     const m = catMax(c, single.size);
-    const v = Math.min(single.counts[c.id] || 0, m);
-    single.counts[c.id] = v;
+    const v = Math.min(counts[c.id] || 0, m);
+    counts[c.id] = v;
     const row = document.createElement('label');
     row.className = 'cat' + (v ? '' : ' off');
     row.innerHTML = `<span class="ic">${c.ic}</span><span class="nm">${t('cat_' + c.id)}<small>${t('catd_' + c.id)}</small></span><span class="n">${v}</span><span></span><input type="range" min="0" max="${m}" value="${v}" aria-label="${t('cat_' + c.id)}">`;
     const inp = row.querySelector('input');
     inp.addEventListener('input', () => {
-      single.counts[c.id] = +inp.value;
+      counts[c.id] = +inp.value;
       row.querySelector('.n').textContent = inp.value;
       row.classList.toggle('off', +inp.value === 0);
       checkSingle();
@@ -1465,21 +1828,26 @@ function renderSingle() {
   checkSingle();
 }
 function checkSingle() {
-  const smallN = CATS.filter((c) => c.small).reduce((s, c) => s + (single.counts[c.id] || 0), 0);
+  const counts = curCounts(), list = curCats();
+  const smallN = list.filter((c) => c.small).reduce((s, c) => s + (counts[c.id] || 0), 0);
   $('singleWarn').hidden = smallN >= 8;
-  const total = CATS.reduce((s, c) => s + (single.counts[c.id] || 0), 0);
+  const total = list.reduce((s, c) => s + (counts[c.id] || 0), 0);
   $('btnSinglePlay').disabled = total === 0;
   store.set('dup.single', single);
 }
+$('kinds').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  single.kind = b.dataset.kind; ensureCounts(); renderSingle();
+});
 $('sizes').addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b) return;
   const old = single.size; single.size = b.dataset.size;
-  // мащабирай броя спрямо новия размер
-  for (const c of CATS) single.counts[c.id] = Math.round((single.counts[c.id] || 0) * SIZES[single.size].k / SIZES[old].k);
+  // мащабирай броя спрямо новия размер (и за двата вида)
+  for (const [list, counts] of [[CATS, single.counts], [CUBE_CATS, single.ccounts]]) if (counts) for (const c of list) counts[c.id] = Math.round((counts[c.id] || 0) * SIZES[single.size].k / SIZES[old].k);
   renderSingle();
 });
-$('btnRandom').addEventListener('click', () => { single.counts = randomCounts(single.size); renderSingle(); sfx.grow(); });
-$('btnSinglePlay').addEventListener('click', () => startGame({ kind: 'single', size: single.size, counts: { ...single.counts }, seed: Math.floor(Math.random() * 1e9) }));
+$('btnRandom').addEventListener('click', () => { if (single.kind === 'cubes') single.ccounts = randomCounts(single.size); else single.counts = randomCounts(single.size); renderSingle(); sfx.grow(); });
+$('btnSinglePlay').addEventListener('click', () => startGame({ kind: 'single', cubes: single.kind === 'cubes', size: single.size, counts: { ...curCounts() }, seed: Math.floor(Math.random() * 1e9) }));
 $('btnSingleBack').addEventListener('click', () => show('scrMenu'));
 
 // ---------- език ----------
@@ -1536,10 +1904,12 @@ if (/[?&]debug\b/.test(location.search)) {
     mode, state, timeLeft, L: world.L, total: world.total, cfg: cfgCur,
     player: player && { x: player.x, z: player.z, R: player.R, eaten: player.eaten, alive: player.alive },
     holes: holes.map((h) => ({ name: holeName(h), x: h.x, z: h.z, R: h.R, alive: h.alive })),
-    objs: objs.filter((o) => !o.dead && !o.fall).map((o) => ({ x: o.x, z: o.z, r: o.r, v: o.v, type: o.type })),
+    objs: objs.filter((o) => !o.dead && !o.fall).map((o) => ({ x: o.x, z: o.z, r: o.r, v: o.v, type: o.type }))
+      .concat(cubes.filter((c) => c.state === 'rest' && c.iy === 0).map((c) => ({ x: c.st.ox + (c.ix + 0.5) * c.st.s, z: c.st.oz + (c.iz + 0.5) * c.st.s, r: c.st.s, v: c.v * c.st.cubes.length / 4, type: 'cube:' + c.st.type }))),
+    cubesLeft: cubes.filter((c) => c.state !== 'dead').length, cubesTotal: cubes.length,
     calls: renderer.info.render.calls,
   });
-  window.__dupkaStart = (m, n) => (m === 'battle' ? startBattle() : m === 'single' ? startGame({ kind: 'single', size: n || 's', counts: randomCounts(n || 's'), seed: 7 }) : startCareer(n || 1));
+  window.__dupkaStart = (m, n) => (m === 'battle' ? startBattle() : m === 'single' ? startGame({ kind: 'single', size: n || 's', counts: randomCounts(n || 's', CATS), seed: 7 }) : m === 'cubes' ? startGame({ kind: 'single', cubes: true, size: n || 's', counts: randomCounts(n || 's', CUBE_CATS), seed: 7 }) : startCareer(n || 1));
 }
 
 // ================= цикъл =================
