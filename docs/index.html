@@ -311,10 +311,9 @@
   }
   function save(key, v) { try { localStorage.setItem(key, v); } catch (e) {} }
 
-  var browserLang = (navigator.language || 'bg').slice(0, 2);
   var state = {
-    lang: load('d4-lang', ['bg', 'en', 'de'], ['bg', 'en', 'de'].indexOf(browserLang) >= 0 ? browserLang : 'bg'),
-    len: load('d4-len', ['full', 'short'], 'full'),
+    lang: load('d4-lang', ['bg', 'en', 'de'], 'bg'),
+    len: load('d4-len', ['full', 'short'], 'short'),
     filter: 'all',
     theme: load('d4-theme', ['auto', 'light', 'dark'], 'auto')
   };
