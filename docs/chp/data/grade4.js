@@ -628,8 +628,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "organs4",
           video: null,
           scene: {
             objects: [
