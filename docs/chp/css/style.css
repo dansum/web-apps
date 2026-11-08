@@ -308,3 +308,25 @@ body.dropping .dropmsg { display: flex; }
   .lowfi { height: 300px; }
   .topbar .btn { padding: 6px 8px; font-size: 0.8rem; }
 }
+
+/* Демо режим (js/demo.js) */
+.demo-spot { position: fixed; z-index: 2147482000; border-radius: 12px; pointer-events: none;
+  box-shadow: 0 0 0 4px var(--teal), 0 0 0 9999px rgba(10, 42, 102, 0.45); transition: all .35s ease; }
+.demo-card { position: fixed; z-index: 2147483000; right: 16px; bottom: 16px; width: min(380px, calc(100vw - 32px));
+  background: #fff; border-radius: 14px; padding: 14px 16px; box-shadow: 0 10px 34px rgba(10, 42, 102, .35);
+  border-top: 5px solid var(--teal); }
+.demo-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.demo-tag { font-size: .7rem; font-weight: 700; letter-spacing: .06em; color: #fff; background: var(--teal); border-radius: 6px; padding: 2px 7px; }
+.demo-n { font-size: .8rem; color: #667; }
+.demo-x { margin-left: auto; border: 0; background: none; font-size: 1.1rem; cursor: pointer; color: #556; }
+.demo-title { display: block; color: var(--navy); font-size: 1.05rem; }
+.demo-text { margin: 6px 0 10px; font-size: .95rem; line-height: 1.45; }
+.demo-bar { height: 4px; background: #e6ebf2; border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
+.demo-bar i { display: block; height: 100%; width: 0; background: var(--teal); }
+.demo-ui.paused .demo-bar i { opacity: .35; }
+.demo-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.demo-row .btn { padding: 6px 10px; }
+@media (max-width: 560px) {
+  .demo-card { left: 8px; right: 8px; bottom: 8px; width: auto; padding: 10px 12px; }
+  .demo-text { font-size: .88rem; margin: 4px 0 8px; }
+}
