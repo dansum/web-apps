@@ -22,6 +22,8 @@ export async function createMap(stage, opts = {}) {
     seaColor = 0x6fb3dc,
     height = 0.12,
     showNames = true,
+    only = null,                   // масив от id: рисува само тези държави (напр. ['100'])
+    sea = true,
   } = opts;
   const geo = await loadGeo(url);
   const k = Math.cos((center[1] * Math.PI) / 180);
@@ -36,12 +38,13 @@ export async function createMap(stage, opts = {}) {
   // Море под всичко.
   const b = geo.bbox;
   const w = (b.e - b.w) * k * unitsPerDeg, d = (b.n - b.s) * unitsPerDeg;
-  const sea = new THREE.Mesh(new THREE.BoxGeometry(w, 0.1, d), mat(seaColor));
-  sea.position.set(px((b.w + b.e) / 2), -0.06, pz((b.s + b.n) / 2));
-  group.add(sea);
+  const seaMesh = new THREE.Mesh(new THREE.BoxGeometry(w, 0.1, d), mat(seaColor));
+  seaMesh.position.set(px((b.w + b.e) / 2), -0.06, pz((b.s + b.n) / 2));
+  if (sea) group.add(seaMesh);
 
   const countries = new Map();
   for (const c of geo.countries) {
+    if (only && !only.includes(c.id)) continue;
     const isFocus = c.id === focus;
     const cg = new THREE.Group();
     const m = mat(isFocus ? focusColor : otherColor);
@@ -109,7 +112,7 @@ export async function createMap(stage, opts = {}) {
       const s = 1 + Math.sin(t * 2.2 + g.userData.phase) * 0.12;
       g.userData.head.scale.setScalar(s);
     }
-    sea.material.color.copy(seaBase).offsetHSL(0, 0, Math.sin(t * 0.8) * 0.02);
+    seaMesh.material.color.copy(seaBase).offsetHSL(0, 0, Math.sin(t * 0.8) * 0.02);
   });
 
   return {
