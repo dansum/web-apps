@@ -609,7 +609,7 @@ function build(container, { onComplete }, restart) {
   // Дървета за сеч (отпред вдясно) и за пожар (отзад вляво).
   const byDist = (px, pz) => trees.slice().sort((a, b) => Math.hypot(a.position.x - px, a.position.z - pz) - Math.hypot(b.position.x - px, b.position.z - pz));
   const cutTrees = byDist(-3.2, -1.0).slice(0, 4);
-  const fireTrees = byDist(-7.4, -4.4).filter((t) => !cutTrees.includes(t)).slice(0, 4);
+  const fireTrees = byDist(-8.8, -2.6).filter((t) => !cutTrees.includes(t)).slice(0, 4);
   const CUTC = new V3(); cutTrees.forEach((t) => CUTC.add(t.position)); CUTC.multiplyScalar(1 / 4);
   const FIREC = new V3(); fireTrees.forEach((t) => FIREC.add(t.position)); FIREC.multiplyScalar(1 / 4);
 
@@ -1084,9 +1084,9 @@ function build(container, { onComplete }, restart) {
       for (const p of smoke) {
         p.userData.k = (p.userData.k + dt * 0.35) % 1;
         const k = p.userData.k;
-        p.position.set(p.userData.x + Math.sin(k * 4) * 0.3, 1.5 + k * 3.5, p.userData.z);
-        p.scale.setScalar(0.3 + k * 0.9);
-        p.material.opacity = 0.55 * (1 - k);
+        p.position.set(p.userData.x + Math.sin(k * 4) * 0.3 + k * 0.8, 3.0 + k * 3.5, p.userData.z);
+        p.scale.setScalar(0.4 + k * 1.1);
+        p.material.opacity = 0.65 * (1 - k);
       }
     }
   });
@@ -1263,7 +1263,7 @@ function build(container, { onComplete }, restart) {
 
   // =================== ВРЕДИ И МЕРКИ (стъпка 4) ===================
   const TRASH = new V3(-2.6, 0, 1.1);
-  const POACH = new V3(-8.3, 0, 0.6);
+  const POACH = new V3(-6.3, 0, 0.7);
   const stumps = cutTrees.map((t) => { const s = stumpModel(); s.position.copy(t.position); s.visible = false; land.add(s); return s; });
   const saplings = cutTrees.map((t, i) => {
     const s = treeModel(i % 2 === 1, 0x6abf4b);
@@ -1278,17 +1278,21 @@ function build(container, { onComplete }, restart) {
   fireG.visible = false;
   land.add(fireG);
   fireTrees.forEach((t, i) => {
-    for (let k = 0; k < 3; k++) {
-      const f = new THREE.Mesh(new THREE.ConeGeometry(0.28 - k * 0.05, 0.9, 8), flameMs[k % 2]);
-      f.geometry.translate(0, 0.45, 0);
-      f.position.set(t.position.x + Math.cos(k * 2.1) * 0.35, 0.05 + k * 0.6, t.position.z + Math.sin(k * 2.1) * 0.35);
-      f.userData = { s: 1 - k * 0.15, ph: i * 3 + k };
+    const sc = t.scale.x;
+    for (let k = 0; k < 6; k++) {
+      const up = k >= 3;
+      const f = new THREE.Mesh(new THREE.ConeGeometry(up ? 0.42 : 0.34, up ? 1.3 : 1.1, 8), flameMs[k % 2]);
+      f.geometry.translate(0, up ? 0.65 : 0.55, 0);
+      const a = k * 2.1 + i;
+      const rr = up ? 0.45 : 0.4;
+      f.position.set(t.position.x + Math.cos(a) * rr * sc, up ? 2.2 * sc + (k - 3) * 0.2 : 0.02 + (k % 2) * 0.3, t.position.z + Math.sin(a) * rr * sc);
+      f.userData = { s: up ? 1 : 0.9, ph: i * 3 + k };
       fireG.add(f);
       flames.push(f);
     }
   });
   for (let i = 0; i < 8; i++) {
-    const p = new THREE.Mesh(new THREE.SphereGeometry(0.5, 10, 8), new THREE.MeshStandardMaterial({ color: 0x5f5f5f, transparent: true, opacity: 0.5, depthWrite: false }));
+    const p = new THREE.Mesh(new THREE.SphereGeometry(0.6, 10, 8), new THREE.MeshStandardMaterial({ color: 0x555555, transparent: true, opacity: 0.6, depthWrite: false }));
     p.userData = { x: FIREC.x + (i % 4 - 1.5) * 0.7, z: FIREC.z + (i < 4 ? -0.4 : 0.4), k: i / 8 };
     fireG.add(p);
     smoke.push(p);
@@ -1341,7 +1345,7 @@ function build(container, { onComplete }, restart) {
     ring.position.y = 0.4;
     trap.add(ring);
   }
-  trap.position.set(POACH.x + 1.1, 0, POACH.z - 0.9);
+  trap.position.set(POACH.x + 1.0, 0, POACH.z - 0.5);
   trap.visible = false;
   land.add(trap);
   const sign = new THREE.Group();
@@ -1418,27 +1422,28 @@ function build(container, { onComplete }, restart) {
 
   // =================== ИЗГЛЕД, БАЛОНЧЕТА, ИЗБОР ===================
   const tanV = Math.tan((camera.fov * Math.PI) / 360);
-  function fitView(cc, hw, hh, elev = 0.4, dur = 1.0) {
+  function fitView(cc, hw, hh, elev = 0.4, az = 0, dur = 1.0) {
     const d = Math.max(hw / (tanV * camera.aspect), hh / tanV) * 1.08;
     stage.stopFollow();
-    stage.flyTo([cc[0], cc[1] + Math.sin(elev) * d, cc[2] + Math.cos(elev) * d], cc, dur);
+    const hz = Math.cos(elev) * d;
+    stage.flyTo([cc[0] + Math.sin(az) * hz, cc[1] + Math.sin(elev) * d, cc[2] + Math.cos(az) * hz], cc, dur);
   }
   const overview = () => fitView([0.3, 0.5, 0.2], 8.6, 5.2, 0.72);
   const VIEW = {
-    forest: () => fitView([-5.6, 1.0, -2.4], 3.9, 2.7, 0.45),
+    forest: () => fitView([-5.4, 1.0, -2.2], 4.6, 3.0, 0.8),
     meadow: () => fitView([-3.4, 0.3, 2.4], 3.9, 2.4, 0.7),
     pond: () => fitView([-4.6, 0.2, 3.2], 3.0, 1.9, 0.7),
-    field: () => fitView([FIELD.x, 0.3, FIELD.z], 3.1, 2.2, 0.6),
+    field: () => fitView([FIELD.x, 0.3, FIELD.z], 3.1, 2.2, 0.9),
     orchard: () => fitView([ORCH.x, 0.8, ORCH.z], 3.0, 2.0, 0.55),
     park: () => fitView([PARK.x, 0.4, PARK.z], 2.9, 1.7, 0.6),
     animals: () => fitView([-3.0, 0.4, 0.6], 3.8, 2.0, 0.55),
-    farmer: () => stage.focusOn(farmer, { dist: 5.5, height: 1.4, lift: 0.7 }),
+    farmer: () => { const p = farmer.position; stage.stopFollow(); stage.flyTo([Math.min(6, Math.max(3.4, p.x)), 3.6, -6.8], [Math.min(6, Math.max(3.4, p.x)), 0.7, -1.3]); },
     chain: () => fitView([-1.9, 0.4, 0.2], 2.7, 1.5, 0.5),
-    balance: () => fitView([-4.8, 0.8, -0.9], 4.9, 3.1, 0.62),
-    cut: () => fitView([CUTC.x, 0.8, CUTC.z + 0.5], 2.6, 1.7, 0.5),
-    fire: () => fitView([FIREC.x, 1.2, FIREC.z + 0.5], 2.8, 2.2, 0.45),
+    balance: () => fitView([-4.9, 1.0, -1.2], 5.9, 3.8, 0.95),
+    cut: () => fitView([CUTC.x, 0.8, CUTC.z + 0.3], 2.7, 1.9, 0.85),
+    fire: () => fitView([FIREC.x + 0.4, 1.8, FIREC.z], 3.6, 3.0, 0.75, -0.9),
     trash: () => fitView([TRASH.x + 0.3, 0.3, TRASH.z + 0.3], 2.2, 1.3, 0.65),
-    poach: () => fitView([POACH.x + 0.5, 0.7, POACH.z - 0.2], 2.4, 1.6, 0.5),
+    poach: () => fitView([POACH.x + 0.3, 0.7, POACH.z - 0.6], 2.6, 1.8, 0.7),
     gallery: () => fitView([0, 0.7, 0.9], 6.4, 2.9, 0.55),
   };
   const BUBBLE_AT = {
@@ -1456,7 +1461,13 @@ function build(container, { onComplete }, restart) {
 
   const scores = [];
   let clickHandler = null;
-  stage.onClick((hit) => { if (clickHandler) clickHandler(hit ? hit.root.userData.pickId : null); });
+  // Маркерите и етикетите на местата се виждат над всичко, затова и при клик имат предимство.
+  stage.onClick((hit, ev) => {
+    if (!clickHandler) return;
+    const top = stage.pickAt(ev, 'pickId', [...Object.values(markers), ...Object.values(placeLabels)].filter((m) => m.visible));
+    if (top) { clickHandler(top.root.userData.pickId); return; }
+    clickHandler(hit ? hit.root.userData.pickId : null);
+  });
 
   function choiceBox(cEl, q, items, rightIdx, why, onRight, onWrong, cls = '') {
     cEl.innerHTML = `<p class="ecosystems-q">${q}</p><div class="choices ${cls}">${items.map((t, i) => `<button class="choice" data-i="${i}">${t}</button>`).join('')}</div>`;
@@ -1551,7 +1562,7 @@ function build(container, { onComplete }, restart) {
     };
     intro();
     clickHandler = (raw) => {
-      const id = raw === 'grass' ? 'meadow' : raw === 'duck' ? 'pond' : raw;
+      const id = raw === 'grass' ? 'meadow' : raw === 'duck' ? 'pond' : raw === 'farmer' ? 'field' : raw;
       if (busy || !PLACE[id] || sorted[id] !== undefined) return;
       busy = true;
       const p = PLACE[id];
@@ -1569,6 +1580,7 @@ function build(container, { onComplete }, restart) {
           busy = false;
           if (Object.keys(sorted).length < PLACES.length) { intro(); shell.msg(ok, 'good'); return; }
           clickHandler = null;
+          shell.msg(ok, 'good');
           wait(1.2).then(() => {
             overview();
             clearTip();
@@ -1632,7 +1644,7 @@ function build(container, { onComplete }, restart) {
       seq.push(id);
       const txt = { grass: 'Тревата е растение. С нея започва веригата.', rabbit: 'Заекът яде трева.', fox: 'Лисицата лови зайци.' }[id];
       say(anchor, `✓ ${txt}`, 'good', lift);
-      shell.msg('');
+      shell.msg(`✓ ${txt}`, 'good');
       draw();
       if (seq.length === 3) {
         clickHandler = null;
