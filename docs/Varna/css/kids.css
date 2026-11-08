@@ -1,0 +1,78 @@
+/* ВЕСЕЛО ГРАДЧЕ — големи бутони, малко думи, главни букви. */
+body.kids { background: #2a86c4; }
+#town { position: fixed; inset: 0; display: block; touch-action: none; }
+
+.k-top {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 8px 12px; padding-top: max(8px, env(safe-area-inset-top)); color: #fff;
+}
+.k-big-link { font-size: 24px; text-decoration: none; background: rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 2px 8px; }
+.k-stars { display: flex; gap: 2px; font-size: 22px; }
+.k-stars span, .k-win-stars span { filter: grayscale(1) opacity(0.35); transition: filter 0.4s; }
+.k-stars span.on, .k-win-stars span.on { filter: none; }
+.k-right { display: flex; align-items: center; gap: 8px; }
+.k-icon { border: 0; background: rgba(255, 255, 255, 0.2); border-radius: 12px; font-size: 22px; padding: 2px 8px; }
+
+.k-task {
+  position: fixed; top: 52px; left: 50%; transform: translateX(-50%); z-index: 9;
+  display: flex; align-items: center; gap: 12px; max-width: calc(100vw - 24px);
+  background: #fff; border-radius: 22px; padding: 10px 14px 10px 18px; box-shadow: var(--shadow);
+  border: 4px solid var(--accent);
+}
+.k-task-icons { font-size: 34px; white-space: nowrap; }
+.k-task-text { font-size: 26px; font-weight: 800; color: var(--navy); text-transform: uppercase; letter-spacing: 0.03em; line-height: 1.1; }
+.k-say { border: 0; background: #e6f3fb; border-radius: 50%; width: 52px; height: 52px; font-size: 28px; flex: 0 0 auto; }
+.k-say[hidden] { display: none; }
+
+.k-tools {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;
+  padding: 10px; padding-bottom: max(10px, env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, 0.95); box-shadow: var(--shadow);
+}
+.k-tool {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  min-width: 92px; padding: 8px 6px; border-radius: 18px; border: 4px solid #dde4ea; background: #fff;
+}
+.k-tool .ic { font-size: 40px; line-height: 1.1; }
+.k-tool .nm { font-size: 15px; font-weight: 800; color: var(--navy); text-transform: uppercase; }
+.k-tool.on { border-color: var(--accent); background: #fff4e3; transform: translateY(-4px); }
+.k-tool.new { animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(242, 165, 65, 0.7); } 50% { box-shadow: 0 0 0 10px rgba(242, 165, 65, 0); } }
+
+.k-modal {
+  position: fixed; inset: 0; z-index: 30;
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+  background: rgba(8, 30, 48, 0.5);
+}
+.k-modal[hidden] { display: none; }
+.k-card {
+  background: #fff; border-radius: 28px; padding: 24px 28px; text-align: center; max-width: 520px; width: 100%;
+  box-shadow: var(--shadow); animation: pop 0.3s ease-out;
+}
+.k-card h1 { color: var(--navy); font-size: 40px; margin: 8px 0; letter-spacing: 0.04em; }
+.k-start-art { font-size: 44px; }
+.k-start-faces { font-size: 48px; margin: 6px 0 14px; }
+.k-go {
+  border: 0; background: var(--good); color: #fff; font-size: 44px; width: 110px; height: 110px; border-radius: 50%;
+  box-shadow: 0 6px 0 #1e7a37; cursor: pointer;
+}
+.k-go:active { transform: translateY(4px); box-shadow: 0 2px 0 #1e7a37; }
+.k-grownups { margin: 18px 0 0; color: var(--muted); font-size: 14px; line-height: 1.4; }
+.k-reset { display: block; margin: 8px auto 0; border: 0; background: transparent; color: #1f6fb8; text-decoration: underline; font-size: 14px; }
+.k-win-stars { font-size: 34px; display: flex; justify-content: center; gap: 4px; margin-bottom: 8px; }
+.k-win-stars .fresh { animation: star 0.9s ease-out; }
+@keyframes star { 0% { transform: scale(0) rotate(-90deg); } 70% { transform: scale(1.5) rotate(10deg); } 100% { transform: scale(1); } }
+.k-win-text { font-size: 38px; font-weight: 800; color: var(--navy); margin: 6px 0 18px; text-transform: uppercase; }
+
+@media (max-width: 560px) {
+  .k-task { top: 50px; gap: 8px; padding: 8px 10px; }
+  .k-task-icons { font-size: 26px; }
+  .k-task-text { font-size: 20px; }
+  .k-say { width: 44px; height: 44px; font-size: 24px; }
+  .k-tool { min-width: 0; flex: 1 1 28%; padding: 6px 4px; }
+  .k-tool .ic { font-size: 32px; }
+  .k-tool .nm { font-size: 12px; }
+  .k-stars { font-size: 16px; }
+}

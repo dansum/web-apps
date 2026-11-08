@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<script>try { var q = new URLSearchParams(location.search).get('lang'), v = q || localStorage.getItem('varna-lang'); if (v === 'en' || v === 'bg') document.documentElement.lang = v; } catch (e) {}</script>
 <title>Резултати на класа · Варна строи</title>
+<meta name="title-en" content="Class results · Varna Builds" />
 <meta name="description" content="Страница за учителя: заредете отчетите на учениците от „Варна строи“ и вижте обобщени графики за класа." />
 <meta name="theme-color" content="#0b3c5d" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -15,25 +17,32 @@
 <body class="page">
 
 <header class="page-bar">
-  <div class="brand">📊 Резултати на класа <span>· Варна строи</span></div>
-  <a href="./#uchitel">← Към играта</a>
+  <div class="brand">📊 <span lang="bg">Резултати на класа</span><span lang="en">Class results</span>
+    <span class="sub" lang="bg">· Варна строи</span><span class="sub" lang="en">· Varna Builds</span></div>
+  <div class="page-bar-right">
+    <span class="lang-switch" id="lang" role="group" aria-label="Език / Language"></span>
+    <a href="./#uchitel"><span lang="bg">← Към играта</span><span lang="en">← Back to the game</span></a>
+  </div>
 </header>
 
 <main class="page-main">
   <section class="page-card">
-    <h1>Резултати на класа</h1>
-    <p>Заредете отчетите (CSV файлове), които учениците са свалили от <b>📈 Дневник на града → Отчет за учителя</b>. Може да изберете много файлове наведнъж.</p>
+    <h1><span lang="bg">Резултати на класа</span><span lang="en">Class results</span></h1>
+    <p lang="bg">Заредете отчетите (CSV файлове), които учениците са свалили от <b>📈 Дневник на града → Отчет за учителя</b>. Може да изберете много файлове наведнъж.</p>
+    <p lang="en">Load the reports (CSV files) that your students downloaded from <b>📈 City journal → Report for the teacher</b>. You can choose many files at once.</p>
     <label id="drop" class="drop">
       <input id="files" type="file" accept=".csv,text/csv" multiple />
       <span class="big">📂</span>
-      <span><b>Пуснете файловете тук</b> или натиснете, за да ги изберете</span>
+      <span lang="bg"><b>Пуснете файловете тук</b> или натиснете, за да ги изберете</span>
+      <span lang="en"><b>Drop the files here</b> or click to choose them</span>
     </label>
     <div class="page-actions">
-      <button class="btn" id="demo">Покажи с примерни данни</button>
-      <button class="btn" id="clear" hidden>Изчисти</button>
-      <button class="btn" id="print" hidden>🖨️ Печат</button>
+      <button class="btn" id="demo"><span lang="bg">Покажи с примерни данни</span><span lang="en">Show with sample data</span></button>
+      <button class="btn" id="clear" hidden><span lang="bg">Изчисти</span><span lang="en">Clear</span></button>
+      <button class="btn" id="print" hidden>🖨️ <span lang="bg">Печат</span><span lang="en">Print</span></button>
     </div>
-    <p class="meta">🔒 Файловете не се качват никъде — обработват се само в този браузър. Когато затворите страницата, данните изчезват.</p>
+    <p class="meta" lang="bg">🔒 Файловете не се качват никъде — обработват се само в този браузър. Когато затворите страницата, данните изчезват.</p>
+    <p class="meta" lang="en">🔒 The files are not uploaded anywhere — they are processed only in this browser. When you close the page, the data is gone.</p>
     <div id="loaded"></div>
   </section>
 

@@ -5,7 +5,7 @@ import { BUILDINGS } from './buildings.js';
 export const HW = 32, HH = 16; // половин ширина и половин височина на плочка
 export const proj = (i, j) => [(i - j) * HW, (i + j) * HH];
 
-const TERRAIN = {
+export const TERRAIN = {
   grass: ['#a3d27c', '#9bcc74'], hill: ['#7fb565', '#78ae5e'], beach: ['#f4e0a4', '#efd99a'],
   sea: ['#2f8fcf', '#2b89c8'], lake: ['#46a3ad', '#419ca6'], canal: ['#2c80bf', '#2a7bb8'],
 };
@@ -16,7 +16,7 @@ const TOP = { house: 30, block: 52, shop: 22, office: 60, factory: 50, port: 46,
 
 const hash = (i, j) => ((i * 73856093) ^ (j * 19349663)) >>> 0;
 
-function poly(ctx, pts, fill, stroke) {
+export function poly(ctx, pts, fill, stroke) {
   ctx.beginPath();
   ctx.moveTo(pts[0][0], pts[0][1]);
   for (let n = 1; n < pts.length; n++) ctx.lineTo(pts[n][0], pts[n][1]);
@@ -33,7 +33,7 @@ function shade(hex, f) {
   return `rgb(${c[0]},${c[1]},${c[2]})`;
 }
 
-function diamond(i, j, f = 1) {
+export function diamond(i, j, f = 1) {
   const [x, y] = proj(i + 0.5, j + 0.5), dx = HW * f, dy = HH * f;
   return [[x, y - dy], [x + dx, y], [x, y + dy], [x - dx, y]];
 }
@@ -82,7 +82,7 @@ function columns(ctx, x, y, f, h, n, color) {
   }
 }
 
-function tree(ctx, x, y, s = 1, pine = false) {
+export function tree(ctx, x, y, s = 1, pine = false) {
   ctx.fillStyle = '#7a5434';
   ctx.fillRect(x - 1.5 * s, y - 8 * s, 3 * s, 8 * s);
   if (pine) {
@@ -109,7 +109,7 @@ function flag(ctx, x, y) {
   ['#ffffff', '#00966e', '#d62612'].forEach((c, n) => { ctx.fillStyle = c; ctx.fillRect(x, y - 18 + n * 3, 10, 3); });
 }
 
-const DRAW = {
+export const DRAW = {
   house(ctx, x, y) {
     box(ctx, x, y + 2, 0.55, 15, '#f1dcb5');
     windows(ctx, x, y + 2, 0.55, 15, 1, 2, '#5a7d9a', 0.15, 0.85);

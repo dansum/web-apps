@@ -1,11 +1,14 @@
 // Пресмятане на факторите за добруване и месечния бюджет на града.
 import { N, idx, inside, dist, BUILDABLE } from './map.js';
 import { BUILDINGS, FACTORS } from './buildings.js';
+import { tr } from './i18n.js';
 
 const D4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 const clamp = v => Math.max(0, Math.min(100, v));
 
-export const MONTHS = ['Януари', 'Февруари', 'Март', 'Април', 'Май', 'Юни', 'Юли', 'Август', 'Септември', 'Октомври', 'Ноември', 'Декември'];
+export const MONTHS = tr(
+  ['Януари', 'Февруари', 'Март', 'Април', 'Май', 'Юни', 'Юли', 'Август', 'Септември', 'Октомври', 'Ноември', 'Декември'],
+  ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']);
 // Колко туристи идват според месеца: лятото е силният сезон.
 export const SEASON = [0.3, 0.3, 0.4, 0.6, 1, 1.8, 2.4, 2.4, 1.6, 0.8, 0.4, 0.3];
 
@@ -30,26 +33,26 @@ function near(s, i, j, r, test) {
 export function canPlace(s, t, i, j) {
   if (!inside(i, j)) return { ok: false, why: '' };
   const k = idx(i, j), ter = s.terrain[k], def = BUILDINGS[t];
-  if (s.b[k]) return { ok: false, why: 'Тук вече има нещо. С булдозера можеш да го премахнеш.' };
+  if (s.b[k]) return { ok: false, why: tr('Тук вече има нещо. С булдозера можеш да го премахнеш.', 'Something is already here. You can remove it with the bulldozer.') };
   if (def.needs === 'canal') {
-    if (ter !== 'canal') return { ok: false, why: 'Мостът се строи над канала между езерото и морето.' };
+    if (ter !== 'canal') return { ok: false, why: tr('Мостът се строи над канала между езерото и морето.', 'The bridge is built over the canal between the lake and the sea.') };
   } else if (!BUILDABLE.has(ter)) {
     const why = {
-      sea: 'Тук е Черно море.',
-      lake: 'Това е Варненското езеро.',
-      canal: 'Това е канал за корабите. Над него може да мине само Аспаруховият мост.',
-      beach: 'Плажът е за всички — тук не строим.',
+      sea: tr('Тук е Черно море.', 'This is the Black Sea.'),
+      lake: tr('Това е Варненското езеро.', 'This is Lake Varna.'),
+      canal: tr('Това е канал за корабите. Над него може да мине само Аспаруховият мост.', 'This is a canal for ships. Only the Asparuhov Bridge can cross it.'),
+      beach: tr('Плажът е за всички — тук не строим.', 'The beach is for everyone — we do not build here.'),
     }[ter];
     return { ok: false, why };
   }
   if (def.needs === 'sea' && !D4.some(([di, dj]) => inside(i + di, j + dj) && s.terrain[idx(i + di, j + dj)] === 'sea')) {
-    return { ok: false, why: 'Това се строи на брега, точно до морето — там, където няма плаж.' };
+    return { ok: false, why: tr('Това се строи на брега, точно до морето — там, където няма плаж.', 'This is built on the shore, right next to the sea, where there is no beach.') };
   }
   if (def.needs === 'beach' && !near(s, i, j, 2, x => x === 'beach')) {
-    return { ok: false, why: 'Хотелът трябва да е близо до плажа.' };
+    return { ok: false, why: tr('Хотелът трябва да е близо до плажа.', 'The hotel must be close to the beach.') };
   }
-  if (def.landmark && s.b.includes(t)) return { ok: false, why: 'Тази забележителност вече е построена. Във Варна има само една!' };
-  if (s.money < def.cost) return { ok: false, why: `Нямаш достатъчно пари. Трябват ти ${def.cost} €.` };
+  if (def.landmark && s.b.includes(t)) return { ok: false, why: tr('Тази забележителност вече е построена. Във Варна има само една!', 'This landmark has already been built. Varna has only one!') };
+  if (s.money < def.cost) return { ok: false, why: tr(`Нямаш достатъчно пари. Трябват ти ${def.cost} €.`, `You do not have enough money. You need €${def.cost}.`) };
   return { ok: true };
 }
 

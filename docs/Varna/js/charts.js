@@ -7,9 +7,11 @@ export const COLORS = {
   text: '#1d2b36', muted: '#5d6f7c', surface: '#fcfcfb',
 };
 
+import { tr, EN } from './i18n.js';
+
 const NS = 'http://www.w3.org/2000/svg';
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-export const fmt = v => (v === null || v === undefined || Number.isNaN(v) ? '—' : Math.round(v).toLocaleString('bg-BG'));
+export const fmt = v => (v === null || v === undefined || Number.isNaN(v) ? '—' : Math.round(v).toLocaleString(EN ? 'en-GB' : 'bg-BG'));
 
 function niceTicks(min, max, n = 4) {
   if (min === max) { max = min + 1; }
@@ -97,8 +99,8 @@ export function lineChart({ title, series, xLabels, unit = '', yMin = null, yMax
   svg += `<rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent" class="viz-hit"/></svg>`;
 
   const legend = strong.length >= 2
-    ? `<div class="viz-legend">${strong.map(s => `<span><i style="background:${s.color || COLORS.s1}"></i>${esc(s.name)}</span>`).join('')}${faint.length ? `<span><i style="background:${COLORS.faint}"></i>всеки ученик</span>` : ''}</div>`
-    : faint.length ? `<div class="viz-legend"><span><i style="background:${strong[0]?.color || COLORS.s1}"></i>${esc(strong[0]?.name || '')}</span><span><i style="background:${COLORS.faint}"></i>всеки ученик</span></div>` : '';
+    ? `<div class="viz-legend">${strong.map(s => `<span><i style="background:${s.color || COLORS.s1}"></i>${esc(s.name)}</span>`).join('')}${faint.length ? `<span><i style="background:${COLORS.faint}"></i>${tr('всеки ученик', 'each student')}</span>` : ''}</div>`
+    : faint.length ? `<div class="viz-legend"><span><i style="background:${strong[0]?.color || COLORS.s1}"></i>${esc(strong[0]?.name || '')}</span><span><i style="background:${COLORS.faint}"></i>${tr('всеки ученик', 'each student')}</span></div>` : '';
 
   const el = document.createElement('figure');
   el.className = 'viz';
