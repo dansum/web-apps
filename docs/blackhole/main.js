@@ -1749,7 +1749,8 @@ function buildWorld(cfg) {
     else if (INDOOR[theme]) {
       world.L = 26 + cycle * 4;
       const k = (world.L / 24) ** 2, counts = {};
-      for (const c of INDOOR[theme].cats) counts[c.id] = Math.round(c.max * 0.75 * k);
+      const dens = theme === 'school' ? 0.55 : 0.75; // бюрото беше твърде гъсто и трудно
+      for (const c of INDOOR[theme].cats) counts[c.id] = Math.round(c.max * dens * k);
       layoutIndoor(theme, world.L, counts);
     }
     else if (theme === 'cubes') {
@@ -1760,7 +1761,7 @@ function buildWorld(cfg) {
     }
     else layoutCity(theme === 'city' ? 40 + cycle * 6 : 46 + cycle * 6, theme);
     rng = Math.random;
-    world.growMul = computeGrowMul();
+    world.growMul = Math.max(computeGrowMul(), (theme === 'school' || singleWorld(cfg) === 'school') ? 1.7 : 1);
     player = makeHole(PLAYER_NAMES, PLAYER_COLOR, world.start ? world.start.x : 0, world.start ? world.start.z : theme === 'park' ? 9 : 0, startR(), false);
   } else if (cfg.kind === 'single') {
     theme = 'single';
@@ -1769,14 +1770,14 @@ function buildWorld(cfg) {
     const wk = singleWorld(cfg);
     if (wk === 'cubes') layoutCubes(world.L, cfg.counts); else if (INDOOR[wk]) layoutIndoor(wk, world.L, cfg.counts); else layoutCustom(world.L, cfg.counts);
     rng = Math.random;
-    world.growMul = computeGrowMul();
+    world.growMul = Math.max(computeGrowMul(), (theme === 'school' || singleWorld(cfg) === 'school') ? 1.7 : 1);
     player = makeHole(PLAYER_NAMES, PLAYER_COLOR, world.start ? world.start.x : 0, world.start ? world.start.z : 0, startR(), false);
   } else {
     theme = 'battle';
     rng = mulberry32(cfg.seed);
     layoutCity(48, R() < 0.5 ? 'city' : 'downtown');
     rng = Math.random;
-    world.growMul = computeGrowMul();
+    world.growMul = Math.max(computeGrowMul(), (theme === 'school' || singleWorld(cfg) === 'school') ? 1.7 : 1);
     const L = world.L;
     const R0 = 0.9 + 0.04 * save.up.size;
     player = makeHole(PLAYER_NAMES, PLAYER_COLOR, 0, 0, R0, false);
