@@ -152,8 +152,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "pliska",
+          review: true,
           video: null,
           scene: {
             objects: [
