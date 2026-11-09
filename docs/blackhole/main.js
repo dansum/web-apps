@@ -116,6 +116,7 @@ const I18N = {
     cat_s_tools: 'Пособия', catd_s_tools: 'линийки, ножици, калкулатори, телбоди',
     cat_s_books: 'Книги и тетрадки', catd_s_books: 'тетрадки, книги, несесери',
     cat_s_big: 'Големи', catd_s_big: 'глобус, лампа, лаптоп, раница',
+    cat_s_snack: 'Десерти и зеленчуци', catd_s_snack: 'бонбони, бисквити, мъфини, понички, домати, моркови, броколи…',
     cat_t_small: 'Дребни играчки', catd_t_small: 'топчета, лего, кубчета, зарове, патета',
     cat_t_balls: 'Топки', catd_t_balls: 'от топче до плажна топка',
     cat_t_cars: 'Колички и влакчета', catd_t_cars: 'колички, камиони, влакче',
@@ -191,6 +192,7 @@ const I18N = {
     cat_s_tools: 'Tools', catd_s_tools: 'rulers, scissors, calculators, staplers',
     cat_s_books: 'Books & notebooks', catd_s_books: 'notebooks, books, pencil cases',
     cat_s_big: 'Big items', catd_s_big: 'globe, lamp, laptop, backpack',
+    cat_s_snack: 'Sweets & veggies', catd_s_snack: 'candy, cookies, cupcakes, donuts, tomatoes, carrots, broccoli…',
     cat_t_small: 'Small toys', catd_t_small: 'marbles, LEGO, blocks, dice, ducks',
     cat_t_balls: 'Balls', catd_t_balls: 'from marbles to beach balls',
     cat_t_cars: 'Cars & trains', catd_t_cars: 'toy cars, trucks, a train',
@@ -605,6 +607,17 @@ Object.assign(T, {
   shelf: { r: 3.0, nv: 2, b(L) { for (const x of [-2.5, 2.5]) for (const z of [-0.6, 0.6]) Bx(L, '#f97316', 0.12, 4.2, 0.12, x, 0, z); for (const y of [0.3, 1.6, 2.9, 4.1]) Bx(L, '#64748b', 5.1, 0.1, 1.3, 0, y); for (const y of [0.4, 1.7, 3.0]) for (let i = 0; i < 4; i++) Bx(L, pick(['#c8955a', '#b98546', '#e5e7eb', '#1f2937']), 1.0, 0.9 + R() * 0.25, 1.0, -1.8 + i * 1.2, y); } },
 });
 
+// Зеленчуци (и за бюрото, между учебните пособия)
+Object.assign(T, {
+  tomato: { r: 0.35, nv: 2, b(L) { Ba(L, '#dc2626', 0.32, 0, 0.28, 0, 0.85, G.ico1); for (let i = 0; i < 5; i++) part(L, G.box, '#15803d', Math.cos(i * 1.256) * 0.08, 0.55, Math.sin(i * 1.256) * 0.08, 0.16, 0.03, 0.05, 0, -i * 1.256, 0); } },
+  carrot: { r: 0.55, nv: 2, b(L) { lie(L, '#f97316', 0.14, 0.7, 0, 0.14, 0, G.cone6); part(L, G.cone, '#f97316', 0.45, 0.14, 0, 0.14, 0.3, 0.14, 0, 0, -PI / 2); for (const a of [-0.4, 0, 0.4]) part(L, G.box, '#16a34a', -0.5, 0.18, a * 0.3, 0.35, 0.04, 0.06, 0, a, 0); } },
+  cucumber: { r: 0.55, nv: 1, b(L) { lie(L, '#15803d', 0.16, 0.95); Ba(L, '#15803d', 0.16, 0.48, 0.16, 0, 1, G.sph); Ba(L, '#15803d', 0.16, -0.48, 0.16, 0, 1, G.sph); } },
+  pepper: { r: 0.4, nv: 3, b(L) { Ba(L, pick(['#dc2626', '#facc15', '#16a34a']), 0.33, 0, 0.35, 0, 1.05, G.ico1); Cy(L, '#3f6212', 0.05, 0.18, 0, 0.66, 0); } },
+  broccoli: { r: 0.5, nv: 1, b(L) { Cy(L, '#84cc16', 0.12, 0.35); for (let i = 0; i < 6; i++) Ba(L, '#166534', 0.2, Math.cos(i) * 0.2, 0.5 + (i % 2) * 0.08, Math.sin(i) * 0.2, 1, G.ico1); Ba(L, '#15803d', 0.22, 0, 0.62, 0, 1, G.ico1); } },
+  corn: { r: 0.6, nv: 1, b(L) { lie(L, '#facc15', 0.17, 0.9); part(L, G.cone, '#facc15', 0.52, 0.17, 0, 0.17, 0.2, 0.17, 0, 0, -PI / 2); part(L, G.box, '#65a30d', -0.35, 0.22, 0.12, 0.6, 0.04, 0.18, 0, 0.3, 0); part(L, G.box, '#65a30d', -0.35, 0.22, -0.12, 0.6, 0.04, 0.18, 0, -0.3, 0); } },
+  eggplant: { r: 0.55, nv: 1, b(L) { part(L, G.ico1, '#6b21a8', 0.05, 0.22, 0, 0.5, 0.22, 0.24); Cy(L, '#3f6212', 0.08, 0.1, -0.5, 0.18, 0); } },
+});
+
 // Светове на закрито: повърхност, фон и категории (types: от малки към големи)
 const INDOOR = {
   food: { bg: '#f3e3cc', margin: '#8b5a2b', cats: [
@@ -620,6 +633,7 @@ const INDOOR = {
     { id: 's_tools', ic: '📐', types: ['ruler', 'scissors', 'calculator', 'stapler', 'tape', 'pencilcup'], max: 48 },
     { id: 's_books', ic: '📚', types: ['notebook', 'book', 'pencilcase', 'bookstack'], max: 36 },
     { id: 's_big', ic: '🎒', types: ['globe', 'lamp', 'laptop', 'backpack'], max: 15 },
+    { id: 's_snack', ic: '🥕', types: ['candy', 'cookie', 'tomato', 'pepper', 'cupcake', 'donut', 'broccoli', 'carrot', 'cucumber', 'eggplant', 'corn'], max: 75, small: true },
   ] },
   toys: { bg: '#dbeafe', margin: '#9a6b3c', cats: [
     { id: 't_small', ic: '🧱', types: ['marble', 'lego', 'toyblock', 'dice', 'duck'], max: 135, small: true },
@@ -668,6 +682,7 @@ const rOf = (tp) => (T[tp] ? T[tp].r : PREFABS[tp].r);
 // Подредени светове: предметите се нареждат в редици, групирани по вид (като на витрина / в склад).
 const ORDERED = {
   food: { gap: (r) => 0.15 + r * 0.2, typeGap: 0.5, rowGap: 0.35, catGap: 1.8 },
+  school: { gap: (r) => 0.35 + r * 0.25, typeGap: 0.7, rowGap: 0.6, catGap: 2.2, jitter: 0.35, mix: 's_snack' },
   tech: { gap: (r) => 0.25 + r * 0.12, typeGap: 0.6, rowGap: 0.7, catGap: 2.6 },
 };
 function planRows(L, cats, counts, o) {
@@ -721,7 +736,7 @@ function layoutIndoor(kind, L, counts) {
     for (let k = 0; k < 6; k++) {
       const st0 = Math.floor(seed() * 1e9);
       rng = mulberry32(st0);
-      res = planRows(L, def.cats.filter((c) => !c.scatter), cnt, ORDERED[kind]);
+      res = planRows(L, def.cats.filter((c) => !c.scatter && c.id !== ORDERED[kind].mix), cnt, ORDERED[kind]);
       if (res.H <= room) break;
       const f = (room / res.H) * 0.97;
       for (const id in cnt) cnt[id] = cnt[id] > 0 ? Math.max(1, Math.floor(cnt[id] * f)) : 0;
@@ -732,7 +747,7 @@ function layoutIndoor(kind, L, counts) {
     const m = L - 0.8;
     for (const b of blocks) {
       if (kind === 'food') { P.rect(-m, b.z0 - 0.4, m, b.z1 + 0.4, 'rgba(255,253,247,.92)'); P.line(-m, b.z0 - 0.4, m, b.z0 - 0.4, 0.08, '#d6d3d1'); P.line(-m, b.z1 + 0.4, m, b.z1 + 0.4, 0.08, '#d6d3d1'); }
-      else { P.g.strokeStyle = '#facc15'; P.g.lineWidth = 0.18 * P.ppu; P.g.strokeRect(P.X(-m), P.X(b.z0 - 0.5), 2 * m * P.ppu, (b.z1 - b.z0 + 1) * P.ppu); }
+      else if (kind === 'tech') { P.g.strokeStyle = '#facc15'; P.g.lineWidth = 0.18 * P.ppu; P.g.strokeRect(P.X(-m), P.X(b.z0 - 0.5), 2 * m * P.ppu, (b.z1 - b.z0 + 1) * P.ppu); }
     }
     if (kind === 'tech') for (let i = 1; i < blocks.length; i++) { const zc = (blocks[i - 1].z1 + blocks[i].z0) / 2; P.line(-L, zc, L, zc, 0.12, '#f8fafc', [1.2, 1.2]); }
     finishGround(cv, E, true);
@@ -752,7 +767,20 @@ function layoutIndoor(kind, L, counts) {
       }
     }
     const hitsPile = (x, z, r) => piles.some((p) => (p.x - x) ** 2 + (p.z - z) ** 2 < (p.r + r * 0.8 + 0.3) ** 2);
-    for (const it of plan) { if (!hitsPile(it.x, it.z, rOf(it.tp))) spawn(it.tp, it.x, it.z, 0, { force: true }); }
+    const o = ORDERED[kind];
+    for (const it of plan) {
+      if (hitsPile(it.x, it.z, rOf(it.tp))) continue;
+      const j = o.jitter || 0;
+      spawn(it.tp, it.x + RR(-j, j) * 0.4, it.z + RR(-j, j) * 0.4, j ? RR(-j, j) : 0, { force: true });
+    }
+    // „mix“: десертите и зеленчуците се пръсват в празните места между пособията
+    if (o.mix) {
+      const c = def.cats.find((x) => x.id === o.mix);
+      for (let i = 0; i < (counts[c.id] || 0); i++) {
+        const tp = pick(c.types);
+        for (let t = 0; t < 30; t++) if (spawn(tp, RR(-L + 1.5, L - 1.5), RR(-L + 1.5, L - 1.5))) break;
+      }
+    }
     if (structs.length) finishCubes();
     // започни в пътеката между първите две групи (на място без купчина)
     if (blocks.length > 1) {
@@ -1721,7 +1749,8 @@ function buildWorld(cfg) {
     else if (INDOOR[theme]) {
       world.L = 26 + cycle * 4;
       const k = (world.L / 24) ** 2, counts = {};
-      for (const c of INDOOR[theme].cats) counts[c.id] = Math.round(c.max * 0.75 * k);
+      const dens = theme === 'school' ? 0.55 : 0.75; // бюрото беше твърде гъсто и трудно
+      for (const c of INDOOR[theme].cats) counts[c.id] = Math.round(c.max * dens * k);
       layoutIndoor(theme, world.L, counts);
     }
     else if (theme === 'cubes') {
@@ -1732,7 +1761,7 @@ function buildWorld(cfg) {
     }
     else layoutCity(theme === 'city' ? 40 + cycle * 6 : 46 + cycle * 6, theme);
     rng = Math.random;
-    world.growMul = computeGrowMul();
+    world.growMul = Math.max(computeGrowMul(), (theme === 'school' || singleWorld(cfg) === 'school') ? 1.7 : 1);
     player = makeHole(PLAYER_NAMES, PLAYER_COLOR, world.start ? world.start.x : 0, world.start ? world.start.z : theme === 'park' ? 9 : 0, startR(), false);
   } else if (cfg.kind === 'single') {
     theme = 'single';
@@ -1741,14 +1770,14 @@ function buildWorld(cfg) {
     const wk = singleWorld(cfg);
     if (wk === 'cubes') layoutCubes(world.L, cfg.counts); else if (INDOOR[wk]) layoutIndoor(wk, world.L, cfg.counts); else layoutCustom(world.L, cfg.counts);
     rng = Math.random;
-    world.growMul = computeGrowMul();
+    world.growMul = Math.max(computeGrowMul(), (theme === 'school' || singleWorld(cfg) === 'school') ? 1.7 : 1);
     player = makeHole(PLAYER_NAMES, PLAYER_COLOR, world.start ? world.start.x : 0, world.start ? world.start.z : 0, startR(), false);
   } else {
     theme = 'battle';
     rng = mulberry32(cfg.seed);
     layoutCity(48, R() < 0.5 ? 'city' : 'downtown');
     rng = Math.random;
-    world.growMul = computeGrowMul();
+    world.growMul = Math.max(computeGrowMul(), (theme === 'school' || singleWorld(cfg) === 'school') ? 1.7 : 1);
     const L = world.L;
     const R0 = 0.9 + 0.04 * save.up.size;
     player = makeHole(PLAYER_NAMES, PLAYER_COLOR, 0, 0, R0, false);
