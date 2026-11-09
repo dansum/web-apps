@@ -2,7 +2,9 @@
 // Стъпки: опознай → пусни водата по акведукта (опит) → за какво е всяка сграда → предскажи: театърът днес.
 import { createStage, cornerMenu, labelSprite, mat, addHitBox, THREE, esc } from '../kit.js';
 import { createShell, stepScore } from './shell.js';
-import { column, house, person, wander } from './hist/antiquity.js';
+import { person, wander } from './hist/antiquity.js';
+import { romanTheatre, amphitheatre, baths as bathsModel, archGeo, M } from './hist/architecture.js';
+import { courtyardHouse } from './hist/thrace.js';
 
 const SPOTS = [
   { id: 'theatre', label: 'Античният театър в Пловдив', icon: '🎭',
@@ -28,42 +30,6 @@ const PREDICT = [
   { t: 'За гладиаторски борби.', ok: false, why: 'Гладиаторските борби са в амфитеатъра, не в театъра. И днес не се провеждат.' },
 ];
 
-function theatreModel() {
-  const g = new THREE.Group();
-  // Седалките се издигат стъпаловидно назад (половин кръг), сцената е отпред.
-  const prof = [[0.5, 0]];
-  for (let i = 0; i < 5; i++) { const r = 0.5 + i * 0.22, h = 0.1 + i * 0.12; prof.push([r, h], [r + 0.22, h]); }
-  prof.push([1.6, 0], [0.5, 0]);
-  const seats = new THREE.Mesh(new THREE.LatheGeometry(prof.map(([x, y]) => new THREE.Vector2(x, y)), 28, Math.PI / 2, Math.PI), mat(0xeee6d3, { side: THREE.DoubleSide }));
-  g.add(seats);
-  const scene = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.7, 0.18), mat(0xe2d6bc));
-  scene.position.set(0, 0.35, 0.45);
-  g.add(scene);
-  for (let i = 0; i < 5; i++) { const c = column(0.5, 0.04); c.position.set(-0.7 + i * 0.35, 0, 0.32); g.add(c); }
-  return g;
-}
-function amphiModel() {
-  const g = new THREE.Group();
-  const ring = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.1, 0.5, 32, 1, true), mat(0xd8c7a3, { side: THREE.DoubleSide }));
-  ring.scale.z = 0.7; ring.position.y = 0.25;
-  const arena = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, 0.04, 32), mat(0xe8d59c));
-  arena.scale.z = 0.7; arena.position.y = 0.02;
-  g.add(ring, arena);
-  return g;
-}
-function bathsModel() {
-  const g = new THREE.Group();
-  const b = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.5, 0.8), mat(0xe9dcc2));
-  b.position.y = 0.25;
-  const dome = new THREE.Mesh(new THREE.SphereGeometry(0.35, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), mat(0xc96d43));
-  dome.position.y = 0.5;
-  const pool = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.05, 0.4), mat(0x6fb3dc));
-  pool.position.set(0, 0.03, 0.62);
-  g.add(b, dome, pool);
-  g.userData.pool = pool;
-  return g;
-}
-
 export function mount(container, { onComplete }) {
   const shell = createShell(container, { steps: ['Опознай', 'Пусни водата', 'За какво е сградата?', 'Предскажи'] });
   const aspect = (shell.stageEl.clientWidth || 600) / (shell.stageEl.clientHeight || 400);
@@ -71,20 +37,23 @@ export function mount(container, { onComplete }) {
   const VIEW = [[0, 6.5 * far, 8.6 * far], [0, 0.4, far > 1 ? 1.2 : 0.5]];
   const stage = createStage(shell.stageEl, { background: 0xd4e8f5, camPos: VIEW[0], target: VIEW[1], maxDistance: 30 });
   const { scene } = stage;
-  const ground = new THREE.Mesh(new THREE.BoxGeometry(14, 0.1, 10), mat(0xcbbf92));
+  const ground = new THREE.Mesh(new THREE.BoxGeometry(14, 0.1, 10), M(0xf2e6c2, { tex: 'sand', rep: [10, 7] }));
   ground.position.set(0, -0.05, 0.5);
   scene.add(ground);
   // Планина с извор (вляво отзад).
-  const mount3 = new THREE.Mesh(new THREE.ConeGeometry(1.6, 2.4, 7), mat(0x8fa36e, { flat: true }));
+  const mount3 = new THREE.Mesh(new THREE.ConeGeometry(1.6, 2.4, 9), M(0x9fb07a, { tex: 'rock', rep: [3, 2], flat: true }));
   mount3.position.set(-5.2, 1.2, -3.2);
   scene.add(mount3);
 
   const spots = new Map();
   const addSpot = (id, obj, x, z, ry = 0) => { obj.position.set(x, 0, z); obj.rotation.y = ry; obj.userData.pickId = id; addHitBox(obj, 1.0); scene.add(obj); spots.set(id, obj); return obj; };
-  addSpot('theatre', theatreModel(), -0.4, -1.9);
-  addSpot('amphi', amphiModel(), 2.6, -1.8);
+  addSpot('theatre', romanTheatre(), -0.4, -1.9, Math.PI);
+  addSpot('amphi', amphitheatre(), 2.6, -1.8);
   const baths = addSpot('baths', bathsModel(), 1.6, 1.0);
-  const villa = house({ w: 1.0, d: 0.8, h: 0.45, wall: 0xf0e4c8 });
+  const villa = courtyardHouse({ w: 1.3, d: 1.1, h: 0.5 });
+  // Подова мозайка в двора на вилата (Армира е прочута с мозайките си).
+  const mos = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.42), new THREE.MeshStandardMaterial({ map: (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'); x.fillStyle = '#efe6d2'; x.fillRect(0, 0, 128, 128); for (let i = 0; i < 4; i++) { x.strokeStyle = ['#7a2f22', '#2f4f86', '#c9a227', '#2f6b3a'][i]; x.lineWidth = 6; x.strokeRect(8 + i * 12, 8 + i * 12, 112 - i * 24, 112 - i * 24); } x.fillStyle = '#7a2f22'; x.beginPath(); x.arc(64, 64, 10, 0, 7); x.fill(); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })() }));
+  mos.rotation.x = -Math.PI / 2; mos.position.set(0, 0.025, 0.3); villa.add(mos);
   addSpot('villa', villa, 4.2, 0.9);
 
   // Акведукт: арки от планината до града; изворът е на регулируема височина.
@@ -94,10 +63,19 @@ export function mount(container, { onComplete }) {
   const N = 7;
   const piers = [];
   for (let i = 0; i < N; i++) {
-    const p = new THREE.Mesh(new THREE.BoxGeometry(0.16, 1, 0.16), mat(0xd9c9a6));
+    const p = new THREE.Mesh(new THREE.BoxGeometry(0.16, 1, 0.16), M(0xffffff, { tex: 'limestone', rep: [0.4, 2] }));
     aq.add(p); piers.push(p);
   }
-  const channel = new THREE.Mesh(new THREE.BoxGeometry(1, 0.08, 0.2), mat(0xc9b78f));
+  // Арки между опорите: истински полукръгли отвори, както при римските акведукти.
+  const segLen = A.distanceTo(B) / (N - 1);
+  const ARCH_H = 0.42;
+  const arches = [];
+  for (let i = 0; i < N - 1; i++) {
+    const a2 = new THREE.Mesh(archGeo(+(segLen + 0.16).toFixed(3), ARCH_H, 0.16, 0.72), M(0xffffff, { tex: 'limestone', rep: [1, 0.5] }));
+    a2.rotation.y = -Math.atan2(B.z - A.z, B.x - A.x);
+    aq.add(a2); arches.push(a2);
+  }
+  const channel = new THREE.Mesh(new THREE.BoxGeometry(1, 0.08, 0.2), M(0xffffff, { tex: 'brick', rep: [8, 0.3] }));
   aq.add(channel);
   const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.3, 16), mat(0xbfae88));
   tank.position.set(B.x, 0.15, B.z);
@@ -117,6 +95,12 @@ export function mount(container, { onComplete }) {
       const p = piers[i];
       p.scale.y = h; p.position.set(A.x + (B.x - A.x) * t, h / 2, A.z + (B.z - A.z) * t);
     }
+    arches.forEach((a2, i) => {
+      const t = (i + 0.5) / (N - 1);
+      const h = srcH + (DEST_H - srcH) * t;
+      a2.position.set(A.x + (B.x - A.x) * t, Math.max(0, h - ARCH_H), A.z + (B.z - A.z) * t);
+      a2.visible = h > ARCH_H * 0.9;
+    });
     const len = A.distanceTo(B);
     channel.scale.x = len;
     channel.position.set((A.x + B.x) / 2, (srcH + DEST_H) / 2 + 0.04, (A.z + B.z) / 2);
@@ -134,11 +118,11 @@ export function mount(container, { onComplete }) {
       d.position.set(A.x + (B.x - A.x) * k, srcH + (DEST_H - srcH) * k + 0.12, A.z + (B.z - A.z) * k);
     });
     if (flowing && tankWater.position.y < 0.28) tankWater.position.y += dt * 0.05;
-    baths.userData.pool.material.color.setHSL(0.56, 0.6, 0.6 + Math.sin(t * 2) * 0.03);
+    baths.userData.smoke.forEach((m, i) => { const k = (t * 0.25 + i / 5) % 1; m.position.y = 0.35 + k * 0.7; m.material.opacity = 0.45 * (1 - k); m.scale.setScalar(0.7 + k); });
   });
 
   const walkers = [];
-  for (let i = 0; i < 5; i++) { const p = person(i % 2 ? 'citizen' : 'woman'); p.position.set(-0.4 + i * 0.7, 0, 2.6); scene.add(p); walkers.push(p); }
+  for (let i = 0; i < 5; i++) { const p = person(i % 2 ? 'citizen' : 'woman', { scale: 0.6 }); p.position.set(-0.4 + i * 0.7, 0, 2.6); scene.add(p); walkers.push(p); }
   wander(stage, walkers, { r: 0.6, speed: 0.3 });
 
   let tip = null;
@@ -269,7 +253,7 @@ export function mount(container, { onComplete }) {
       if (!p.ok) { mistakes++; b.disabled = true; shell.msg(p.why, 'bad'); return; }
       scores.push(stepScore(mistakes, 2));
       const crowd = [];
-      for (let i = 0; i < 8; i++) { const q = person(i % 3 ? 'citizen' : 'woman', { scale: 0.6 }); const a = Math.PI * (0.62 + i * 0.1); const r = i % 2 ? 1.05 : 0.83; const th = spots.get('theatre').position; q.position.set(th.x + Math.sin(a) * r, i % 2 ? 0.34 : 0.22, th.z + Math.cos(a) * r); scene.add(q); crowd.push(q); extra.push(q); }
+      for (let i = 0; i < 8; i++) { const q = person(i % 3 ? 'citizen' : 'woman', { scale: 0.6 }); const a = Math.PI * (0.62 + i * 0.1); const r = i % 2 ? 1.05 : 0.83; const th = spots.get('theatre').position; q.position.set(th.x - Math.sin(a) * r, i % 2 ? 0.29 : 0.2, th.z - Math.cos(a) * r); q.rotation.y = Math.PI; scene.add(q); crowd.push(q); extra.push(q); }
       say(spots.get('theatre'), '<b>Така и става.</b> Театърът е открит и възстановен през ХХ век. Днес в него отново има представления и концерти — почти 2000 години по-късно!', { cls: 'good wide', lift: 1.4 });
       shell.msg('Вярно предсказание!', 'good');
       const n = shell.setControls('<button class="btn primary">Виж резултата</button>');

@@ -1,78 +1,81 @@
 // Модели за тракийски град: стена, кула, къща с двор, дворец, работилници, стоки, домашни животни.
 // Всичко е от прости тела (нисък полигон), за да върви и на слаб компютър.
 import { mat, THREE } from '../../kit.js';
+import { crenellatedWall, towerDetailed, gableRoof, column, steps, M } from './architecture.js';
 
 const STONE = 0x9c9486, MUD = 0xcfae7f, TILE = 0xa8532f, WOOD = 0x6b4f36;
 
-// Стена: каменна основа и горна част от кирпич (непечени тухли).
-export function wallSegment(len, { h = 1.1, t = 0.35 } = {}) {
-  const g = new THREE.Group();
-  const base = new THREE.Mesh(new THREE.BoxGeometry(len, h * 0.4, t), mat(STONE, { flat: true }));
-  base.position.y = h * 0.2;
-  const top = new THREE.Mesh(new THREE.BoxGeometry(len, h * 0.6, t * 0.9), mat(MUD));
-  top.position.y = h * 0.7;
-  g.add(base, top);
-  return g;
-}
-export function tower({ s = 0.8, h = 1.6 } = {}) {
-  const g = new THREE.Group();
-  const b = new THREE.Mesh(new THREE.BoxGeometry(s, h * 0.35, s), mat(STONE, { flat: true }));
-  b.position.y = h * 0.175;
-  const t = new THREE.Mesh(new THREE.BoxGeometry(s * 0.95, h * 0.65, s * 0.95), mat(MUD));
-  t.position.y = h * 0.35 + h * 0.325;
-  g.add(b, t);
-  return g;
-}
+// Стена: каменна основа, горна част от кирпич (непечени тухли) и зъбци.
+export function wallSegment(len, { h = 1.1, t = 0.35 } = {}) { return crenellatedWall(len, { h, t }); }
+export function tower({ s = 0.8, h = 1.6 } = {}) { return towerDetailed({ s, h }); }
 
-// Къща с двор: стаи от три страни, керемиден покрив, огнище в двора.
+// Къща с двор: стаи от три страни с каменна основа, стени от кирпич, едноскатни керемидени покриви,
+// дървени греди и врати; в двора огнище, питос за зърно и стан за тъкане.
 export function courtyardHouse({ w = 2.0, d = 1.8, h = 0.75 } = {}) {
   const g = new THREE.Group();
   const walls = [];
-  const room = (x, z, rw, rd) => {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(rw, h, rd), mat(MUD));
+  const wallM = M(0xffffff, { tex: 'mudbrick', rep: [2, 1] });
+  const baseM = M(0xffffff, { tex: 'stone', rep: [2, 0.4] });
+  const tileM = M(0xffffff, { tex: 'tiles', rep: [3, 1] });
+  const wood = M(0x6b4f36);
+  // inward: посоката към двора (за наклона на покрива и вратата).
+  const room = (x, z, rw, rd, inward) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(rw, h, rd), wallM);
     m.position.set(x, h / 2, z);
-    const base = new THREE.Mesh(new THREE.BoxGeometry(rw + 0.04, 0.12, rd + 0.04), mat(STONE));
-    base.position.set(x, 0.06, z);
-    const roof = new THREE.Mesh(new THREE.BoxGeometry(rw + 0.12, 0.08, rd + 0.12), mat(TILE));
-    roof.position.set(x, h + 0.08, z);
-    roof.rotation.z = 0.0;
+    const base = new THREE.Mesh(new THREE.BoxGeometry(rw + 0.04, 0.14, rd + 0.04), baseM);
+    base.position.set(x, 0.07, z);
+    const roof = new THREE.Mesh(new THREE.BoxGeometry(rw + 0.16, 0.04, rd + 0.18), tileM);
+    roof.position.set(x, h + 0.09, z);
+    if (inward[0]) roof.rotation.z = -inward[0] * 0.28; else roof.rotation.x = inward[1] * 0.28;
     g.add(m, base, roof);
     walls.push(m, roof);
+    // Греда над вратата и врата към двора.
+    const door = new THREE.Mesh(new THREE.BoxGeometry(inward[0] ? 0.01 : 0.2, 0.36, inward[0] ? 0.2 : 0.01), wood);
+    door.position.set(x + inward[0] * (rw / 2 + 0.005), 0.32, z + inward[1] * (rd / 2 + 0.005));
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(inward[0] ? 0.03 : 0.3, 0.04, inward[0] ? 0.3 : 0.03), wood);
+    beam.position.set(door.position.x, 0.52, door.position.z);
+    g.add(door, beam);
   };
-  room(0, -d / 2 + 0.3, w, 0.6);                 // задни стаи
-  room(-w / 2 + 0.3, 0.15, 0.6, d - 0.9);        // лява стая
-  room(w / 2 - 0.3, 0.15, 0.6, d - 0.9);         // дясна стая
-  const yard = new THREE.Mesh(new THREE.BoxGeometry(w - 1.2, 0.02, d - 0.6), mat(0xc9b48a));
+  room(0, -d / 2 + 0.3, w, 0.6, [0, 1]);                // задни стаи
+  room(-w / 2 + 0.3, 0.15, 0.6, d - 0.9, [1, 0]);       // лява стая
+  room(w / 2 - 0.3, 0.15, 0.6, d - 0.9, [-1, 0]);       // дясна стая
+  // Ограда с порта към улицата.
+  for (const sx of [-1, 1]) { const f = new THREE.Mesh(new THREE.BoxGeometry((w - 0.5) / 2, 0.4, 0.08), wallM); f.position.set(sx * (w / 4 + 0.12), 0.2, d / 2 - 0.04); g.add(f); }
+  const yard = new THREE.Mesh(new THREE.BoxGeometry(w - 1.2, 0.02, d - 0.6), M(0xffffff, { tex: 'sand', rep: [2, 2] }));
   yard.position.set(0, 0.01, 0.3);
-  const hearth = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.16, 0.08, 12), mat(STONE));
+  const hearth = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.16, 0.08, 12), M(0xffffff, { tex: 'stone' }));
   hearth.position.set(0, 0.04, 0.2);
   const fire = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.18, 8), new THREE.MeshBasicMaterial({ color: 0xff9a2a }));
   fire.position.set(0, 0.16, 0.2);
-  const pithos = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.07, 0.3, 10), mat(0xb5683a));
-  pithos.position.set(0.25, 0.15, -0.05);
-  const loom = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.4, 0.04), mat(WOOD));
-  loom.position.set(-0.25, 0.2, -0.05);
+  const pithos = new THREE.Mesh(new THREE.LatheGeometry([[0.03, 0], [0.09, 0.05], [0.12, 0.16], [0.1, 0.28], [0.06, 0.32], [0.07, 0.34]].map(([a, b2]) => new THREE.Vector2(a, b2)), 14), mat(0xb5683a));
+  pithos.position.set(0.25, 0, -0.05);
+  const loom = new THREE.Group();
+  for (const lx of [-0.13, 0.13]) { const post = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.42, 0.03), wood); post.position.set(lx, 0.21, 0); loom.add(post); }
+  const bar = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.03, 0.03), wood); bar.position.y = 0.41; loom.add(bar);
+  const cloth = new THREE.Mesh(new THREE.PlaneGeometry(0.24, 0.26), mat(0xb0322b, { side: THREE.DoubleSide })); cloth.position.y = 0.27; loom.add(cloth);
+  loom.position.set(-0.25, 0, -0.05);
   g.add(yard, hearth, fire, pithos, loom);
   g.userData = { walls, fire };
   return g;
 }
 
-// Дворецът на Севт III: голяма сграда с колонада отпред, на отделно укрепено място.
+// Дворецът на Севт III: каменен цокъл, стени от кирпич, дорийска колонада отпред, покрив с керемиди, стъпала.
 export function palace() {
   const g = new THREE.Group();
-  const b = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.1, 1.8), mat(0xe1cfa6));
-  b.position.y = 0.55;
-  const roof = new THREE.Mesh(new THREE.ConeGeometry(2.2, 0.6, 4), mat(TILE));
-  roof.position.y = 1.4; roof.rotation.y = Math.PI / 4; roof.scale.set(1.05, 1, 0.62);
-  g.add(b, roof);
-  for (let i = 0; i < 6; i++) {
-    const c = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.9, 10), mat(0xf1ece0));
-    c.position.set(-1.25 + i * 0.5, 0.45, 1.05);
-    g.add(c);
-  }
-  const porch = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.08, 0.5), mat(TILE));
-  porch.position.set(0, 0.95, 1.05);
-  g.add(porch);
+  const st = steps(3.4, 2.1, { n: 2, h: 0.08, color: 0xd9cdb2 }); g.add(st);
+  const y0 = st.userData.top;
+  const sock = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.25, 1.8), M(0xffffff, { tex: 'stone', rep: [4, 0.5] }));
+  sock.position.y = y0 + 0.125; g.add(sock);
+  const b = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.9, 1.8), M(0xffffff, { tex: 'mudbrick', rep: [4, 1] }));
+  b.position.y = y0 + 0.25 + 0.45; g.add(b);
+  const roof = gableRoof(3.4, 2.0, 0.45); roof.position.y = y0 + 1.15; g.add(roof);
+  for (let i = 0; i < 8; i++) { const c = column('doric', { h: 0.95, r: 0.06 }); c.position.set(-1.45 + i * (2.9 / 7), y0, 1.12); g.add(c); }
+  const ent = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.12, 0.42), M(0xf2ede1)); ent.position.set(0, y0 + 1.01, 1.08); g.add(ent);
+  const porchRoof = new THREE.Mesh(new THREE.BoxGeometry(3.3, 0.04, 0.5), M(0xffffff, { tex: 'tiles', rep: [6, 1] })); porchRoof.position.set(0, y0 + 1.1, 1.12); porchRoof.rotation.x = 0.18; g.add(porchRoof);
+  const door = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.6, 0.02), M(0x5a3d22)); door.position.set(0, y0 + 0.55, 0.91); g.add(door);
+  // Светилище до двореца: малка кръгла постройка с олтар.
+  const altar = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.22, 0.3), M(0xffffff, { tex: 'marble' })); altar.position.set(2.1, 0.11, 0.9); g.add(altar);
+  const flame = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.14, 8), new THREE.MeshBasicMaterial({ color: 0xff9a2a })); flame.position.set(2.1, 0.29, 0.9); g.add(flame);
   return g;
 }
 

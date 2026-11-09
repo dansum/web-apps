@@ -6,6 +6,7 @@ import { person, wander } from './hist/antiquity.js';
 import { wallSegment, tower, courtyardHouse, palace, forge, potteryWheel, goldTable, amphora, paintedCup, coins, stall, animal, graze } from './hist/thrace.js';
 import { createWalk } from './hist/walk.js';
 import { createMap } from './hist/map.js';
+import { M } from './hist/architecture.js';
 
 const DUG = '<span class="small">Разкопано</span>';
 const REC = '<span class="small">Възстановка</span>';
@@ -66,11 +67,11 @@ export function mount(container, { onComplete }) {
   // Земя, река Тунджа, градът.
   const ground = new THREE.Mesh(new THREE.BoxGeometry(44, 0.1, 44), mat(0x9cb36b));
   ground.position.y = -0.06; scene.add(ground);
-  const city = new THREE.Mesh(new THREE.BoxGeometry(18.5, 0.02, 19), mat(0xc8b48a));
+  const city = new THREE.Mesh(new THREE.BoxGeometry(18.5, 0.02, 19), M(0xe8d8b0, { tex: 'sand', rep: [12, 12] }));
   city.position.set(0, 0, -0.2); scene.add(city);
   const river = new THREE.Mesh(new THREE.BoxGeometry(44, 0.03, 2.2), mat(0x5fa8d8));
   river.position.set(0, 0, 15.5); scene.add(river);
-  const street = (x, z, w, d) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, 0.025, d), mat(0xe2d3ab)); m.position.set(x, 0.01, z); scene.add(m); return m; };
+  const street = (x, z, w, d) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, 0.025, d), M(0xffffff, { tex: 'limestone', rep: [Math.max(1, Math.round(w)), Math.max(1, Math.round(d))] })); m.position.set(x, 0.01, z); scene.add(m); return m; };
   street(0, 1.5, 1.3, 16); named.cross = street(0, 0, 17, 1.2);
 
   // Стена: неправилен многоъгълник с порта на юг.

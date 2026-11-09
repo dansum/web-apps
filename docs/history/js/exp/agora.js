@@ -2,14 +2,15 @@
 // Стъпки: опознай → кой гласува в Атина (опит с извор-сцена) → подреди белезите → пренеси към днес.
 import { createStage, cornerMenu, labelSprite, mat, zoneRing, addHitBox, THREE, esc } from '../kit.js';
 import { createShell, stepScore } from './shell.js';
-import { temple, stoa, hill, house, person, wander } from './hist/antiquity.js';
+import { hill, person, wander } from './hist/antiquity.js';
+import { greekTemple, stoaDetailed, tholos, rockHill, statue, steps, gableRoof, column, M } from './hist/architecture.js';
 
 // Факти по програмата за V клас (Тема 4, 4.1.3 Спарта и Атина; 4.2.2 Всекидневието).
 const SPOTS = [
   { id: 'acropolis', label: 'Акропол и Партенон', icon: '🏛️',
-    note: 'На хълма Акропол е Партенонът — храм на богиня Атина, покровителка на града. Построен е при Перикъл, през V век пр.Хр.' },
+    note: 'На хълма Акропол е Партенонът — храм на богиня Атина, покровителка на града. Построен е при Перикъл, през V век пр.Хр. До него са Ерехтейонът с кариатидите, Пропилеите (входът на Акропола) и бронзовата статуя на Атина.' },
   { id: 'agora', label: 'Агората', icon: '🏺',
-    note: 'Агората е главният площад. Тук атиняните търгуват, срещат се и обсъждат новините.' },
+    note: 'Агората е главният площад. Тук атиняните търгуват, срещат се и обсъждат новините в покритите колонади (стои). Над нея е храмът на Хефест.' },
   { id: 'pnyx', label: 'Народното събрание', icon: '🗳️',
     note: 'На хълма Пникс се събират гражданите. Те гласуват законите и решават важните въпроси. Това е демокрация — власт на народа.' },
   { id: 'pericles', label: 'Перикъл', icon: '🗿',
@@ -42,7 +43,7 @@ const TRANSFER = [
 
 function pedestal(figure) {
   const g = new THREE.Group();
-  const p = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.35, 0.45), mat(0xe2dccd));
+  const p = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.35, 0.45), M(0xffffff, { tex: 'marble' }));
   p.position.y = 0.175;
   figure.position.y = 0.35;
   figure.scale.setScalar(1.3);
@@ -69,7 +70,7 @@ export function mount(container, { onComplete }) {
   const stage = createStage(shell.stageEl, { background: 0xcfe6f7, camPos: VIEW[0], target: VIEW[1], maxDistance: 30 });
   const { scene } = stage;
 
-  const ground = new THREE.Mesh(new THREE.BoxGeometry(14, 0.1, 10), mat(0xd8c9a3));
+  const ground = new THREE.Mesh(new THREE.BoxGeometry(14, 0.1, 10), M(0xffffff, { tex: 'sand', rep: [10, 7] }));
   ground.position.set(0, -0.05, 0.5);
   scene.add(ground);
   // Планини между двата града.
@@ -79,35 +80,65 @@ export function mount(container, { onComplete }) {
 
   const spots = new Map();
   const addSpot = (id, obj, x, z) => { obj.position.set(x, 0, z); obj.userData.pickId = id; addHitBox(obj, 0.9); scene.add(obj); spots.set(id, obj); return obj; };
-  // Атина
+  // Атина: Акрополът с Партенона, Пропилеите, Ерехтейона и статуята на Атина.
   const acro = new THREE.Group();
-  acro.add(hill({ r: 1.5, h: 0.8 }));
-  const parth = temple({ w: 1.8, d: 1.0, h: 0.7, cols: 6 });
-  parth.position.y = 0.8;
+  const rock = rockHill({ rx: 1.65, rz: 1.05, h: 0.8 });
+  acro.add(rock);
+  const parth = greekTemple({ w: 1.55, d: 0.7, h: 0.3, front: 8, side: 17 });
+  parth.position.set(0.25, 0.8, -0.1);
   acro.add(parth);
+  const erech = greekTemple({ w: 0.55, d: 0.32, h: 0.22, front: 6, side: 4, order: 'ionic', painted: false });
+  erech.position.set(-0.35, 0.8, 0.5);
+  acro.add(erech);
+  // Портикът на кариатидите: шест мраморни девойки вместо колони.
+  for (let i = 0; i < 6; i++) { const k = person('woman', { scale: 0.42 }); k.traverse((o) => { if (o.material) o.material = M(0xf2ede1); }); k.position.set(-0.5 + (i % 3) * 0.1, 0.86, 0.72 + Math.floor(i / 3) * 0.08); acro.add(k); }
+  const prop = new THREE.Group();
+  const pst = steps(0.32, 0.6, { n: 3, h: 0.04 }); prop.add(pst);
+  for (let i = 0; i < 6; i++) { const c = column('doric', { h: 0.26, r: 0.03 }); c.position.set(-0.13, 0.12, -0.25 + i * 0.1); prop.add(c); }
+  const pr = gableRoof(0.36, 0.68, 0.1); pr.position.y = 0.4; prop.add(pr);
+  prop.position.set(-1.25, 0.8, 0); acro.add(prop);
+  const athena = statue({ h: 0.42 }); athena.position.set(-0.75, 0.8, -0.1); acro.add(athena);
   addSpot('acropolis', acro, -3.6, -2.1);
-  addSpot('agora', stoa({ w: 2.4, h: 0.7, cols: 7 }), -3.4, 0.9);
+  // Агората: стоа, Хефестейонът на хълмче и кръглият Толос.
+  const agora = new THREE.Group();
+  agora.add(stoaDetailed({ w: 2.3, d: 0.75, h: 0.5, cols: 13 }));
+  const heph = greekTemple({ w: 0.95, d: 0.45, h: 0.24, front: 6, side: 13 });
+  const kol = rockHill({ rx: 0.65, rz: 0.4, h: 0.25, wall: false }); kol.position.set(1.7, 0, -0.9); agora.add(kol);
+  heph.position.set(1.7, 0.25, -0.9); agora.add(heph);
+  const th = tholos({ r: 0.3, h: 0.3 }); th.position.set(-1.5, 0, 0.75); agora.add(th);
+  addSpot('agora', agora, -3.4, 0.9);
+  // Пникс: стъпаловидна тераса с подпорна стена и ораторска трибуна (бема), изсечена в скалата.
   const pnyx = new THREE.Group();
-  pnyx.add(hill({ r: 1.0, h: 0.3, color: 0xc2b48a }));
-  const bema = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 0.3), mat(0xe2dccd));
-  bema.position.set(0, 0.45, -0.4);
+  const terr = rockHill({ rx: 1.05, rz: 0.8, h: 0.3 });
+  pnyx.add(terr);
+  const bema = new THREE.Group();
+  for (let i = 0; i < 3; i++) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.5 - i * 0.12, 0.08, 0.32 - i * 0.06), M(0xffffff, { tex: 'rock', flat: true })); b.position.y = 0.04 + i * 0.08; bema.add(b); }
+  bema.position.set(0, 0.3, -0.5);
   pnyx.add(bema);
   addSpot('pnyx', pnyx, -1.2, -0.7);
   addSpot('pericles', pedestal(person('citizen')), -1.9, 1.9);
-  // Спарта
-  for (const [x, z] of [[2.6, -2.4], [3.4, -2.0], [4.2, -2.5], [3.0, -1.3], [4.0, -1.2]]) { const h = house(); h.position.set(x, 0, z); scene.add(h); }
+  // Спарта: обикновени къщи от кирпич с керемидени покриви и храмът на Артемида Ортия.
+  for (const [x, z, r] of [[2.6, -2.4, 0], [3.4, -2.0, 0.4], [4.2, -2.5, -0.3], [3.0, -1.3, 0.2], [4.0, -1.2, 0]]) {
+    const hs = new THREE.Group();
+    const w = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.36, 0.5), M(0xffffff, { tex: 'mudbrick', rep: [2, 1] })); w.position.y = 0.18; hs.add(w);
+    const sock = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.08, 0.52), M(0xffffff, { tex: 'stone', rep: [2, 0.5] })); sock.position.y = 0.04; hs.add(sock);
+    const rf = gableRoof(0.7, 0.58, 0.18); rf.position.y = 0.36; hs.add(rf);
+    const dr = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.2, 0.01), M(0x5a3d22)); dr.position.set(0, 0.1, 0.255); hs.add(dr);
+    hs.position.set(x, 0, z); hs.rotation.y = r; scene.add(hs);
+  }
+  const orthia = greekTemple({ w: 0.7, d: 0.38, h: 0.22, front: 4, side: 6, painted: false }); orthia.position.set(4.6, 0, -0.1); orthia.rotation.y = Math.PI / 2; scene.add(orthia);
   addSpot('leonidas', pedestal(person('warrior')), 1.8, -0.4);
   const field = new THREE.Group();
-  const sand = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.04, 1.4), mat(0xe6d29a));
+  const sand = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.04, 1.4), M(0xfff0c8, { tex: 'sand', rep: [3, 2] }));
   sand.position.y = 0.02;
   field.add(sand);
   addSpot('agoge', field, 3.4, 0.7);
 
   // Живот: атиняни на агората, младежи се упражняват в Спарта.
   const walkers = [];
-  for (let i = 0; i < 4; i++) { const p = person(i === 2 ? 'woman' : 'citizen'); p.position.set(-3.8 + i * 0.6, 0, 1.5); scene.add(p); walkers.push(p); }
+  for (let i = 0; i < 4; i++) { const p = person(i === 2 ? 'woman' : 'citizen', { scale: 0.6 }); p.position.set(-3.8 + i * 0.6, 0, 1.5); scene.add(p); walkers.push(p); }
   const trainees = [];
-  for (let i = 0; i < 4; i++) { const p = person('warrior', { scale: 0.8 }); p.position.set(2.8 + (i % 2) * 1.1, 0.04, 0.4 + Math.floor(i / 2) * 0.6); scene.add(p); trainees.push(p); }
+  for (let i = 0; i < 4; i++) { const p = person('warrior', { scale: 0.6 }); p.position.set(2.8 + (i % 2) * 1.1, 0.04, 0.4 + Math.floor(i / 2) * 0.6); scene.add(p); trainees.push(p); }
   wander(stage, walkers, { r: 0.5, speed: 0.35 });
   wander(stage, trainees, { r: 0.25, speed: 1.2 });
 
