@@ -330,3 +330,11 @@ body.dropping .dropmsg { display: flex; }
   .demo-card { left: 8px; right: 8px; bottom: 8px; width: auto; padding: 10px 12px; }
   .demo-text { font-size: .88rem; margin: 4px 0 8px; }
 }
+
+/* Разходка (js/exp/hist/walk.js): навигация между спирките, долу в средата на сцената. */
+.walk-nav { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 6; display: flex; align-items: center; gap: 6px;
+  background: rgba(255, 255, 255, 0.94); border: 1px solid var(--line); border-radius: 999px; padding: 4px 6px; box-shadow: 0 2px 8px rgba(0,0,0,.12); max-width: calc(100% - 20px); }
+.walk-nav .btn { min-width: 40px; padding: 6px 10px; border-radius: 999px; }
+.walk-nav .wn-lbl { font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.walk-nav .wn-lbl small { font-weight: 400; color: #667; margin-left: 4px; }
+.walk-nav[hidden] { display: none; }
