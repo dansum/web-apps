@@ -37,7 +37,7 @@ function checkObjects(where, objs, { needNote = true } = {}) {
     if (!/^#[0-9a-fA-F]{6}$/.test(o.color || '')) err(w, 'color трябва да е #rrggbb');
     if (o.pos && (!Array.isArray(o.pos) || o.pos.length !== 3 || o.pos.some((v) => typeof v !== 'number' || Math.abs(v) > 4.5))) err(w, 'pos трябва да е [x,y,z] в −4…4');
     if (needNote && !o.note) err(w, 'липсва note');
-    if (o.note && o.note.length > 160) warn(w, `note е ${o.note.length} знака (до 140)`);
+    if (o.note && o.note.length > 140) warn(w, `note е ${o.note.length} знака (до 140)`);
   }
   return ids;
 }
@@ -47,9 +47,18 @@ function checkQuestion(where, q, objIds) {
   if (!q.q) err(where, 'липсва текст q');
   if (!q.explain) err(where, 'липсва explain');
   const n = q.choices?.length;
+  if (q.choices) {
+    const norm = q.choices.map((c) => String(c).trim().toLowerCase());
+    if (new Set(norm).size !== norm.length) warn(where, 'еднакви избори');
+  }
+  if (q.type === 'sort' && q.items) {
+    const norm = q.items.map((it) => String(it.t).trim().toLowerCase());
+    if (new Set(norm).size !== norm.length) warn(where, 'sort: еднакви елементи');
+  }
   switch (q.type) {
     case 'mcq':
       if (!(n >= 2 && n <= 5)) err(where, 'mcq: 2–5 избора');
+      else if (n < 3) warn(where, `mcq с ${n} избора (препоръчват се поне 3)`);
       if (!Number.isInteger(q.answer) || q.answer < 0 || q.answer >= n) err(where, 'mcq: answer е индекс извън choices');
       break;
     case 'multi':
