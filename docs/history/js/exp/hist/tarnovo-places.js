@@ -214,7 +214,7 @@ function smoke(n = 5, size = 1.4) {
   g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
   const map = new THREE.CanvasTexture(c);
   const grp = new THREE.Group();
-  for (let i = 0; i < n; i++) grp.add(new THREE.Sprite(new THREE.SpriteMaterial({ map, transparent: true, depthWrite: false, opacity: 0 })));
+  for (let i = 0; i < n; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map, transparent: true, depthWrite: false, opacity: 0 })); sp.raycast = () => {}; grp.add(sp); } // димът не се щрака
   grp.userData.update = (t, k = 1) => grp.children.forEach((sp, i) => { const u = (t * 0.16 + i / n) % 1; sp.position.set(Math.sin(u * 4 + i) * 0.5 + u * 1.6, u * 6, Math.cos(u * 3 + i) * 0.3); sp.scale.setScalar(size * (0.6 + u * 2.2)); sp.material.opacity = Math.sin(u * PI) * 0.5 * k; });
   return grp;
 }

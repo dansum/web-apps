@@ -91,7 +91,7 @@ export function mount(container, { onComplete }) {
   const markTex = new THREE.CanvasTexture(mc); markTex.colorSpace = THREE.SRGBColorSpace;
   for (const p of places.values()) {
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: markTex, depthTest: false, transparent: true }));
-    sp.position.set(p.x, p.y + p.top + 3, p.z); sp.scale.setScalar(6); sp.renderOrder = 9;
+    sp.position.set(p.x, p.y + p.top + 3, p.z); sp.scale.setScalar(6); sp.renderOrder = 9; sp.raycast = () => {};
     scene.add(sp); stage.steadyLabel(sp, 160);
     p.marker = sp; p.wanted = false; p.done = false;
   }

@@ -78,7 +78,7 @@ function distToStreets(x, z) {
 // Места за разглеждане: къде са, накъде гледат и откъде се виждат най-добре.
 export const SITES = {
   gate: { x: -90, z: 2, ry: -Math.PI / 2, y: 21, keep: 13, stand: [-123, 5.5], top: [[-97, 22, 2], [-26, 22, 34]] },
-  palace: { x: 0, z: -32, ry: 0, y: 27, keep: 0, stand: [-46, -21], pitch: -0.12, top: [[0, 29, -30], [-34, 44, 52]] },
+  palace: { x: 0, z: -32, ry: 0, y: 27, keep: 0, stand: [-36.5, -27], pitch: -0.2, top: [[0, 29, -30], [-34, 44, 52]] },
   patriarchate: { x: 20, z: 12, ry: 0, y: 35.5, keep: 0, stand: [-14, 3], pitch: -0.22, top: [[18, 40, 12], [-30, 30, 44]] },
   baldwin: { x: 77, z: 36, ry: -2.03, y: null, keep: 9, stand: [54, 26.5], pitch: -0.3, top: [[77, 36, 36], [-26, 22, 26]] },
   market: { x: -142, z: 8, ry: 0, y: 17, keep: 0, stand: [-126, 8.5], top: [[-142, 18, 8], [6, 26, 36]] },
