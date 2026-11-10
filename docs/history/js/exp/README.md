@@ -70,6 +70,7 @@ export function mount(container, { article, course, onComplete }) {
 |---|---|---|
 | `hist/map.js` | `await createMap(stage, { center, unitsPerDeg, focus })` | Жива карта от `data/geo/balkans.json` (Natural Earth, днешни граници). `pos(lon, lat)` дава точка в сцената; `addPlace(id, { lon, lat, label, labelDx })` слага карфица с `pickId`; `colorPlace`, `showPlace`, `highlight(countryId, color)`. Карфиците пулсират, морето „диша“. |
 | `hist/timeline.js` | `createTimeline(stage, { from, to, z, length, tick, tickLabel })` | Линия на времето с ивици за векове. `addSlot(id, { year, label })` — гнездо (близките гнезда автоматично се редуват на два реда); `addCard(id, { label, x, z })` — карта за влачене (`dragId`); `slotAt(pos)`, `placeCard`, `sendHome`, `setCursor(year)` за плъзгач на годината, `reset()`. Помощни: `romanCentury(y)`, `yearFmt(y)`. |
+| `hist/roman.js` | `createTerrain`, `sky`, `aqueduct`, `springCliff`, `theatre`, `theatreAudience`, `amphitheatre`, `baths`, `villa`, `fountain`, `steam`, `houses`, `trees`, `clouds`, `mound`, `shade` | Римски град по части: терен с планина и хълмове, небе с преход (за залез), акведукт с арки и подвижен извор, театър със седалки и колонада, амфитеатър, терми, вила с мозайка, чешма, пара, къщи, дървета, облаци. Много еднакви тела се рисуват с `InstancedMesh`. `shade(scene)` включва сенките. Образец: `rim.js` (5.3.3). |
 
 Образец: `vladeteli.js` (3.2.2) — картата и линията заедно; плъзгач на годината сменя столицата; делата се влачат при владетелите.
 
