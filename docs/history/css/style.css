@@ -331,6 +331,28 @@ body.dropping .dropmsg { display: flex; }
   .demo-text { font-size: .88rem; margin: 4px 0 8px; }
 }
 
+/* Разходка (js/exp/hist/walk.js): навигация между спирките, долу в средата на сцената. */
+.walk-nav { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 6; display: flex; align-items: center; gap: 6px;
+  background: rgba(255, 255, 255, 0.94); border: 1px solid var(--line); border-radius: 999px; padding: 4px 6px; box-shadow: 0 2px 8px rgba(0,0,0,.12); max-width: calc(100% - 20px); }
+.walk-nav .btn { min-width: 40px; padding: 6px 10px; border-radius: 999px; }
+.walk-nav .wn-lbl { font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.walk-nav .wn-lbl small { font-weight: 400; color: #667; margin-left: 4px; }
+.walk-nav[hidden] { display: none; }
+
+/* Цял екран за 3D преживяванията (js/exp/shell.js). */
+.xp-stage { position: relative; }
+.xp-fs { position: absolute; top: 8px; right: 8px; z-index: 7; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.94); font-size: 1.25rem; line-height: 1; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.12); color: var(--navy); }
+.xp-fs:hover { background: #fff; }
+.xp:fullscreen, .xp.xp-full { background: var(--bg, #f6f6f6); padding: 8px; width: 100%; height: 100%; box-sizing: border-box; grid-template-rows: 100%; }
+.xp.xp-full { position: fixed; inset: 0; z-index: 1000; height: 100dvh; }
+.xp:fullscreen .xp-stage, .xp.xp-full .xp-stage { height: 100%; }
+.xp:fullscreen .xp-panel, .xp.xp-full .xp-panel { overflow: auto; }
+html.xp-full-open, html.xp-full-open body { overflow: hidden; }
+@media (max-width: 760px), (orientation: portrait) {
+  .xp:fullscreen, .xp.xp-full { grid-template-columns: 1fr; grid-template-rows: 62% 38%; }
+}
+
 /* Режими „Отгоре / Разходка“, бутони за ходене и малка карта (js/exp/hist/walk.js) */
 .mode-toggle { position: absolute; top: 8px; right: 8px; z-index: 6; display: flex; background: rgba(255,255,255,.94); border: 1px solid var(--line); border-radius: 99px; padding: 3px; box-shadow: 0 4px 14px rgba(10,42,102,.16); }
 .mode-toggle[hidden] { display: none; }
@@ -347,3 +369,6 @@ body.dropping .dropmsg { display: flex; }
 .grow-bar { height: 10px; border-radius: 99px; background: #e2e6ee; overflow: hidden; margin-top: 8px; }
 .grow-bar i { display: block; height: 100%; width: 0; background: var(--green); transition: width .5s; }
 .xp-controls .btn.cause[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--green); }
+
+/* Когато има превключвател „Отгоре / Разходка“ горе вдясно, бутонът за цял екран слиза под него. */
+.xp-stage:has(.mode-toggle:not([hidden])) .xp-fs { top: 54px; }

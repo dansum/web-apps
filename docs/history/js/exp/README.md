@@ -88,3 +88,15 @@ export function mount(container, { article, course, onComplete }) {
 **Карти:** `tools/make-geo.mjs` прави `data/geo/balkans.json` от world-atlas (Natural Earth). Историческите граници (1878, 1913, 1919, 1940, 1947) още не са налични; когато се добавят, всеки слой трябва да носи източник.
 
 **Проверка:** `xp.html?exp=<име>` показва преживяването без курса. `tools/test-vladeteli.mjs` е образец за автоматичен тест (Playwright: `NODE_PATH=$(npm root -g) node tools/test-vladeteli.mjs http://localhost:8765/history/ <папка> [ширина]`).
+
+## Подробна архитектура (`js/exp/hist/architecture.js`)
+
+Известните сгради се правят оттук, не от прости кутии. Текстурите (мрамор, камък, варовик, кирпич, римска тухла, керемиди, пясък, скала) се рисуват в canvas, а геометриите и материалите се кешират (`M(color, { tex, rep })`).
+
+| Функция | Какво прави |
+|---|---|
+| `column(order, { h, r })` | Дорийска, йонийска или коринтска колона: канелюри, ентазис, капител |
+| `greekTemple({ w, d, h, front, side, order })` | Храм с периптер, цела, фриз с триглифи, фронтони със статуи, керемиден покрив (Партенон, Хефестейон, Ерехтейон) |
+| `stoaDetailed`, `tholos`, `rockHill`, `statue` | Стоа, кръгла сграда, скален хълм с подпорна стена, бронзова статуя |
+| `romanTheatre`, `amphitheatre`, `baths`, `archGeo` | Театър с кавея, диазома и двуетажна сцена; амфитеатър с аркади; терми с купол и пещ; истински арки |
+| `basilica`, `crenellatedWall`, `towerDetailed`, `gableRoof`, `steps` | Базилика с три кораба и апсида; стени със зъбци; покриви; стилобат |

@@ -16,6 +16,7 @@ export function createShell(container, { steps }) {
     </div>
     <p class="scene-hint">Върти сцената с пръст или мишка, приближавай с колелцето или с два пръста.</p>`;
   const q = (s) => container.querySelector(s);
+  setupFullscreen(q('.xp'), q('.xp-stage'));
   const shell = {
     stageEl: q('.xp-stage'),
     controls: q('.xp-controls'),
@@ -58,4 +59,48 @@ export function createShell(container, { steps }) {
 // Брояч на грешки → резултат за стъпка (1 без грешки, намалява с всяка грешка).
 export function stepScore(mistakes, allowed = 3) {
   return Math.max(0, 1 - mistakes / (allowed + 1));
+}
+
+// Бутон „На цял екран“ в горния десен ъгъл на сцената. Ползва Fullscreen API; където го няма
+// (напр. iPhone), сцената и панелът се разпъват върху целия прозорец.
+function setupFullscreen(xp, stageEl) {
+  const btn = document.createElement('button');
+  btn.className = 'xp-fs';
+  btn.type = 'button';
+  stageEl.appendChild(btn);
+  ['pointerdown', 'wheel', 'touchstart'].forEach((ev) => btn.addEventListener(ev, (e) => e.stopPropagation(), { passive: true }));
+  const native = !!(xp.requestFullscreen || xp.webkitRequestFullscreen);
+  const isOn = () => document.fullscreenElement === xp || document.webkitFullscreenElement === xp || xp.classList.contains('xp-full');
+  const draw = () => {
+    const on = isOn();
+    btn.textContent = on ? '✕' : '⛶';
+    btn.title = on ? 'Изход от цял екран (Esc)' : 'На цял екран';
+    btn.setAttribute('aria-label', btn.title);
+    document.documentElement.classList.toggle('xp-full-open', xp.classList.contains('xp-full'));
+  };
+  const exitFallback = () => { xp.classList.remove('xp-full'); draw(); };
+  btn.addEventListener('click', async () => {
+    if (isOn()) {
+      if (xp.classList.contains('xp-full')) exitFallback();
+      else (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      return;
+    }
+    try {
+      if (!native) throw new Error('няма');
+      await (xp.requestFullscreen || xp.webkitRequestFullscreen).call(xp);
+    } catch (e) {
+      xp.classList.add('xp-full');
+      draw();
+    }
+  });
+  const onKey = (e) => { if (e.key === 'Escape' && xp.classList.contains('xp-full')) exitFallback(); };
+  document.addEventListener('keydown', onKey);
+  document.addEventListener('fullscreenchange', draw);
+  document.addEventListener('webkitfullscreenchange', draw);
+  // Когато преживяването се махне от страницата, слушателите се махат с него.
+  const mo = new MutationObserver(() => {
+    if (!xp.isConnected) { document.removeEventListener('keydown', onKey); document.removeEventListener('fullscreenchange', draw); document.removeEventListener('webkitfullscreenchange', draw); document.documentElement.classList.remove('xp-full-open'); mo.disconnect(); }
+  });
+  mo.observe(document.body, { childList: true, subtree: true });
+  draw();
 }

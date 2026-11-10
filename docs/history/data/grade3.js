@@ -536,9 +536,10 @@ export default {
               "Посочва дейности за опазване на природните богатства и на културното наследство на България."
             ]
           },
-          assumption: null,
-          quality: "low",
-          experience: null,
+          assumption: "Разходката през вековете е наше предложение: програмата не я изисква, но тя показва как паметниците пазят паметта на града.",
+          quality: "high",
+          experience: "plovdiv",
+          review: true,
           video: null,
           scene: {
             objects: [

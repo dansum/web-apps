@@ -4,6 +4,7 @@ import { createStage, cornerMenu, mat, THREE, esc } from '../kit.js';
 import { createShell, stepScore } from './shell.js';
 import { createMap } from './hist/map.js';
 import { createTimeline } from './hist/timeline.js';
+import { basilica as basilica_ } from './hist/architecture.js';
 
 // Факти по учебната програма за III клас: владетелят и делото, което обединява обществото.
 const RULERS = [
@@ -41,19 +42,6 @@ const PREDICT = [
     why: 'Не. Държавата продължава да съществува и да укрепва.' },
 ];
 
-function church() {
-  const g = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 0.8), mat(0xf4efe4));
-  body.position.y = 0.15;
-  const roof = new THREE.Mesh(new THREE.ConeGeometry(0.42, 0.3, 4), mat(0xb5553a));
-  roof.position.y = 0.45; roof.rotation.y = Math.PI / 4; roof.scale.z = 1.5;
-  const cross = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.22, 0.04), mat(0xd4af37));
-  cross.position.y = 0.7;
-  const bar = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.04, 0.04), mat(0xd4af37));
-  bar.position.y = 0.74;
-  g.add(body, roof, cross, bar);
-  return g;
-}
 function cloud() {
   const g = new THREE.Group();
   const m = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, roughness: 1 });
@@ -80,14 +68,14 @@ export function mount(container, { onComplete }) {
   const cardXs = [-3.3, -1.1, 1.1, 3.3];
   DEEDS.forEach((d, i) => { tl.addCard(d.id, { label: d.label, x: cardXs[i], z: 5.6 }); tl.cards.get(d.id).visible = false; });
 
-  const basilica = church();
+  const basilica = (() => { const b = basilica_({ L: 0.9, W: 0.5 }); return b; })();
   basilica.visible = false;
   scene.add(basilica);
   const clouds = [cloud(), cloud()];
   clouds.forEach((c, i) => { c.position.set(-4 + i * 5, 3.6 + i * 0.3, -3.2 + i * 0.8); scene.add(c); });
   stage.tick((dt, t) => {
     clouds.forEach((c, i) => { c.position.x += dt * (0.18 + i * 0.07); if (c.position.x > 6) c.position.x = -6; });
-    if (basilica.visible) basilica.rotation.y = Math.sin(t * 0.6) * 0.15;
+    if (basilica.visible) basilica.scale.setScalar(Math.min(1, basilica.scale.x + dt * 0.8));
   });
 
   let tip = null;
@@ -255,7 +243,7 @@ export function mount(container, { onComplete }) {
       scores.push(stepScore(mistakes, 2));
       // Проверка: показва какво наистина е станало.
       basilica.position.copy(map.pos(27.38, 43.38, 0.24)).add(new THREE.Vector3(0.5, 0, 0.55));
-      basilica.visible = true;
+      basilica.scale.setScalar(0.05); basilica.visible = true;
       say(basilica, '<b>Така и става.</b> Българи и славяни имат обща вяра. В Плиска се строи Голямата базилика. Скоро в България идват учениците на Кирил и Методий и книгите се пишат на старобългарски.', { cls: 'good wide', lift: 0.9 });
       shell.msg('Вярно предсказание!', 'good');
       const n = shell.setControls('<button class="btn primary">Виж резултата</button>');

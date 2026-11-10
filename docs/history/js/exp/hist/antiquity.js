@@ -68,6 +68,9 @@ const LOOK = {
   slave: { body: 0x9a8b74, trim: 0x5a4d3a },
   foreigner: { body: 0x6aa36f, trim: 0x2f5e33 },
   warrior: { body: 0xb0322b, trim: 0xd4af37 },
+  // Тракийци: пъстро наметало (зейра), шапка от лисича кожа, ботуши (по Херодот).
+  thracian: { body: 0x8a3b2f, trim: 0xe0a33a, cap: 0xc4672b, cloak: 0x2f6f8f },
+  thracianWoman: { body: 0x3f6f4f, trim: 0xe7d38a, cloak: 0x9b3f5a },
 };
 export function person(kind = 'citizen', { scale = 1 } = {}) {
   const L = LOOK[kind] || LOOK.citizen;
@@ -79,6 +82,17 @@ export function person(kind = 'citizen', { scale = 1 } = {}) {
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.09, 14, 10), mat(0xe0b58f));
   head.position.y = 0.58;
   g.add(body, belt, head);
+  if (L.cloak) {
+    const cloak = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.42, 12, 1, true, Math.PI * 0.6, Math.PI * 0.8), mat(L.cloak, { side: THREE.DoubleSide }));
+    cloak.position.y = 0.3;
+    cloak.rotation.y = Math.PI;
+    g.add(cloak);
+  }
+  if (L.cap) {
+    const cap = new THREE.Mesh(new THREE.ConeGeometry(0.095, 0.2, 10), mat(L.cap));
+    cap.position.set(0, 0.7, -0.02); cap.rotation.x = -0.35;
+    g.add(cap);
+  }
   if (kind === 'warrior') {
     const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.03, 16), mat(0xd4af37));
     shield.rotation.z = Math.PI / 2; shield.position.set(0.15, 0.32, 0);
