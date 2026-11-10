@@ -37,6 +37,20 @@ await page.keyboard.down('ArrowUp'); await wait(2500); await page.keyboard.up('A
 const wallZ = await demo('(d) => d.walk.state.z');
 console.log('спира пред зида на z =', wallZ.toFixed(2));
 await shot('t1-walk');
+// Избор от менюто при разходка: детето отива до мястото с ходене по улиците (без скок).
+await demo('(d) => { const s = d.walk.state; s.x = -124; s.z = 8; }');
+if (await page.locator('.cm-list[hidden]').count()) await page.locator('.cm-head').click();
+await page.locator('.cm-item').nth(5).click(); // ковачницата
+let maxStep = 0, last = [-124, 8], arrived = false;
+for (let k = 0; k < 120 && !arrived; k++) {
+  await wait(250);
+  const s = await demo('(d) => [d.walk.state.x, d.walk.state.z, !!d.walk.state.auto]');
+  maxStep = Math.max(maxStep, Math.hypot(s[0] - last[0], s[1] - last[1])); last = s;
+  arrived = !s[2];
+}
+const toStand = Math.hypot(last[0] + 142.5, last[1] + 17);
+console.log('ходене до ковачницата: пристигна', arrived, 'остават m', toStand.toFixed(1), 'най-голям скок m', maxStep.toFixed(1));
+await shot('t1-auto');
 await page.click('.mode-toggle button[data-m="top"]'); await wait(2500);
 
 // Стъпка 2: една грешка в предсказанието, после трите причини.
@@ -76,5 +90,5 @@ const again = await demo('(d) => [document.querySelectorAll(".corner-menu").leng
 console.log('отначало:', again);
 console.log('грешки в конзолата:', errors.length ? errors : 'няма');
 await browser.close();
-const ok = Math.abs(result - want) < 1e-6 && !errors.length && b[0] && moved > 2 && Math.abs(wallZ - 2) < 1.6 && again[0] === 1 && again[1].startsWith('1.') && again[2] && !again[3];
+const ok = arrived && toStand < 1 && maxStep < 25 && Math.abs(result - want) < 1e-6 && !errors.length && b[0] && moved > 2 && Math.abs(wallZ - 2) < 1.6 && again[0] === 1 && again[1].startsWith('1.') && again[2] && !again[3];
 process.exit(ok ? 0 : 1);

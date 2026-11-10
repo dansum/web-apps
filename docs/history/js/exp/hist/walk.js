@@ -31,7 +31,7 @@ export function createWalk(stage, { ground, canStand, obstacles = [], terrain = 
   padEl.innerHTML = '<button data-k="left" aria-label="Завий наляво">↶</button><button data-k="fwd" aria-label="Напред">▲</button><button data-k="right" aria-label="Завий надясно">↷</button><span></span><button data-k="back" aria-label="Назад">▼</button><span></span>';
   host.appendChild(padEl);
   padEl.querySelectorAll('button').forEach((b) => {
-    const on = (e) => { e.preventDefault(); e.stopPropagation(); pad.add(b.dataset.k); st.target = null; };
+    const on = (e) => { e.preventDefault(); e.stopPropagation(); pad.add(b.dataset.k); st.target = null; st.auto = null; };
     const off = () => pad.delete(b.dataset.k);
     b.addEventListener('pointerdown', on);
     ['pointerup', 'pointerleave', 'pointercancel'].forEach((n) => b.addEventListener(n, off));
@@ -59,7 +59,7 @@ export function createWalk(stage, { ground, canStand, obstacles = [], terrain = 
   const KEY = { ArrowUp: 'fwd', KeyW: 'fwd', ArrowDown: 'back', KeyS: 'back', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' };
   const kd = (e) => {
     if (!st.active || !KEY[e.code] || /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '')) return;
-    keys.add(KEY[e.code]); st.target = null; e.preventDefault();
+    keys.add(KEY[e.code]); st.target = null; st.auto = null; e.preventDefault();
   };
   const ku = (e) => { if (KEY[e.code]) keys.delete(KEY[e.code]); };
   window.addEventListener('keydown', kd); window.addEventListener('keyup', ku);
@@ -73,7 +73,7 @@ export function createWalk(stage, { ground, canStand, obstacles = [], terrain = 
     ray.setFromCamera(ndc, camera);
     const hit = ray.intersectObjects(terrain, false)[0];
     if (!hit || hit.distance > 90) return false;
-    st.target = { x: hit.point.x, z: hit.point.z };
+    st.target = { x: hit.point.x, z: hit.point.z }; st.auto = null;
     st.stuck = 0;
     return true;
   }
@@ -85,8 +85,32 @@ export function createWalk(stage, { ground, canStand, obstacles = [], terrain = 
     const cp = Math.cos(st.pitch);
     controls.target.set(st.x + Math.sin(st.yaw) * cp, y - Math.sin(st.pitch), st.z - Math.cos(st.yaw) * cp);
   }
+  const turn = (to, k) => { const da = Math.atan2(Math.sin(to - st.yaw), Math.cos(to - st.yaw)); st.yaw += da * Math.min(1, k); return Math.abs(da); };
   const stop = stage.tick((dt) => {
     if (!st.active) return;
+    if (st.auto) {
+      // Автоматично ходене по улиците: бързо, по готов път, с плавно завиване; накрая детето се обръща към мястото.
+      const a = st.auto;
+      mark.visible = false;
+      if (a.i < a.pts.length) {
+        a.t += dt;
+        const left = a.left, v = a.speed * Math.min(1, a.t / 0.5, 0.25 + left / 9); // тръгва и спира плавно
+        let step = v * dt;
+        while (step > 0 && a.i < a.pts.length) {
+          const [px, pz] = a.pts[a.i], dx = px - st.x, dz = pz - st.z, d = Math.hypot(dx, dz);
+          if (d <= step) { st.x = px; st.z = pz; step -= d; a.left -= d; a.i++; }
+          else { st.x += (dx / d) * step; st.z += (dz / d) * step; a.left -= step; turn(Math.atan2(dx, -dz), dt * 7); step = 0; }
+        }
+        st.pitch += (-0.04 - st.pitch) * Math.min(1, dt * 4);
+        st.bob += dt * 16;
+      } else {
+        const off = turn(Math.atan2(a.lx - st.x, -(a.lz - st.z)), dt * 6);
+        st.pitch += (a.pitch - st.pitch) * Math.min(1, dt * 5);
+        if (off < 0.02 && Math.abs(a.pitch - st.pitch) < 0.02) st.auto = null;
+      }
+      place();
+      return;
+    }
     const k = (n) => keys.has(n) || pad.has(n);
     st.yaw += ((k('right') ? 1 : 0) - (k('left') ? 1 : 0)) * dt * 1.9;
     let f = (k('fwd') ? 1 : 0) - (k('back') ? 0.7 : 0), dx = Math.sin(st.yaw), dz = -Math.cos(st.yaw);
@@ -128,17 +152,24 @@ export function createWalk(stage, { ground, canStand, obstacles = [], terrain = 
     },
     disable() {
       if (!st.active) return;
-      st.active = false; st.target = null; mark.visible = false; padEl.hidden = true;
+      st.active = false; st.target = null; st.auto = null; mark.visible = false; padEl.hidden = true;
       controls.enabled = true; controls.maxPolarAngle = saved.polar;
       // Разстоянията се връщат след полета на камерата (вижте restoreLimits).
     },
     walkTo(x, z) { if (st.active) { st.target = { x, z }; st.stuck = 0; } },
     restoreLimits() { if (!st.active && saved.min) { controls.minDistance = saved.min; controls.maxDistance = saved.max; } },
+    // Води детето с бързо ходене по точките pts ([[x, z], …]); накрая то се обръща към (lx, lz).
+    follow(pts, lx, lz, pitch = -0.1) {
+      let len = 0, px = st.x, pz = st.z;
+      for (const [x, z] of pts) { len += Math.hypot(x - px, z - pz); px = x; pz = z; }
+      st.target = null;
+      st.auto = { pts, i: 0, t: 0, left: len, speed: Math.max(20, len / 6), lx, lz, pitch }; // най-дългият път трае около 6 секунди
+    },
     // Пренася детето на ново място, обърнато към точката (lx, lz).
     jump(x, z, lx, lz, pitch = 0.05) {
       veil.classList.add('on');
       setTimeout(() => {
-        st.x = x; st.z = z; st.target = null;
+        st.x = x; st.z = z; st.target = null; st.auto = null;
         st.yaw = Math.atan2(lx - x, -(lz - z)); st.pitch = pitch;
         if (st.active) place();
         veil.classList.remove('on');
