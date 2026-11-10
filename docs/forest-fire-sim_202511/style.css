@@ -70,6 +70,8 @@ button[disabled] {
 
 #forestCanvas {
   display: block;
+  max-width: 100%;
+  height: auto;
   margin-top: 12px;
   border-radius: 6px;
   background: #4b5563;
@@ -119,3 +121,92 @@ button[disabled] {
   gap: 16px;
   font-size: 0.85rem;
 }
+
+/* ---------- Учебна рамка: цел, задачи, „За учителя“ ---------- */
+
+.app-container { box-sizing: border-box; }
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+}
+
+.top h1 { margin-bottom: 0; }
+
+button.ghost {
+  background: transparent;
+  border: 1px solid #334155;
+  color: #e5e7eb;
+}
+
+button.ghost:hover { border-color: #60a5fa; }
+
+.goal {
+  margin: 0 0 14px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: #cbd5e1;
+}
+
+.goal .grade { display: block; color: #94a3b8; margin-top: 2px; }
+
+.tasks {
+  margin-top: 18px;
+  padding: 12px 16px;
+  background: #0f172a;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.tasks h2 { margin: 0 0 6px; font-size: 1.1rem; }
+.tasks .hint { margin: 0 0 8px; color: #94a3b8; }
+.tasks ol { margin: 0; padding-left: 1.3rem; }
+.tasks li { margin-bottom: 6px; }
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.75);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 16px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.overlay[hidden] { display: none; }
+
+.t-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 760px;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 14px 16px 18px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.t-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.t-head h2 { margin: 0; font-size: 1.15rem; }
+.t-head .x { background: transparent; border: 1px solid #334155; padding: 4px 10px; }
+
+.t-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+.t-tabs button { background: #1e293b; color: #cbd5e1; }
+.t-tabs button.on { background: #1d4ed8; color: #fff; }
+
+.t-pane { display: none; }
+.t-pane.on { display: block; }
+.t-pane h3 { font-size: 1rem; margin: 12px 0 4px; }
+.t-pane ul, .t-pane ol { padding-left: 1.2rem; }
+.t-pane li { margin-bottom: 6px; }
+.t-pane table { width: 100%; border-collapse: collapse; }
+.t-pane th, .t-pane td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid #1e293b; }
+.t-pane .meta { color: #94a3b8; font-size: 0.85rem; }

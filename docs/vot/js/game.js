@@ -721,8 +721,86 @@ function ending(title, kind, partner) {
     ul.appendChild(li);
   });
 
+  renderCheck();
   el('endingBox').hidden = false;
   scrollToCard(el('endingBox'));
+}
+
+/* ---------------- проверка след изборната нощ ---------------- */
+
+var CHECK = [
+  {
+    q: 'Партия получава 3,6% от гласовете. Колко депутати има тя?',
+    options: ['Нито един', 'Около 9 — колкото е нейният дял от 240', 'Поне един, защото всяка партия има място'],
+    right: 0,
+    explain: 'Прагът е 4%. Партия под прага не получава места, а нейните гласове не носят депутати. ' +
+      'Местата се делят само между партиите над прага.'
+  },
+  {
+    q: 'Колко от 240 места трябват за мнозинство в Народното събрание?',
+    options: ['120', '121', 'Колкото има първата партия'],
+    right: 1,
+    explain: 'Мнозинство означава повече от половината. Половината от 240 е 120, значи трябват поне 121. ' +
+      'Първата партия не управлява сама, ако няма 121 места.'
+  },
+  {
+    q: 'Никоя партия няма 121 места. Какво трябва да стане, за да има правителство с мнозинство?',
+    options: ['Първата партия управлява сама, защото е първа',
+      'Две или повече партии се договарят и заедно имат поне 121 места',
+      'Изборите се повтарят, докато някой спечели 121 места'],
+    right: 1,
+    explain: 'Това е коалиция. Партиите в нея се договарят и всяка отстъпва нещо от програмата си. ' +
+      'Затова в играта компасът ви се мести към партньора.'
+  }
+];
+
+function renderCheck() {
+  var list = el('checkList');
+  var answered = 0, correct = 0;
+  list.innerHTML = '';
+  el('checkScore').hidden = true;
+  CHECK.forEach(function (item, qi) {
+    var box = document.createElement('div');
+    box.className = 'check-q';
+    var h = document.createElement('p');
+    h.className = 'check-question';
+    h.textContent = (qi + 1) + '. ' + item.q;
+    box.appendChild(h);
+    var opts = document.createElement('div');
+    opts.className = 'options';
+    var fb = document.createElement('p');
+    fb.className = 'check-fb';
+    fb.hidden = true;
+    item.options.forEach(function (text, oi) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'option';
+      b.innerHTML = '<span class="option-key" aria-hidden="true">' + String.fromCharCode(1072 + oi) + '</span><span></span>';
+      b.lastChild.textContent = text;
+      b.onclick = function () {
+        var buttons = opts.querySelectorAll('button');
+        for (var i = 0; i < buttons.length; i++) {
+          buttons[i].disabled = true;
+          if (i === item.right) buttons[i].classList.add('check-right');
+        }
+        var ok = oi === item.right;
+        if (!ok) b.classList.add('check-wrong');
+        fb.hidden = false;
+        fb.className = 'check-fb ' + (ok ? 'ok' : 'no');
+        fb.textContent = (ok ? 'Вярно. ' : 'Не съвсем. ') + item.explain;
+        answered++;
+        if (ok) correct++;
+        if (answered === CHECK.length) {
+          el('checkScore').hidden = false;
+          el('checkScore').textContent = 'Верни отговори: ' + correct + ' от ' + CHECK.length + '.';
+        }
+      };
+      opts.appendChild(b);
+    });
+    box.appendChild(opts);
+    box.appendChild(fb);
+    list.appendChild(box);
+  });
 }
 
 function renderLog() {

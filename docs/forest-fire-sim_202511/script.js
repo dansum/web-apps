@@ -410,3 +410,31 @@ firefighterRangeValue.textContent = String(firefighterRangeInput.value);
 createGrid();
 resizeCanvas();
 drawGrid();
+
+// ---------- „За учителя“ ----------
+const teacher = document.getElementById('teacher');
+const teacherBtn = document.getElementById('teacherBtn');
+
+function openTeacher() {
+  teacher.hidden = false;
+  document.getElementById('teacherClose').focus();
+}
+
+function closeTeacher() {
+  teacher.hidden = true;
+  teacherBtn.focus();
+}
+
+teacherBtn.addEventListener('click', openTeacher);
+document.getElementById('teacherClose').addEventListener('click', closeTeacher);
+teacher.addEventListener('click', (e) => { if (e.target === teacher) closeTeacher(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !teacher.hidden) closeTeacher(); });
+
+teacher.querySelectorAll('[data-tab]').forEach((tab) => {
+  tab.addEventListener('click', () => {
+    teacher.querySelectorAll('[data-tab]').forEach((t) => t.classList.toggle('on', t === tab));
+    teacher.querySelectorAll('[data-pane]').forEach((p) => p.classList.toggle('on', p.dataset.pane === tab.dataset.tab));
+  });
+});
+
+if (location.hash === '#uchitel') openTeacher();

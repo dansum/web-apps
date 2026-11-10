@@ -223,6 +223,21 @@ main { max-width: 1040px; margin: 0 auto; padding: 1.2rem max(1rem, env(safe-are
 .learned h4 { margin: 0 0 .4rem; font-size: .85rem; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
 .learned ul { margin: 0; padding-left: 1.1rem; color: var(--text-soft); }
 .learned li { margin-bottom: .35rem; }
+.check { background: var(--bg-soft); border-radius: 12px; padding: .8rem 1rem; margin: 1rem 0; }
+.check h4 { margin: 0 0 .3rem; font-size: .85rem; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
+.check-lead { margin: 0 0 .6rem; color: var(--text-soft); }
+.check-q { margin-bottom: 1rem; }
+.check-question { margin: 0; font-weight: 600; }
+.check .options { margin-top: .5rem; }
+.check .option { background: var(--card); }
+.check .option:disabled { cursor: default; transform: none; }
+.check .option:disabled:hover { border-color: var(--line); }
+.check .option.check-right { border-color: var(--up); color: var(--up); }
+.check .option.check-wrong { border-color: var(--down); color: var(--down); }
+.check-fb { margin: .5rem 0 0; padding: .5rem .7rem; border-radius: 10px; border-left: 3px solid var(--line); color: var(--text-soft); }
+.check-fb.ok { border-left-color: var(--up); }
+.check-fb.no { border-left-color: var(--down); }
+.check-score { margin: 0; font-weight: 700; }
 .end-buttons { display: flex; flex-wrap: wrap; gap: .6rem; }
 .log { margin-top: 1rem; display: grid; gap: .4rem; }
 .log-row { background: var(--bg-soft); border-radius: 10px; padding: .55rem .8rem; font-size: .92rem; }
