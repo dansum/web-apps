@@ -19,7 +19,7 @@ async function drag(a, b) {
   for (let k = 1; k <= 12; k++) await page.mouse.move(a.x + (b.x - a.x) * k / 12, a.y + (b.y - a.y) * k / 12);
   await page.mouse.up(); await wait(300);
 }
-await page.locator('.xp').scrollIntoViewIfNeeded(); await wait(400);
+await page.locator('.xp').scrollIntoViewIfNeeded(); await wait(3000); // началният полет над града
 await page.screenshot({ path: `${shots}/r1-${W}.png` });
 for (let i = 0; i < 5; i++) {
   if (await page.locator('.cm-list[hidden]').count()) await page.locator('.cm-head').click();
@@ -31,7 +31,7 @@ await page.click('.xp-controls button[data-a="low"]'); // умишлена гр�
 console.log('грешка:', await page.textContent('.xp-msg'));
 await page.click('.xp-controls button[data-a="high"]');
 await page.evaluate(() => { const r = document.querySelector('.h-range'); r.value = 1.6; r.dispatchEvent(new Event('input')); });
-await wait(1500);
+await wait(2500); // водата стига до града
 await page.screenshot({ path: `${shots}/r2-${W}.png` });
 await page.click('.xp-controls .btn.primary'); await wait(1300);
 for (const [u, t] of [['u-theatre', 'theatre'], ['u-amphi', 'amphi'], ['u-baths', 'baths'], ['u-aqueduct', 'aqueduct']]) {
@@ -40,7 +40,9 @@ for (const [u, t] of [['u-theatre', 'theatre'], ['u-amphi', 'amphi'], ['u-baths'
 }
 await page.screenshot({ path: `${shots}/r3-${W}.png` });
 await page.click('.xp-controls .btn.primary'); await wait(1300);
-await page.click('.xp-controls button[data-i="0"]'); await wait(900);
+await wait(2600);
+await page.screenshot({ path: `${shots}/r4a-${W}.png` }); // театърът е под земята
+await page.click('.xp-controls button[data-i="0"]'); await wait(3200);
 await page.screenshot({ path: `${shots}/r4-${W}.png` });
 await page.click('.xp-controls .btn.primary'); await wait(300);
 const result = await page.evaluate(() => window.__result);
