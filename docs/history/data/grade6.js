@@ -491,7 +491,7 @@ export default {
           },
           assumption: null,
           quality: "high",
-          experience: "tarnovo",
+          experience: "tarnovgrad",
           review: true,
           video: null,
           scene: {
