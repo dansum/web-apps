@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>d4</title>
-<meta name="description" content="d4 — начална страница с уеб приложенията, игрите и симулациите на dansum. Всичко работи в браузъра, без инсталация.">
+<title>ДЧ</title>
+<meta name="description" content="ДЧ — начална страница с уеб приложенията, игрите и симулациите на dansum. Всичко работи в браузъра, без инсталация.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
@@ -125,8 +125,8 @@
   </div>
 
   <header>
-    <span class="logo" aria-hidden="true">d4</span>
-    <h1>d4</h1>
+    <span class="logo" id="logo" aria-hidden="true">ДЧ</span>
+    <h1 id="brand">ДЧ</h1>
     <p class="lede" id="lede"></p>
   </header>
 
@@ -149,34 +149,34 @@
   /* ---------- Interface text ---------- */
   var UI = {
     bg: {
-      langLabel: 'Език', lenLabel: 'Текст', full: 'Пълен', short: 'Кратък',
+      brand: 'ДЧ', langLabel: 'Език', lenLabel: 'Текст', full: 'Пълен', short: 'Кратък',
       filterLabel: 'Филтър по вид', all: 'Всички', games: 'Игри', learn: 'Учене', tools: 'Инструменти',
       open: 'Отвори →', theme: { auto: 'Тема: автоматична', light: 'Тема: светла', dark: 'Тема: тъмна' },
       lede: {
         full: 'Игри, симулации и учебни приложения, които работят направо в браузъра — без инсталация и без регистрация. Избери проект и започни.',
         short: 'Тук има игри и уроци. Избери си едно и го отвори. Не трябва да сваляш нищо.'
       },
-      footer: 'd4 · проекти на <a href="https://github.com/dansum/web-apps">dansum/web-apps</a> в GitHub · <button type="button" class="ck" onclick="d4Consent.reset()">Бисквитки</button>'
+      footer: 'ДЧ · проекти на <a href="https://github.com/dansum/web-apps">dansum/web-apps</a> в GitHub · <button type="button" class="ck" onclick="d4Consent.reset()">Бисквитки</button>'
     },
     en: {
-      langLabel: 'Language', lenLabel: 'Text', full: 'Full', short: 'Short',
+      brand: 'D4', langLabel: 'Language', lenLabel: 'Text', full: 'Full', short: 'Short',
       filterLabel: 'Filter by type', all: 'All', games: 'Games', learn: 'Learning', tools: 'Tools',
       open: 'Open →', theme: { auto: 'Theme: auto', light: 'Theme: light', dark: 'Theme: dark' },
       lede: {
         full: 'Games, simulations and learning apps that run right in the browser — nothing to install, no sign-up. Pick a project and get started.',
         short: 'Here are games and lessons. Pick one and open it. You don’t need to download anything.'
       },
-      footer: 'd4 · projects from <a href="https://github.com/dansum/web-apps">dansum/web-apps</a> on GitHub · <button type="button" class="ck" onclick="d4Consent.reset()">Cookies</button>'
+      footer: 'D4 · projects from <a href="https://github.com/dansum/web-apps">dansum/web-apps</a> on GitHub · <button type="button" class="ck" onclick="d4Consent.reset()">Cookies</button>'
     },
     de: {
-      langLabel: 'Sprache', lenLabel: 'Text', full: 'Lang', short: 'Kurz',
+      brand: 'D4', langLabel: 'Sprache', lenLabel: 'Text', full: 'Lang', short: 'Kurz',
       filterLabel: 'Nach Art filtern', all: 'Alle', games: 'Spiele', learn: 'Lernen', tools: 'Werkzeuge',
       open: 'Öffnen →', theme: { auto: 'Design: automatisch', light: 'Design: hell', dark: 'Design: dunkel' },
       lede: {
         full: 'Spiele, Simulationen und Lern-Apps, die direkt im Browser laufen — ohne Installation und ohne Anmeldung. Wähle ein Projekt und leg los.',
         short: 'Hier gibt es Spiele und Lernsachen. Such dir eins aus und öffne es. Du musst nichts herunterladen.'
       },
-      footer: 'd4 · Projekte aus <a href="https://github.com/dansum/web-apps">dansum/web-apps</a> auf GitHub · <button type="button" class="ck" onclick="d4Consent.reset()">Cookies</button>'
+      footer: 'D4 · Projekte aus <a href="https://github.com/dansum/web-apps">dansum/web-apps</a> auf GitHub · <button type="button" class="ck" onclick="d4Consent.reset()">Cookies</button>'
     }
   };
 
@@ -379,6 +379,9 @@
       });
     });
 
+    document.title = t.brand;
+    document.getElementById('logo').textContent = t.brand;
+    document.getElementById('brand').textContent = t.brand;
     document.getElementById('lede').textContent = t.lede[state.len];
     document.getElementById('footer').innerHTML = t.footer;
     document.getElementById('filters').setAttribute('aria-label', t.filterLabel);

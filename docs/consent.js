@@ -1,5 +1,5 @@
 /*
- * d4 — Google Analytics with a cookie-consent banner.
+ * D4 (ДЧ) — Google Analytics with a cookie-consent banner.
  *
  * Google Analytics loads ONLY after the visitor clicks "Accept".
  * Until then (and after "Decline") nothing is sent to Google and no cookies are set.
