@@ -4,7 +4,7 @@ import { createStage, labelSprite, mat, addHitBox, THREE, esc } from '../kit.js'
 import { createShell, stepScore } from './shell.js';
 import { person, wander } from './hist/antiquity.js';
 import { wallSegment, tower, courtyardHouse, palace, forge, potteryWheel, goldTable, amphora, paintedCup, coins, stall, animal, graze } from './hist/thrace.js';
-import { createWalk } from './hist/walk.js';
+import { createWalk } from './hist/stopwalk.js';
 import { createMap } from './hist/map.js';
 import { M } from './hist/architecture.js';
 

@@ -3,7 +3,7 @@
 // линия на времето с изобретенията → предскажи какво става с градовете и хората.
 import { createStage, labelSprite, addHitBox, THREE, esc } from '../kit.js';
 import { createShell, stepScore } from './shell.js';
-import { createWalk } from './hist/walk.js';
+import { createWalk } from './hist/stopwalk.js';
 import { createTimeline } from './hist/timeline.js';
 import { mergeStatic, river as makeRiver, tree, stoneBridge } from './hist/medieval.js';
 import { animal } from './hist/thrace.js';

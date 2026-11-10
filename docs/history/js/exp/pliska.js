@@ -5,7 +5,7 @@ import { createStage, labelSprite, mat, addHitBox, zoneRing, THREE, esc } from '
 import { createShell, stepScore } from './shell.js';
 import { wander } from './hist/antiquity.js';
 import { animal, graze } from './hist/thrace.js';
-import { createWalk } from './hist/walk.js';
+import { createWalk } from './hist/stopwalk.js';
 import { M } from './hist/architecture.js';
 import {
   earthwork, earthProfile, surfaceAt, blockWall, roundTower, squareTower, fortGate, stonePalace, bathhouse,

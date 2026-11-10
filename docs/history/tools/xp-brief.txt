@@ -6,7 +6,7 @@
 ПРОЧЕТИ ПЪРВО
 1. ../chp/принципи.md (части 1–3) и js/exp/README.md — стандартът за качество и общите части.
 2. Образци: js/exp/sevtopolis.js (разходка), js/exp/rim.js и js/exp/agora.js (възстановени места), js/exp/vladeteli.js (карта и линия на времето).
-3. Общите части в js/exp/hist/: walk.js (разходка по спирки), architecture.js (подробни сгради, текстури M(color,{tex,rep}), колони, арки, покриви, стени със зъбци, базилика), thrace.js (къщи с двор, работилници, животни), antiquity.js (хора person(kind), wander), map.js, timeline.js, vitrina.js.
+3. Общите части в js/exp/hist/: stopwalk.js (разходка по спирки), architecture.js (подробни сгради, текстури M(color,{tex,rep}), колони, арки, покриви, стени със зъбци, базилика), thrace.js (къщи с двор, работилници, животни), antiquity.js (хора person(kind), wander), map.js, timeline.js, vitrina.js.
 4. Данните на умението ти в data/gradeN.js (mon.competences) — стъпките трябва да проверяват тези очаквани резултати.
 
 ИЗИСКВАНИЯ

@@ -3,7 +3,7 @@
 // → предскажи: какво ще правят хората в читалището и как това подготвя Освобождението.
 import { createStage, labelSprite, mat, addHitBox, THREE, esc } from '../kit.js';
 import { createShell, stepScore } from './shell.js';
-import { createWalk } from './hist/walk.js';
+import { createWalk } from './hist/stopwalk.js';
 import { M } from './hist/architecture.js';
 import { animal, graze } from './hist/thrace.js';
 import { smoke, cloud } from './hist/bulgar.js';

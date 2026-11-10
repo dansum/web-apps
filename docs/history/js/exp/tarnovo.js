@@ -4,7 +4,7 @@ import { createStage, labelSprite, mat, addHitBox, THREE, esc } from '../kit.js'
 import { createShell, stepScore } from './shell.js';
 import { wander } from './hist/antiquity.js';
 import { forge, potteryWheel, goldTable, stall, coins } from './hist/thrace.js';
-import { createWalk } from './hist/walk.js';
+import { createWalk } from './hist/stopwalk.js';
 import { M } from './hist/architecture.js';
 import {
   MM, cliffHill, river, field, tree, stoneWall, stoneTower, gatehouse, tarnovoChurch, royalPalace, medievalHouse, dukyan,
