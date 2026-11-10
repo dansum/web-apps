@@ -65,6 +65,49 @@ export const STREETS = [
   { w: 3.2, pts: [[-128, 21], [-156, 24], [-172, 12]] },
   { w: 3.2, pts: [[-157, -6], [-172, -14], [-174, -34]] },
 ];
+// Мрежа от улиците за автоматичното ходене: улиците плюс къси връзки през пазара и около Патриаршията.
+const LINKS = [
+  [[-128, 7], [-130, 4], [-142, 4], [-154, 4], [-156, 8]], [[-142, 4], [-142, -4]], [[-128, 7], [-128, 21]], [[-154, 4], [-157, -6]],
+  [[3, 10], [3, 26], [10, 27], [39.5, 26.5], [38, 20]],
+];
+const NODES = [], EDGES = [];
+{
+  const index = new Map();
+  const node = ([x, z]) => { const k = `${Math.round(x * 2)},${Math.round(z * 2)}`; if (!index.has(k)) { index.set(k, NODES.length); NODES.push([x, z]); } return index.get(k); };
+  for (const pts of STREETS.map((s) => s.pts).concat(LINKS)) for (let i = 0; i < pts.length - 1; i++) EDGES.push([node(pts[i]), node(pts[i + 1])]);
+}
+const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+// Най-близката точка от мрежата до p: { q, e } — точката и ръбът, на който лежи.
+function snap(p) {
+  let best = null;
+  EDGES.forEach(([i, j], e) => {
+    const a = NODES[i], b = NODES[j], ex = b[0] - a[0], ez = b[1] - a[1];
+    const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * ex + (p[1] - a[1]) * ez) / (ex * ex + ez * ez)));
+    const q = [a[0] + ex * t, a[1] + ez * t], d = dist(p, q);
+    if (!best || d < best.d) best = { q, e, d };
+  });
+  return best;
+}
+// Най-късият път по улиците от from до to: [[x, z], …] без началната точка.
+export function route(from, to) {
+  const A = snap(from), B = snap(to);
+  if (A.e === B.e) return [A.q, B.q, to];
+  const n = NODES.length, cost = new Array(n).fill(Infinity), prev = new Array(n).fill(-1), done = new Array(n).fill(false);
+  for (const i of EDGES[A.e]) cost[i] = dist(A.q, NODES[i]);
+  for (;;) {
+    let u = -1;
+    for (let i = 0; i < n; i++) if (!done[i] && (u < 0 || cost[i] < cost[u])) u = i;
+    if (u < 0 || cost[u] === Infinity) break;
+    done[u] = true;
+    for (const [i, j] of EDGES) { const v = i === u ? j : j === u ? i : -1; if (v >= 0 && cost[u] + dist(NODES[u], NODES[v]) < cost[v]) { cost[v] = cost[u] + dist(NODES[u], NODES[v]); prev[v] = u; } }
+  }
+  const [c, d] = EDGES[B.e], end = cost[c] + dist(NODES[c], B.q) <= cost[d] + dist(NODES[d], B.q) ? c : d;
+  if (cost[end] === Infinity) return [to];
+  const mid = [];
+  for (let u = end; u >= 0; u = prev[u]) mid.unshift(NODES[u]);
+  return [A.q, ...mid, B.q, to];
+}
+
 function distToStreets(x, z) {
   let best = Infinity;
   for (const s of STREETS) for (let i = 0; i < s.pts.length - 1; i++) {
@@ -343,7 +386,7 @@ export function buildTarnovgrad(stage, { weak = false } = {}) {
   });
 
   return {
-    places, obstacles, terrain, heightAt, walkY, canStand, growth,
+    places, obstacles, terrain, heightAt, walkY, canStand, growth, route,
     setGrowth(i, on, instant = false) { growTo[i] = on ? 1 : 0; if (instant) grow[i] = growTo[i]; },
     startCaravan() { caravan.visible = true; caravanOn = true; caravanK = 0; },
     resetCaravan() { caravan.visible = false; caravanOn = false; caravanK = 0; },
