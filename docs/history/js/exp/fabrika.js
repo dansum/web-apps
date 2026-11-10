@@ -251,7 +251,7 @@ export function mount(container, { onComplete }) {
   const setGrowth = (k) => { growK = k; growth.visible = k > 0.001; growth.scale.y = Math.max(0.001, k); };
   setGrowth(0);
   anchor('growthA', -11, 2.0, 11.3);
-  anchor('lawA', 2.0, 2.6, -1.4);
+  anchor('lawA', 2.0, far > 1 ? 1.4 : 2.6, -1.4);
   // Новодошли от селата (стъпка 4).
   const newcomers = [0, 1, 2, 3].map((i) => { const p = addS(worker(i % 2 ? 'woman' : 'man'), -26, 0, 5.2 + (i % 2) * 0.3); const bundle = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.14, 0.14), cm(0x9a7a5a)); bundle.position.set(0, 0.45, -0.12); p.add(bundle); p.visible = false; return p; });
   // Събрание на работниците (стъпка 4).
