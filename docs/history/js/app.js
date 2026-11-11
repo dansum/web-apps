@@ -76,6 +76,12 @@ function monBadges(item, { long = false } = {}) {
   if (!item.mon) {
     out.push(`<span class="badge warn" title="Това не идва от учебната програма на МОН.">⚠ Не е по програма на МОН</span>`);
   }
+  if (item.mon && item.beyond) {
+    // Умението е по програмата, но част от него я надхвърля.
+    out.push(long
+      ? `<div class="warnbox"><b>⚠ Част от съдържанието не е по програмата на МОН:</b> ${esc(item.beyond)}</div>`
+      : `<span class="badge warn" title="${esc(item.beyond)}">⚠ Отчасти извън програмата на МОН</span>`);
+  }
   if (item.assumption) {
     out.push(long
       ? `<div class="warnbox"><b>⚠ Наше предположение, не е по данни от МОН:</b> ${esc(item.assumption)}</div>`
@@ -246,7 +252,7 @@ async function renderSkill(id) {
       ${skill.novelty ? `<p class="novelty"><b>Ново за теб:</b> ${esc(skill.novelty)}</p>` : ''}
       <div class="skill-badges">${levelChip(skill.id)} ${devBadge(skill)} ${monBadges(skill)}</div>
     </header>
-    ${skill.assumption ? monBadges({ mon: skill.mon, assumption: skill.assumption }, { long: true }) : ''}
+    ${skill.assumption || skill.beyond ? monBadges({ mon: skill.mon, assumption: skill.assumption, beyond: skill.beyond }, { long: true }) : ''}
     ${monSource(course, skill)}
     <div class="skill-grid ${skill.quality === 'high' ? 'wide' : ''}">
       <section class="exercise"><h2>Упражнение</h2><div class="ex-area"></div></section>

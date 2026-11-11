@@ -405,3 +405,6 @@ html.xp-full-open, html.xp-full-open body { overflow: hidden; }
 .talk-foot { font-size: .72rem; color: var(--muted); }
 .xp-stage.talking .walk-pad, .xp-stage.talking .minimap { display: none; }
 @media (max-width: 560px) { .talk-qs { grid-template-columns: 1fr; } .talk { max-height: 62%; } }
+
+/* Знак „Не е по програмата на МОН“ вътре в балонче или панел (js/exp/shell.js: offMon) */
+.badge.off-mon { display: inline-block; font-size: 0.72rem; padding: 1px 7px; margin-bottom: 3px; }
