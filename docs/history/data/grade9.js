@@ -426,8 +426,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "dokumenti1943",
+          review: true,
           video: null,
           scene: {
             objects: [
