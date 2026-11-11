@@ -1499,7 +1499,8 @@ function build(container, { onComplete }, restart) {
   function step1() {
     shell.step(0);
     const seen = new Set();
-    shell.task(`<p>Вляво е природата: <b>гора, ливада и езеро</b>. Вдясно са земите, които са направили хората: <b>нива, овощна градина и парк</b>.</p>
+    shell.task(`<p><b>Съобщество</b> са растенията и животните, които живеят заедно на едно място.</p>
+      <p>Вляво е природата: <b>гора, ливада и езеро</b>. Вдясно са земите, които са направили хората: <b>нива, овощна градина и парк</b>.</p>
       <p><b>Разгледай всичко:</b> избери от менюто в ъгъла или кликни върху местата в сцената.</p>`);
     const ctrl = shell.setControls('<div class="row"><button class="btn all">🔭 Целият пейзаж</button><button class="btn primary nx" disabled>Напред →</button></div>');
     const next = ctrl.querySelector('.nx');
@@ -1585,7 +1586,7 @@ function build(container, { onComplete }, restart) {
             overview();
             clearTip();
             shell.task(`<p>Гората, ливадата и езерото са <b>естествени съобщества</b>. Нивата, овощната градина и паркът са <b>изкуствени съобщества</b>.</p>
-              <p>В естествените съобщества живеят много различни видове, а в изкуствените – малко.</p>${tally()}`);
+              <p>В естествените съобщества живеят много различни видове, а в изкуствените – обикновено по-малко.</p>${tally()}`);
             upd();
             shell.msg('Подреди всички места!', 'good');
             shell.setControls('<button class="btn primary">Към хранителната верига →</button>').querySelector('button').addEventListener('click', () => chain(mistakes));
