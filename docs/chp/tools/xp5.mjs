@@ -3,7 +3,7 @@ export async function sortAll(t) {
   const { page, wait } = t;
   for (let k = 0; k < 30; k++) {
     const ans = await page.evaluate(() => document.querySelector('.ex-area').__xp.answer);
-    if (ans === null || ans === undefined) return;
+    if (typeof ans !== 'number') return;
     await page.click(`.xp-controls .bin[data-b="${ans}"]`); await wait(350);
   }
 }
