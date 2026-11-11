@@ -126,6 +126,8 @@ async function checkGrade(g, plan) {
       seen.push(s.id);
       if (!s.id?.startsWith(`${g}.${k + 1}.`)) err(sw, `id трябва да започва с ${g}.${k + 1}.`);
       if (!s.title) err(sw, 'липсва title');
+      if (!s.novelty) warn(sw, 'липсва novelty („Какво е новото в този клас“)');
+      else if (s.novelty.length > 260) warn(sw, `novelty е ${s.novelty.length} знака (1–2 кратки изречения)`);
       if (s.mon === undefined) err(sw, 'mon трябва да е обект или null');
       if (s.mon && (!Array.isArray(s.mon.competences) || !s.mon.competences.length)) err(sw, 'mon.competences е празно');
       if (s.mon && !Array.isArray(s.mon.pages)) err(sw, 'mon.pages трябва да е масив (може празен)');
