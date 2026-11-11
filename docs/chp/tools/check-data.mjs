@@ -8,7 +8,7 @@ import { dirname, join } from 'node:path';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const ALL = ['3', '4', '5', '6'];
 const SHAPES = new Set(['box', 'sphere', 'cylinder', 'cone', 'torus', 'capsule', 'ring', 'plane']);
-const TYPES = new Set(['mcq', 'multi', 'sort', 'order', 'number', 'pick']);
+const TYPES = new Set(['mcq', 'multi', 'sort', 'order', 'number', 'pick', 'source']);
 
 let errors = 0, warns = 0;
 const err = (where, msg) => { errors++; console.log(`  ✗ ${where}: ${msg}`); };
@@ -69,6 +69,16 @@ function checkQuestion(where, q, objIds) {
     case 'number':
       if (typeof q.answer !== 'number') err(where, 'number: answer трябва да е число');
       break;
+    case 'source': {
+      const t = q.source?.text || '';
+      if (!t) err(where, 'source: липсва source.text');
+      else if (t.split(/\s+/).filter(Boolean).length > 60) err(where, `source: откъсът е ${t.split(/\s+/).filter(Boolean).length} думи (до 60)`);
+      if (!q.source?.from) err(where, 'source: липсва source.from (автор, заглавие, година)');
+      if (!(n >= 3 && n <= 5)) err(where, 'source: 3–5 избора');
+      const a = Array.isArray(q.answer) ? q.answer : [q.answer];
+      if (!a.length || a.some((x) => !Number.isInteger(x) || x < 0 || x >= n)) err(where, 'source: answer е индекс или масив от индекси в choices');
+      break;
+    }
     case 'pick':
       if (!objIds.has(q.answer)) err(where, `pick: answer „${q.answer}“ не е обект от сцената`);
       break;

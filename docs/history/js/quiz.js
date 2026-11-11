@@ -22,6 +22,10 @@ export function ask(el, q, { lowfi = null, objects = [], onDone, nextLabel = 'Н
   let evaluate;
   let type = q.type;
 
+  // „source“: откъс от извор над избора; отговорът е като при mcq (число) или multi (масив).
+  const src = type === 'source' ? q.source : null;
+  if (src) type = Array.isArray(q.answer) ? 'multi' : 'mcq';
+
   if (type === 'pick' && !lowfi) {
     // Във вид на избор от етикетите на обектите в сцената.
     const labels = objects.map((o) => o.label);
@@ -37,6 +41,9 @@ export function ask(el, q, { lowfi = null, objects = [], onDone, nextLabel = 'Н
     body.innerHTML = `<div class="choices">${order.map((i) =>
       `<button class="choice" data-i="${i}"><span class="mark">${multi ? '☐' : '○'}</span>${esc(q.choices[i])}</button>`).join('')}</div>
       ${multi ? '<p class="hint">Може да има повече от един верен отговор.</p>' : ''}`;
+    if (src) {
+      body.insertAdjacentHTML('afterbegin', `<blockquote class="q-source"><p>${esc(src.text)}</p>${src.from ? `<cite>${esc(src.from)}</cite>` : ''}</blockquote>`);
+    }
     body.querySelectorAll('.choice').forEach((b) => b.addEventListener('click', () => {
       const i = +b.dataset.i;
       if (multi) { sel.has(i) ? sel.delete(i) : sel.add(i); } else { sel.clear(); sel.add(i); }

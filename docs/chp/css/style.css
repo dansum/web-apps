@@ -234,6 +234,9 @@ main { max-width: 1180px; margin: 0 auto; padding: 16px; min-height: 70vh; }
 .dots i.no { background: var(--red); }
 .q-text { font-size: 1.1rem; font-weight: 700; margin: 4px 0 10px; }
 .hint { font-size: 0.85rem; color: var(--muted); }
+.q-source { margin: 0 0 12px; padding: 10px 14px; border-left: 4px solid #c8a96a; background: #fbf7ee; border-radius: 0 8px 8px 0; font-family: Georgia, 'Times New Roman', serif; }
+.q-source p { margin: 0 0 6px; line-height: 1.5; }
+.q-source cite { display: block; font-size: 0.85rem; color: var(--muted); font-style: normal; font-family: inherit; }
 .choices { display: grid; gap: 8px; }
 .choice { text-align: left; font: inherit; padding: 10px 12px; border-radius: 8px; border: 2px solid var(--line); background: #fff; cursor: pointer; display: flex; gap: 10px; align-items: center; }
 .choice:hover { border-color: #8fd9c4; }
