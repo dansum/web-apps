@@ -1153,8 +1153,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "nature6",
+          review: true,
           video: null,
           scene: {
             objects: [
