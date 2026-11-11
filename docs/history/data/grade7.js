@@ -151,8 +151,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "komiteti",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -768,8 +769,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "vlasti",
+          review: true,
           video: null,
           scene: {
             objects: [
