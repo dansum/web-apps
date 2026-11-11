@@ -859,7 +859,7 @@ function build(container, { onComplete }, restart) {
         const v = parseFloat(String(inp.value).replace(',', '.').replace('−', '-'));
         if (Number.isNaN(v)) { shell.msg('Напиши число.', 'bad'); return; }
         if (Math.abs(v - m.value) < 0.05) {
-          shell.msg(m.kind === 'med' ? 'Вярно! 36,6 °C — нормална телесна температура. Ако е над 37 °C, човек е болен и има температура.' : `Вярно! ${m.subj}: ${fmt(m.value)} °C.`, 'good');
+          shell.msg(m.kind === 'med' ? 'Вярно! 36,6 °C — нормална телесна температура. Ако термометърът показва около 38 °C или повече, човек има температура. Кажи на възрастен.' : `Вярно! ${m.subj}: ${fmt(m.value)} °C.`, 'good');
           return done();
         }
         mistakes++; wrongHere++;
