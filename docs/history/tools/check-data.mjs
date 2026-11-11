@@ -103,6 +103,7 @@ async function checkGrade(g, plan) {
   if (!c.title || !c.source?.pdf || !c.source?.title) err(g, 'липсва title или source');
   if (!Array.isArray(c.units) || c.units.length !== 3) err(g, 'трябва да има точно 3 раздела');
   const seen = [];
+  const noPages = [];
   (c.units || []).forEach((u, k) => {
     const uw = `раздел ${u.id}`;
     if (u.id !== `${g}-${k + 1}`) err(uw, `id трябва да е ${g}-${k + 1}`);
@@ -131,6 +132,7 @@ async function checkGrade(g, plan) {
       if (s.mon === undefined) err(sw, 'mon трябва да е обект или null');
       if (s.mon && (!Array.isArray(s.mon.competences) || !s.mon.competences.length)) err(sw, 'mon.competences е празно');
       if (s.mon && !Array.isArray(s.mon.pages)) err(sw, 'mon.pages трябва да е масив (може празен)');
+      else if (s.mon && !s.mon.pages.length) noPages.push(s.id);
       if (!s.mon && !s.assumption) err(sw, 'без mon трябва да има assumption');
       if (s.quality !== 'low' && !s.experience) err(sw, 'quality "high" изисква experience');
       const ids = checkObjects(sw, s.scene?.objects);
@@ -146,6 +148,8 @@ async function checkGrade(g, plan) {
   const extra = seen.filter((id) => !want.includes(id));
   if (missing.length) err(g, `липсват умения от плана: ${missing.join(', ')}`);
   if (extra.length) err(g, `умения, които ги няма в плана: ${extra.join(', ')}`);
+  // Едно предупреждение на клас, за да не се губят другите в списъка.
+  if (noPages.length) warn(`${g}. клас`, `празно mon.pages (страниците не са сверени с ${c.source?.pdf || 'PDF файла'}) при ${noPages.length} умения: ${noPages.join(', ')}`);
   if (new Set(seen).size !== seen.length) err(g, 'повторени id на умения');
   console.log(`  ${seen.length} умения, ${(c.units || []).reduce((n, u) => n + u.skills.reduce((m, s) => m + (s.questions?.length || 0), 0), 0)} въпроса`);
 }
