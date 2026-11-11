@@ -1,4 +1,4 @@
-// Разходка от първо лице в сцена: ходене със стрелките или бутоните, оглеждане с влачене,
+// Разходка от първо лице в сцена: ходене със стрелките или бутоните (наляво и надясно са крачка встрани), оглеждане с влачене (или Q и E),
 // докосване на земята води дотам. Има и малка карта с мястото на детето.
 import { THREE } from '../../kit.js';
 
@@ -28,7 +28,7 @@ export function createWalk(stage, { ground, canStand, obstacles = [], terrain = 
   const padEl = document.createElement('div');
   padEl.className = 'walk-pad';
   padEl.hidden = true;
-  padEl.innerHTML = '<button data-k="left" aria-label="Завий наляво">↶</button><button data-k="fwd" aria-label="Напред">▲</button><button data-k="right" aria-label="Завий надясно">↷</button><span></span><button data-k="back" aria-label="Назад">▼</button><span></span>';
+  padEl.innerHTML = '<button data-k="left" aria-label="Крачка наляво">◀</button><button data-k="fwd" aria-label="Напред">▲</button><button data-k="right" aria-label="Крачка надясно">▶</button><span></span><button data-k="back" aria-label="Назад">▼</button><span></span>';
   host.appendChild(padEl);
   padEl.querySelectorAll('button').forEach((b) => {
     const on = (e) => { e.preventDefault(); e.stopPropagation(); pad.add(b.dataset.k); st.target = null; st.auto = null; };
@@ -56,7 +56,7 @@ export function createWalk(stage, { ground, canStand, obstacles = [], terrain = 
   const pu = () => { drag = null; };
   el.addEventListener('pointerdown', pd); el.addEventListener('pointermove', pm);
   el.addEventListener('pointerup', pu); el.addEventListener('pointercancel', pu);
-  const KEY = { ArrowUp: 'fwd', KeyW: 'fwd', ArrowDown: 'back', KeyS: 'back', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' };
+  const KEY = { ArrowUp: 'fwd', KeyW: 'fwd', ArrowDown: 'back', KeyS: 'back', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', KeyQ: 'turnL', KeyE: 'turnR' };
   const kd = (e) => {
     if (!st.active || !KEY[e.code] || /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '')) return;
     keys.add(KEY[e.code]); st.target = null; st.auto = null; e.preventDefault();
@@ -112,8 +112,12 @@ export function createWalk(stage, { ground, canStand, obstacles = [], terrain = 
       return;
     }
     const k = (n) => keys.has(n) || pad.has(n);
-    st.yaw += ((k('right') ? 1 : 0) - (k('left') ? 1 : 0)) * dt * 1.9;
-    let f = (k('fwd') ? 1 : 0) - (k('back') ? 0.7 : 0), dx = Math.sin(st.yaw), dz = -Math.cos(st.yaw);
+    st.yaw += ((k('turnR') ? 1 : 0) - (k('turnL') ? 1 : 0)) * dt * 1.9;
+    // Напред/назад по посоката на погледа; наляво/надясно — крачка встрани, без завъртане.
+    const fw = (k('fwd') ? 1 : 0) - (k('back') ? 0.7 : 0), side = ((k('right') ? 1 : 0) - (k('left') ? 1 : 0)) * 0.75;
+    let dx = Math.sin(st.yaw) * fw + Math.cos(st.yaw) * side, dz = -Math.cos(st.yaw) * fw + Math.sin(st.yaw) * side;
+    let f = Math.hypot(dx, dz);
+    if (f) { dx /= f; dz /= f; f = Math.min(f, 1); }
     if (!f && st.target) {
       const tx = st.target.x - st.x, tz = st.target.z - st.z, d = Math.hypot(tx, tz);
       if (d < 0.5 || st.stuck > 0.4) st.target = null;

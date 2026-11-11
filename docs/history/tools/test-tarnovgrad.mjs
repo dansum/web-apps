@@ -25,10 +25,29 @@ for (let i = 0; i < n; i++) {
   if (await page.locator('.cm-list[hidden]').count()) await page.locator('.cm-head').click();
   await page.locator('.cm-item').nth(i).click(); await wait(250);
 }
+// Бутонът в панела води при царя и царицата и отваря разговора. Два въпроса към царя и един към царицата.
+await page.click('.xp-controls .talk-go'); await wait(400);
+await page.locator('.talk-q').nth(1).click(); await wait(300);
+const ans1 = await page.locator('.bubble.wide').last().textContent();
+await page.locator('.talk-q').nth(3).click(); await wait(300);
+await page.locator('.talk-tabs button').nth(1).click(); await page.locator('.talk-q').nth(0).click(); await wait(300);
+const ans3 = await page.locator('.bubble.wide').last().textContent();
+await page.locator('.talk-tabs button').nth(0).click();
+const talk = [await page.locator('.talk-q').count(), await page.locator('.talk-q.done').count(), await page.textContent('.talk-foot b')];
+console.log('разговор:', talk, '|', ans1.slice(0, 40), '|', ans3.slice(0, 40));
+await shot('t1-talk');
+const talkOk = talk[0] === 6 && talk[1] === 2 && talk[2] === '3 от 10' && ans1.startsWith('Цар Иван Асен II:') && ans3.startsWith('Царица Анна:');
 await page.click('.mode-toggle button[data-m="walk"]'); await wait(4500);
+console.log('разговорът се затваря при отдалечаване:', (await page.locator('.talk').count()) === 0);
 const a = await demo('(d) => [d.walk.active, d.walk.state.x, d.walk.state.z]');
 await page.keyboard.down('ArrowUp'); await wait(3000); await page.keyboard.up('ArrowUp');
 const b = await demo('(d) => [d.walk.active, d.walk.state.x, d.walk.state.z]');
+// Стрелка наляво е крачка встрани: детето се мести, но не се завърта (тръгва с лице на изток, значи отива на север).
+const y0 = await demo('(d) => d.walk.state.yaw');
+await page.keyboard.down('ArrowLeft'); await wait(2500); await page.keyboard.up('ArrowLeft');
+const sd = await demo('(d) => [d.walk.state.x, d.walk.state.z, d.walk.state.yaw]');
+const strafeOk = Math.abs(sd[2] - y0) < 1e-6 && b[2] - sd[1] > 0.5 && Math.abs(sd[0] - b[1]) < 0.5;
+console.log('крачка наляво: без завъртане и встрани', strafeOk, 'm', (b[2] - sd[1]).toFixed(1));
 const moved = Math.hypot(b[1] - a[1], b[2] - a[2]);
 console.log('разходка: активна', b[0], 'изминати m', moved.toFixed(1));
 // През стена не се минава: опит да се влезе в зида на портата.
@@ -40,7 +59,7 @@ await shot('t1-walk');
 // Избор от менюто при разходка: детето отива до мястото с ходене по улиците (без скок).
 await demo('(d) => { const s = d.walk.state; s.x = -124; s.z = 8; }');
 if (await page.locator('.cm-list[hidden]').count()) await page.locator('.cm-head').click();
-await page.locator('.cm-item').nth(5).click(); // ковачницата
+await page.locator('.cm-item', { hasText: 'Ковачницата' }).click();
 let maxStep = 0, last = [-124, 8], arrived = false;
 for (let k = 0; k < 120 && !arrived; k++) {
   await wait(250);
@@ -54,7 +73,7 @@ await shot('t1-auto');
 await page.click('.mode-toggle button[data-m="top"]'); await wait(2500);
 
 // Стъпка 2: една грешка в предсказанието, после трите причини.
-await page.click('.xp-controls .btn.primary'); await wait(2500);
+await page.click('.xp-controls .next'); await wait(2500);
 await page.click('.xp-controls button[data-a="walls"]');
 console.log('грешка 2:', await page.textContent('.xp-msg'));
 await page.click('.xp-controls button[data-a="ok"]');
@@ -74,7 +93,7 @@ for (let k = 0; k < 5; k++) {
   if (k === 2) await shot('t3');
   await wait(2600);
 }
-await page.click('.xp-controls .btn.primary'); await wait(3000);
+await page.click('.xp-controls .next'); await wait(3000);
 
 // Стъпка 4.
 await shot('t4a');
@@ -90,5 +109,5 @@ const again = await demo('(d) => [document.querySelectorAll(".corner-menu").leng
 console.log('отначало:', again);
 console.log('грешки в конзолата:', errors.length ? errors : 'няма');
 await browser.close();
-const ok = arrived && toStand < 1 && maxStep < 25 && Math.abs(result - want) < 1e-6 && !errors.length && b[0] && moved > 2 && Math.abs(wallZ - 2) < 1.6 && again[0] === 1 && again[1].startsWith('1.') && again[2] && !again[3];
+const ok = strafeOk && talkOk && arrived && toStand < 1 && maxStep < 25 && Math.abs(result - want) < 1e-6 && !errors.length && b[0] && moved > 2 && Math.abs(wallZ - 2) < 1.6 && again[0] === 1 && again[1].startsWith('1.') && again[2] && !again[3];
 process.exit(ok ? 0 : 1);
