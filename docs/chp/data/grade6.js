@@ -369,8 +369,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "magnets",
           video: null,
           scene: {
             objects: [
