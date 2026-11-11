@@ -1020,7 +1020,7 @@ export function mount(container, { onComplete }) {
     ballHome();
     camTo('ball');
     shell.setControls('');
-    shell.task(`<p><b>⚽ Земно притегляне.</b> Детето на кулата държи топка и ще я пусне.</p><div class="forces-qs"></div>`);
+    shell.task(`<p><b>⚽ Земно притегляне.</b> Детето на кулата държи топка и ще я пусне.</p><p class="small">В модела падането е забавено, за да се вижда добре.</p><div class="forces-qs"></div>`);
     say(ball, 'Ще я пусна!', 'tag', 0.5);
     const qs = container.querySelector('.forces-qs');
     ask(qs, {
