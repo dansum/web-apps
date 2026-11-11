@@ -1410,7 +1410,7 @@ export function mount(container, { onComplete }) {
     setMonths(1);
     stage.stopFollow();
     stage.flyTo([-0.6, 2.6, fit(5.6)], [-1.0, 2.1, -1.2], 1.2);
-    shell.task(`<p>Всеки човек някога е бил бебе. Преди да се роди, бебето расте в корема на майка си.</p>
+    shell.task(`<p>Всеки човек някога е бил бебе. Преди да се роди, бебето расте в <b>матката</b> на майка си. Матката е специален орган при жената. Тя не е стомахът.</p>
       <p><b>Плъзни „Месеци“ надясно и виж как расте бебето.</b></p>
       <label class="organs4-slider">Месеци: <span class="organs4-val">1</span><input type="range" class="organs4-months" min="1" max="9" step="1" value="1"></label>`);
     shell.setControls('');
@@ -1426,9 +1426,9 @@ export function mount(container, { onComplete }) {
       if (m === 9 && !asked) {
         asked = true;
         say(mom.head, 'След около 9 месеца бебето е готово да се роди!', 'good', 0.5);
-        askQ('months', 'Колко време расте бебето в корема на майката, преди да се роди?', [
+        askQ('months', 'Колко време расте бебето в матката, преди да се роди?', [
           { v: 'ok', t: 'Около 9 месеца' }, { v: 'd', t: 'Около 9 дни' }, { v: 'y', t: 'Около 9 години' }],
-        'Точно така! Бебето расте в корема на майката около 9 месеца.',
+        'Точно така! Бебето расте в матката около 9 месеца.',
         'Не съвсем. Погледни плъзгача: колко месеца отброи?', () => {
           const c = shell.setControls('<button class="btn primary">Напред: растем →</button>');
           c.querySelector('button').addEventListener('click', growPart);
