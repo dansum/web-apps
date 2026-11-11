@@ -876,8 +876,8 @@ function build(container, { onComplete }, restart) {
     sDist.addEventListener('input', () => { lampState.dist = +sDist.value; placeLamp(); check(); });
     sSide.addEventListener('input', () => { lampState.side = +sSide.value; placeLamp(); check(); });
     onLampMove = () => { syncSliders(); check(); };
-    shell.task('<p>Включихме лампата. Мечето спира част от светлината и на екрана се вижда неговата <b>сянка</b>.</p><p>Първо <b>предскажи</b>, после <b>провери</b>, като местиш лампата.</p>');
-    const upd = () => shell.score(`Опит ${Math.min(ri + 1, 4)} от 4`);
+    shell.task('<p>Включихме лампата. Мечето спира част от светлината и на екрана се вижда неговата <b>сянка</b>.</p><p>Първо <b>предскажи</b>, после <b>провери</b>, като местиш лампата.</p><p class="small">Това е упражнение за любопитни — не носи точки.</p>');
+    const upd = () => shell.score(`Опит ${Math.min(ri + 1, 4)} от 4 · упражнение без точки`);
     const round = () => {
       const R = ROUNDS[ri];
       upd();
@@ -926,7 +926,7 @@ function build(container, { onComplete }, restart) {
       });
       say(new V3(BX + 0.8, 0.6, TOY_Z + 1.0), 'Лампата е вдясно от мечето.', 'tag', 0.3);
       box.innerHTML = '<p class="light-q">Лампата е изключена и сега е <b>вдясно</b> от мечето. Когато я включим, къде ще падне сянката? <b>Кликни върху знака на екрана</b>.</p>';
-      shell.score('Опит 4 от 4');
+      shell.score('Опит 4 от 4 · упражнение без точки');
       clickHandler = async (id) => {
         if (!id || !id.startsWith('mark')) return;
         const m = marks.find((g) => g.userData.pickId === id);
@@ -944,7 +944,7 @@ function build(container, { onComplete }, restart) {
         marks.forEach((g) => { g.visible = false; });
         say(new V3(expectX, 1.3, SCR_Z), 'Позна! Лампата е вдясно, а сянката падна вляво. Лампата, мечето и сянката са на една права линия.', 'wide good', 0.3);
         shell.msg('Браво!', 'good');
-        scores.push(stepScore(mistakes, 3));
+        // Сенките (големина и посока) са от програмата за 5. клас — стъпката е упражнение без точки.
         box.innerHTML = '';
         shell.setControls('<button class="btn primary">Напред →</button>').querySelector('button').addEventListener('click', step4);
       };
