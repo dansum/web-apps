@@ -487,8 +487,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "simplecomplex",
           video: null,
           scene: {
             objects: [
@@ -799,8 +799,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "transport",
+          review: true,
           video: null,
           scene: {
             objects: [
