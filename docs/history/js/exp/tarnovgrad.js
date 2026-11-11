@@ -10,6 +10,8 @@ const SPOTS = [
     note: 'В крепостта Царевец се влиза от запад, по тесен скален провлак. Пътят минава по подвижен мост и през няколко порти. Така столицата е трудна за превземане.' },
   { id: 'palace', label: 'Царският дворец', icon: '👑',
     note: 'Дворецът на българските царе е малка крепост в крепостта: със собствени стени, тронна зала и църква. Оттук се управлява царството.' },
+  { id: 'royals', label: 'Царят и царицата', icon: '🤴',
+    note: 'Цар Иван Асен II и царица Анна те приемат пред тронната зала. Попитай ги за града и за царството.' },
   { id: 'patriarchate', label: 'Патриаршията', icon: '⛪',
     note: 'На върха на хълма е Патриаршията с църквата „Възнесение Господне“. От 1235 г. начело на Българската църква отново стои патриарх.' },
   { id: 'baldwin', label: 'Балдуиновата кула', icon: '🗼',
@@ -23,6 +25,25 @@ const SPOTS = [
   { id: 'church40', label: 'Църквата „Св. Четиридесет мъченици“', icon: '✝️',
     note: 'Цар Иван Асен II построява църквата след победата при Клокотница през 1230 г. Колоната с неговия надпис е вътре в църквата; тук е показана отвън, за да я видиш.' },
 ];
+// Разговор с царя и царицата: 10 готови въпроса. Отговорите са съчинени от нас по исторически извори; годината е 1236.
+const TALK = {
+  tsar: { name: 'Цар Иван Асен II', icon: '👑', qs: [
+    ['Кой си ти?', 'Аз съм Иван Асен, цар на българите. Син съм на стария цар Асен. Управлявам от 1218 година.'],
+    ['Защо Търновград е столица?', 'Тук баща ми Асен и чичо ми Петър вдигат въстанието през 1185 година и България отново става свободна. Хълмът е заобиколен от река Янтра и от високи скали. Той е крепост, направена от самата природа.'],
+    ['Колко голяма е държавата ти?', 'След победата при Клокотница моите земи стигат до три морета: Черно, Бяло и Адриатическо.'],
+    ['Какво се случи при Клокотница?', 'През 1230 година епирският владетел Теодор Комнин наруши мирния договор и нападна България. Заповядах да носят договора на копие като знаме. Победихме и го плених, а обикновените му войници пуснах да си идат по домовете.'],
+    ['Защо даде грамота на търговците от Дубровник?', 'Търговците носят стоки и купуват това, което правят нашите занаятчии. Затова им позволих да пътуват и да търгуват свободно в цялото царство. Така богатее и градът, и държавата.'],
+    ['Как управляваш царството?', 'Съветвам се с болярите. Издавам грамоти и сека монети с моя образ. Грижа се за крепостите, за пътищата и за мира със съседите.'],
+  ] },
+  tsaritsa: { name: 'Царица Анна', icon: '👸', qs: [
+    ['Коя си ти?', 'Аз съм Анна, царицата. Дъщеря съм на унгарския крал Андрей II. Нашият брак скрепи мира между България и Унгария.'],
+    ['Как се живее в двореца?', 'Дворецът е крепост вътре в крепостта, със собствени стени. В тронната зала с мрамор и мозайки царят приема боляри и пратеници от други страни. Имаме и своя църква.'],
+    ['Какво значи Патриаршията за града?', 'От 1235 година начело на Българската църква отново стои патриарх. Той живее тук, на върха на хълма. Така Търновград е столица и на царството, и на Църквата. В манастирите край града се преписват книги.'],
+    ['Кои хора живеят в Търновград?', 'На хълма са царят, болярите и духовниците. В долния град живеят занаятчии и търговци, идват и чужденци. Селяните от околността носят храна на пазара.'],
+  ] },
+};
+const TALK_N = TALK.tsar.qs.length + TALK.tsaritsa.qs.length;
+
 const CAUSES = [
   { label: '🌾 Храна от селата', at: [-160, 19, 14], msg: 'Селата дават повече храна. Затова част от хората вече могат да живеят в града.' },
   { label: '🔨 Занаяти', at: [-140, 20, -28], msg: 'Занаятчиите отварят работилници. Те правят сечива, съдове и дрехи за продан.' },
@@ -47,7 +68,7 @@ const PREDICT = [
 
 export function mount(container, { onComplete }) {
   const shell = createShell(container, { steps: ['Опознай', 'Защо градът расте?', 'Находка и място', 'Предскажи'] });
-  container.querySelector('.scene-hint').textContent = 'Отгоре: върти и приближавай сцената. Разходка: върви със стрелките или бутоните, оглеждай се с влачене, докосни улицата, за да отидеш там.';
+  container.querySelector('.scene-hint').textContent = 'Отгоре: върти и приближавай сцената. Разходка: върви със стрелките или бутоните (наляво и надясно са крачка встрани), оглеждай се с влачене, докосни улицата, за да отидеш там.';
   const aspect = (shell.stageEl.clientWidth || 600) / (shell.stageEl.clientHeight || 400);
   const far = aspect < 1.4 ? 1.35 / Math.max(aspect, 0.5) : 1;
   const weak = (navigator.hardwareConcurrency || 4) <= 2;
@@ -147,6 +168,7 @@ export function mount(container, { onComplete }) {
       const p = places.get(hit.root.userData.pickId);
       // При разходка щракването върху настилката на площад значи „отиди там“.
       if (walk.active && hit.point.y < p.y + 0.5 && world.canStand(hit.point.x, hit.point.z)) { walk.walkTo(hit.point.x, hit.point.z); return; }
+      if (p.id === 'royals' && talkEl) return; // разговорът вече е отворен
       clickHandler(p.id);
     } else if (walk.active) walk.walkToEvent(ev);
   });
@@ -165,6 +187,49 @@ export function mount(container, { onComplete }) {
     else look(s.top[0], s.top[1]);
     return p;
   }
+  // ---- Разговор с царя и царицата ----
+  const royals = places.get('royals');
+  const asked = new Set();
+  let talkEl = null, talkTip = null, talkWho = 'tsar';
+  function closeTalk() {
+    if (talkTip) { talkTip.remove(); talkTip = null; }
+    if (talkEl) { talkEl.remove(); talkEl = null; }
+    royals.group.userData.speak(null);
+    shell.stageEl.classList.remove('talking');
+  }
+  function drawTalk() {
+    const T = TALK[talkWho];
+    talkEl.innerHTML = `<div class="talk-head"><div class="talk-tabs">${Object.keys(TALK).map((w) => `<button data-who="${w}" class="${w === talkWho ? 'on' : ''}">${TALK[w].icon} ${esc(TALK[w].name)}</button>`).join('')}</div><button class="talk-x" aria-label="Затвори разговора">✕</button></div>
+      <div class="talk-qs">${T.qs.map(([q], i) => `<button class="talk-q ${asked.has(talkWho + i) ? 'done' : ''}" data-i="${i}">${esc(q)}${asked.has(talkWho + i) ? ' <span>✓</span>' : ''}</button>`).join('')}</div>
+      <div class="talk-foot">Зададени въпроси: <b>${asked.size} от ${TALK_N}</b>. Отговорите са съчинени от нас по исторически извори. Годината е 1236.</div>`;
+    talkEl.querySelector('.talk-x').addEventListener('click', closeTalk);
+    talkEl.querySelectorAll('.talk-tabs button').forEach((b) => b.addEventListener('click', () => { talkWho = b.dataset.who; drawTalk(); }));
+    talkEl.querySelectorAll('.talk-q').forEach((b) => b.addEventListener('click', () => {
+      const i = +b.dataset.i;
+      asked.add(talkWho + i);
+      clearTip();
+      if (talkTip) talkTip.remove();
+      talkTip = stage.bubble(royals.group.userData[talkWho], `<b>${esc(T.name)}:</b> ${esc(T.qs[i][1])}`, { cls: 'wide', lift: 2.25 });
+      royals.group.userData.speak(talkWho);
+      drawTalk();
+    }));
+  }
+  function openTalk() {
+    if (talkEl) return;
+    talkEl = document.createElement('div');
+    talkEl.className = 'talk';
+    ['pointerdown', 'wheel', 'touchstart'].forEach((n) => talkEl.addEventListener(n, (e) => e.stopPropagation(), { passive: true }));
+    shell.stageEl.appendChild(talkEl);
+    shell.stageEl.classList.add('talking');
+    drawTalk();
+  }
+  // Ако детето се отдалечи, разговорът свършва.
+  stage.tick(() => { if (talkEl && walk.active && !walk.state.auto && Math.hypot(walk.state.x - royals.x, walk.state.z - royals.z) > 16) closeTalk(); });
+
+  // Бутон в панела: бърз път до царя и царицата (води до тях и отваря разговора).
+  const GO_ROYALS = '<button class="btn talk-go">🤴 Отиди при царя и царицата</button>';
+  const bindGo = (c) => { const b = c.querySelector('.talk-go'); if (b) b.addEventListener('click', () => clickHandler && clickHandler('royals')); return c; };
+
   const scores = [];
   let menu = null, timers = [];
   const later = (fn, ms) => timers.push(setTimeout(fn, ms));
@@ -180,18 +245,19 @@ export function mount(container, { onComplete }) {
     const open = (id) => {
       const s = SPOTS.find((x) => x.id === id);
       const p = showPlace(id);
-      say(p.group, `<b>${esc(s.label)}</b><br>${esc(s.note)}`, { cls: 'wide', lift: p.top + 1.5 });
+      if (id === 'royals') { clearTip(); openTalk(); talkTip = talkTip || stage.bubble(p.group, esc(s.note), { cls: 'wide', lift: p.top + 0.4 }); }
+      else { closeTalk(); say(p.group, `<b>${esc(s.label)}</b><br>${esc(s.note)}`, { cls: 'wide', lift: p.top + 1.5 }); }
       seen.add(id); p.wanted = false; p.done = true;
       menu.mark(id); menu.setActive(id);
       shell.score(`Разгледани: ${seen.size} от ${SPOTS.length}`);
       if (seen.size === SPOTS.length) {
-        const c = shell.setControls('<button class="btn primary">Напред →</button>');
-        c.querySelector('button').addEventListener('click', () => { menu.show(false); clearTip(); selected = null; step2(); });
+        const c = bindGo(shell.setControls(`<div class="col">${GO_ROYALS}<button class="btn primary next">Напред →</button></div>`));
+        c.querySelector('.next').addEventListener('click', () => { menu.show(false); clearTip(); closeTalk(); selected = null; step2(); });
       }
     };
     menu = cornerMenu(stage, { title: 'Разгледай', items: SPOTS.map((s) => ({ id: s.id, label: s.label, icon: s.icon })), onSelect: open });
     clickHandler = open;
-    shell.setControls('');
+    bindGo(shell.setControls(GO_ROYALS));
   }
 
   function step2() {
@@ -244,14 +310,15 @@ export function mount(container, { onComplete }) {
     allowWalk(true);
     look(HOME[0], HOME[1], 1.4);
     let mistakes = 0, k = 0, miss = 0, busy = false;
-    for (const p of places.values()) { p.wanted = true; p.done = false; }
+    for (const p of places.values()) { p.wanted = p.id !== 'royals'; p.done = false; }
     const ask = () => {
       busy = false; miss = 0; selected = null; clearTip();
       shell.task(`Археолозите откриват <b data-find="${FINDS[k].target}">${esc(FINDS[k].t)}</b>. Щракни мястото в града, откъдето е находката. Можеш да го потърсиш и с разходка.`);
       shell.score(`Находки: ${k} от ${FINDS.length}`);
     };
-    shell.setControls('');
+    bindGo(shell.setControls(GO_ROYALS));
     clickHandler = (id) => {
+      if (id === 'royals') { showPlace(id); clearTip(); openTalk(); return; }
       if (busy) return;
       const f = FINDS[k], p = places.get(id);
       if (id !== f.target) {
@@ -267,8 +334,8 @@ export function mount(container, { onComplete }) {
       if (k < FINDS.length) later(ask, 2200);
       else {
         scores.push(stepScore(mistakes, 4));
-        const n = shell.setControls('<button class="btn primary">Напред →</button>');
-        n.querySelector('button').addEventListener('click', () => { clearTip(); selected = null; step4(); });
+        const n = bindGo(shell.setControls(`<div class="col">${GO_ROYALS}<button class="btn primary next">Напред →</button></div>`));
+        n.querySelector('.next').addEventListener('click', () => { clearTip(); closeTalk(); selected = null; step4(); });
       }
     };
     ask();
@@ -300,7 +367,7 @@ export function mount(container, { onComplete }) {
 
   function restart() {
     timers.forEach(clearTimeout); timers = [];
-    clearTip(); selected = null;
+    clearTip(); closeTalk(); asked.clear(); selected = null;
     world.resetCaravan();
     for (let i = 0; i < 3; i++) world.setGrowth(i, true, true);
     if (menu) menu.remove();
@@ -331,5 +398,5 @@ export function mount(container, { onComplete }) {
   look(HOME[0], HOME[1], 2.6); // начален полет към града
   setTimeout(setTopLimits, 2700);
   container.__demo = { stage, places, walk, world, setMode, screenOf: (id) => stage.screenOf(id) };
-  return { dispose() { timers.forEach(clearTimeout); clearTimeout(modeTimer); if (menu) menu.remove(); toggle.remove(); map.remove(); walk.dispose(); stage.dispose(); } };
+  return { dispose() { closeTalk(); timers.forEach(clearTimeout); clearTimeout(modeTimer); if (menu) menu.remove(); toggle.remove(); map.remove(); walk.dispose(); stage.dispose(); } };
 }

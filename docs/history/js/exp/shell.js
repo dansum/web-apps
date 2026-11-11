@@ -6,6 +6,7 @@ export function createShell(container, { steps }) {
   container.innerHTML = `<div class="xp">
       <div class="xp-stage"></div>
       <div class="xp-panel">
+        <button class="xp-min" type="button"></button>
         <div class="xp-steps">${steps.map(() => '<i></i>').join('')}</div>
         <div class="xp-title"></div>
         <div class="xp-task"></div>
@@ -17,6 +18,10 @@ export function createShell(container, { steps }) {
     <p class="scene-hint">Върти сцената с пръст или мишка, приближавай с колелцето или с два пръста.</p>`;
   const q = (s) => container.querySelector(s);
   setupFullscreen(q('.xp'), q('.xp-stage'));
+  // На цял екран панелът е плаваща карта върху сцената; този бутон я свива до заглавието.
+  const minBtn = q('.xp-min'), drawMin = () => { const m = q('.xp-panel').classList.contains('min'); minBtn.textContent = m ? '▾' : '▴'; minBtn.title = m ? 'Покажи задачата' : 'Свий задачата'; minBtn.setAttribute('aria-label', minBtn.title); };
+  minBtn.addEventListener('click', () => { q('.xp-panel').classList.toggle('min'); drawMin(); });
+  drawMin();
   const shell = {
     stageEl: q('.xp-stage'),
     controls: q('.xp-controls'),
@@ -62,7 +67,8 @@ export function stepScore(mistakes, allowed = 3) {
 }
 
 // Бутон „На цял екран“ в горния десен ъгъл на сцената. Ползва Fullscreen API; където го няма
-// (напр. iPhone), сцената и панелът се разпъват върху целия прозорец.
+// (напр. iPhone), преживяването се разпъва върху целия прозорец. На широк екран сцената заема всичко,
+// а панелът със задачата плава върху нея; на тесен екран панелът остава под сцената.
 function setupFullscreen(xp, stageEl) {
   const btn = document.createElement('button');
   btn.className = 'xp-fs';

@@ -127,6 +127,7 @@ export const SITES = {
   market: { x: -142, z: 8, ry: 0, y: 17, keep: 0, stand: [-126, 8.5], top: [[-142, 18, 8], [6, 26, 36]] },
   smithy: { x: -134.5, z: -19, ry: -Math.PI / 2, y: 17, keep: 8, stand: [-142.5, -17], top: [[-135, 18.5, -19], [-15, 4.5, 5]] },
   pottery: { x: -154.8, z: -40, ry: Math.PI / 2, y: null, keep: 9, stand: [-146.5, -37], top: [[-153, 15.5, -40], [17, 7, 8]] },
+  royals: { x: 4, z: -29.6, ry: -Math.PI / 2, y: 27.1, keep: 0, stand: [-0.4, -29.6], pitch: 0.34, top: [[1.5, 25.5, -26.5], [-8, 11.5, 8]] },
   church40: { x: -160, z: -72, ry: 0, y: null, keep: 17, stand: [-152, -61.5], top: [[-159, 7, -71], [10, 24, 36]] },
 };
 
@@ -233,7 +234,7 @@ export function buildTarnovgrad(stage, { weak = false } = {}) {
 
   // ---- Осемте места (ярки, подробни) ----
   const places = new Map(), obstacles = [];
-  const builders = { gate: P.gate, palace: P.palace, patriarchate: P.patriarchate, baldwin: P.baldwin, market: P.market, smithy: P.smithy, pottery: P.pottery, church40: P.church40 };
+  const builders = { gate: P.gate, palace: P.palace, patriarchate: P.patriarchate, baldwin: P.baldwin, market: P.market, smithy: P.smithy, pottery: P.pottery, church40: P.church40, royals: P.royals };
   for (const id of Object.keys(SITES)) {
     const s = SITES[id], mats = ownSet(V), built = builders[id](mats);
     const y = s.y ?? heightAt(s.x, s.z);
@@ -243,7 +244,7 @@ export function buildTarnovgrad(stage, { weak = false } = {}) {
     const cs = Math.cos(s.ry), sn = Math.sin(s.ry);
     for (const o of built.obstacles || []) obstacles.push({ ...o, x: s.x + o.x * cs + o.z * sn, z: s.z - o.x * sn + o.z * cs, ry: s.ry + (o.ry || 0) });
     if (built.tick) tickers.push((dt, t) => built.tick(t));
-    places.set(id, { id, group: built.group, mats: Object.values(mats), x: s.x, y, z: s.z, top: built.top, site: s, glow: 0 });
+    places.set(id, { id, group: built.group, mats: Object.values(mats).concat(built.mats || []), x: s.x, y, z: s.z, top: built.top, site: s, glow: 0 });
   }
   // Портата: двата каменни стълба на кулата и на предната порта не се преминават.
   for (const [x, z, hw, hd] of [[-90, -2.6, 4.6, 2.9], [-90, 6.6, 4.6, 2.9], [-107.6, -2.7, 1.3, 2.6], [-107.6, 6.7, 1.3, 2.6]]) obstacles.push({ x, z, hw, hd });
