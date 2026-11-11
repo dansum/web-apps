@@ -884,9 +884,10 @@ export function mount(container, { onComplete }) {
     let placed = 0;
     const tries = new Map();
     shell.task(`<p>Шумомерът на стената показва колко силен е звукът.</p>
-      <p><b>Кликни</b> върху източник на звук, за да го измериш, и го <b>провлачи</b> в зоната: тихо, нормално или вредно.</p>`);
+      <p><b>Кликни</b> върху източник на звук, за да го измериш, и го <b>провлачи</b> в зоната: тихо, нормално или вредно.</p>
+      <p class="small">Това е упражнение за любопитни — не носи точки.</p>`);
     shell.setControls('');
-    const upd = () => shell.score(`Подредени: ${placed} от ${SOURCES.length} · грешки: ${mistakes}`);
+    const upd = () => shell.score(`Подредени: ${placed} от ${SOURCES.length} · упражнение без точки`);
     upd();
     clickHandler = (id, hit) => {
       if (!hit || !hit.root.userData.o) { clearTip(); return; }
@@ -924,7 +925,7 @@ export function mount(container, { onComplete }) {
         upd();
         if (placed === SOURCES.length) {
           stopDrag(); stopDrag = null;
-          scores.push(stepScore(mistakes, 3));
+          // Числовите зони в dB не са в програмата за 4. клас — стъпката е упражнение без точки.
           shell.msg('Браво! Звук от около 85 dB и повече вреди на слуха, ако го слушаме дълго.', 'good');
           shell.setControls('<button class="btn primary">Напред →</button>').querySelector('button').addEventListener('click', step4);
         }
