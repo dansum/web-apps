@@ -272,6 +272,7 @@ export default {
           assumption: null,
           quality: "high",
           experience: "charges",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -371,6 +372,7 @@ export default {
           assumption: null,
           quality: "high",
           experience: "magnets",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -444,8 +446,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "atoms",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -487,8 +490,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "simplecomplex",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -583,8 +587,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "oxyhydro",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -628,8 +633,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "iron",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -674,8 +680,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "burning",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -726,8 +733,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "eco6",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -799,8 +807,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "transport",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -838,8 +847,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "stimuli",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -884,8 +894,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "offspring",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -937,8 +948,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "growth",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -1034,8 +1046,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "nervous",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -1093,8 +1106,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "reproduction",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -1149,8 +1163,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "nature6",
+          review: true,
           video: null,
           scene: {
             objects: [
