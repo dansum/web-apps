@@ -313,3 +313,72 @@ export function church40(M) {
   const group = B.build();
   return { group, top: 10, obstacles: [{ x: 1, z: -1, hw: 13, hd: 5 }, { x: -9, z: 4.4, r: 0.6 }, { x: -14, z: 0.4, hw: 0.4, hd: 7 }, { x: 14, z: 0.4, hw: 0.4, hd: 7 }] };
 }
+
+// Царят и царицата пред тронната зала. Гледат към локалното +z. userData.tsar / .tsaritsa — за балончетата с отговорите.
+export function royals(M) {
+  const B = new Batch(), f = B.frame();
+  f.box(M.stone, 4.4, 0.24, 2.6, 0, 0, 0).box(M.red, 3.6, 0.03, 1.9, 0, 0.24, 0).box(M.gold, 3.6, 0.035, 0.1, 0, 0.24, 0.9).box(M.gold, 3.6, 0.035, 0.1, 0, 0.24, -0.9);
+  const group = B.build();
+  const S = (hex, o) => new THREE.MeshStandardMaterial({ color: hex, roughness: 0.75, ...o });
+  const mats = [];
+  const person = ({ robe, cloak, h, beard, veil }) => {
+    const g = new THREE.Group(), k = h / 1.8;
+    const robeM = S(robe), cloakM = S(cloak, { side: THREE.DoubleSide }), hairM = S(0x3a2618);
+    mats.push(robeM, cloakM);
+    const add = (geo, m, x, y, z, parent = g) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = true; parent.add(o); return o; };
+    add(new THREE.CylinderGeometry(0.2, 0.37, 1.3, 14), robeM, 0, 0.65, 0); // дълга дреха
+    add(new THREE.CylinderGeometry(0.375, 0.375, 0.09, 14), M.gold, 0, 0.05, 0); // златен кант
+    add(new THREE.BoxGeometry(0.16, 1.2, 0.03), M.gold, 0, 0.72, 0.29).rotation.x = -0.13; // златната лента отпред (лор)
+    for (let i = 0; i < 5; i++) add(new THREE.SphereGeometry(0.035, 6, 5), i % 2 ? M.blue : M.red, 0, 0.3 + i * 0.22, 0.335 - i * 0.028);
+    add(new THREE.CylinderGeometry(0.23, 0.25, 0.1, 14), M.gold, 0, 1.3, 0); // яка
+    add(new THREE.CylinderGeometry(0.3, 0.42, 1.22, 12, 1, true, Math.PI * 0.55, Math.PI * 0.9), cloakM, 0, 0.72, -0.02); // наметало
+    const arms = [-1, 1].map((sx) => {
+      const pv = new THREE.Group(); pv.position.set(sx * 0.25, 1.28, 0); pv.rotation.z = sx * 0.18; g.add(pv);
+      add(new THREE.CylinderGeometry(0.075, 0.1, 0.6, 8).translate(0, -0.3, 0), robeM, 0, 0, 0, pv);
+      add(new THREE.CylinderGeometry(0.105, 0.105, 0.06, 8), M.gold, 0, -0.56, 0, pv);
+      add(new THREE.SphereGeometry(0.06, 8, 6), M.skin, 0, -0.64, 0, pv);
+      return pv;
+    });
+    const head = new THREE.Group(); head.position.y = 1.5; g.add(head);
+    add(new THREE.SphereGeometry(0.135, 12, 10), M.skin, 0, 0, 0, head);
+    for (const sx of [-1, 1]) add(new THREE.SphereGeometry(0.018, 6, 5), M.dark, sx * 0.05, 0.02, 0.125, head);
+    if (beard) { add(new THREE.SphereGeometry(0.12, 10, 8, 0, 7, 1.5, 1.7), hairM, 0, -0.035, 0.03, head); add(new THREE.SphereGeometry(0.14, 10, 8, 0, 7, 0, 1.7), hairM, 0, 0.01, -0.02, head); }
+    if (veil) { add(new THREE.SphereGeometry(0.15, 10, 8, 0, 7, 0, 1.9), M.white, 0, 0.01, -0.025, head); add(new THREE.CylinderGeometry(0.15, 0.2, 0.42, 10, 1, true, Math.PI * 0.6, Math.PI * 0.8), new THREE.MeshStandardMaterial({ color: 0xf3eee2, side: THREE.DoubleSide, roughness: 0.9 }), 0, -0.2, -0.02, head); }
+    // Корона с кръст и висулки.
+    add(new THREE.CylinderGeometry(0.145, 0.14, 0.09, 12), M.gold, 0, 0.12, 0, head);
+    add(new THREE.SphereGeometry(0.13, 10, 6, 0, 7, 0, 1.5), veil ? M.gold : M.red, 0, 0.14, 0, head);
+    for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; add(new THREE.SphereGeometry(0.022, 6, 5), i % 2 ? M.blue : M.green, Math.sin(a) * 0.145, 0.12, Math.cos(a) * 0.145, head); }
+    if (veil) for (let i = 0; i < 5; i++) { const a = -0.9 + i * 0.45; add(new THREE.ConeGeometry(0.03, 0.09, 5), M.gold, Math.sin(a) * 0.13, 0.21, Math.cos(a) * 0.13, head); }
+    else { add(new THREE.BoxGeometry(0.025, 0.12, 0.025), M.gold, 0, 0.31, 0, head); add(new THREE.BoxGeometry(0.08, 0.025, 0.025), M.gold, 0, 0.33, 0, head); }
+    for (const sx of [-1, 1]) for (let i = 0; i < 3; i++) add(new THREE.SphereGeometry(0.018, 5, 4), M.white, sx * 0.14, 0.05 - i * 0.045, 0.03, head);
+    g.scale.setScalar(k);
+    g.userData = { head, arms };
+    return g;
+  };
+  const tsar = person({ robe: 0x7a1830, cloak: 0x4a1f6a, h: 1.84, beard: true });
+  tsar.position.set(-0.7, 0.27, 0);
+  // Скиптър с кръст в дясната ръка.
+  const sc = new THREE.Group(); sc.position.set(0, -0.62, 0.06); sc.rotation.z = 0.18;
+  const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 1.25, 6), M.gold); rod.position.y = 0.3; sc.add(rod);
+  const cr = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.03, 0.03), M.gold); cr.position.y = 0.85; sc.add(cr);
+  const knob = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 6), M.red); knob.position.y = 0.95; sc.add(knob);
+  tsar.userData.arms[0].add(sc); tsar.userData.arms[0].rotation.x = -0.35;
+  const tsaritsa = person({ robe: 0x1d5f66, cloak: 0x8a1f2a, h: 1.68, veil: true });
+  tsaritsa.position.set(0.7, 0.27, 0);
+  tsaritsa.userData.arms.forEach((a, i) => { a.rotation.x = -0.55; a.rotation.z = (i ? 1 : -1) * -0.25; });
+  group.add(tsar, tsaritsa);
+  group.userData.tsar = tsar; group.userData.tsaritsa = tsaritsa;
+  let speaker = null;
+  group.userData.speak = (who) => { speaker = who; };
+  return { group, mats, top: 2.6, obstacles: [{ x: -0.7, z: 0, r: 0.45 }, { x: 0.7, z: 0, r: 0.45 }],
+    tick(t) {
+      [tsar, tsaritsa].forEach((p, i) => {
+        const talking = speaker === (i ? 'tsaritsa' : 'tsar');
+        p.rotation.y = Math.sin(t * 0.5 + i * 2) * 0.12;
+        p.userData.head.rotation.x = talking ? Math.sin(t * 5) * 0.05 : 0;
+        p.userData.head.rotation.y = Math.sin(t * 0.8 + i) * 0.2;
+        const free = p.userData.arms[1];
+        free.rotation.x += ((talking ? -0.9 + Math.sin(t * 3) * 0.25 : i ? -0.55 : 0) - free.rotation.x) * 0.15; // говорещият ръкомаха
+      });
+    } };
+}

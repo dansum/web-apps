@@ -25,7 +25,19 @@ for (let i = 0; i < n; i++) {
   if (await page.locator('.cm-list[hidden]').count()) await page.locator('.cm-head').click();
   await page.locator('.cm-item').nth(i).click(); await wait(250);
 }
+// Последното място са царят и царицата: разговорът е отворен. Два въпроса към царя и един към царицата.
+await page.locator('.talk-q').nth(1).click(); await wait(300);
+const ans1 = await page.locator('.bubble.wide').last().textContent();
+await page.locator('.talk-q').nth(3).click(); await wait(300);
+await page.locator('.talk-tabs button').nth(1).click(); await page.locator('.talk-q').nth(0).click(); await wait(300);
+const ans3 = await page.locator('.bubble.wide').last().textContent();
+await page.locator('.talk-tabs button').nth(0).click();
+const talk = [await page.locator('.talk-q').count(), await page.locator('.talk-q.done').count(), await page.textContent('.talk-foot b')];
+console.log('разговор:', talk, '|', ans1.slice(0, 40), '|', ans3.slice(0, 40));
+await shot('t1-talk');
+const talkOk = talk[0] === 6 && talk[1] === 2 && talk[2] === '3 от 10' && ans1.startsWith('Цар Иван Асен II:') && ans3.startsWith('Царица Анна:');
 await page.click('.mode-toggle button[data-m="walk"]'); await wait(4500);
+console.log('разговорът се затваря при отдалечаване:', (await page.locator('.talk').count()) === 0);
 const a = await demo('(d) => [d.walk.active, d.walk.state.x, d.walk.state.z]');
 await page.keyboard.down('ArrowUp'); await wait(3000); await page.keyboard.up('ArrowUp');
 const b = await demo('(d) => [d.walk.active, d.walk.state.x, d.walk.state.z]');
@@ -90,5 +102,5 @@ const again = await demo('(d) => [document.querySelectorAll(".corner-menu").leng
 console.log('отначало:', again);
 console.log('грешки в конзолата:', errors.length ? errors : 'няма');
 await browser.close();
-const ok = arrived && toStand < 1 && maxStep < 25 && Math.abs(result - want) < 1e-6 && !errors.length && b[0] && moved > 2 && Math.abs(wallZ - 2) < 1.6 && again[0] === 1 && again[1].startsWith('1.') && again[2] && !again[3];
+const ok = talkOk && arrived && toStand < 1 && maxStep < 25 && Math.abs(result - want) < 1e-6 && !errors.length && b[0] && moved > 2 && Math.abs(wallZ - 2) < 1.6 && again[0] === 1 && again[1].startsWith('1.') && again[2] && !again[3];
 process.exit(ok ? 0 : 1);

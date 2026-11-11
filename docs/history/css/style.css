@@ -377,3 +377,18 @@ html.xp-full-open, html.xp-full-open body { overflow: hidden; }
 
 /* Когато има превключвател „Отгоре / Разходка“ горе вдясно, бутонът за цял екран слиза под него. */
 .xp-stage:has(.mode-toggle:not([hidden])) .xp-fs { top: 54px; }
+
+/* Разговор с царя и царицата (js/exp/tarnovgrad.js) */
+.talk { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); width: min(560px, calc(100% - 16px)); z-index: 7; background: rgba(255,255,255,.97); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 8px 26px rgba(10,42,102,.22); padding: 8px; display: flex; flex-direction: column; gap: 6px; max-height: 47%; }
+.talk-head { display: flex; gap: 6px; align-items: center; }
+.talk-tabs { display: flex; gap: 4px; flex: 1; flex-wrap: wrap; }
+.talk-tabs button, .talk-x { border: 1px solid var(--line); background: #fff; font: inherit; font-weight: 800; font-size: .85rem; padding: 6px 10px; border-radius: 99px; cursor: pointer; color: var(--ink); }
+.talk-tabs button.on { background: var(--navy); border-color: var(--navy); color: #fff; }
+.talk-x { width: 34px; height: 34px; padding: 0; flex: none; }
+.talk-qs { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; overflow-y: auto; }
+.talk-q { text-align: left; border: 1px solid #cfe0f5; background: #f3f8ff; font: inherit; font-size: .85rem; font-weight: 700; padding: 5px 9px; border-radius: 10px; cursor: pointer; color: var(--navy); }
+.talk-q:hover { background: #e3efff; }
+.talk-q.done { background: #eefaf1; border-color: #cdeedd; color: #1d6b33; }
+.talk-foot { font-size: .72rem; color: var(--muted); }
+.xp-stage.talking .walk-pad, .xp-stage.talking .minimap { display: none; }
+@media (max-width: 560px) { .talk-qs { grid-template-columns: 1fr; } .talk { max-height: 62%; } }
