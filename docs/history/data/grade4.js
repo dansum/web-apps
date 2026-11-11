@@ -46,8 +46,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "konstitucia",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -309,8 +310,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "staya",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -509,8 +511,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "sofia",
+          review: true,
           video: null,
           scene: {
             objects: [
