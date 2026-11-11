@@ -448,8 +448,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "uchilishte",
+          review: true,
           video: null,
           scene: {
             objects: [
