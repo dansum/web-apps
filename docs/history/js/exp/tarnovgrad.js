@@ -10,6 +10,8 @@ const SPOTS = [
     note: 'В крепостта Царевец се влиза от запад, по тесен скален провлак. Пътят минава по подвижен мост и през няколко порти. Така столицата е трудна за превземане.' },
   { id: 'palace', label: 'Царският дворец', icon: '👑',
     note: 'Дворецът на българските царе е малка крепост в крепостта: със собствени стени, тронна зала и църква. Оттук се управлява царството.' },
+  { id: 'royals', label: 'Царят и царицата', icon: '🤴',
+    note: 'Цар Иван Асен II и царица Анна те приемат пред тронната зала. Попитай ги за града и за царството.' },
   { id: 'patriarchate', label: 'Патриаршията', icon: '⛪',
     note: 'На върха на хълма е Патриаршията с църквата „Възнесение Господне“. От 1235 г. начело на Българската църква отново стои патриарх.' },
   { id: 'baldwin', label: 'Балдуиновата кула', icon: '🗼',
@@ -22,8 +24,6 @@ const SPOTS = [
     note: 'Търновските грънчари са прочути със сграфито керамиката: съдове с врязана украса и цветна глазура.' },
   { id: 'church40', label: 'Църквата „Св. Четиридесет мъченици“', icon: '✝️',
     note: 'Цар Иван Асен II построява църквата след победата при Клокотница през 1230 г. Колоната с неговия надпис е вътре в църквата; тук е показана отвън, за да я видиш.' },
-  { id: 'royals', label: 'Царят и царицата', icon: '🗣️',
-    note: 'Цар Иван Асен II и царица Анна те приемат пред тронната зала. Попитай ги за града и за царството.' },
 ];
 // Разговор с царя и царицата: 10 готови въпроса. Отговорите са съчинени от нас по исторически извори; годината е 1236.
 const TALK = {
@@ -68,7 +68,7 @@ const PREDICT = [
 
 export function mount(container, { onComplete }) {
   const shell = createShell(container, { steps: ['Опознай', 'Защо градът расте?', 'Находка и място', 'Предскажи'] });
-  container.querySelector('.scene-hint').textContent = 'Отгоре: върти и приближавай сцената. Разходка: върви със стрелките или бутоните, оглеждай се с влачене, докосни улицата, за да отидеш там.';
+  container.querySelector('.scene-hint').textContent = 'Отгоре: върти и приближавай сцената. Разходка: върви със стрелките или бутоните (наляво и надясно са крачка встрани), оглеждай се с влачене, докосни улицата, за да отидеш там.';
   const aspect = (shell.stageEl.clientWidth || 600) / (shell.stageEl.clientHeight || 400);
   const far = aspect < 1.4 ? 1.35 / Math.max(aspect, 0.5) : 1;
   const weak = (navigator.hardwareConcurrency || 4) <= 2;
@@ -226,6 +226,10 @@ export function mount(container, { onComplete }) {
   // Ако детето се отдалечи, разговорът свършва.
   stage.tick(() => { if (talkEl && walk.active && !walk.state.auto && Math.hypot(walk.state.x - royals.x, walk.state.z - royals.z) > 16) closeTalk(); });
 
+  // Бутон в панела: бърз път до царя и царицата (води до тях и отваря разговора).
+  const GO_ROYALS = '<button class="btn talk-go">🤴 Отиди при царя и царицата</button>';
+  const bindGo = (c) => { const b = c.querySelector('.talk-go'); if (b) b.addEventListener('click', () => clickHandler && clickHandler('royals')); return c; };
+
   const scores = [];
   let menu = null, timers = [];
   const later = (fn, ms) => timers.push(setTimeout(fn, ms));
@@ -247,13 +251,13 @@ export function mount(container, { onComplete }) {
       menu.mark(id); menu.setActive(id);
       shell.score(`Разгледани: ${seen.size} от ${SPOTS.length}`);
       if (seen.size === SPOTS.length) {
-        const c = shell.setControls('<button class="btn primary">Напред →</button>');
-        c.querySelector('button').addEventListener('click', () => { menu.show(false); clearTip(); closeTalk(); selected = null; step2(); });
+        const c = bindGo(shell.setControls(`<div class="col">${GO_ROYALS}<button class="btn primary next">Напред →</button></div>`));
+        c.querySelector('.next').addEventListener('click', () => { menu.show(false); clearTip(); closeTalk(); selected = null; step2(); });
       }
     };
     menu = cornerMenu(stage, { title: 'Разгледай', items: SPOTS.map((s) => ({ id: s.id, label: s.label, icon: s.icon })), onSelect: open });
     clickHandler = open;
-    shell.setControls('');
+    bindGo(shell.setControls(GO_ROYALS));
   }
 
   function step2() {
@@ -312,7 +316,7 @@ export function mount(container, { onComplete }) {
       shell.task(`Археолозите откриват <b data-find="${FINDS[k].target}">${esc(FINDS[k].t)}</b>. Щракни мястото в града, откъдето е находката. Можеш да го потърсиш и с разходка.`);
       shell.score(`Находки: ${k} от ${FINDS.length}`);
     };
-    shell.setControls('');
+    bindGo(shell.setControls(GO_ROYALS));
     clickHandler = (id) => {
       if (id === 'royals') { showPlace(id); clearTip(); openTalk(); return; }
       if (busy) return;
@@ -330,8 +334,8 @@ export function mount(container, { onComplete }) {
       if (k < FINDS.length) later(ask, 2200);
       else {
         scores.push(stepScore(mistakes, 4));
-        const n = shell.setControls('<button class="btn primary">Напред →</button>');
-        n.querySelector('button').addEventListener('click', () => { clearTip(); closeTalk(); selected = null; step4(); });
+        const n = bindGo(shell.setControls(`<div class="col">${GO_ROYALS}<button class="btn primary next">Напред →</button></div>`));
+        n.querySelector('.next').addEventListener('click', () => { clearTip(); closeTalk(); selected = null; step4(); });
       }
     };
     ask();

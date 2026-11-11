@@ -357,6 +357,19 @@ html.xp-full-open, html.xp-full-open body { overflow: hidden; }
 @media (max-width: 760px), (orientation: portrait) {
   .xp:fullscreen, .xp.xp-full { grid-template-columns: 1fr; grid-template-rows: 62% 38%; }
 }
+.xp-min { display: none; }
+/* Широк екран: на цял екран е само 3D сцената; задачата е плаваща карта вдясно, която се свива. */
+@media (min-width: 761px) and (orientation: landscape) {
+  .xp:fullscreen, .xp.xp-full { display: block; padding: 0; }
+  .xp:fullscreen .xp-stage, .xp.xp-full .xp-stage { height: 100%; border-radius: 0; }
+  .xp:fullscreen .xp-panel, .xp.xp-full .xp-panel { position: absolute; right: 10px; top: 104px; width: 300px; max-height: calc(100% - 232px); z-index: 8;
+    background: rgba(255, 255, 255, 0.95); box-shadow: 0 8px 26px rgba(10, 42, 102, 0.22); border-radius: 14px; }
+  .xp:fullscreen .xp-min, .xp.xp-full .xp-min { display: block; position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--line);
+    background: #fff; font-size: 1rem; line-height: 1; cursor: pointer; color: var(--navy); }
+  .xp:fullscreen .xp-steps, .xp.xp-full .xp-steps { margin-right: 40px; }
+  .xp:fullscreen .xp-panel.min > :not(.xp-min):not(.xp-title), .xp.xp-full .xp-panel.min > :not(.xp-min):not(.xp-title) { display: none; }
+  .xp:fullscreen .xp-panel.min .xp-title, .xp.xp-full .xp-panel.min .xp-title { margin-right: 40px; }
+}
 
 /* Режими „Отгоре / Разходка“, бутони за ходене и малка карта (js/exp/hist/walk.js) */
 .mode-toggle { position: absolute; top: 8px; right: 8px; z-index: 6; display: flex; background: rgba(255,255,255,.94); border: 1px solid var(--line); border-radius: 99px; padding: 3px; box-shadow: 0 4px 14px rgba(10,42,102,.16); }
