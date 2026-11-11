@@ -173,6 +173,7 @@ export default {
           assumption: null,
           quality: "high",
           experience: "airwater",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -242,6 +243,7 @@ export default {
           assumption: null,
           quality: "high",
           experience: "living",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -280,6 +282,7 @@ export default {
           assumption: null,
           quality: "high",
           experience: "kingdoms",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -317,6 +320,7 @@ export default {
           assumption: null,
           quality: "high",
           experience: "plantneeds",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -400,6 +404,7 @@ export default {
           assumption: null,
           quality: "high",
           experience: "habitats",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -514,6 +519,7 @@ export default {
           assumption: null,
           quality: "high",
           experience: "skeleton",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -551,6 +557,7 @@ export default {
           assumption: null,
           quality: "high",
           experience: "hygiene",
+          review: true,
           video: null,
           scene: {
             objects: [

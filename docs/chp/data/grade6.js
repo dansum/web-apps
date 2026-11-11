@@ -272,6 +272,7 @@ export default {
           assumption: null,
           quality: "high",
           experience: "charges",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -371,6 +372,7 @@ export default {
           assumption: null,
           quality: "high",
           experience: "magnets",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -446,6 +448,7 @@ export default {
           assumption: null,
           quality: "high",
           experience: "atoms",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -489,6 +492,7 @@ export default {
           assumption: null,
           quality: "high",
           experience: "simplecomplex",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -585,6 +589,7 @@ export default {
           assumption: null,
           quality: "high",
           experience: "oxyhydro",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -630,6 +635,7 @@ export default {
           assumption: null,
           quality: "high",
           experience: "iron",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -676,6 +682,7 @@ export default {
           assumption: null,
           quality: "high",
           experience: "burning",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -728,6 +735,7 @@ export default {
           assumption: null,
           quality: "high",
           experience: "eco6",
+          review: true,
           video: null,
           scene: {
             objects: [
