@@ -14,6 +14,9 @@ const CSS = `
 .xp-task .so-chips .chip.wrong { animation: so-shake 0.35s; }
 @keyframes so-shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 .xp-task .choices.so-q { margin-top: 6px; }
+.so-scale { position: absolute; left: 8px; bottom: 8px; z-index: 4; pointer-events: none; max-width: calc(100% - 16px); box-sizing: border-box;
+  background: rgba(15, 26, 51, 0.88); color: #fff; font-size: 0.8rem; line-height: 1.35; border-radius: 8px; padding: 5px 9px; }
+.so-scale b { color: #ffd54a; }
 `;
 function injectCss() {
   if (document.getElementById('so-style')) return;
@@ -459,6 +462,13 @@ export function mount(container, { onComplete }) {
   const ITEMS = [{ id: 'sun', label: 'Слънце', icon: '☀️' }, ...PLANETS.map((p) => ({ id: p.id, label: p.label, icon: p.icon })), { id: 'moon', label: 'Луна', icon: '🌙' }];
   const menu = cornerMenu(stage, { title: 'Небесни тела', items: ITEMS, onSelect: (id) => menuHandler && menuHandler(id) });
 
+  // Бележка, която стои на сцената през всички стъпки: моделът не е в мащаб.
+  const scaleNote = document.createElement('div');
+  scaleNote.className = 'so-scale';
+  scaleNote.setAttribute('role', 'note');
+  scaleNote.innerHTML = '📏 <b>Не е в мащаб.</b> Слънцето е много по-голямо, а планетите са много по-далеч една от друга.';
+  stage.renderer.domElement.parentElement.appendChild(scaleNote);
+
   const narrow = () => (shell.stageEl.clientWidth || 600) < 560;
   function overview(far = false, dur = 1.2) {
     stage.stopFollow();
@@ -480,6 +490,7 @@ export function mount(container, { onComplete }) {
     const seen = new Set();
     const NEED = 6;
     shell.task(`<p>Това е нашата Слънчева система: Слънцето и планетите, които обикалят около него.</p>
+      <p>Тук размерите и разстоянията не са истински. Ако бяха, за да се побере цялата система на екрана, Слънцето и планетите щяха да са по-малки от точица.</p>
       <p><b>Разгледай поне ${NEED} небесни тела</b> — кликни върху тях или ги избери от менюто. Задължително разгледай Слънцето, Земята и Луната.</p>`);
     const ctrl = shell.setControls('<div class="row"><button class="btn all">🔭 Цялата система</button><button class="btn primary nx" disabled>Напред →</button></div>');
     const next = ctrl.querySelector('.nx');

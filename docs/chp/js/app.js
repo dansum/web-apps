@@ -258,6 +258,7 @@ async function renderSkill(id) {
     ${crumbs([['#/', 'Курсове'], [`#/c/${course.id}`, `${course.id}. клас`], [`#/c/${course.id}`, unit.title], [null, skill.id]])}
     <header class="skill-head">
       <h1><span class="sid">${esc(skill.id)}</span> ${esc(skill.title)}</h1>
+      ${skill.novelty ? `<p class="novelty"><b>Ново за теб:</b> ${esc(skill.novelty)}</p>` : ''}
       <div class="skill-badges">${levelChip(skill.id)} ${devBadge(skill)} ${monBadges(skill)}</div>
     </header>
     ${skill.assumption ? monBadges({ mon: skill.mon, assumption: skill.assumption }, { long: true }) : ''}

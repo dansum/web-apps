@@ -7,7 +7,7 @@ import { dirname, join } from 'node:path';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const ALL = ['3', '4', '5', '6', '7', '8', '9', '10'];
 const SHAPES = new Set(['box', 'sphere', 'cylinder', 'cone', 'torus', 'capsule', 'ring', 'plane']);
-const TYPES = new Set(['mcq', 'multi', 'sort', 'order', 'number', 'pick']);
+const TYPES = new Set(['mcq', 'multi', 'sort', 'order', 'number', 'pick', 'source']);
 
 // Уменията от плана: редовете „| … | 5.1.1 Заглавие | …“ в раздел 7.
 function planSkills() {
@@ -37,7 +37,7 @@ function checkObjects(where, objs, { needNote = true } = {}) {
     if (!/^#[0-9a-fA-F]{6}$/.test(o.color || '')) err(w, 'color трябва да е #rrggbb');
     if (o.pos && (!Array.isArray(o.pos) || o.pos.length !== 3 || o.pos.some((v) => typeof v !== 'number' || Math.abs(v) > 4.5))) err(w, 'pos трябва да е [x,y,z] в −4…4');
     if (needNote && !o.note) err(w, 'липсва note');
-    if (o.note && o.note.length > 160) warn(w, `note е ${o.note.length} знака (до 140)`);
+    if (o.note && o.note.length > 140) warn(w, `note е ${o.note.length} знака (до 140)`);
   }
   return ids;
 }
@@ -47,9 +47,18 @@ function checkQuestion(where, q, objIds) {
   if (!q.q) err(where, 'липсва текст q');
   if (!q.explain) err(where, 'липсва explain');
   const n = q.choices?.length;
+  if (q.choices) {
+    const norm = q.choices.map((c) => String(c).trim().toLowerCase());
+    if (new Set(norm).size !== norm.length) warn(where, 'еднакви избори');
+  }
+  if (q.type === 'sort' && q.items) {
+    const norm = q.items.map((it) => String(it.t).trim().toLowerCase());
+    if (new Set(norm).size !== norm.length) warn(where, 'sort: еднакви елементи');
+  }
   switch (q.type) {
     case 'mcq':
       if (!(n >= 2 && n <= 5)) err(where, 'mcq: 2–5 избора');
+      else if (n < 3) warn(where, `mcq с ${n} избора (препоръчват се поне 3)`);
       if (!Number.isInteger(q.answer) || q.answer < 0 || q.answer >= n) err(where, 'mcq: answer е индекс извън choices');
       break;
     case 'multi':
@@ -68,6 +77,16 @@ function checkQuestion(where, q, objIds) {
     case 'number':
       if (typeof q.answer !== 'number') err(where, 'number: answer трябва да е число');
       break;
+    case 'source': {
+      const t = q.source?.text || '';
+      if (!t) err(where, 'source: липсва source.text');
+      else if (t.split(/\s+/).filter(Boolean).length > 60) err(where, `source: откъсът е ${t.split(/\s+/).filter(Boolean).length} думи (до 60)`);
+      if (!q.source?.from) err(where, 'source: липсва source.from (автор, заглавие, година)');
+      if (!(n >= 3 && n <= 5)) err(where, 'source: 3–5 избора');
+      const a = Array.isArray(q.answer) ? q.answer : [q.answer];
+      if (!a.length || a.some((x) => !Number.isInteger(x) || x < 0 || x >= n)) err(where, 'source: answer е индекс или масив от индекси в choices');
+      break;
+    }
     case 'pick':
       if (!objIds.has(q.answer)) err(where, `pick: answer „${q.answer}“ не е обект от сцената`);
       break;
@@ -84,6 +103,7 @@ async function checkGrade(g, plan) {
   if (!c.title || !c.source?.pdf || !c.source?.title) err(g, 'липсва title или source');
   if (!Array.isArray(c.units) || c.units.length !== 3) err(g, 'трябва да има точно 3 раздела');
   const seen = [];
+  const noPages = [];
   (c.units || []).forEach((u, k) => {
     const uw = `раздел ${u.id}`;
     if (u.id !== `${g}-${k + 1}`) err(uw, `id трябва да е ${g}-${k + 1}`);
@@ -107,9 +127,12 @@ async function checkGrade(g, plan) {
       seen.push(s.id);
       if (!s.id?.startsWith(`${g}.${k + 1}.`)) err(sw, `id трябва да започва с ${g}.${k + 1}.`);
       if (!s.title) err(sw, 'липсва title');
+      if (!s.novelty) warn(sw, 'липсва novelty („Какво е новото в този клас“)');
+      else if (s.novelty.length > 260) warn(sw, `novelty е ${s.novelty.length} знака (1–2 кратки изречения)`);
       if (s.mon === undefined) err(sw, 'mon трябва да е обект или null');
       if (s.mon && (!Array.isArray(s.mon.competences) || !s.mon.competences.length)) err(sw, 'mon.competences е празно');
       if (s.mon && !Array.isArray(s.mon.pages)) err(sw, 'mon.pages трябва да е масив (може празен)');
+      else if (s.mon && !s.mon.pages.length) noPages.push(s.id);
       if (!s.mon && !s.assumption) err(sw, 'без mon трябва да има assumption');
       if (s.quality !== 'low' && !s.experience) err(sw, 'quality "high" изисква experience');
       const ids = checkObjects(sw, s.scene?.objects);
@@ -125,6 +148,8 @@ async function checkGrade(g, plan) {
   const extra = seen.filter((id) => !want.includes(id));
   if (missing.length) err(g, `липсват умения от плана: ${missing.join(', ')}`);
   if (extra.length) err(g, `умения, които ги няма в плана: ${extra.join(', ')}`);
+  // Едно предупреждение на клас, за да не се губят другите в списъка.
+  if (noPages.length) warn(`${g}. клас`, `празно mon.pages (страниците не са сверени с ${c.source?.pdf || 'PDF файла'}) при ${noPages.length} умения: ${noPages.join(', ')}`);
   if (new Set(seen).size !== seen.length) err(g, 'повторени id на умения');
   console.log(`  ${seen.length} умения, ${(c.units || []).reduce((n, u) => n + u.skills.reduce((m, s) => m + (s.questions?.length || 0), 0), 0)} въпроса`);
 }
