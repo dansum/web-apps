@@ -864,7 +864,7 @@ const A = {
   dog: { label: 'Куче', icon: '🐕', group: 'mammal', build: () => quadruped({ color: 0xc68a4a, belly: 0xf0d9b5, r: 0.16, len: 0.52, legLen: 0.4, headR: 0.15, ears: 'pointy', snout: 0.2, snoutColor: 0xe0b07a, tail: 'thin', neck: 0.6 }),
     note: '<b>Куче — бозайник.</b> Има козина, а кученцата сучат мляко от майка си.' },
   spider: { label: 'Паяк', icon: '🕷', group: 'other', build: spiderModel, tricky: true,
-    note: '<b>Паяк — безгръбначно.</b> Но <b>не е</b> насекомо: има 8 крака, няма пипала и крила, а тялото му е от 2 части.',
+    note: '<b>Паяк — безгръбначно.</b> Но <b>не е</b> насекомо: има 8 крака и няма пипала и крила. Тялото му е от 2 части.',
     clue: ['Има 8 крака.', 'Няма пипала и крила.', 'Тялото е от 2 части.'],
     ok: 'Да! Паякът не е насекомо: има 8 крака, а насекомите имат 6.' },
   snail: { label: 'Охлюв', icon: '🐌', group: 'other', build: snailModel,
@@ -1412,7 +1412,7 @@ export function mount(container, { onComplete }) {
   // ---------- 3. Подреди по групи ----------
   const G_IDS = ['ladybug', 'carp', 'frog', 'lizard', 'stork', 'rabbit', 'dolphin', 'bat', 'turtle', 'penguin', 'salamander', 'spider'];
   const TRAP = {
-    dolphin: { fish: 'Делфинът живее във вода и има перки, но прочети картата: как диша и с какво храни малкото си?' },
+    dolphin: { fish: 'Делфинът живее във вода и има перки. Но прочети картата: как диша и с какво храни малкото си?' },
     bat: { bird: 'Прилепът лети, но има ли пера? Какво покрива тялото му?' },
     turtle: { amph: 'Костенурката обича водата, но гола и влажна ли е кожата ѝ?' },
     salamander: { rept: 'Дъждовникът прилича на гущер, но има ли люспи? Каква е кожата му?' },
@@ -1487,7 +1487,7 @@ export function mount(container, { onComplete }) {
           scores.push(stepScore(mistakes, 3));
           upd();
           shell.task('<p>Всички животни са в своите групи.</p>');
-          shell.msg('Браво! Важно е не къде живее или дали лети животното, а какво покрива тялото му, как диша и как храни малките си.', 'good');
+          shell.msg('Браво! Не е важно къде живее животното и дали лети. Важно е какво покрива тялото му, как диша и как храни малките си.', 'good');
           const c = shell.setControls('<button class="btn primary">Напред →</button>');
           c.querySelector('button').addEventListener('click', step4);
           return;
@@ -1603,7 +1603,7 @@ export function mount(container, { onComplete }) {
           const n = (tries.get(a.id) || 0) + 1;
           tries.set(a.id, n);
           g.position.copy(start);
-          let why = 'Помисли къде го срещаме в природата: в езера, реки и морета или в поля, гори и пустини?';
+          let why = 'Помисли къде го срещаме в природата. В езера, реки и морета? Или в поля, гори и пустини?';
           if (n >= 2) why += ' Подсказка: ' + a.why;
           say(g, '✘ Помисли пак.', 'bad', 1.1);
           shell.msg(why, 'bad');
