@@ -160,7 +160,7 @@ export default {
           video: null,
           scene: {
             objects: [
-              { id: "sun", label: "Слънце", shape: "sphere", color: "#ffcc33", pos: [-3.5, 2.8, -1], scale: 0.8, note: "Слънцето нагрява водата и тя се изпарява." },
+              { id: "sun", label: "Слънце", shape: "sphere", color: "#ffcc33", pos: [-3.5, 2.8, -1], scale: 0.8, note: "Слънцето нагрява водата и тя се изпарява. Не е в мащаб." },
               { id: "lake", label: "Езеро", shape: "plane", color: "#3a86c8", pos: [-2, 0, 1], scale: 2, note: "От повърхността на моретата и езерата всеки ден се изпарява много вода." },
               { id: "cloud", label: "Облак", shape: "capsule", color: "#cfcfcf", pos: [1, 2.5, 0], scale: 1.2, note: "Облакът е от много малки водни капчици или ледени кристалчета." },
               { id: "rain", label: "Дъжд", shape: "capsule", color: "#7fb8ec", pos: [1, 1.2, 0], scale: 1.07, note: "Дъждът е валеж от течна вода." },
@@ -227,10 +227,10 @@ export default {
         experience: "stories4",
         scene: {
           objects: [
-            { id: "sun", label: "Слънце", shape: "sphere", color: "#ffcc33", pos: [-2, 0.8, 0], scale: 1.6, note: "Слънцето е звезда. То само излъчва светлина и топлина." },
-            { id: "orbit", label: "Орбита на Земята", shape: "ring", color: "#aaaaaa", pos: [-2, 1.5, 0], scale: 5, note: "Земята обикаля около Слънцето по орбита. Една обиколка трае една година." },
-            { id: "earth", label: "Земя", shape: "sphere", color: "#2f7fd1", pos: [1, 1.5, 0], scale: 0.6, note: "Земята е планета с форма на кълбо. Тя се върти около оста си." },
-            { id: "moon", label: "Луна", shape: "sphere", color: "#cccccc", pos: [2.3, 1.8, 0.5], scale: 0.25, note: "Луната е естествен спътник на Земята. Тя отразява светлината на Слънцето." }
+            { id: "sun", label: "Слънце", shape: "sphere", color: "#ffcc33", pos: [-2, 0.8, 0], scale: 1.6, note: "Слънцето е звезда. То само излъчва светлина и топлина. Не е в мащаб." },
+            { id: "orbit", label: "Орбита на Земята", shape: "ring", color: "#aaaaaa", pos: [-2, 1.5, 0], scale: 5, note: "Земята обикаля около Слънцето по орбита. Една обиколка трае една година. Не е в мащаб." },
+            { id: "earth", label: "Земя", shape: "sphere", color: "#2f7fd1", pos: [1, 1.5, 0], scale: 0.6, note: "Земята е планета с форма на кълбо. Тя се върти около оста си. Не е в мащаб." },
+            { id: "moon", label: "Луна", shape: "sphere", color: "#cccccc", pos: [2.3, 1.8, 0.5], scale: 0.25, note: "Луната е естествен спътник на Земята. Тя отразява светлината на Слънцето. Не е в мащаб." }
           ]
         },
         steps: [
@@ -432,12 +432,12 @@ export default {
           video: null,
           scene: {
             objects: [
-              { id: "sun", label: "Слънце", shape: "sphere", color: "#ffcc33", pos: [-3.5, 1.5, 0], scale: 1.5, note: "Слънцето е звезда. То е източник на светлина и топлина." },
-              { id: "earth", label: "Земя", shape: "sphere", color: "#2f7fd1", pos: [0, 1.5, 0], scale: 0.5, note: "Земята е третата планета от Слънцето. Има форма на кълбо." },
-              { id: "moon", label: "Луна", shape: "sphere", color: "#cccccc", pos: [1, 1.8, 0.5], scale: 0.18, note: "Луната е естественият спътник на Земята." },
-              { id: "mars", label: "Марс", shape: "sphere", color: "#c1440e", pos: [1.8, 1.5, -1], scale: 0.35, note: "Марс е четвъртата планета. Наричат го „червената планета“." },
-              { id: "jupiter", label: "Юпитер", shape: "sphere", color: "#d8a35d", pos: [3, 1.5, 1], scale: 0.9, note: "Юпитер е най-голямата планета в Слънчевата система." },
-              { id: "saturn", label: "Сатурн", shape: "sphere", color: "#e3c98f", pos: [3.5, 1.5, -2], scale: 0.7, note: "Сатурн има красиви пръстени." },
+              { id: "sun", label: "Слънце", shape: "sphere", color: "#ffcc33", pos: [-3.5, 1.5, 0], scale: 1.5, note: "Слънцето е звезда. То е източник на светлина и топлина. Не е в мащаб." },
+              { id: "earth", label: "Земя", shape: "sphere", color: "#2f7fd1", pos: [0, 1.5, 0], scale: 0.5, note: "Земята е третата планета от Слънцето. Има форма на кълбо. Не е в мащаб." },
+              { id: "moon", label: "Луна", shape: "sphere", color: "#cccccc", pos: [1, 1.8, 0.5], scale: 0.18, note: "Луната е естественият спътник на Земята. Не е в мащаб." },
+              { id: "mars", label: "Марс", shape: "sphere", color: "#c1440e", pos: [1.8, 1.5, -1], scale: 0.35, note: "Марс е четвъртата планета. Наричат го „червената планета“. Не е в мащаб." },
+              { id: "jupiter", label: "Юпитер", shape: "sphere", color: "#d8a35d", pos: [3, 1.5, 1], scale: 0.9, note: "Юпитер е най-голямата планета в Слънчевата система. Не е в мащаб." },
+              { id: "saturn", label: "Сатурн", shape: "sphere", color: "#e3c98f", pos: [3.5, 1.5, -2], scale: 0.7, note: "Сатурн има красиви пръстени. Не е в мащаб." },
               { id: "rings", label: "Пръстени на Сатурн", shape: "ring", color: "#cdb27a", pos: [3.5, 1.5, -2], scale: 1.2, note: "Пръстените са от лед и камъчета." }
             ]
           },
@@ -468,7 +468,7 @@ export default {
         experience: "stories4",
         scene: {
           objects: [
-            { id: "sun", label: "Слънце", shape: "sphere", color: "#ffcc33", pos: [-3, 2.8, -1], scale: 0.8, note: "Слънчевата светлина дава енергия на растението." },
+            { id: "sun", label: "Слънце", shape: "sphere", color: "#ffcc33", pos: [-3, 2.8, -1], scale: 0.8, note: "Слънчевата светлина дава енергия на растението. Не е в мащаб." },
             { id: "leaf", label: "Лист", shape: "plane", color: "#3fa34d", pos: [0, 2, 0], scale: 0.8, note: "В зелените листа растението изгражда хранителни вещества." },
             { id: "stem", label: "Стъбло", shape: "capsule", color: "#5d8c3a", pos: [0, 1, 0], scale: 1.43, note: "По стъблото водата се качва от корена до листата." },
             { id: "root", label: "Корен", shape: "cone", color: "#8b5a2b", pos: [0, 0, 0], scale: 0.5, note: "Коренът поема вода от почвата." },
@@ -653,12 +653,12 @@ export default {
           video: null,
           scene: {
             objects: [
-              { id: "nose", label: "Нос", shape: "cone", color: "#f1c27d", pos: [0, 3, 0.5], scale: 0.25, note: "През носа въздухът влиза в тялото. Там се затопля и пречиства." },
-              { id: "trachea", label: "Дихателна тръба", shape: "capsule", color: "#e8a0a0", pos: [-0.6, 2.3, 0], scale: 0.57, note: "По дихателната тръба въздухът отива към белите дробове." },
-              { id: "lungs", label: "Бели дробове", shape: "capsule", color: "#f08080", pos: [-0.8, 1.6, 0], scale: 0.6, note: "В белите дробове кислородът от въздуха преминава в кръвта." },
-              { id: "esophagus", label: "Хранопровод", shape: "capsule", color: "#d98c6a", pos: [0.6, 2.2, 0], scale: 0.71, note: "По хранопровода храната отива от устата към стомаха." },
-              { id: "stomach", label: "Стомах", shape: "sphere", color: "#e07a5f", pos: [0.8, 1.2, 0], scale: 0.45, note: "В стомаха храната се смила." },
-              { id: "intestine", label: "Черва", shape: "torus", color: "#c97b63", pos: [0, 0.4, 0], scale: 0.6, note: "В червата хранителните вещества преминават в кръвта." }
+              { id: "nose", label: "Нос", shape: "cone", color: "#f1c27d", pos: [0, 3, 0.5], scale: 0.25, note: "През носа въздухът влиза в тялото. Там се затопля и пречиства. Не е в мащаб." },
+              { id: "trachea", label: "Дихателна тръба", shape: "capsule", color: "#e8a0a0", pos: [-0.6, 2.3, 0], scale: 0.57, note: "По дихателната тръба въздухът отива към белите дробове. Не е в мащаб." },
+              { id: "lungs", label: "Бели дробове", shape: "capsule", color: "#f08080", pos: [-0.8, 1.6, 0], scale: 0.6, note: "В белите дробове кислородът от въздуха преминава в кръвта. Не е в мащаб." },
+              { id: "esophagus", label: "Хранопровод", shape: "capsule", color: "#d98c6a", pos: [0.6, 2.2, 0], scale: 0.71, note: "По хранопровода храната отива от устата към стомаха. Не е в мащаб." },
+              { id: "stomach", label: "Стомах", shape: "sphere", color: "#e07a5f", pos: [0.8, 1.2, 0], scale: 0.45, note: "В стомаха храната се смила. Не е в мащаб." },
+              { id: "intestine", label: "Черва", shape: "torus", color: "#c97b63", pos: [0, 0.4, 0], scale: 0.6, note: "В червата хранителните вещества преминават в кръвта. Не е в мащаб." }
             ]
           },
           questions: [

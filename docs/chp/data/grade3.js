@@ -320,7 +320,7 @@ export default {
           video: null,
           scene: {
             objects: [
-              { id: "sun", label: "Слънце", shape: "sphere", color: "#ffd54f", pos: [-3, 2.8, -2], scale: 0.9, note: "Светлината е нужна на растенията, за да си правят храна." },
+              { id: "sun", label: "Слънце", shape: "sphere", color: "#ffd54f", pos: [-3, 2.8, -2], scale: 0.9, note: "Светлината е нужна на растенията, за да си правят храна. Не е в мащаб." },
               { id: "can", label: "Лейка", shape: "cylinder", color: "#26a69a", pos: [-1, 0.5, 0.5], scale: 0.7, note: "Растенията поемат вода с корените си." },
               { id: "pot", label: "Здраво растение", shape: "cone", color: "#43a047", pos: [1, 0.8, 0.5], scale: 0.9, note: "Това растение има вода, въздух и светлина. То е зелено и расте." },
               { id: "dark", label: "Растение в шкаф", shape: "cone", color: "#c5d86d", pos: [3, 0.6, 0], scale: 0.7, note: "В тъмното растението пожълтява и отслабва. Липсва му светлина." },
@@ -442,10 +442,10 @@ export default {
         quality: "low",
         scene: {
           objects: [
-            { id: "brain", label: "Мозък", shape: "sphere", color: "#f48fb1", pos: [0, 2.8, 0], scale: 0.5, note: "Мозъкът управлява цялото тяло. С него мислим и учим." },
-            { id: "lungs", label: "Бели дробове", shape: "capsule", color: "#ef9a9a", pos: [-0.6, 1.9, 0], scale: 0.5, note: "С белите дробове дишаме. Те поемат въздух." },
-            { id: "heart", label: "Сърце", shape: "sphere", color: "#e53935", pos: [0.4, 1.8, 0.3], scale: 0.3, note: "Сърцето е мускул. То изпомпва кръвта по цялото тяло." },
-            { id: "skeleton", label: "Кости", shape: "cylinder", color: "#eeeeee", pos: [2, 1.2, 0], scale: 0.6, note: "Скелетът е опората на тялото. Заедно с мускулите ни помага да се движим." },
+            { id: "brain", label: "Мозък", shape: "sphere", color: "#f48fb1", pos: [0, 2.8, 0], scale: 0.5, note: "Мозъкът управлява цялото тяло. С него мислим и учим. Не е в мащаб." },
+            { id: "lungs", label: "Бели дробове", shape: "capsule", color: "#ef9a9a", pos: [-0.6, 1.9, 0], scale: 0.5, note: "С белите дробове дишаме. Те поемат въздух. Не е в мащаб." },
+            { id: "heart", label: "Сърце", shape: "sphere", color: "#e53935", pos: [0.4, 1.8, 0.3], scale: 0.3, note: "Сърцето е мускул. То изпомпва кръвта по цялото тяло. Не е в мащаб." },
+            { id: "skeleton", label: "Кости", shape: "cylinder", color: "#eeeeee", pos: [2, 1.2, 0], scale: 0.6, note: "Скелетът е опората на тялото. Заедно с мускулите ни помага да се движим. Не е в мащаб." },
             { id: "apple", label: "Ябълка", shape: "sphere", color: "#c62828", pos: [-2.5, 0.4, 1], scale: 0.5, note: "Плодовете и зеленчуците помагат на тялото да расте здраво." }
           ]
         },
@@ -477,12 +477,12 @@ export default {
           video: null,
           scene: {
             objects: [
-              { id: "brain", label: "Мозък", shape: "sphere", color: "#f48fb1", pos: [0, 2.8, 0], scale: 0.5, note: "Мозъкът е в главата. Той управлява тялото. С него мислим, помним и учим." },
-              { id: "lungs", label: "Бели дробове", shape: "capsule", color: "#ef9a9a", pos: [-0.7, 1.9, 0], scale: 0.5, note: "Два бели дроба в гърдите. С тях дишаме." },
-              { id: "heart", label: "Сърце", shape: "sphere", color: "#e53935", pos: [0.4, 1.8, 0.3], scale: 0.3, note: "Сърцето изпомпва кръвта. Тя тече по кръвоносните съдове." },
-              { id: "vessels", label: "Кръвоносни съдове", shape: "torus", color: "#c62828", pos: [1.8, 1.5, 0], scale: 0.5, note: "Тръбички, по които кръвта стига до всяка част на тялото." },
-              { id: "stomach", label: "Стомах", shape: "capsule", color: "#ffab91", pos: [0.3, 1.2, 0.2], scale: 0.4, note: "Стомахът смила храната, която сме изяли." },
-              { id: "intestines", label: "Черва", shape: "torus", color: "#ffcc80", pos: [0, 0.6, 0.2], scale: 0.5, note: "В червата храната се смила до края. Оттам полезните вещества минават в кръвта." }
+              { id: "brain", label: "Мозък", shape: "sphere", color: "#f48fb1", pos: [0, 2.8, 0], scale: 0.5, note: "Мозъкът е в главата. Той управлява тялото. С него мислим, помним и учим. Не е в мащаб." },
+              { id: "lungs", label: "Бели дробове", shape: "capsule", color: "#ef9a9a", pos: [-0.7, 1.9, 0], scale: 0.5, note: "Два бели дроба в гърдите. С тях дишаме. Не е в мащаб." },
+              { id: "heart", label: "Сърце", shape: "sphere", color: "#e53935", pos: [0.4, 1.8, 0.3], scale: 0.3, note: "Сърцето изпомпва кръвта. Тя тече по кръвоносните съдове. Не е в мащаб." },
+              { id: "vessels", label: "Кръвоносни съдове", shape: "torus", color: "#c62828", pos: [1.8, 1.5, 0], scale: 0.5, note: "Тръбички, по които кръвта стига до всяка част на тялото. Не е в мащаб." },
+              { id: "stomach", label: "Стомах", shape: "capsule", color: "#ffab91", pos: [0.3, 1.2, 0.2], scale: 0.4, note: "Стомахът смила храната, която сме изяли. Не е в мащаб." },
+              { id: "intestines", label: "Черва", shape: "torus", color: "#ffcc80", pos: [0, 0.6, 0.2], scale: 0.5, note: "В червата храната се смила до края. Оттам полезните вещества минават в кръвта. Не е в мащаб." }
             ]
           },
           questions: [
