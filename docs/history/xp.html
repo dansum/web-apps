@@ -9,15 +9,18 @@
 <body>
   <header class="topbar"><a class="brand" href="./#/"><img src="assets/logo-obr.svg" alt="Образование без раници"><span class="sep"></span><span>История <b>3D</b> · преглед</span></a></header>
   <main>
-    <p class="small">Страница за разработчици: показва едно преживяване без курса. Напредъкът не се записва. Пример: <code>xp.html?exp=vladeteli</code></p>
+    <p class="small">Страница за разработчици: показва едно преживяване без курса. Напредъкът не се записва. Пример: <code>xp.html?exp=vladeteli</code> или <code>xp.html?exp=granici&amp;skill=10.3.6</code></p>
     <div class="ex-area" id="area"></div>
   </main>
   <script type="module">
-    const exp = new URLSearchParams(location.search).get('exp') || 'vladeteli';
+    const params = new URLSearchParams(location.search);
+    const exp = params.get('exp') || 'vladeteli';
+    // ?skill=<id> подава id на умението — за преживявания, които обслужват няколко умения.
+    const skillId = (params.get('skill') || '').replace(/[^0-9a-z.-]/gi, '');
     const area = document.getElementById('area');
     const mod = await import(`./js/exp/${exp.replace(/[^a-z0-9_-]/gi, '')}.js`);
     window.__result = null;
-    mod.mount(area, { skill: {}, course: {}, onComplete(r) { window.__result = r; return { levelName: 'преглед', before: 0, after: 0 }; } });
+    mod.mount(area, { skill: skillId ? { id: skillId } : {}, course: {}, onComplete(r) { window.__result = r; return { levelName: 'преглед', before: 0, after: 0 }; } });
   </script>
 </body>
 </html>
