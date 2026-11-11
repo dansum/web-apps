@@ -154,11 +154,14 @@ export function mount(container, { onComplete }) {
   let tip = null;
   const say = (anchor, html, opts = {}) => { if (tip) tip.remove(); tip = stage.bubble(anchor, html, opts); };
   const clearTip = () => { if (tip) { tip.remove(); tip = null; } };
-  // Показва място: отгоре — полет на камерата; при разходка — детето застава пред него.
+  // Показва място: отгоре — полет на камерата; при разходка — детето отива дотам с бързо ходене по улиците.
   function showPlace(id) {
     const p = places.get(id), s = p.site;
     selected = id;
-    if (mode === 'walk') walk.jump(s.stand[0], s.stand[1], p.x, p.z, s.pitch ?? -0.14);
+    if (mode === 'walk') {
+      clearTimeout(modeTimer); walk.enable(); // ако камерата още слиза към улицата, разходката започва веднага
+      walk.follow(world.route([walk.state.x, walk.state.z], s.stand), p.x, p.z, s.pitch ?? -0.14);
+    }
     else look(s.top[0], s.top[1]);
     return p;
   }
