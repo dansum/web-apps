@@ -726,8 +726,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "eco6",
           video: null,
           scene: {
             objects: [
