@@ -37,7 +37,8 @@ export function sortTask(ctx, { lead = '', bins, items, hint = '', mixed = true,
 }
 
 // Подреждане: детето кликва примерите по ред. items е в правилния ред; data-i е верният индекс.
-export function orderTask(ctx, { q, items, hint = '', mistakes = 0, onDone }) {
+// onPick(i) се вика при всеки верен избор (напр. за да се покаже нещо в сцената).
+export function orderTask(ctx, { q, items, hint = '', mistakes = 0, onPick, onDone }) {
   const { shell } = ctx;
   let m = mistakes;
   let k = 0;
@@ -58,6 +59,7 @@ export function orderTask(ctx, { q, items, hint = '', mistakes = 0, onDone }) {
     b.classList.add('right');
     b.style.display = 'none';
     done.insertAdjacentHTML('beforeend', `<li>${items[i]}</li>`);
+    if (onPick) onPick(i);
     k++;
     if (k === items.length) { shell.msg('Вярно подредено!', 'good'); onDone(m); }
     else shell.msg('');
