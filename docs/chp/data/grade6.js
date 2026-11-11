@@ -674,8 +674,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "burning",
           video: null,
           scene: {
             objects: [
