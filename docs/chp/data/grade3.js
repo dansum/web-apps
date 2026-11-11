@@ -278,8 +278,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "kingdoms",
           video: null,
           scene: {
             objects: [
@@ -315,8 +315,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "plantneeds",
           video: null,
           scene: {
             objects: [
@@ -398,8 +398,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "habitats",
           video: null,
           scene: {
             objects: [
@@ -512,8 +512,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "skeleton",
           video: null,
           scene: {
             objects: [
@@ -549,8 +549,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "hygiene",
           video: null,
           scene: {
             objects: [

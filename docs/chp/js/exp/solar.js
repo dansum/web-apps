@@ -52,7 +52,7 @@ const BG = { lat: 42.7, lon: 25.5 };
 const TILT = THREE.MathUtils.degToRad(23.4);
 const D2R = Math.PI / 180;
 
-function rng(seed) {
+export function rng(seed) {
   let a = seed >>> 0;
   return () => {
     a = (a + 0x6d2b79f5) >>> 0;
@@ -63,11 +63,11 @@ function rng(seed) {
   };
 }
 // Точка от земното кълбо по географска ширина и дължина (както я рисува текстурата на сферата).
-function latLon(lat, lon, r = 1) {
+export function latLon(lat, lon, r = 1) {
   const a = lat * D2R, b = lon * D2R;
   return new THREE.Vector3(Math.cos(a) * Math.cos(b) * r, Math.sin(a) * r, -Math.cos(a) * Math.sin(b) * r);
 }
-function canvasTex(w, h, draw) {
+export function canvasTex(w, h, draw) {
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
   draw(c.getContext('2d'), w, h);
@@ -76,7 +76,7 @@ function canvasTex(w, h, draw) {
   t.anisotropy = 4;
   return t;
 }
-function glowTex(stops) {
+export function glowTex(stops) {
   return canvasTex(128, 128, (ctx) => {
     const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
     stops.forEach(([k, c]) => g.addColorStop(k, c));
@@ -84,7 +84,7 @@ function glowTex(stops) {
     ctx.fillRect(0, 0, 128, 128);
   });
 }
-function bandsTex(cols, seed, extra) {
+export function bandsTex(cols, seed, extra) {
   const R = rng(seed);
   return canvasTex(256, 128, (ctx, w, h) => {
     let y = 0;
@@ -103,7 +103,7 @@ function bandsTex(cols, seed, extra) {
     if (extra) extra(ctx, w, h);
   });
 }
-function rockyTex(base, spot, seed, n = 70) {
+export function rockyTex(base, spot, seed, n = 70) {
   const R = rng(seed);
   return canvasTex(256, 128, (ctx, w, h) => {
     ctx.fillStyle = base;
@@ -119,6 +119,7 @@ function rockyTex(base, spot, seed, n = 70) {
   });
 }
 
+// Помощниците за текстури се ползват и от seasons.js и stars.js (5. клас).
 // Приблизителни очертания на континентите (дължина, ширина).
 const LAND = [
   [[-168, 66], [-140, 70], [-110, 72], [-85, 70], [-75, 62], [-60, 55], [-66, 45], [-75, 38], [-81, 31], [-80, 25], [-90, 29], [-97, 26], [-97, 20], [-87, 16], [-83, 9], [-79, 8], [-92, 15], [-105, 20], [-112, 30], [-118, 34], [-124, 40], [-124, 48], [-135, 58], [-150, 60], [-165, 60]],
@@ -133,7 +134,7 @@ const LAND = [
   [[95, 5], [105, -6], [115, -8], [120, -4], [118, 2], [110, 2], [100, 2]],
   [[44, -16], [50, -14], [50, -24], [45, -25]],
 ];
-function earthTex() {
+export function earthTex() {
   return canvasTex(1024, 512, (ctx, w, h) => {
     const X = (lon) => ((lon + 180) / 360) * w;
     const Y = (lat) => ((90 - lat) / 180) * h;
@@ -173,7 +174,7 @@ function earthTex() {
     }
   });
 }
-function cloudsTex() {
+export function cloudsTex() {
   const R = rng(11);
   return canvasTex(512, 256, (ctx, w, h) => {
     ctx.clearRect(0, 0, w, h);
@@ -185,7 +186,7 @@ function cloudsTex() {
     }
   });
 }
-function ringTex() {
+export function ringTex() {
   return canvasTex(256, 4, (ctx, w, h) => {
     const R = rng(3);
     for (let x = 0; x < w; x++) {

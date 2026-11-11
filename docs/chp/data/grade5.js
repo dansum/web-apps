@@ -353,8 +353,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "heat",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -463,8 +464,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "rays",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -556,8 +558,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "seasons",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -651,8 +654,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "stars",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -788,8 +792,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "substances",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -1088,8 +1093,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "airclean",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -1192,8 +1198,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "solutions",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -1302,8 +1309,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "water",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -1543,8 +1551,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "nutrition",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -1645,8 +1654,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "respiration",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -1753,8 +1763,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "excretion",
+          review: true,
           video: null,
           scene: {
             objects: [
