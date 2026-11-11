@@ -1859,8 +1859,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "digestion",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -2066,8 +2067,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "urinary",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -2160,8 +2162,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "unity",
+          review: true,
           video: null,
           scene: {
             objects: [

@@ -232,7 +232,7 @@ function lungGeo(side) {
   geo.computeVertexNormals();
   return geo;
 }
-function buildLungs() {
+export function buildLungs() {
   const g = new THREE.Group();
   const m = organMat(0xf28b97, { roughness: 0.65 });
   const lobes = [];
@@ -249,7 +249,7 @@ function buildLungs() {
 }
 // Трахея: от носната кухина през гърлото до двата бронха (координати в тялото на Боби).
 const TRACHEA_PTS = [[0, 3.93, 0.15], [0, 3.72, 0.12], [0, 3.45, 0.08], [0, 3.2, 0.07], [0, 2.98, 0.06]];
-function buildTrachea(short = false) {
+export function buildTrachea(short = false) {
   const g = new THREE.Group();
   const m = organMat(0xe9c3c3);
   const pts = short ? [[0, 0.35, 0], [0, -0.25, 0]] : TRACHEA_PTS;
@@ -269,7 +269,7 @@ function buildTrachea(short = false) {
   }
   return g;
 }
-function buildStomach() {
+export function buildStomach() {
   const g = new THREE.Group();
   const m = organMat(0xffa98c, { roughness: 0.55 });
   const body = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16), m);
@@ -284,7 +284,7 @@ function buildStomach() {
   g.userData.body = body;
   return g;
 }
-function buildIntestines() {
+export function buildIntestines() {
   const g = new THREE.Group();
   const large = tube([[-0.3, -0.2, 0.02], [-0.35, -0.05, 0.03], [-0.34, 0.15, 0.03], [-0.18, 0.2, 0.05], [0, 0.19, 0.06],
     [0.2, 0.2, 0.05], [0.34, 0.15, 0.03], [0.35, -0.05, 0.03], [0.3, -0.2, 0.03], [0.12, -0.26, 0.05]], 0.062, organMat(0xe2945f), 80, 10);
@@ -302,7 +302,7 @@ function buildIntestines() {
   g.userData.large = large;
   return g;
 }
-function buildLiver() {
+export function buildLiver() {
   const g = new THREE.Group();
   const m = organMat(0x9c4a3a, { roughness: 0.5 });
   const a = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16), m);
@@ -328,7 +328,7 @@ function buildDiaphragm() {
   g.userData.dome = dome;
   return g;
 }
-function buildEsophagus(short = false) {
+export function buildEsophagus(short = false) {
   const g = new THREE.Group();
   const pts = short ? [[0, 0.4, 0], [0.04, 0.1, 0], [-0.03, -0.15, 0], [0.08, -0.38, 0]]
     : [[0, 3.62, -0.1], [0, 3.1, -0.12], [0.05, 2.6, -0.07], [0.13, 2.22, 0.03], [0.17, 2.12, 0.08]];
@@ -378,7 +378,7 @@ function skinPart(geo, skin, rim) {
 }
 
 // Боби (по образеца на body.js), с уста, зъби и нос, които могат да се изберат.
-function buildKid() {
+export function buildKid() {
   const kid = new THREE.Group();
   const skin = glassMat(0xffc8a2, 0.3, { emissive: 0xffa070, emissiveIntensity: 0.08 });
   const headSkin = glassMat(0xffc8a2, 0.38, { emissive: 0xffa070, emissiveIntensity: 0.1 });
