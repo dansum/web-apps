@@ -1763,8 +1763,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "excretion",
+          review: true,
           video: null,
           scene: {
             objects: [
