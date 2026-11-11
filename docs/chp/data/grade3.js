@@ -278,8 +278,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "kingdoms",
           video: null,
           scene: {
             objects: [
