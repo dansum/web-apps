@@ -99,8 +99,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "twoforces",
           video: null,
           scene: {
             objects: [
@@ -180,8 +180,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "pressure",
           video: null,
           scene: {
             objects: [
@@ -534,8 +534,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "massbalance",
           video: null,
           scene: {
             objects: [

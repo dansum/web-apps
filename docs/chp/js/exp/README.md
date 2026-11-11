@@ -25,6 +25,8 @@ export function mount(container, { skill, course, onComplete }) {
 | `zoneRing(color)` | Кръг на земята, в който се пускат обекти при сортиране. |
 | `mat(color, { flat })` | Материал. |
 
+За малки лабораторни опити (`candle.js`, `massbalance.js`, `pressure.js`, `twoforces.js`, `expansion.js`) има `js/exp/labkit.js`: `scaffold` (рамка, сцена, меню, общ клик), `explore` (стъпка 1 с меню), `choice` (въпрос с избор и подсказка след 2 грешки), `nextBtn`, `finishBtn`, `view` (камера, която събира сцената и на тесен екран), `makeArrow`, `labRoom`, `lcd`.
+
 Кликаемите обекти носят `userData.pickId`; влачимите — и `userData.dragId`. Скрити обекти (`visible = false`) не се кликат.
 
 ## Стандарт за качество
@@ -45,6 +47,7 @@ export function mount(container, { skill, course, onComplete }) {
 * Автоматичен тест в Playwright, който изиграва преживяването докрай: с една умишлена грешка и после правилно. Крайният резултат трябва да е правилен.
 * Снимки на всяка стъпка, прегледани на око: нищо не е отрязано, етикетите се четат, балончетата не закриват задачата.
 * Проверка на ширина 390 px.
+* Тестовете са в `tools/test-<име>.mjs` (общите помощници са в `tools/xp-lib.mjs`). Пускане: `NODE_PATH=$(npm root -g) node tools/test-candle.mjs http://localhost:8765/chp/ <папка за снимки> [ширина]`.
 
 ## Статии като живи 3D сцени
 

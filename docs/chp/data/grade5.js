@@ -259,8 +259,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "expansion",
           video: null,
           scene: {
             objects: [
@@ -989,14 +989,14 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "candle",
           video: null,
           scene: {
             objects: [
               { id: "nitrogen", label: "Азот", shape: "box", color: "#7fa7d9", pos: [-3, 1.5, 0], scale: [1.2, 3, 1], note: "Азотът е около 78% от въздуха. Безцветен е, без мирис и не поддържа горенето." },
               { id: "oxygen", label: "Кислород", shape: "box", color: "#e05555", pos: [-1, 0.6, 0], scale: [1.2, 1.2, 1], note: "Кислородът е около 21% от въздуха. Безцветен е, без мирис и поддържа горенето и дишането." },
-              { id: "candle", label: "Свещ под стъкленица", shape: "cylinder", color: "#fff3c4", pos: [1, 0.5, 0], scale: 0.6, note: "Под похлупена стъкленица свещта угасва, когато кислородът в нея свърши." },
+              { id: "candle", label: "Свещ под стъкленица", shape: "cylinder", color: "#fff3c4", pos: [1, 0.5, 0], scale: 0.6, note: "Под похлупена стъкленица свещта угасва, когато кислородът в нея намалее твърде много." },
               { id: "co2", label: "Въглероден диоксид", shape: "sphere", color: "#888888", pos: [3, 0.5, 0], scale: 0.4, note: "Въглеродният диоксид не поддържа горенето и помътнява варната вода. Нужен е на растенията." },
               { id: "plant", label: "Растение", shape: "cone", color: "#3aa655", pos: [1.5, 0.8, 2], scale: 0.8, note: "Растенията поемат въглероден диоксид от въздуха и с него си образуват храна." }
             ]
