@@ -583,8 +583,8 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "oxyhydro",
           video: null,
           scene: {
             objects: [
@@ -839,8 +839,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "stimuli",
+          review: true,
           video: null,
           scene: {
             objects: [
