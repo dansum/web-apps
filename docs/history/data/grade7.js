@@ -355,8 +355,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "berlin1878",
+          review: true,
           video: null,
           scene: {
             objects: [
@@ -528,8 +529,9 @@ export default {
             ]
           },
           assumption: null,
-          quality: "low",
-          experience: null,
+          quality: "high",
+          experience: "granici",
+          review: true,
           video: null,
           scene: {
             objects: [
