@@ -18,11 +18,18 @@ await t.choose(0);
 await t.shot('2b');
 await t.next();
 // 3. Обитатели на водата и приспособления
-for (const id of ['fish', 'lily', 'crab']) { await t.click(id); console.log(id, await page.textContent('.xp-score'), await t.msg()); }
+for (const id of ['fish', 'lily', 'crab']) {
+  // Рибите плуват: ако кликът не уцели, опитваме пак (детето също може да кликне отново).
+  for (let k = 0; k < 3; k++) {
+    const before = await page.textContent('.xp-score');
+    await t.click(id);
+    if ((await page.textContent('.xp-score')) !== before) break;
+  }
+}
 await t.shot('3a');
 for (const [c, id] of [['fins', 'fish'], ['webs', 'duck'], ['paws', 'mole'], ['stem', 'cactus']]) {
   await page.click(`.xp-task .chip[data-t="${c}"]`);
-  await t.click(id); console.log(c, await t.msg());
+  await t.click(id);
 }
 await t.shot('3');
 await t.next();

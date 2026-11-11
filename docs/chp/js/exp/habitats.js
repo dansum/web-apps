@@ -247,9 +247,12 @@ export function mount(container, { onComplete }) {
   addHitBox(duck, 0.7);
   named(duck, 'Патица', 0.6);
   scene.add(duck);
-  const P = { k: 1, want: 1, duckAway: 0 };
+  const P = { k: 1, want: 1, duckAway: 0, slow: 1, tf: 0, td: 0 };
 
-  stage.tick((dt, t) => {
+  stage.tick((dt, t0) => {
+    // Във 3. стъпка рибите и патицата плуват по-бавно, за да се кликат по-лесно.
+    P.tf += dt * P.slow;
+    const t = P.tf;
     P.k += (P.want - P.k) * Math.min(1, dt * 1.5);
     const k = P.k;
     const h = Math.max(0.02, POND.h * (0.15 + 0.85 * k));
@@ -270,7 +273,7 @@ export function mount(container, { onComplete }) {
     // Патицата отлита, когато водата свърши.
     P.duckAway += ((k < 0.4 ? 1 : 0) - P.duckAway) * Math.min(1, dt * 0.8);
     const da = t * 0.25;
-    duck.position.set(POND.x + Math.cos(da) * 1.0 + P.duckAway * 6, h + 0.12 + P.duckAway * 4, POND.z + Math.sin(da) * 0.7 - P.duckAway * 4);
+    duck.position.set(POND.x + Math.cos(da) * 0.35 + P.duckAway * 6, h + 0.12 + P.duckAway * 4, POND.z + Math.sin(da) * 0.25 - P.duckAway * 4);
     duck.rotation.y = -da - Math.PI / 2;
     duck.visible = P.duckAway < 0.97;
     crab.position.x = 0.2 + Math.sin(t * 0.7) * 0.15;
@@ -352,7 +355,7 @@ export function mount(container, { onComplete }) {
     shell.step(0);
     ctx.clearTip(); clearTags();
     ctx.click = null;
-    P.k = 1; P.want = 1; P.duckAway = 0;
+    P.k = 1; P.want = 1; P.duckAway = 0; P.slow = 1;
     showLife(0);
     view(ctx, [0.4, 0.5, -0.2], 5.8, { halfH: 2.6 });
     explore(ctx, {
@@ -455,12 +458,13 @@ export function mount(container, { onComplete }) {
     shell.step(2);
     ctx.clearTip(); clearTags();
     P.want = 1;
-    view(ctx, [0.4, 0.4, -0.2], 5.4, { halfH: 2.3, elev: 0.6 });
+    view(ctx, [POND.x + 0.4, 0.3, POND.z], 2.9, { halfH: 1.7, elev: 0.75 });
     let mistakes = 0;
     const found = new Set();
     shell.task('<p>Във водата и на сушата живеят различни растения и животни.</p><p><b>Кликни всички, които живеят във водата.</b> Те са три.</p>');
     shell.setControls('');
     shell.score('Намерени: 0 от 3');
+    P.slow = 0.25;
     ctx.click = (id) => {
       if (!id || id === 'pond' || id === 'sign' || found.has(id)) return;
       if (id === 'duck') { ctx.say(duck, 'Патицата плува, но живее и на сушата: ходи, храни се и гнезди на брега. Търси само водни.', 'wide', 0.7); return; }
@@ -478,6 +482,7 @@ export function mount(container, { onComplete }) {
     };
     function adapt() {
       ctx.clearTip();
+      view(ctx, [0.4, 0.4, -0.2], 5.4, { halfH: 2.3, elev: 0.6 });
       let tool = null; let done = 0;
       shell.score('Свързани: 0 от 4');
       shell.task(`<p>Всеки е <b>приспособен</b> към своята среда. Избери приспособление и кликни кой го има.</p>
@@ -530,6 +535,7 @@ export function mount(container, { onComplete }) {
     shell.step(3);
     ctx.clearTip(); clearTags();
     showLife(0);
+    P.slow = 1;
     view(ctx, [0.4, 0.6, 1.4], 2.6, { halfH: 1.8, elev: 0.5 });
     shell.task('<p>Местността е защитена. Тук живеят много растения и животни.</p>');
     let mistakes = 0;
