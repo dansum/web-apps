@@ -827,7 +827,7 @@ function build(container, { onComplete }, restart) {
           }
         });
         jar.rotation.z = 0; jar.position.y = TY;
-        say(jar, '⏳ Сместа се утаява… В истински буркан това трае часове.', '', 1.55);
+        say(jar, '⏳ Сместа се утаява — частиците бавно падат на дъното. В истински буркан това трае часове.', '', 1.55);
         for (const L of JAR.slice(0, 3)) { jL[L.id].visible = true; jL[L.id].userData.mesh.scale.y = 0.001; }
         const flakes = jL.humus.userData.flakes;
         const fy0 = flakes.map((f) => f.position.y);
