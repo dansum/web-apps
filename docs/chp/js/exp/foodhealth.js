@@ -1513,15 +1513,72 @@ export function mount(container, { onComplete }) {
       box.querySelectorAll('.choice').forEach((x) => { x.disabled = true; });
       shell.msg('Вярно!', 'good');
       say(cure.medicine, '✔ Антибиотикът няма да помогне при вирус. Петьо трябва да почива, да пие вода и чай и да каже на възрастен. Ако му стане по-зле, лекарят ще реши дали е нужно лекарство.', 'good wide', 0.75);
-      scores.push(stepScore(mistakes, 3));
-      const c = shell.setControls('<button class="btn primary">Виж резултата</button>');
-      c.querySelector('button').addEventListener('click', () => {
-        clearTip();
-        const ratio = scores.reduce((a, s) => a + s, 0) / scores.length;
-        shell.score('');
-        shell.finish(ratio, onComplete, restart);
-      });
+      const c = shell.setControls('<button class="btn primary">Напред →</button>');
+      c.querySelector('button').addEventListener('click', () => { clearTip(); harmsPart(mistakes); });
     }));
+  }
+
+  // Кое вреди на тялото: тютюнев дим, алкохол, наркотици.
+  const HARMS = [
+    { q: '🚬 Как вреди <b>димът от цигари</b>?', opts: [
+      { t: 'Уврежда белите дробове и сърцето.', ok: true },
+      { t: 'Помага да дишаш по-добре.', why: 'Не. Димът уврежда белите дробове и затруднява дишането.' },
+      { t: 'Не вреди, ако само стоиш до пушача.', why: 'Не. И димът от чужда цигара вреди. По-добре стой далеч от него.' }] },
+    { q: '🍷 Как вреди <b>алкохолът</b>?', opts: [
+      { t: 'Вреди на мозъка и на черния дроб. За деца е забранен.', ok: true },
+      { t: 'Помага на децата да растат.', why: 'Не. Алкохолът вреди на тялото. За деца е забранен.' },
+      { t: 'Вреди само на зъбите.', why: 'Не. Алкохолът вреди на мозъка и на черния дроб.' }] },
+    { q: '⚠️ Какво знаем за <b>наркотиците</b>?', opts: [
+      { t: 'Опасни са за здравето и за мозъка. Затова ги избягваме.', ok: true },
+      { t: 'Не са опасни, ако ги опиташ само веднъж.', why: 'Не. Наркотиците са опасни за здравето. Не ги опитвай нито веднъж.' },
+      { t: 'Помагат да учиш по-добре.', why: 'Не. Наркотиците вредят на мозъка.' }] },
+    { q: '🙅 Някой ти предлага цигара, алкохол или нещо непознато. Какво правиш?', opts: [
+      { t: 'Казвам „Не!“ и казвам на възрастен, на когото вярвам.', ok: true },
+      { t: 'Опитвам малко, за да не ми се смеят.', why: 'Не е нужно да опитваш. Смело е да откажеш.' },
+      { t: 'Пазя го в тайна.', why: 'Кажи на родител, учител или друг възрастен, на когото вярваш.' }] },
+  ];
+  function harmsPart(mistakes0) {
+    let mistakes = mistakes0;
+    let qi = 0;
+    shell.msg('');
+    const draw = () => {
+      const h = HARMS[qi];
+      const opts = shuffle(h.opts);
+      shell.task(`<p>Някои неща вредят на тялото: <b>димът от цигари</b>, <b>алкохолът</b> и <b>наркотиците</b>.</p>
+        <p><b>${h.q}</b></p>
+        <div class="choices">${opts.map((o, i) => `<button class="choice" data-i="${i}"><span class="mark">○</span><span>${esc(o.t)}</span></button>`).join('')}</div>`);
+      shell.score(`Въпрос ${qi + 1} от ${HARMS.length} · грешки: ${mistakes}`);
+      shell.setControls('');
+      const box = container.querySelector('.xp-task .choices');
+      box.querySelectorAll('.choice').forEach((b) => b.addEventListener('click', () => {
+        const o = opts[+b.dataset.i];
+        if (!o.ok) {
+          mistakes++;
+          b.classList.add('wrong'); b.disabled = true;
+          shell.msg(o.why, 'bad');
+          shell.score(`Въпрос ${qi + 1} от ${HARMS.length} · грешки: ${mistakes}`);
+          return;
+        }
+        b.classList.add('right');
+        box.querySelectorAll('.choice').forEach((x) => { x.disabled = true; });
+        shell.msg('Вярно!', 'good');
+        qi++;
+        if (qi < HARMS.length) {
+          const c = shell.setControls('<button class="btn primary">Следващ въпрос →</button>');
+          c.querySelector('button').addEventListener('click', () => { shell.msg(''); draw(); });
+          return;
+        }
+        scores.push(stepScore(mistakes, 4));
+        const c = shell.setControls('<button class="btn primary">Виж резултата</button>');
+        c.querySelector('button').addEventListener('click', () => {
+          clearTip();
+          const ratio = scores.reduce((a, s) => a + s, 0) / scores.length;
+          shell.score('');
+          shell.finish(ratio, onComplete, restart);
+        });
+      }));
+    };
+    draw();
   }
 
   // ---------- отначало ----------
