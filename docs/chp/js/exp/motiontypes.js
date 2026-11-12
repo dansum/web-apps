@@ -459,16 +459,47 @@ export function mount(container, { onComplete }) {
 
   // релси
   const RZ = -4.6;
+  // Релсите: лява част (винаги) и дясна част — права или със завой (стъпка 4, „Завий релсите“).
+  const RAIL_TURN_X = -3;
+  const railStraight = new THREE.Group();
+  const railCurve = new THREE.Group();
+  railCurve.visible = false;
+  scene.add(railStraight, railCurve);
   for (const z of [RZ - 0.36, RZ + 0.36]) {
-    const r = box(22, 0.08, 0.07, 0x78909c);
-    r.position.set(0, 0.2, z);
+    const r = box(RAIL_TURN_X + 11, 0.08, 0.07, 0x78909c);
+    r.position.set((RAIL_TURN_X - 11) / 2, 0.2, z);
     scene.add(r);
+    const r2 = box(11 - RAIL_TURN_X, 0.08, 0.07, 0x78909c);
+    r2.position.set((RAIL_TURN_X + 11) / 2, 0.2, z);
+    railStraight.add(r2);
   }
   for (let x = -10.5; x <= 10.5; x += 0.7) {
     const sl = box(0.18, 0.1, 1.1, 0x6d4c41);
     sl.position.set(x, 0.08, RZ);
-    scene.add(sl);
+    (x > RAIL_TURN_X + 0.1 ? railStraight : scene).add(sl);
   }
+  // Завой: дъга с радиус CURVE_R, която завива навътре в парка (към -z).
+  const CURVE_R = 4.5;
+  const CURVE_A = 0.96;
+  const curvePt = (a, off = 0) => new THREE.Vector3(RAIL_TURN_X + (CURVE_R - off) * Math.sin(a), 0, RZ - CURVE_R + (CURVE_R - off) * Math.cos(a));
+  for (const off of [-0.36, 0.36]) {
+    const N = 24;
+    for (let i = 0; i < N; i++) {
+      const a0 = (CURVE_A * i) / N; const a1 = (CURVE_A * (i + 1)) / N;
+      const p0 = curvePt(a0, off); const p1 = curvePt(a1, off);
+      const seg = box(p0.distanceTo(p1) + 0.02, 0.08, 0.07, 0x78909c);
+      seg.position.copy(p0).add(p1).multiplyScalar(0.5).setY(0.2);
+      seg.rotation.y = (a0 + a1) / 2;
+      railCurve.add(seg);
+    }
+  }
+  for (let a = 0.08; a <= CURVE_A; a += 0.7 / CURVE_R) {
+    const sl = box(0.18, 0.1, 1.1, 0x6d4c41);
+    sl.position.copy(curvePt(a)).setY(0.08);
+    sl.rotation.y = a;
+    railCurve.add(sl);
+  }
+  const setCurve = (on) => { railCurve.visible = on; railStraight.visible = !on; };
   const station = new THREE.Group();
   const stB = box(1.8, 1.4, 1.2, 0xffe0b2); stB.position.y = 0.7;
   const stR = new THREE.Mesh(new THREE.ConeGeometry(1.5, 0.7, 4), mat(0x8d6e63, { flat: true })); stR.position.y = 1.75; stR.rotation.y = Math.PI / 4; stR.scale.set(1, 1, 0.75);
@@ -606,7 +637,7 @@ export function mount(container, { onComplete }) {
   const busy = new Set();
   const POSE = {
     train: { dur: 4.4, dot: 0.25, color: 0xd32f2f, marker: () => train.userData.marker,
-      reset: () => { train.position.x = TRAIN_X0; },
+      reset: () => { train.position.set(TRAIN_X0, 0, RZ); train.rotation.y = 0; },
       pose: (t) => { train.position.x = TRAIN_X0 + 2.5 * t; train.userData.wheels.forEach((w) => { w.rotation.z = -(2.5 * t) / 0.2; }); } },
     ball: { dur: 1.7, dot: 0.1, color: 0xff5722, marker: () => ballMarker,
       reset: () => { ball.position.copy(BALL0); thrower.userData.arms[0].rotation.z = 0; },
@@ -652,6 +683,7 @@ export function mount(container, { onComplete }) {
   function stopRun() { if (run) { busy.delete(run.id); run = null; } }
   function resetAll() {
     stopRun();
+    setCurve(false);
     for (const P of Object.values(POSE)) P.reset();
     train.userData.wheels.forEach((w) => { w.rotation.z = 0; });
     clearTrail();
@@ -719,6 +751,7 @@ export function mount(container, { onComplete }) {
     turbine: [[6.2, 4.6, 1.5], [7.8, 4.2, -7.6]],
     clock: [[5.0, 2.4, 4.6], [6.2, 1.7, 0.4]],
     wheel: [[-1, 3, 12.5], [-1, 0.7, WZ]],
+    curve: [[-1.6, 10, -0.6], [-1.6, 0, RZ - 1.4]],
   };
   const camTo = (id) => view(...CAMS[id]);
   let tip = null;
@@ -966,6 +999,24 @@ export function mount(container, { onComplete }) {
     pose: (t) => { const x = 1.5 * t; wheel.position.x = WHEEL_X0 + x; wheel.userData.spin.rotation.z = -x / WR; },
     markers: () => [[wheel.userData.hub, 0x1e88e5], [wheel.userData.valve, 0xe53935]],
   };
+  // Люлката, бутната по-силно: по-голям размах, лилави точки.
+  const SWING_STRONG = { ...POSE.swing, color: 0x6a1b9a,
+    pose: (t) => { swing.userData.pivot.rotation.z = 1.0 * Math.sin((2 * Math.PI * t) / 2.4); } };
+  // Влакът по релсите със завой: направо до началото на завоя, после по дъгата.
+  const TRAIN_CURVE = {
+    dur: 5, dot: 0.25, color: 0xd32f2f, marker: () => train.userData.marker,
+    reset: () => POSE.train.reset(),
+    pose: (t) => {
+      const sp = 1.58 * t;
+      const L0 = RAIL_TURN_X - TRAIN_X0;
+      if (sp <= L0) { train.position.set(TRAIN_X0 + sp, 0, RZ); train.rotation.y = 0; } else {
+        const a = Math.min(CURVE_A, (sp - L0) / CURVE_R);
+        train.position.copy(curvePt(a));
+        train.rotation.y = a;
+      }
+      train.userData.wheels.forEach((w) => { w.rotation.z = -sp / 0.2; });
+    },
+  };
   function step4() {
     shell.step(3);
     clearTip(); resetAll();
@@ -974,7 +1025,7 @@ export function mount(container, { onComplete }) {
     sortWorld.clear();
     let mistakes = 0;
     clickHandler = null;
-    const upd = (part) => shell.score(`Задача ${part} от 4 · грешки: ${mistakes}`);
+    const upd = (part) => shell.score(`Задача ${part} от 5 · грешки: ${mistakes}`);
     shell.task('<div class="motiontypes-qs"></div>');
     shell.setControls('');
     const qs = container.querySelector('.motiontypes-qs');
@@ -989,48 +1040,72 @@ export function mount(container, { onComplete }) {
       bad: 'Помисли: седалката виси на въжета, закачени за гредата. Докъде може да стигне?',
       ok: 'Вярно! Въжетата държат седалката на еднакво разстояние от гредата. Затова тя минава по дъга — напред и назад. Виж следата!',
       onRight: () => startRun('swing'),
-      then: (box) => {
-        choiceQ(box, {
-          part: 2,
-          q: 'Велосипед кара направо по алеята. Как се движи колелото му?',
-          opts: ['Едновременно се върти около оста си и се движи праволинейно', 'Само се върти на едно място', 'Само се движи праволинейно, без да се върти'],
-          right: 0,
-          bad: 'Колелото остава ли на едно място? А върти ли се, докато велосипедът се движи?',
-          ok: 'Вярно! Оста на колелото се движи по права линия (сините точки), а колелото се върти около нея. Затова вентилът (червените точки) описва извита линия.',
-          before: () => { wheel.visible = true; wPath.visible = true; WHEEL_POSE.reset(); clearTip(); camTo('wheel'); say(wheel, '🚲 Колело на велосипед', 'tag', 1.0); },
-          onRight: () => { clearTip(); startRun('wheel', { P: WHEEL_POSE }); },
-          then: (b2) => {
-            choiceQ(b2, {
-              part: 3,
-              q: 'По права линия влакът се движи праволинейно. А как се движи, когато релсите завиват?',
-              opts: ['Криволинейно', 'Праволинейно', 'Трепти'],
-              right: 0,
-              bad: 'Видът на движението зависи от линията, по която се движи тялото. Каква е тази линия в завоя?',
-              ok: 'Вярно! В завоя линията е крива, затова движението е криволинейно.',
-              before: () => { clearTip(); camTo('train'); say(train, '🚂 А в завоя?', 'tag', 1.9); },
-              then: (b3) => choiceQ(b3, {
+      then: (box) => choiceQ(box, {
+        part: 2,
+        act: { intro: 'Сега ти бутни люлката — <b>по-силно</b>.', label: '💪 Бутни по-силно',
+          run: () => { clearTip(); POSE.swing.reset(); say(swing, '💪 Бутна люлката по-силно!', 'tag', 3.0); } },
+        q: '<b>Предскажи:</b> каква ще е новата следа на седалката?',
+        opts: ['Пак дъга напред-назад, но по-дълга', 'Пълен кръг около гредата', 'Права линия'],
+        right: 0,
+        bad: 'Седалката пак виси на въжетата. Тя стига по-далеч, но после пак се връща назад.',
+        ok: 'Вярно! Люлката стига по-далеч напред и назад. Лилавата следа е по-дълга дъга. Движението пак е трептене.',
+        onRight: () => { clearTip(); startRun('swing', { P: SWING_STRONG }); },
+        then: (b1) => {
+          choiceQ(b1, {
+            part: 3,
+            q: 'Велосипед кара направо по алеята. Как се движи колелото му?',
+            opts: ['Едновременно се върти около оста си и се движи праволинейно', 'Само се върти на едно място', 'Само се движи праволинейно, без да се върти'],
+            right: 0,
+            bad: 'Колелото остава ли на едно място? А върти ли се, докато велосипедът се движи?',
+            ok: 'Вярно! Оста на колелото се движи по права линия (сините точки), а колелото се върти около нея. Затова вентилът (червените точки) описва извита линия.',
+            before: () => { wheel.visible = true; wPath.visible = true; WHEEL_POSE.reset(); clearTip(); camTo('wheel'); say(wheel, '🚲 Колело на велосипед', 'tag', 1.0); },
+            onRight: () => { clearTip(); startRun('wheel', { P: WHEEL_POSE }); },
+            then: (b2) => {
+              choiceQ(b2, {
                 part: 4,
-                q: 'Кое от тези движения е <b>трептене</b>?',
-                opts: ['Клон, който вятърът люлее напред-назад', 'Самолет, който излита', 'Колелото на водна мелница'],
+                act: { intro: 'По прави релси влакът се движи праволинейно. Сега ти <b>завий релсите</b>.', label: '↪ Завий релсите',
+                  run: () => { clearTip(); clearTrail(); TRAIN_CURVE.reset(); setCurve(true); camTo('curve'); say(train, '🚂 Релсите вече завиват', 'tag', 1.9); } },
+                before: () => { clearTip(); camTo('train'); },
+                q: '<b>Предскажи:</b> каква следа ще остави влакът сега?',
+                opts: ['Крива линия — движението е криволинейно', 'Права линия — движението е праволинейно', 'Дъга напред-назад — трептене'],
                 right: 0,
-                bad: 'При трептене тялото се движи напред-назад около едно място.',
-                ok: 'Вярно! Клонът се връща напред-назад около едно място — трепти. Самолетът отлита на друго място по права или извита линия. Колелото на мелницата се върти.',
-                then: finishAll,
-              }),
-            });
-          },
-        });
-      },
+                bad: 'Влакът се движи по релсите. Каква е линията на релсите в завоя?',
+                ok: 'Вярно! В завоя релсите са криви. Следата е крива линия — движението е криволинейно.',
+                onRight: () => { clearTip(); startRun('train', { P: TRAIN_CURVE }); },
+                then: (b3) => choiceQ(b3, {
+                  part: 5,
+                  q: 'Кое от тези движения е <b>трептене</b>?',
+                  opts: ['Клон, който вятърът люлее напред-назад', 'Самолет, който излита', 'Колелото на водна мелница'],
+                  right: 0,
+                  bad: 'При трептене тялото се движи напред-назад около едно място.',
+                  ok: 'Вярно! Клонът се връща напред-назад около едно място — трепти. Самолетът отлита на друго място. Колелото на мелницата се върти.',
+                  then: finishAll,
+                }),
+              });
+            },
+          });
+        },
+      }),
     });
 
-    function choiceQ(boxEl, { part, q, opts, right, bad, ok, then, before, onRight }) {
+    // act — действие на детето преди предсказването (бутни люлката, завий релсите); дотогава изборите са скрити.
+    function choiceQ(boxEl, { part, q, opts, right, bad, ok, then, before, onRight, act }) {
       if (before) before();
       upd(part);
       const order = opts.map((o, k) => k).sort(() => Math.random() - 0.5);
       const wrap = document.createElement('div');
       wrap.className = 'motiontypes-q';
-      wrap.innerHTML = `<p>${q}</p><div class="choices">${order.map((k) => `<button class="choice" data-i="${k}">${esc(opts[k])}</button>`).join('')}</div><div class="motiontypes-next"></div>`;
+      wrap.innerHTML = `${act ? `<p>${act.intro}</p><button class="btn primary motiontypes-act">${esc(act.label)}</button>` : ''}<div class="motiontypes-body"${act ? ' hidden' : ''}><p>${q}</p><div class="choices">${order.map((k) => `<button class="choice" data-i="${k}">${esc(opts[k])}</button>`).join('')}</div></div><div class="motiontypes-next"></div>`;
       boxEl.appendChild(wrap);
+      if (act) {
+        const ab = wrap.querySelector('.motiontypes-act');
+        ab.addEventListener('click', () => {
+          ab.remove();
+          act.run();
+          wrap.querySelector('.motiontypes-body').hidden = false;
+          wrap.scrollIntoView({ block: 'nearest' });
+        });
+      }
       wrap.querySelectorAll('.choice').forEach((b) => b.addEventListener('click', () => {
         if (b.disabled) return;
         if (+b.dataset.i !== right) {
@@ -1058,7 +1133,7 @@ export function mount(container, { onComplete }) {
     }
 
     function finishAll() {
-      scores.push(stepScore(mistakes, 3));
+      scores.push(stepScore(mistakes, 4));
       const btn = shell.setControls('<button class="btn primary">Виж резултата</button>').querySelector('button');
       btn.addEventListener('click', () => {
         clearTip();
