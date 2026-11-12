@@ -123,7 +123,7 @@ export function mount(container, { onComplete }) {
         { id: 'tree', label: 'Дърво', icon: '🌳', note: 'Дървото е <b>живо</b>: храни се, диша, расте и се размножава. Взема вода и минерални соли от неживата природа.', obj: () => tree, dist: 4.5, lift: 1.2 },
         { id: 'human', label: 'Човек', icon: '🧍', note: 'Човекът е <b>част от природата</b>: диша въздух, пие вода, храни се с растения и животни.', obj: () => human, dist: 3.5, lift: 0.9 },
         { id: 'river', label: 'Река', icon: '🏞', note: 'Водата в реката е нежива природа, но без нея няма живот. Реката тече — и неживата природа може да се движи.', obj: () => riverAt, dist: 4 },
-        { id: 'reserve', label: 'Табела „Резерват“', icon: '🪧', note: 'В <b>резервата</b> природата се пази почти недокосната. Там живеят редки растения и животни.', obj: () => sign, dist: 3.5, lift: 0.8 },
+        { id: 'reserve', label: 'Табела „Резерват“', icon: '🪧', note: 'В <b>резервата</b> природата се пази почти недокосната. Там живеят редки растения и животни. Резерватите са вид <b>защитени територии</b> — места, в които природата се пази по закон.', obj: () => sign, dist: 3.5, lift: 0.8 },
       ],
       onNext: step2,
     });
@@ -213,7 +213,7 @@ export function mount(container, { onComplete }) {
       c.querySelector('.rain').addEventListener('click', (e) => {
         e.target.disabled = true; E.raining = true;
         setTimeout(() => {
-          ctx.say(villageAt, 'Почвата се отми, реката стана мътна и преля към селото. Природата и хората пострадаха.', 'wide', 0.8);
+          ctx.say(villageAt, 'Почвата се отми, реката стана мътна и преля към селото. Природата и хората пострадаха. Това е опростен модел.', 'wide', 0.8);
           const cc = shell.setControls('<div class="row"><button class="btn primary plant">🌱 Залеси склона отново</button></div>');
           cc.querySelector('.plant').addEventListener('click', () => {
             E.raining = false; E.cut = false;
