@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ул. „Сердика“ 20 · 3D разходка</title>
+<meta name="description" content="Разходка в 3D в радиус 200 м около ул. „Сердика“ 20 в центъра на София, построена от реалните данни на OpenStreetMap.">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans:wght@400;600;700;800&family=Sofia+Sans+Condensed:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paveta: #E2B93B;
+    --ink: #F4F0E4;
+    --muted: #A9B1BE;
+    --panel: rgba(18, 24, 34, 0.84);
+    --panel-solid: #121822;
+    --line: rgba(244, 240, 228, 0.16);
+    --sans: "Sofia Sans", "Segoe UI", system-ui, sans-serif;
+    --cond: "Sofia Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+    color-scheme: dark;
+  }
+  html, body { height: 100%; margin: 0; overflow: hidden; background: #0E131B; color: var(--ink); font-family: var(--sans); }
+  #c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  [hidden] { display: none !important; }
+  button, select, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--paveta); outline-offset: 2px; }
+  a { color: var(--paveta); }
+
+  /* ---------- start / pause screen ---------- */
+  #start {
+    position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; overflow-y: auto;
+    padding: calc(24px + env(safe-area-inset-top, 0px)) 24px calc(24px + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(90deg, rgba(14,19,27,.96) 0%, rgba(14,19,27,.86) 50%, rgba(14,19,27,.45) 100%);
+  }
+  .card { max-width: 560px; width: 100%; margin: auto 0; }
+  .kicker { font-family: var(--cond); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--paveta); font-size: 14px; }
+  h1 { font-size: clamp(34px, 7vw, 56px); line-height: 1.02; margin: 8px 0 14px; font-weight: 800; }
+  .lede { color: #d9d6cc; line-height: 1.5; font-size: 16px; margin: 0 0 18px; }
+  dl.keys { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0 0 8px; font-size: 15px; }
+  dl.keys dt { white-space: nowrap; }
+  dl.keys dd { margin: 0; color: #d9d6cc; }
+  kbd { font-family: var(--cond); font-weight: 700; background: rgba(255,255,255,.08); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 1px 7px; font-size: 14px; }
+  .touch { color: var(--muted); font-size: 14px; margin: 6px 0 20px; }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .btn { background: var(--paveta); color: #1B1606; border: 0; border-radius: 6px; padding: 12px 26px; font-weight: 800; font-size: 17px; cursor: pointer; }
+  .btn:disabled { opacity: .55; cursor: progress; }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); font-weight: 600; }
+  .progress { margin-top: 16px; font-size: 14px; color: var(--muted); display: flex; gap: 10px; align-items: flex-start; }
+  .progress .spin { width: 16px; height: 16px; flex: none; border: 2px solid var(--line); border-top-color: var(--paveta); border-radius: 50%; animation: spin 0.9s linear infinite; margin-top: 2px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .status-sub { font-size: 12px; opacity: .8; }
+  .error { margin-top: 16px; background: rgba(240,140,110,.12); border: 1px solid rgba(240,140,110,.5); border-radius: 6px; padding: 12px 14px; font-size: 15px; line-height: 1.45; }
+  .error p { margin: 0 0 10px; }
+  .meta { margin-top: 18px; font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .lang-switch { display: inline-flex; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+  .lang-switch button { background: none; border: 0; padding: 4px 10px; font-family: var(--cond); font-weight: 700; font-size: 13px; color: var(--muted); cursor: pointer; }
+  .lang-switch button[aria-pressed="true"] { background: var(--paveta); color: #1B1606; }
+  #start .lang-switch { position: absolute; top: calc(18px + env(safe-area-inset-top, 0px)); right: 22px; }
+  .back { position: absolute; top: calc(18px + env(safe-area-inset-top, 0px)); left: 22px; font-size: 14px; color: var(--muted); text-decoration: none; }
+  .back:hover { color: var(--ink); }
+
+  /* ---------- HUD ---------- */
+  .hud-box { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  #where { position: fixed; z-index: 5; top: calc(12px + env(safe-area-inset-top, 0px)); left: 12px; padding: 8px 14px; max-width: calc(100vw - 250px); }
+  #place { font-weight: 800; font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #place-sub { font-size: 13px; color: var(--muted); }
+  #tools { position: fixed; z-index: 5; top: calc(12px + env(safe-area-inset-top, 0px)); right: 12px; display: flex; gap: 6px; }
+  #tools button { width: 42px; height: 42px; border-radius: 8px; cursor: pointer; display: grid; place-items: center; padding: 0; font-size: 19px; }
+  #tools button:hover { border-color: var(--paveta); }
+  #tools svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  #cross { position: fixed; z-index: 4; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: rgba(255,255,255,.85); box-shadow: 0 0 0 1px rgba(0,0,0,.4); pointer-events: none; }
+  #info { position: fixed; z-index: 5; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); padding: 10px 16px; font-size: 14px; line-height: 1.45; text-align: center; max-width: min(92vw, 460px); pointer-events: none; }
+  #info b { font-size: 16px; }
+  #info .tgt { color: var(--paveta); }
+  #mini { position: fixed; z-index: 5; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); width: 150px; height: 150px; cursor: pointer; }
+  #minimap { width: 150px; height: 150px; display: block; filter: drop-shadow(0 2px 6px rgba(0,0,0,.45)); }
+  #compass { position: fixed; z-index: 5; right: 140px; bottom: calc(138px + env(safe-area-inset-bottom, 0px)); width: 28px; height: 28px; pointer-events: none; display: none; }
+  #lock-hint { position: fixed; z-index: 5; left: 50%; top: calc(64px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); padding: 6px 12px; font-size: 13px; color: var(--muted); }
+  #attr { position: fixed; z-index: 3; left: 10px; bottom: calc(6px + env(safe-area-inset-bottom, 0px)); font-size: 11px; color: rgba(255,255,255,.85); text-shadow: 0 1px 2px rgba(0,0,0,.9); }
+  #attr a { color: #fff; }
+  #toast { position: fixed; z-index: 7; left: 50%; top: 22%; transform: translateX(-50%); max-width: min(90vw, 520px); text-align: center; padding: 10px 16px; font-size: 15px; opacity: 0; transition: opacity .3s; pointer-events: none; }
+  #toast.show { opacity: 1; }
+
+  /* settings panel */
+  #panel { position: fixed; z-index: 8; top: calc(62px + env(safe-area-inset-top, 0px)); right: 12px; width: min(300px, calc(100vw - 24px)); padding: 14px 16px; }
+  #panel label { display: block; font-size: 14px; color: var(--muted); margin: 0 0 4px; }
+  #panel .field { margin-bottom: 14px; }
+  #panel input[type=range] { width: 100%; accent-color: var(--paveta); }
+  #panel select { width: 100%; background: var(--panel-solid); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
+  #panel .check { display: flex; gap: 8px; align-items: center; color: var(--ink); }
+  #panel .head { display: flex; justify-content: space-between; align-items: baseline; }
+  #hour-val { font-weight: 700; color: var(--ink); }
+  .x { position: absolute; top: 6px; right: 8px; background: none; border: 0; font-size: 22px; cursor: pointer; color: var(--muted); }
+
+  /* big map */
+  #bigmap { position: fixed; inset: 0; z-index: 9; background: rgba(10,14,20,.78); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 16px; }
+  #bigmap-canvas { width: min(calc(100vw - 32px), calc(100vh - 110px), 820px); height: auto; aspect-ratio: 1; border-radius: 10px; cursor: crosshair; box-shadow: 0 6px 30px rgba(0,0,0,.5); }
+  #bigmap .hint { font-size: 14px; color: var(--muted); text-align: center; }
+
+  /* touch joystick */
+  #joy { position: fixed; z-index: 6; width: 110px; height: 110px; margin: -55px 0 0 -55px; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); background: rgba(0,0,0,.15); pointer-events: none; }
+  #joy-knob { position: absolute; left: 30px; top: 30px; width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,.55); }
+
+  @media (max-width: 560px) {
+    #where { max-width: calc(100vw - 24px); top: calc(62px + env(safe-area-inset-top, 0px)); }
+    #mini, #minimap { width: 110px; height: 110px; }
+    #info { bottom: calc(130px + env(safe-area-inset-bottom, 0px)); }
+    .back { display: none; }
+  }
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="3D изглед"></canvas>
+
+<section id="start">
+  <a class="back" href="../">← Всички проекти</a>
+  <div class="lang-switch" role="group" aria-label="Език / Language">
+    <button type="button" data-lang="bg" aria-pressed="true">БГ</button>
+    <button type="button" data-lang="en" aria-pressed="false">EN</button>
+  </div>
+  <div class="card">
+    <div class="kicker" id="kicker"></div>
+    <h1 id="title"></h1>
+    <p class="lede" id="lede"></p>
+    <dl class="keys" id="keys"></dl>
+    <p class="touch" id="touch"></p>
+    <div class="row">
+      <button type="button" class="btn" id="go" disabled></button>
+    </div>
+    <div class="progress" id="progress"><span class="spin" aria-hidden="true"></span><div><div id="status"></div><div class="status-sub" id="status-sub"></div></div></div>
+    <div class="error" id="error" hidden><p id="error-msg"></p><button type="button" class="btn ghost" id="retry"></button></div>
+    <div class="meta"><div id="stats"></div><div id="source"></div></div>
+  </div>
+</section>
+
+<div id="hud" hidden>
+  <div id="where" class="hud-box"><div id="place">—</div><div id="place-sub"></div></div>
+  <div id="tools">
+    <button type="button" class="hud-box" id="btn-home"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></button>
+    <button type="button" class="hud-box" id="btn-map"><svg viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg></button>
+    <button type="button" class="hud-box" id="btn-settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg></button>
+    <button type="button" class="hud-box" id="btn-help"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
+    <button type="button" class="hud-box" id="btn-fs"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  </div>
+  <div id="cross"></div>
+  <div id="info" class="hud-box" hidden></div>
+  <div id="mini"><canvas id="minimap" width="300" height="300"></canvas></div>
+  <svg id="compass" viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="rgba(18,24,34,.8)"/><path d="M14 4l4 10h-8z" fill="#d23b2a"/></svg>
+  <div id="lock-hint" class="hud-box" hidden></div>
+</div>
+
+<div id="panel" class="hud-box" hidden>
+  <button type="button" class="x" data-close="panel" aria-label="×">×</button>
+  <div class="field"><div class="head"><label for="hour" id="lbl-hour"></label><span id="hour-val"></span></div><input type="range" id="hour" min="5" max="21" step="0.25"></div>
+  <div class="field"><label for="season" id="lbl-season"></label><select id="season"><option value="summer"></option><option value="autumn"></option><option value="winter"></option></select></div>
+  <div class="field"><label class="check"><input type="checkbox" id="shadows" checked> <span id="lbl-shadows"></span></label></div>
+  <button type="button" class="btn ghost" id="refresh" style="width:100%;font-size:14px;padding:8px"></button>
+</div>
+
+<div id="bigmap" hidden>
+  <canvas id="bigmap-canvas"></canvas>
+  <div class="hint"><button type="button" class="btn ghost" data-close="bigmap" style="font-size:14px;padding:6px 16px">✕</button></div>
+</div>
+
+<div id="joy" hidden><div id="joy-knob"></div></div>
+<div id="toast" class="hud-box"></div>
+<div id="attr"></div>
+
+<script type="module" src="js/main.js"></script>
+<script src="../consent.js" defer></script>
+</body>
+</html>
