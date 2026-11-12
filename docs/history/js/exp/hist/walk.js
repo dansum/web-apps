@@ -49,8 +49,11 @@ export function createWalk(stage, { ground, canStand, obstacles = [], terrain = 
   const pd = (e) => { if (st.active) drag = { x: e.clientX, y: e.clientY }; };
   const pm = (e) => {
     if (!st.active || !drag) return;
-    st.yaw -= (e.clientX - drag.x) * 0.0045;
-    st.pitch = Math.max(-0.9, Math.min(0.9, st.pitch - (e.clientY - drag.y) * 0.0035));
+    // С мишка погледът следва движението ѝ: наляво → гледаш наляво, нагоре → гледаш нагоре.
+    // С пръст е обратно, както при карта: влачиш самата сцена.
+    const k = e.pointerType === 'touch' ? -1 : 1;
+    st.yaw += k * (e.clientX - drag.x) * 0.0045;
+    st.pitch = Math.max(-0.9, Math.min(0.9, st.pitch + k * (e.clientY - drag.y) * 0.0035));
     drag = { x: e.clientX, y: e.clientY };
   };
   const pu = () => { drag = null; };

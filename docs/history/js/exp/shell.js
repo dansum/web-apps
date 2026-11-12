@@ -61,6 +61,11 @@ export function createShell(container, { steps }) {
   return shell;
 }
 
+// Знак за всичко в едно преживяване, което не идва от учебната програма на МОН (място, стъпка, обяснение).
+// Слага се най-отгоре в балончето или до етикета, за да е ясно преди четенето.
+export const OFF_MON = '⚠ Не е по програмата на МОН';
+export const offMon = () => `<span class="badge warn off-mon">${OFF_MON}</span>`;
+
 // Брояч на грешки → резултат за стъпка (1 без грешки, намалява с всяка грешка).
 export function stepScore(mistakes, allowed = 3) {
   return Math.max(0, 1 - mistakes / (allowed + 1));

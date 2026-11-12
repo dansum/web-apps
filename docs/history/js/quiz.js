@@ -8,7 +8,7 @@ export function ask(el, q, { lowfi = null, objects = [], onDone, nextLabel = 'Н
   el.innerHTML = '';
   const box = document.createElement('div');
   box.className = 'q';
-  box.innerHTML = `<p class="q-text">${esc(q.q)}</p><div class="q-body"></div>
+  box.innerHTML = `${q.beyond ? '<p><span class="badge warn">⚠ Не е по програмата на МОН</span></p>' : ''}<p class="q-text">${esc(q.q)}</p><div class="q-body"></div>
     <div class="q-actions"><button class="btn primary q-check" disabled>Провери</button></div>
     <div class="q-feedback" hidden></div>`;
   el.appendChild(box);

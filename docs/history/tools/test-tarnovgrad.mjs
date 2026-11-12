@@ -50,6 +50,13 @@ const strafeOk = Math.abs(sd[2] - y0) < 1e-6 && b[2] - sd[1] > 0.5 && Math.abs(s
 console.log('крачка наляво: без завъртане и встрани', strafeOk, 'm', (b[2] - sd[1]).toFixed(1));
 const moved = Math.hypot(b[1] - a[1], b[2] - a[2]);
 console.log('разходка: активна', b[0], 'изминати m', moved.toFixed(1));
+// Оглеждане с мишка: влачене наляво обръща погледа наляво (yaw намалява), влачене нагоре — нагоре (pitch намалява).
+const box = await page.locator('.xp-stage canvas').first().boundingBox(), mx = box.x + box.width * 0.5, my = box.y + box.height * 0.45;
+const l0 = await demo('(d) => [d.walk.state.yaw, d.walk.state.pitch]');
+await page.mouse.move(mx, my); await page.mouse.down(); await page.mouse.move(mx - 120, my - 60, { steps: 6 }); await page.mouse.up(); await wait(300);
+const l1 = await demo('(d) => [d.walk.state.yaw, d.walk.state.pitch]');
+const lookOk = l1[0] < l0[0] - 0.3 && l1[1] < l0[1] - 0.1;
+console.log('мишка наляво и нагоре → поглед наляво и нагоре:', lookOk);
 // През стена не се минава: опит да се влезе в зида на портата.
 await demo('(d) => { const s = d.walk.state; s.x = -96; s.z = 2; s.yaw = 0; }');
 await page.keyboard.down('ArrowUp'); await wait(2500); await page.keyboard.up('ArrowUp');
@@ -109,5 +116,5 @@ const again = await demo('(d) => [document.querySelectorAll(".corner-menu").leng
 console.log('отначало:', again);
 console.log('грешки в конзолата:', errors.length ? errors : 'няма');
 await browser.close();
-const ok = strafeOk && talkOk && arrived && toStand < 1 && maxStep < 25 && Math.abs(result - want) < 1e-6 && !errors.length && b[0] && moved > 2 && Math.abs(wallZ - 2) < 1.6 && again[0] === 1 && again[1].startsWith('1.') && again[2] && !again[3];
+const ok = lookOk && strafeOk && talkOk && arrived && toStand < 1 && maxStep < 25 && Math.abs(result - want) < 1e-6 && !errors.length && b[0] && moved > 2 && Math.abs(wallZ - 2) < 1.6 && again[0] === 1 && again[1].startsWith('1.') && again[2] && !again[3];
 process.exit(ok ? 0 : 1);
