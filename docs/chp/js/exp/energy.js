@@ -21,6 +21,12 @@ function injectStyle() {
   .energy-kinds { list-style:none; padding:0; margin:8px 0; display:grid; gap:4px; }
   .energy-kinds li { border:1px solid #dfe5ee; border-radius:8px; padding:5px 8px; background:#fbfcfe; font-size:.88rem; }
   .energy-kinds li.on { border-color:#9ad8b0; background:#eefaf2; }
+  .energy-sw { display:grid; grid-template-columns:auto 1fr; gap:6px 8px; align-items:center; margin:8px 0; }
+  .energy-sw b { font-size:.88rem; }
+  .energy-sw .seg { display:flex; flex-wrap:wrap; gap:4px; }
+  .energy-sw .seg button { border:2px solid #c7d3e0; background:#fff; border-radius:99px; padding:5px 9px; font:inherit; font-size:.88rem; font-weight:700; cursor:pointer; }
+  .energy-sw .seg button.on { background:#1865f2; border-color:#1865f2; color:#fff; }
+  .energy-sw .seg button:disabled { opacity:.5; cursor:default; }
   `;
   document.head.appendChild(s);
 }
@@ -401,8 +407,10 @@ function build(container, { onComplete }, restart) {
   const st = {
     lamp: false, fire: false, carMode: 'parked', run: false, windy: false, rays: 0, pulses: false,
     heavy: { wood: false, fuel: false, plant: false }, smog: 0, night: 0,
+    // Превключвателите в стъпка 4: облак пред слънцето, безветрие, лампа от панела и турбината.
+    overcast: 0, calm: false, lampT: null, panelT: null, turbWire: false,
   };
-  const lv = { lamp: 0, fire: 0, panel: 0, smog: 0, night: 0, spin: 1.2 };
+  const lv = { lamp: 0, fire: 0, panel: 0, smog: 0, night: 0, spin: 1.2, overcast: 0 };
 
   // ---------- земя, хълмове, път ----------
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(36, 30), mat(0x8cc56a));
@@ -687,6 +695,21 @@ function build(container, { onComplete }, restart) {
     scene.add(c);
     clouds.push(c);
   }
+  // Голям облак, който закрива слънцето (стъпка 4, превключвател „Облак“).
+  const GREY = new THREE.Color(0xb0bec5);
+  const bigCloud = new THREE.Group();
+  const bigCloudMats = [];
+  for (let j = 0; j < 6; j++) {
+    const m = new THREE.SpriteMaterial({ map: getPuffTex(), color: 0xcfd8dc, transparent: true, opacity: 0, depthWrite: false, fog: false });
+    bigCloudMats.push(m);
+    const p = new THREE.Sprite(m);
+    p.scale.setScalar(2.6 + (j % 3) * 0.6);
+    p.position.set((j % 3) * 1.1 - 1.1, Math.floor(j / 3) * 0.7 - 0.35, 0);
+    bigCloud.add(p);
+  }
+  bigCloud.position.copy(SUN0).add(new V3(0.2, 0, 1.4));
+  bigCloud.visible = false;
+  scene.add(bigCloud);
   const birds = [];
   for (let i = 0; i < 3; i++) {
     const b = new THREE.Group();
@@ -750,6 +773,15 @@ function build(container, { onComplete }, restart) {
   const PANEL_C = new V3(HX - HW / 4 - 0.1, WH + 0.55, HZ);
   const rayPath = (off) => (k, out) => out.lerpVectors(sunBall.position, PANEL_C.clone().add(off), k);
   const wirePath = (k, out) => { out.copy(wireCurve.getPointAt(k)); };
+  // Кабел от турбината до къщата (показва се в стъпка 4).
+  const turbCurve = new THREE.CatmullRomCurve3([
+    [TUR.x + 0.25, TUR.y + 0.1, TUR.z + 0.2], [TUR.x + 0.9, 0.35, TUR.z + 1.4], [HX - HW / 2 - 0.6, 0.08, HZ - 0.9],
+    [HX - HW / 2 - 0.05, 0.08, HZ - 0.4], [HX - HW / 2 - 0.05, 1.2, HZ - 0.4],
+  ].map((q) => new V3(...q)), false, 'centripetal');
+  const turbCable = new THREE.Mesh(new THREE.TubeGeometry(turbCurve, 50, 0.03, 5), mat(0x263238));
+  turbCable.visible = false;
+  scene.add(turbCable);
+  const turbPath = (k, out) => { out.copy(turbCurve.getPointAt(k)); };
   const fuelPath = (k, out) => { out.lerpVectors(NOZZLE, CAR0.clone().add(new V3(0.1, 0.32, -0.22)), k); out.y += Math.sin(k * Math.PI) * 0.12; };
   const streaks = [];
   for (let i = 0; i < 24; i++) {
@@ -765,20 +797,24 @@ function build(container, { onComplete }, restart) {
   const emitT = { ch: 0, car: 0, pl: 0, ray: 0, pulse: 0, heat: 0 };
   stage.tick((dt, t) => {
     // нива
-    lv.lamp += ((st.lamp && lv.night < 0.5 ? 1 : 0) - lv.lamp) * Math.min(1, dt * 3);
+    lv.lamp += ((st.lampT !== null ? st.lampT : st.lamp && lv.night < 0.5 ? 1 : 0) - lv.lamp) * Math.min(1, dt * 3);
     lv.fire += ((st.fire ? 1 : 0) - lv.fire) * Math.min(1, dt * 2);
-    lv.panel += ((st.lamp && lv.night < 0.5 ? 1 : 0) - lv.panel) * Math.min(1, dt * 2);
+    lv.panel += ((st.panelT !== null ? st.panelT : st.lamp && lv.night < 0.5 ? 1 : 0) - lv.panel) * Math.min(1, dt * 2);
     lv.smog += (st.smog - lv.smog) * Math.min(1, dt * 0.9);
     lv.night += (st.night - lv.night) * Math.min(1, dt * 0.6);
-    lv.spin += ((st.windy ? 7 : 1.2) - lv.spin) * Math.min(1, dt * 1.2);
+    lv.overcast += (st.overcast - lv.overcast) * Math.min(1, dt * 1.2);
+    lv.spin += ((st.windy ? 7 : st.calm ? 0 : 1.2) - lv.spin) * Math.min(1, dt * 1.2);
+    // облак пред слънцето
+    bigCloud.visible = lv.overcast > 0.02;
+    for (const m of bigCloudMats) m.opacity = 0.97 * lv.overcast;
     // небе
-    tmpC.copy(SKY).lerp(SMOG, lv.smog).lerp(NIGHT, lv.night);
+    tmpC.copy(SKY).lerp(GREY, lv.overcast * 0.6).lerp(SMOG, lv.smog).lerp(NIGHT, lv.night);
     scene.background.copy(tmpC);
     scene.fog.color.copy(tmpC);
     scene.fog.near = lerp(30, 12, lv.smog);
     scene.fog.far = lerp(70, 44, lv.smog);
     stage.hemi.intensity = lerp(lerp(1.1, 0.85, lv.smog), 0.3, lv.night);
-    stage.sun.intensity = lerp(1.6, 0.15, lv.night);
+    stage.sun.intensity = lerp(lerp(1.6, 0.7, lv.overcast), 0.15, lv.night);
     sunBall.position.set(SUN0.x - lv.night * 3, SUN0.y - lv.night * 8, SUN0.z);
     sunBall.visible = lv.night < 0.95;
     sunBall.material.color.setHex(0xffd84a).lerp(tmpC.setHex(0xd8c48a), lv.smog);
@@ -846,13 +882,15 @@ function build(container, { onComplete }, restart) {
     }
     // лъчи и ток
     emitT.ray += dt;
-    const rayRate = st.rays > 1 ? 0.05 : st.rays === 1 ? 0.5 : 0;
+    const rayRate = st.rays > 1 ? 0.05 : st.rays === 1 ? (st.overcast ? 1.6 : 0.5) : 0;
     if (rayRate && lv.night < 0.4 && emitT.ray > rayRate) {
       emitT.ray = 0;
       dot(rayPath(new V3((Math.random() - 0.5) * 0.4, 0, (Math.random() - 0.5) * 1.4)), 0xffe14a, 0.07, 1.1);
     }
     emitT.pulse += dt;
-    if (st.pulses && lv.night < 0.5 && emitT.pulse > 0.3) { emitT.pulse = 0; dot(wirePath, 0xfff176, 0.045, 1.4); }
+    if (st.pulses && lv.night < 0.5 && emitT.pulse > (st.overcast ? 0.9 : 0.3)) { emitT.pulse = 0; dot(wirePath, 0xfff176, 0.045, 1.4); }
+    emitT.tw = (emitT.tw || 0) + dt;
+    if (st.turbWire && lv.spin > 3 && emitT.tw > 0.3) { emitT.tw = 0; dot(turbPath, 0xfff176, 0.05, 2.2); }
     // дете
     if (st.run) {
       runA += dt * 2.0;
@@ -1263,47 +1301,93 @@ function build(container, { onComplete }, restart) {
       const c = shell.setControls('<button class="btn primary">Предскажи →</button>');
       c.querySelector('button').addEventListener('click', predict);
     }
+    // Превключватели: небе (слънце / облак / нощ) и вятър (вятър / безветрие). Лампата получава ток
+    // от панела и от турбината, без батерия. Детето първо предсказва, после нагласява и проверява.
+    const SKY_OPT = { sun: '☀️ Слънце', cloud: '☁️ Облак', night: '🌙 Нощ' };
+    const WIND_OPT = { wind: '🌬️ Вятър', calm: '🍃 Безветрие' };
+    const LAMP_OPT = ['Ще свети ярко', 'Ще свети слабо', 'Няма да свети'];
+    // Колко ток дава всеки източник: панелът — според светлината, турбината — само при вятър.
+    const panelOut = (sky) => ({ sun: 1, cloud: 0.35, night: 0 }[sky]);
+    const lampOut = (sky, wind) => Math.max(panelOut(sky), wind === 'wind' ? 1 : 0);
+    const lampAns = (sky, wind) => { const v = lampOut(sky, wind); return v >= 1 ? 0 : v > 0 ? 1 : 2; };
+    const ROUNDS = [
+      { sky: 'night', wind: 'calm',
+        why: 'Нощем няма слънчева светлина и панелът не прави ток. Без вятър турбината стои. Лампата не получава ток.' },
+      { sky: 'night', wind: 'wind',
+        why: 'Панелът нощем не прави ток. Но вятърът върти турбината и тя дава ток на лампата.' },
+      { sky: 'cloud', wind: 'calm',
+        why: 'Облакът пропуска по-малко светлина. Панелът прави по-малко ток.' },
+    ];
+    const HINT = {
+      0: 'Помисли: има ли откъде лампата да получи много ток?',
+      1: 'Помисли: колко светлина стига до панела? Върти ли се турбината?',
+      2: 'Помисли: прави ли ток някой от двата източника?',
+    };
+    const sw = { sky: 'sun', wind: 'wind' };
+    function applySw() {
+      st.night = sw.sky === 'night' ? 1 : 0;
+      st.overcast = sw.sky === 'cloud' ? 1 : 0;
+      st.windy = sw.wind === 'wind';
+      st.calm = sw.wind === 'calm';
+      st.rays = sw.sky === 'night' ? 0 : 1;
+      st.pulses = sw.sky !== 'night';
+      st.panelT = panelOut(sw.sky);
+      st.lampT = lampOut(sw.sky, sw.wind);
+    }
     function predict() {
       clearTip();
       shell.msg('');
       st.heavy = { wood: false, fuel: false, plant: false };
       st.smog = 0;
-      fitView([HX, 1.3, HZ], 2.8, 2.0, 0.3);
-      say(ANCH.lamp, '💡 Лампата свети с ток от слънчевия панел.', '', 0.1);
-      shell.task(`<p><b>Предскажи.</b> Представи си друг ден. Слънцето залязва и идва нощта.</p>
-        <p>Лампата в къщата получава ток <b>само от слънчевия панел</b>. Къщата няма батерия.</p>`);
-      const box = shell.setControls('<div></div>').firstChild;
-      let wp = 0;
-      choiceBox(box, 'Какво ще стане с лампата през нощта?', [
-        'Ще свети по-силно, защото е тъмно',
-        'Ще угасне, защото няма слънчева светлина',
-        'Ще свети както през деня',
-      ], 1, (i) => {
-        wp++;
-        if (wp >= 2) return 'Подсказка: панелът прави ток само когато върху него пада светлина.';
-        return i === 0
-          ? 'Лампата не знае дали е тъмно — тя свети само когато получава ток. Откъде идва токът ѝ?'
-          : 'Помисли: какво улавя панелът, за да прави ток? Има ли го през нощта?';
-      }, async () => {
-        shell.msg('Вярно! Нека видим какво става, когато падне нощта…', 'good');
-        shell.setControls('');
-        clearTip();
-        st.night = 1;
-        await wait(4.5);
-        say(ANCH.lamp, '💡 Лампата угасна: през нощта панелът не получава слънчева светлина и не прави ток.', 'wide', 0.1);
-        await wait(4.0);
-        VIEW.turbine();
-        await wait(1.2);
-        say(ANCH.turbine, '🌬️ А вятърната турбина се върти и нощем, щом духа вятър. Затова хората използват различни източници и пазят енергията в батерии.', 'wide good', 0.4);
-        await wait(3.0);
-        const c = shell.setControls('<button class="btn primary">Виж резултата</button>');
-        c.querySelector('button').addEventListener('click', () => {
-          clearTip();
-          scores.push(stepScore(mistakes, 3));
-          const ratio = scores.reduce((x, y) => x + y, 0) / scores.length;
-          shell.finish(ratio, onComplete, restart);
-        });
-      }, () => { mistakes++; upd(); });
+      st.turbWire = true;
+      turbCable.visible = true;
+      applySw();
+      fitView([-4.6, 3.4, -4.4], 4.3, 4.0, 0.18);
+      say(ANCH.lamp, '💡 Лампата получава ток от панела и от турбината.', '', 0.1);
+      let r = 0;
+      const round = () => {
+        const R = ROUNDS[r];
+        const want = `${SKY_OPT[R.sky]} и ${WIND_OPT[R.wind]}`;
+        shell.task(`<p><b>Предскажи и провери (${r + 1} от ${ROUNDS.length}).</b> Лампата получава ток от <b>слънчевия панел</b> и от <b>вятърната турбина</b>. Къщата няма батерия.</p>
+          <div class="energy-sw"><b>Небе:</b><div class="seg" data-k="sky">${Object.entries(SKY_OPT).map(([k, t]) => `<button type="button" data-v="${k}">${t}</button>`).join('')}</div>
+          <b>Вятър:</b><div class="seg" data-k="wind">${Object.entries(WIND_OPT).map(([k, t]) => `<button type="button" data-v="${k}">${t}</button>`).join('')}</div></div>`);
+        const segs = [...container.querySelectorAll('.energy-sw .seg')];
+        const paint = (lock) => segs.forEach((g) => g.querySelectorAll('button').forEach((b) => { b.classList.toggle('on', sw[g.dataset.k] === b.dataset.v); b.disabled = lock; }));
+        paint(true);
+        const box = shell.setControls('<div></div>').firstChild;
+        choiceBox(box, `Какво ще стане с лампата при ${want}?`, LAMP_OPT, lampAns(R.sky, R.wind),
+          (i, n) => (n >= 2 ? `Подсказка: ${R.why}` : HINT[lampAns(R.sky, R.wind)]),
+          () => {
+            shell.msg(`Вярно! Сега провери: нагласи ${want}.`, 'good');
+            clearTip();
+            paint(false);
+            let checked = false;
+            segs.forEach((g) => g.querySelectorAll('button').forEach((b) => b.addEventListener('click', async () => {
+              if (checked) return;
+              sw[g.dataset.k] = b.dataset.v;
+              paint(false);
+              applySw();
+              if (sw.sky !== R.sky || sw.wind !== R.wind) { shell.msg(`Нагласи ${want}.`, ''); return; }
+              checked = true;
+              paint(true);
+              shell.msg('Гледай лампата…', '');
+              await wait(2.6);
+              say(ANCH.lamp, `💡 ${['Лампата свети ярко.', 'Лампата свети слабо.', 'Лампата не свети.'][lampAns(R.sky, R.wind)]} ${R.why}`, 'wide good', 0.1);
+              shell.msg('Опитът потвърди предсказанието!', 'good');
+              r++;
+              const last = r >= ROUNDS.length;
+              const c = shell.setControls(`<button class="btn primary">${last ? 'Виж резултата' : 'Следваща задача →'}</button>`);
+              c.querySelector('button').addEventListener('click', () => {
+                if (!last) { clearTip(); shell.msg(''); round(); return; }
+                clearTip();
+                scores.push(stepScore(mistakes, 4));
+                const ratio = scores.reduce((x, y) => x + y, 0) / scores.length;
+                shell.finish(ratio, onComplete, restart);
+              });
+            })));
+          }, () => { mistakes++; upd(); });
+      };
+      round();
     }
   }
 
