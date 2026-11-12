@@ -1083,7 +1083,7 @@ export function mount(container, { onComplete }) {
         tried.add(i);
         b.classList.add('forces-tried');
         if (!flags.children.find((f) => f.userData.lane === i)) addFlag(i, L.d, `${L.name}: ${nice(L.d)} м`).userData.lane = i;
-        say(sbox, `По ${L.name === 'лед' ? 'леда' : L.name === 'дърво' ? 'дървото' : L.name === 'килим' ? 'килима' : 'пясъка'} кутията стигна ${nice(L.d)} м.`, 'tag', 0.6);
+        say(sbox, `По ${L.name === 'лед' ? 'леда' : L.name === 'дърво' ? 'дървото' : L.name === 'килим' ? 'килима' : 'пясъка'} кутията стигна ${nice(L.d)} м (в модела).`, 'tag', 0.6);
         btns.forEach((x) => { x.disabled = false; });
         if (tried.size === LANES.length) {
           shell.setControls('');
