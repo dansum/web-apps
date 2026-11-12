@@ -50,7 +50,7 @@ const PREDICT = [
 
 export function mount(container, { onComplete }) {
   const shell = createShell(container, { steps: ['Опознай', 'Какво дава университетът?', 'Школа или университет?', 'Предскажи'] });
-  container.querySelector('.scene-hint').textContent = 'Това е музей на открито: трите средища са събрани на едно място, а всъщност са в различни страни и векове. Отгоре: върти и приближавай. Разходка: стрелки или бутони, оглеждане с влачене.';
+  container.querySelector('.scene-hint').textContent = 'Това е музей на открито: трите средища са събрани на едно място, а всъщност са в различни страни и векове. Отгоре: върти и приближавай. Разходка: стрелки или бутони, оглеждане с влачене, тичане със Shift.';
   const rig = createRig(shell, { home: [[-22, 3, -14], [0, 88, 116]], build: buildSchools, start: { x: 0, z: 13, yaw: 0 }, shadow: { x: 0, z: -12, half: 110 }, limits: { min: 14, max: 300 } });
   const { places, world } = rig;
   const scores = [];
