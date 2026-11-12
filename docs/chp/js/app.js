@@ -238,7 +238,8 @@ function videoSlot(skill) {
   const v = skill.video;
   if (v && v.youtubeId) {
     const lang = v.lang && v.lang !== 'bg' ? ` · ${esc(LANGS[v.lang] || v.lang)}` : '';
-    const note = v.confidence === 'high' ? ''
+    const note = v.unchecked ? '<p class="vnote"><span class="badge warn">⚠ Линковете към видеата още не са проверени от човек</span></p>'
+      : v.confidence === 'high' ? ''
       : '<p class="vnote"><span class="badge warn" title="Видеото е намерено автоматично и още не е прегледано от учител.">⚠ Непрегледано видео</span></p>';
     return `<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${esc(v.youtubeId)}?rel=0"
       title="${esc(v.title || 'Видео')}" allowfullscreen loading="lazy"
