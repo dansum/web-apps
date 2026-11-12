@@ -17,6 +17,8 @@ const CSS = `
 .so-scale { position: absolute; left: 8px; bottom: 8px; z-index: 4; pointer-events: none; max-width: calc(100% - 16px); box-sizing: border-box;
   background: rgba(15, 26, 51, 0.88); color: #fff; font-size: 0.8rem; line-height: 1.35; border-radius: 8px; padding: 5px 9px; }
 .so-scale b { color: #ffd54a; }
+.so-pic { display: block; width: 100%; max-width: 260px; margin: 6px auto 2px; border-radius: 8px; }
+.so-cap { text-align: center; margin: 0 0 4px; }
 `;
 function injectCss() {
   if (document.getElementById('so-style')) return;
@@ -879,14 +881,28 @@ export function mount(container, { onComplete }) {
         choices: [['moon', 'Луната'], ['venus', 'Венера'], ['sun', 'Слънцето'], ['jupiter', 'Юпитер']],
         why: { moon: 'Луната е спътник на Земята — тя само отразява светлина.', venus: 'Венера свети ярко, но е планета — отразява светлината на Слънцето.', jupiter: 'Юпитер е най-голямата планета, но не е звезда — не излъчва собствена светлина.' },
         show: () => { stage.stopFollow(); stage.flyTo(narrow() ? [0, 6, 15] : [0, 4, 11], [0, 0.4, 0], 1.0); return [sunG, 2.4, '☀️ Звездата сама излъчва светлина и топлина. Планетите и Луната само отразяват светлината на Слънцето.']; } },
+      // Формата на Земята: кръглата ѝ сянка върху Луната при лунно затъмнение.
+      { q: 'При <b>лунно затъмнение</b> Земята застава между Слънцето и Луната. Сянката на Земята пада върху Луната. Ръбът на сянката винаги е закръглен. <b>Каква форма има Земята?</b>',
+        pic: `<svg class="so-pic" viewBox="0 0 220 120" role="img" aria-label="Рисунка: сянката на Земята върху Луната">
+          <defs><clipPath id="so-moon-clip"><circle cx="120" cy="60" r="42"/></clipPath></defs>
+          <rect width="220" height="120" fill="#0f1a33"/>
+          ${[[20, 18], [44, 96], [196, 22], [204, 98], [70, 12], [178, 108]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.4" fill="#fff"/>`).join('')}
+          <circle cx="120" cy="60" r="42" fill="#d9d6cc"/>
+          <circle cx="44" cy="48" r="74" fill="#5a2a1e" opacity="0.9" clip-path="url(#so-moon-clip)"/>
+          <text x="14" y="62" fill="#ffd54a" font-size="11" font-weight="700">сянка</text>
+        </svg><p class="small so-cap">Рисунка: сянката на Земята върху Луната</p>`,
+        ok: 'ball',
+        choices: [['flat', 'Плоска като маса'], ['ball', 'Кълбо'], ['cube', 'Куб']],
+        why: { flat: 'Плоска маса хвърля сянка с прав ръб. Ръбът на сянката на Земята е закръглен.', cube: 'Кубът хвърля сянка с прави ръбове. Ръбът на сянката на Земята е закръглен.' },
+        show: () => { stage.focusOn(earth.g, { dist: narrow() ? 4.6 : 2.6, height: 0.5, lift: 0 }); return [earth.g, narrow() ? 0.6 : 0.8, '🌍 Земята е кълбо. Затова сянката ѝ върху Луната е закръглена. Снимките от космоса също показват кръгла Земя.']; } },
     ];
     function transfer(k) {
       const Q = TQ[k];
       clearTip();
       shell.msg('');
-      shell.task(`<p>${Q.q}</p><div class="choices so-q">${Q.choices.map(([v, l]) => `<button class="choice" data-v="${v}">${esc(l)}</button>`).join('')}</div>`);
+      shell.task(`<p>${Q.q}</p>${Q.pic || ''}<div class="choices so-q">${Q.choices.map(([v, l]) => `<button class="choice" data-v="${v}">${esc(l)}</button>`).join('')}</div>`);
       shell.setControls('');
-      shell.score(`Въпрос ${k + 1} от 2 · грешки: ${mistakes}`);
+      shell.score(`Въпрос ${k + 1} от ${TQ.length} · грешки: ${mistakes}`);
       container.querySelectorAll('.so-q .choice').forEach((b) => b.addEventListener('click', () => {
         if (b.disabled) return;
         if (b.dataset.v !== Q.ok) {
@@ -894,7 +910,7 @@ export function mount(container, { onComplete }) {
           b.classList.add('wrong');
           b.disabled = true;
           shell.msg(Q.why[b.dataset.v], 'bad');
-          shell.score(`Въпрос ${k + 1} от 2 · грешки: ${mistakes}`);
+          shell.score(`Въпрос ${k + 1} от ${TQ.length} · грешки: ${mistakes}`);
           return;
         }
         container.querySelectorAll('.so-q .choice').forEach((x) => { x.disabled = true; });
@@ -906,7 +922,7 @@ export function mount(container, { onComplete }) {
         const c = shell.setControls(`<button class="btn primary">${last ? 'Виж резултата' : 'Следващ въпрос →'}</button>`);
         c.querySelector('button').addEventListener('click', () => {
           if (!last) { transfer(k + 1); return; }
-          scores.push(stepScore(mistakes, 3));
+          scores.push(stepScore(mistakes, 4));
           clearTip();
           overview();
           const ratio = scores.reduce((a, b2) => a + b2, 0) / scores.length;
