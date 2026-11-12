@@ -5,7 +5,7 @@ import { scaffold, explore, choice, nextBtn, finishBtn, labRoom, glass, view, st
 import { sortTask, orderTask } from './labtasks.js';
 import { curveOf, flowDots, glassMat, organMat } from './anatomy.js';
 
-const SAFE = '<p class="warn">⚠ Опитът с горяща треска се прави <b>само с възрастен</b>.</p>';
+const SAFE = '<p class="warn">⚠ Опитът с горяща <b>треска</b> (тънко парче дърво) се прави <b>само с възрастен</b>.</p>';
 
 export function mount(container, { onComplete }) {
   const STEPS = ['Опознай', 'Дишат ли семената?', 'Органи за дишане', 'Пътят на кислорода'];
