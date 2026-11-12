@@ -295,7 +295,7 @@ export function mount(container, { onComplete }) {
     setModel('cu', 'модел: мед');
     view(ctx, [-2.6, 0.5, 0.8], 2.6, { halfH: 1.1, elev: 0.6 });
     circuit.visible = true; magnet.visible = true; magnet.position.set(-4.0, 0.9, 0.0);
-    shell.task('<p>Изследвай <b>медната жица</b>. Направи и трите опита.</p>');
+    shell.task('<p><b>Физични свойства</b> са цвят, блясък, твърдост, провеждане на ток и топлина. Наблюдаваме ги, без веществото да се превръща в друго.</p><p>Изследвай <b>медната жица</b>. Направи и трите опита.</p>');
     let mistakes = 0;
     const done = new Set();
     const c = shell.setControls('<div class="row"><button class="btn tmag">🧲 Магнит</button><button class="btn tcur">💡 Включи във веригата</button><button class="btn tbend">✋ Огъни</button></div>');
