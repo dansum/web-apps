@@ -107,7 +107,7 @@ const STAGES = [
   { id: 'child', label: 'Детство', from: 2, to: 10.49, icon: '🧒',
     text: 'В детството човек расте всяка година. Учи се да тича, да говори, да чете и да пише.' },
   { id: 'teen', label: 'Юношество', from: 10.5, to: 17.99, icon: '🧑',
-    text: 'Това е съзряването. Тялото расте по-бързо. При момчетата гласът става по-плътен. Тялото се поти повече, затова хигиената е много важна. Настроението може да се сменя по-често. Всеки съзрява със свое темпо.' },
+    text: 'Това е съзряването. Тялото расте по-бързо. При момчетата гласът става по-плътен. Тялото се поти повече, затова хигиената е много важна. Настроението може да се сменя по-често. Всеки съзрява със свое темпо. ℹ️ Тази част от материала още не е готова, защото темата е чувствителна.' },
   { id: 'adult', label: 'Зрялост', from: 18, to: 25, icon: '🧑‍🦱',
     text: 'Възрастният човек вече не расте на ръст. Тялото му е напълно развито.' },
 ];
@@ -1125,7 +1125,7 @@ export function mount(container, { onComplete }) {
 
   function foodJourney() {
     clearTip();
-    const intro = `<p><b>Пътят на хапката.</b> Кликни поред органите, през които минава хапката — от устата до края на пътя.</p>`;
+    const intro = `<p class="small"><b>🔁 Припомни от 3. клас</b></p><p><b>Пътят на хапката.</b> Кликни поред органите, през които минава хапката — от устата до края на пътя.</p>`;
     journey({
       list: FOOD, hints: FOOD_HINT, done: FOOD_DONE, intro,
       other: (id) => (id === 'liver' ? 'Черният дроб помага за смилането, но храната не минава през него.'
@@ -1182,14 +1182,41 @@ export function mount(container, { onComplete }) {
         later(next, 500);
       },
       onEnd: () => {
-        scores.push(stepScore(s2mistakes, 4));
         shell.msg(s2mistakes ? `Готово! Грешки: ${s2mistakes}.` : 'И двата пътя — без нито една грешка! 🎉', 'good');
         stage.flyTo([0.6, 2.8, fit(5.4)], [0.5, 2.6, 0], 1);
         say(sideAnchor, 'Гледай: при вдишване диафрагмата слиза надолу, белите дробове се пълнят с въздух и гърдите се повдигат.', 'wide', 0);
-        const c = shell.setControls('<button class="btn primary">Напред →</button>');
-        c.querySelector('button').addEventListener('click', step3);
+        later(diaphragmQ, 1200);
       },
     });
+  }
+
+  // Нов въпрос: диафрагмата (в 3. клас не е учена).
+  function diaphragmQ() {
+    const box = shell.setControls(`<p><b>Какво прави диафрагмата, когато вдишваш?</b></p>${choicesHTML('dia', shuffle([
+      { v: 'ok', t: 'Слиза надолу и белите дробове се пълнят с въздух' },
+      { v: 'food', t: 'Смила храната в корема' },
+      { v: 'up', t: 'Качва се нагоре и изтласква въздуха навън' }]))}`);
+    const bad = {
+      food: 'Храната се смила в стомаха и червата. Диафрагмата е мускул за дишане.',
+      up: 'Така е при издишване. Погледни Боби, когато вдишва.',
+    };
+    box.querySelectorAll('.choice').forEach((b) => b.addEventListener('click', () => {
+      if (b.disabled) return;
+      if (b.dataset.v !== 'ok') {
+        s2mistakes++;
+        shell.score(`Грешки: ${s2mistakes}`);
+        b.classList.add('wrong');
+        b.disabled = true;
+        shell.msg(bad[b.dataset.v], 'bad');
+        return;
+      }
+      b.classList.add('right');
+      box.querySelectorAll('.choice').forEach((x) => { x.disabled = true; });
+      scores.push(stepScore(s2mistakes, 5));
+      shell.msg('Вярно! Диафрагмата слиза надолу и въздухът влиза в белите дробове.', 'good');
+      box.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary">Напред →</button></div>');
+      box.querySelector('.btn.primary').addEventListener('click', step3);
+    }));
   }
 
   // ---------- 3. Подреди и свържи ----------
@@ -1410,7 +1437,10 @@ export function mount(container, { onComplete }) {
     setMonths(1);
     stage.stopFollow();
     stage.flyTo([-0.6, 2.6, fit(5.6)], [-1.0, 2.1, -1.2], 1.2);
-    shell.task(`<p class="small"><b>ℹ️ Тази тема още се обработва, защото е чувствителна. Учителят ще я обсъди с вас.</b></p>
+    // Бележка за учителя: темата за размножаването и съзряването е чувствителна и още се обработва.
+    // Учителят вижда това по знака „🚧 В проверка“ (review: true в data/grade4.js, 4.3.5).
+    // На децата казваме само, че ще говорят за темата с учителя.
+    shell.task(`<p class="small"><b>ℹ️ За тази тема ще говорите с учителя.</b></p>
       <p>Всеки човек започва живота си от една клетка. Тя се образува от две клетки — една от майката и една от бащата. Преди да се роди, бебето расте в <b>матката</b> на майка си. Матката е специален орган при жената. Тя не е стомахът. След раждането детето расте и се развива.</p>
       <p><b>Плъзни „Месеци“ надясно и виж как расте бебето.</b></p>
       <label class="organs4-slider">Месеци: <span class="organs4-val">1</span><input type="range" class="organs4-months" min="1" max="9" step="1" value="1"></label>`);
@@ -1481,7 +1511,7 @@ export function mount(container, { onComplete }) {
     box.innerHTML = `<p><b>Предскажи: човек расте ли на ръст през целия си живот?</b></p>${choicesHTML('stop', shuffle([
       { v: 'all', t: 'Да, расте всяка година, докато е жив.' },
       { v: 'ok', t: 'Не. Расте до края на юношеството, после спира.' },
-      { v: 'school', t: 'Не. Спира да расте, щом тръгне на училище.' }]))}`;
+      { v: 'school', t: 'Не. Спира да расте, щом навърши 12 години.' }]))}`;
     container.querySelector('.xp-task').appendChild(box);
     let pred = null;
     box.querySelectorAll('.choice').forEach((b) => b.addEventListener('click', () => {
@@ -1532,7 +1562,7 @@ export function mount(container, { onComplete }) {
     function reveal() {
       revealed = true;
       predBox.querySelectorAll('.choice').forEach((x) => { if (x.dataset.v === 'ok') x.classList.add('right'); else if (x.classList.contains('on')) x.classList.add('wrong'); });
-      shell.msg(pred === 'ok' ? 'Позна! След юношеството растежът на ръст спира.' : 'Виж ръстомера: след около 18 години чертата вече не се вдига. Растежът на ръст спира.', pred === 'ok' ? 'good' : 'bad');
+      shell.msg(pred === 'ok' ? 'Позна! След юношеството растежът на ръст спира. Обикновено това е между 15 и 18 години — при всеки различно.' : 'Виж ръстомера: в края на юношеството чертата вече не се вдига. Растежът на ръст спира обикновено между 15 и 18 години — при всеки различно.', pred === 'ok' ? 'good' : 'bad');
       later(() => {
         askQ('pace', 'Всички деца ли растат и съзряват еднакво бързо?', [
           { v: 'same', t: 'Да, всички растат точно еднакво.' },
@@ -1543,7 +1573,7 @@ export function mount(container, { onComplete }) {
           askQ('hyg', 'Защо в юношеството хигиената става още по-важна?', [
             { v: 'ok', t: 'Тялото се поти повече, затова трябва да се къпем често и да носим чисти дрехи.' },
             { v: 'tall', t: 'Защото човек става по-висок.' },
-            { v: 'none', t: 'Не е по-важна — хигиената е важна само за бебетата.' }],
+            { v: 'none', t: 'Не е по-важна. Щом дрехите не изглеждат мръсни, всичко е наред.' }],
           'Точно така! Къпането, чистите дрехи и измиването на зъбите ни пазят здрави.',
           'Прочети пак балончето за юношеството: какво се увеличава?', finish4);
         });

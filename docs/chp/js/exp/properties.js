@@ -20,31 +20,34 @@ const STATIONS = [
     q: 'Кое се привлече от магнита?', a: ['Железният пирон', 'Алуминиевото фолио', 'Всички метали'], right: 0,
     why: ['', 'Алуминият е метал, но не се привлече. Погледни таблицата.', 'Не всички — алуминиевото фолио не се привлече.'] },
   { id: 'water', label: 'Чаши с вода', icon: '🥛', prop: 'Разтваря се', words: ['Да', 'Не'], ask: 'Ще се разтвори ли във водата?', guess: ['Ще се разтвори', 'Няма да се разтвори'],
-    note: '<b>Чаши с вода.</b> Ще сипем във водата захар, сол, пясък и олио и ще разбъркаме. Разтваря ли се веществото — „изчезва“ ли във водата?',
+    note: '<b>Чаши с вода.</b> Ще сипем във водата шест вещества и ще разбъркаме. Захарта и солта познаваш от 3. клас. Разтваря ли се веществото — „изчезва“ ли във водата?',
+    // old — проба, позната от 3. клас (3.1.4); показва се с „🔁 Припомни от 3. клас“.
     samples: [
-      { id: 'w-sugar', kind: 'sugar', name: 'Захар', yes: true, say: 'Захарта <b>се разтвори</b> — вече не се вижда, но водата е сладка.' },
-      { id: 'w-salt', kind: 'salt', name: 'Сол', yes: true, say: 'Солта <b>се разтвори</b> — не се вижда, но водата е солена.' },
+      { id: 'w-sugar', kind: 'sugar', name: 'Захар', yes: true, old: true, say: 'Захарта <b>се разтвори</b> — вече не се вижда, но водата е сладка.' },
+      { id: 'w-salt', kind: 'salt', name: 'Сол', yes: true, old: true, say: 'Солта <b>се разтвори</b> — не се вижда, но водата е солена.' },
+      { id: 'w-citric', kind: 'citric', name: 'Лимонена киселина', yes: true, say: 'Лимонената киселина (лимонтозу) <b>се разтвори</b> — не се вижда, но водата е кисела.' },
       { id: 'w-sand', kind: 'sand', name: 'Пясък', yes: false, say: 'Пясъкът <b>не се разтваря</b> — песъчинките паднаха на дъното.' },
+      { id: 'w-chalk', kind: 'chalk', name: 'Тебешир', yes: false, say: 'Стритият тебешир <b>не се разтваря</b>. Водата помътня, а прахът падна на дъното.' },
       { id: 'w-oil', kind: 'oil', name: 'Олио', yes: false, say: 'Олиото <b>не се разтваря</b> във вода. То изплува отгоре като жълт слой, защото е по-леко от водата.' },
     ],
-    q: 'Кои вещества се разтвориха във водата?', a: ['Захарта и солта', 'Пясъкът и олиото', 'Всички'], right: 0,
-    why: ['', 'Пясъкът падна на дъното, а олиото изплува отгоре. Те не се разтварят.', 'Не всички — погледни чашите с пясъка и олиото.'] },
+    q: 'Кои вещества се разтвориха във водата?', a: ['Захарта, солта и лимонената киселина', 'Пясъкът, тебеширът и олиото', 'Всички'], right: 0,
+    why: ['', 'Пясъкът и тебеширът паднаха на дъното, а олиото изплува отгоре. Те не се разтварят.', 'Не всички — погледни чашите с пясъка, тебешира и олиото.'] },
   { id: 'tank', label: 'Аквариум', icon: '🐟', prop: 'Във вода', words: ['Плава', 'Потъва'], ask: 'Ще плава ли, или ще потъне?', guess: ['Ще плава', 'Ще потъне'],
     note: '<b>Аквариум с вода.</b> Ще проверим кои предмети плават и кои потъват. Сравняваме веществото със същото количество вода. Ако веществото е по-леко, предметът плава. Ако е по-тежко, предметът потъва.',
     samples: [
       { id: 't-wood', kind: 'wood', name: 'Дърво', yes: true, say: 'Дървото <b>плава</b> — то е по-леко от водата.' },
       { id: 't-cap', kind: 'cap', name: 'Пластмаса', yes: true, say: 'Пластмасовата капачка <b>плава</b> — тази пластмаса е по-лека от водата.' },
-      { id: 't-stone', kind: 'stone', name: 'Камък', yes: false, say: 'Камъкът <b>потъва</b> — той е по-тежък от водата.' },
+      { id: 't-stone', kind: 'stone', name: 'Камък', yes: false, say: 'Камъкът <b>потъва</b> — той е по-тежък от същото количество вода.' },
       { id: 't-nail', kind: 'nail', name: 'Желязо', yes: false, say: 'Железният пирон <b>потъва</b> — желязото е по-тежко от водата.' },
     ],
     q: 'Кои предмети потънаха?', a: ['Дървото и капачката', 'Камъкът и пиронът', 'Всички'], right: 1,
     why: ['Дървото и капачката останаха на повърхността — те плават.', '', 'Не всички — дървото и капачката плават.'] },
   { id: 'heat', label: 'Чаша горещ чай', icon: '☕', prop: 'Топлина', words: ['Добре', 'Слабо'], ask: 'Ще се затопли ли дръжката на лъжицата?', guess: ['Ще се затопли', 'Ще остане хладна'],
-    note: '<b>Чаша горещ чай.</b> В нея ще сложим метална, дървена и пластмасова лъжица. Коя ще се затопли чак до дръжката? Така проверяваме кое вещество <b>провежда топлина</b>.',
+    note: '<b>Чаша горещ чай.</b> В нея ще сложим метална, дървена и пластмасова лъжица. Коя ще се затопли чак до дръжката? Така проверяваме кое вещество <b>провежда топлина</b>. Вещество, което провежда слабо топлина, наричаме <b>топлоизолатор</b>.',
     samples: [
       { id: 'h-metal', kind: 'spoonM', name: 'Метал', yes: true, say: 'Металната лъжица се затопли чак до дръжката! Металът <b>провежда добре топлина</b>.' },
-      { id: 'h-wood', kind: 'spoonW', name: 'Дърво', yes: false, say: 'Дръжката на дървената лъжица остана хладна. Дървото <b>провежда слабо топлина</b>.' },
-      { id: 'h-plastic', kind: 'spoonP', name: 'Пластмаса', yes: false, say: 'Дръжката на пластмасовата лъжица остана хладна. Пластмасата <b>провежда слабо топлина</b>.' },
+      { id: 'h-wood', kind: 'spoonW', name: 'Дърво', yes: false, say: 'Дръжката на дървената лъжица остана хладна. Дървото <b>провежда слабо топлина</b> — то е <b>топлоизолатор</b>.' },
+      { id: 'h-plastic', kind: 'spoonP', name: 'Пластмаса', yes: false, say: 'Дръжката на пластмасовата лъжица остана хладна. Пластмасата <b>провежда слабо топлина</b> — тя е <b>топлоизолатор</b>.' },
     ],
     q: 'Коя лъжица провежда добре топлина?', a: ['Металната', 'Дървената', 'Пластмасовата'], right: 0,
     why: ['', 'Дръжката на дървената лъжица остана хладна.', 'Дръжката на пластмасовата лъжица остана хладна.'] },
@@ -66,7 +69,7 @@ for (const s of STATIONS) for (const p of s.samples) SAMPLE[p.id] = { ...p, st: 
 // Стъпка 3: подреждане по свойство (с нови вещества).
 const ROUNDS = [
   { title: 'Привлича ли се от магнит?', icon: '🧲', zones: ['Привлича се', 'Не се привлича'],
-    hint: 'От магнит се привличат само желязото и предметите от желязо.',
+    hint: 'Магнитът привлича желязото и някои други метали. Алуминият и медта не се привличат.',
     items: [
       ['clip', 'Кламер', 0, 'Кламерът е от желязо — магнитът го привлича.'],
       ['bolt', 'Железен болт', 0, 'Болтът е от желязо — магнитът го привлича.'],
@@ -91,7 +94,7 @@ const ROUNDS = [
       ['cork', 'Корк', 0, 'Коркът е много лек — плава.'],
       ['apple', 'Ябълка', 0, 'Ябълката плава — в нея има въздух.'],
       ['ice', 'Лед', 0, 'Ледът е по-лек от водата — плава. Затова айсбергите се носят по морето.'],
-      ['stone', 'Камък', 1, 'Камъкът е по-тежък от водата — потъва.'],
+      ['stone', 'Камък', 1, 'Камъкът е по-тежък от същото количество вода — потъва.'],
       ['coin', 'Метална монета', 1, 'Металът на монетата е по-тежък от същото количество вода — монетата потъва.'],
       ['marble', 'Стъклено топче', 1, 'Стъклото е по-тежко от водата — топчето потъва.'],
     ] },
@@ -159,7 +162,7 @@ const metalM = () => mat(0xc9d1d8, { metalness: 0.8, roughness: 0.3 });
 const ironM = () => mat(0x7d858d, { metalness: 0.7, roughness: 0.45 });
 
 // Модели на веществата. Всеки стои с дъното си на y = 0; userData.h — височина.
-const HEAP = { sugar: 0xffffff, salt: 0xeef2f5, sand: 0xd9b77a, coffee: 0x5d3a1a, flour: 0xfaf6ee, filings: 0x4b5157 };
+const HEAP = { sugar: 0xffffff, salt: 0xeef2f5, sand: 0xd9b77a, coffee: 0x5d3a1a, flour: 0xfaf6ee, filings: 0x4b5157, citric: 0xfff9c4, chalk: 0xe9e4da };
 function itemModel(kind) {
   const g = new THREE.Group();
   let h = 0.2;
@@ -413,10 +416,11 @@ function build(container, { onComplete }, restart) {
       c.font = 'bold 34px system-ui, "Segoe UI", Roboto, Arial, sans-serif';
       c.fillStyle = '#fff8e1';
       c.fillText(`${s.icon} ${s.prop}`, 14, y0 + 52);
+      const many = s.samples.length > 4;
       s.samples.forEach((p, i) => {
-        const x = 300 + i * 200;
+        const x = 300 + i * (many ? 133 : 200);
         const v = results[p.id];
-        c.font = '28px system-ui, "Segoe UI", Roboto, Arial, sans-serif';
+        c.font = (many ? '22px' : '28px') + ' system-ui, "Segoe UI", Roboto, Arial, sans-serif';
         c.fillStyle = 'rgba(255,255,255,0.85)';
         c.fillText(p.name, x, y0 + 32);
         c.font = (v === undefined ? '' : 'bold ') + '30px system-ui, "Segoe UI", Roboto, Arial, sans-serif';
@@ -430,10 +434,16 @@ function build(container, { onComplete }, restart) {
   drawBoard();
   function tableHTML() {
     if (!narrowUI()) return '';
-    return `<table class="properties-tbl">${STATIONS.map((s) => `<tr><td>${s.icon}</td>${s.samples.map((p) => {
+    // На тесен екран по най-много 4 проби на ред (чашите с вода са 6).
+    const cell = (s, p) => {
       const v = results[p.id];
       return `<td>${esc(p.name)}<br>${v === undefined ? '?' : `<b class="${v ? 'y' : 'n'}">${esc(s.words[v ? 0 : 1])}</b>`}</td>`;
-    }).join('')}</tr>`).join('')}</table>`;
+    };
+    return `<table class="properties-tbl">${STATIONS.map((s) => {
+      const rows = [];
+      for (let i = 0; i < s.samples.length; i += 4) rows.push(s.samples.slice(i, i + 4));
+      return rows.map((r, k) => `<tr>${k ? '' : `<td rowspan="${rows.length}">${s.icon}</td>`}${r.map((p) => cell(s, p)).join('')}</tr>`).join('');
+    }).join('')}</table>`;
   }
 
   // ---------- станциите ----------
@@ -495,9 +505,10 @@ function build(container, { onComplete }, restart) {
 
   // --- четири чаши с вода ---
   const waterG = new THREE.Group();
-  const WG = { r: 0.2, h: 0.62, water: 0.48, dx: narrow ? 0.46 : 0.5 };
+  const NCUP = ST.water.samples.length;
+  const WG = { r: 0.2, h: 0.62, water: 0.48, dx: narrow ? 0.43 : 0.45 };
   const cups = [];
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < NCUP; i++) {
     const cup = new THREE.Group();
     const wallC = lathe([[0, 0], [WG.r, 0], [WG.r, WG.h], [WG.r - 0.015, WG.h], [WG.r - 0.015, 0.02], [0, 0.02]], glassMat(0.3), 24);
     wallC.renderOrder = 3;
@@ -505,7 +516,7 @@ function build(container, { onComplete }, restart) {
     w.position.y = 0.02 + (WG.water - 0.02) / 2;
     w.renderOrder = 1;
     cup.add(wallC, w);
-    cup.position.x = (i - 1.5) * WG.dx;
+    cup.position.x = (i - (NCUP - 1) / 2) * WG.dx;
     cup.userData = { water: w, grains: [], oil: null };
     waterG.add(cup);
     cups.push(cup);
@@ -655,7 +666,9 @@ function build(container, { onComplete }, restart) {
     const n = s.samples.length;
     s.samples.forEach((p, i) => {
       const g = itemModel(p.kind);
-      g.position.set(sx + (i - (n - 1) / 2) * (narrow ? 0.5 : 0.55), 0, sz + (narrow ? 1.05 : 1.45));
+      // Много проби (6 чаши) — по-гъсто и на два реда, за да не се застъпват надписите.
+      const many = n > 4;
+      g.position.set(sx + (i - (n - 1) / 2) * (many ? 0.45 : narrow ? 0.5 : 0.55), 0, sz + (narrow ? 1.05 : 1.45) + (many && i % 2 ? 0.5 : 0));
       if (p.kind.startsWith('spoon')) g.rotation.y = -Math.PI / 2 + 0.3;
       g.userData.home = g.position.clone();
       g.userData.homeRot = g.rotation.clone();
@@ -780,7 +793,7 @@ function build(container, { onComplete }, restart) {
   function step1() {
     shell.step(0);
     const seen = new Set();
-    shell.task(`<p>На масата има пет <b>станции за опити</b>. С тях ще проверим свойствата на веществата: привличат ли се от магнит, разтварят ли се във вода, плават ли, провеждат ли топлина, горят ли.</p>
+    shell.task(`<p>На масата има пет <b>станции за опити</b>. С тях ще проверим свойствата на веществата. Привличат ли се от магнит? Разтварят ли се във вода? Плават ли? Провеждат ли топлина? Горят ли?</p>
       <p><b>Разгледай всички станции:</b> кликни върху тях или ги избери от менюто в ъгъла.</p>`);
     const ctrl = shell.setControls('<div class="row"><button class="btn all">🔭 Цялата маса</button><button class="btn primary nx" disabled>Напред →</button></div>');
     const next = ctrl.querySelector('.nx');
@@ -879,7 +892,11 @@ function build(container, { onComplete }, restart) {
       // разбъркване
       stirrer.visible = true;
       const cl = cup.position;
+      // Тебеширът не се разтваря, но прахът мъти водата.
+      const wm = cup.userData.water.material;
+      const cloudy = p.kind === 'chalk' ? { c0: wm.color.clone(), c1: new THREE.Color(0xe4e8ea) } : null;
       await phase(1.8, (k, d, t) => {
+        if (cloudy) { wm.color.lerpColors(cloudy.c0, cloudy.c1, k * 0.8); wm.opacity = 0.4 + 0.3 * k; }
         stirrer.position.set(cl.x + Math.cos(t * 9) * 0.08, 0.42, cl.z + Math.sin(t * 9) * 0.08);
         stirrer.rotation.set(Math.sin(t * 9) * 0.15, 0, Math.cos(t * 9) * 0.15);
         for (const gr of cup.userData.grains) {
@@ -1049,7 +1066,7 @@ function build(container, { onComplete }, restart) {
       // Първо детето предсказва, после гледа опита. Предсказанието не се брои за грешка.
       const s = ST[cur];
       const box = shell.setControls('<div class="properties-ask"></div>').querySelector('.properties-ask');
-      box.innerHTML = `<p class="properties-q">Предскажи: <b>${esc(p.name)}</b>. ${esc(s.ask)}</p><div class="choices">${s.guess.map((t, i) => `<button class="choice" data-i="${i}">${esc(t)}</button>`).join('')}</div>`;
+      box.innerHTML = `${p.old ? '<p class="small"><b>🔁 Припомни от 3. клас</b></p>' : ''}<p class="properties-q">Предскажи: <b>${esc(p.name)}</b>. ${esc(s.ask)}</p><div class="choices">${s.guess.map((t, i) => `<button class="choice" data-i="${i}">${esc(t)}</button>`).join('')}</div>`;
       shell.msg('');
       const guess = await new Promise((ok) => box.querySelectorAll('.choice').forEach((b) => b.addEventListener('click', () => {
         box.querySelectorAll('.choice').forEach((x) => { x.disabled = true; });
@@ -1060,7 +1077,7 @@ function build(container, { onComplete }, restart) {
       g.userData.used = true;
       results[id] = p.yes;
       drawBoard();
-      say(res.anchor, `<b>${esc(p.name)}</b>: ${p.say}`, 'wide ' + (p.yes ? 'good' : ''), res.lift);
+      say(res.anchor, `${p.old ? '🔁 Припомни от 3. клас<br>' : ''}<b>${esc(p.name)}</b>: ${p.say}`, 'wide ' + (p.yes ? 'good' : ''), res.lift);
       shell.setControls('');
       shell.msg(guess === p.yes ? 'Позна! Опитът го потвърди.' : 'Не позна, но опитът показа истината. Виж обяснението.', guess === p.yes ? 'good' : '');
       upd();
@@ -1245,7 +1262,7 @@ function build(container, { onComplete }, restart) {
         try { shell.stageEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) { /* няма значение */ }
         if (Q.sim) await sandSim();
         else if (Q.st === 'heat') say(stations.heat, '🔥 Металната лъжица се затопли до дръжката, а дървената и пластмасовата — не.', 'wide', anchorTop.heat);
-        else say(cups[3], '🫗 Олиото е отгоре — не се разтваря.', 'wide', WG.h + 0.3);
+        else say(cups[ST.water.samples.findIndex((x) => x.kind === 'oil')], '🫗 Олиото е отгоре — не се разтваря.', 'wide', WG.h + 0.3);
         qi++;
         const last = qi >= QS.length;
         const c = shell.setControls(`<button class="btn primary">${last ? 'Виж резултата' : 'Следващ въпрос →'}</button>`);

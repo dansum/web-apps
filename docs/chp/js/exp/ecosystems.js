@@ -1,5 +1,6 @@
 // 4.3.4 „Съобщества и равновесие в природата“ — естествена гора с ливада и езеро до нива, овощна градина и парк, създадени от хората.
-// Стъпки: опознай → естествено или изкуствено (+ хранителна верига и „ако изчезнат лисиците“) → приспособления (пустиня, полярни ледове, вода) → равновесие (вреди и мерки + предсказване).
+// Стъпки: опознай → естествено или изкуствено (+ хранителни вериги в гората, езерото и нивата, наблюдение: брой видове)
+// → приспособления (пустиня, полярни ледове, вода; кълвач и жираф) → равновесие (вреди и мерки + предсказване).
 import { createStage, labelSprite, mat, addHitBox, cornerMenu, THREE, esc, shuffle } from '../kit.js';
 import { createShell, stepScore } from './shell.js';
 
@@ -27,6 +28,8 @@ function injectStyle() {
   .ecosystems-tally span { font-size:.78rem; border-radius:99px; padding:2px 8px; font-weight:700; color:#fff; }
   .ecosystems-tally .n { background:#2f8f46; } .ecosystems-tally .a { background:#d9822b; }
   .ecosystems-chain { font-size:1.05rem; font-weight:800; margin-top:4px; }
+  .ecosystems-obs { width:100%; border-collapse:collapse; margin:6px 0 2px; font-size:.86rem; }
+  .ecosystems-obs td { border:1px solid #cfd8e3; padding:4px 6px; vertical-align:top; } .ecosystems-obs td.n { text-align:center; font-weight:800; width:3em; }
   @media (max-width:520px) { .ecosystems-hud { min-width:120px; font-size:.72rem; padding:4px 8px; } }
   `;
   document.head.appendChild(s);
@@ -78,24 +81,52 @@ const HAB = Object.fromEntries(HABITATS.map((h) => [h.id, h]));
 const ORGS = [
   { id: 'camel', label: 'Камила', hab: 'desert', adapt: 'Гърбица със запас от мазнини',
     hint: 'Камилата издържа на голяма горещина и може дълго да върви без вода.',
+    trap: { t: 'Пие вода от реките всеки ден', why: 'В пустинята реки почти няма. Камилата издържа дълго без вода.' },
     done: 'Камилата може дълго да върви през пустинята без храна и вода. Мазнините в гърбицата са неин запас.' },
-  { id: 'cactus', label: 'Кактус', hab: 'desert', adapt: 'Бодли вместо листа и дебело стъбло',
+  { id: 'cactus', old: true, label: 'Кактус', hab: 'desert', adapt: 'Бодли вместо листа и дебело стъбло',
     hint: 'Кактусът расте там, където вали много рядко.',
+    trap: { t: 'Големи тънки листа', why: 'През големите листа се губи много вода. В пустинята това е опасно.' },
     done: 'Кактусът пази вода в дебелото си стъбло. През бодлите се губи много малко вода, а и те го пазят от животните.' },
   { id: 'bear', label: 'Бяла мечка', hab: 'polar', adapt: 'Дебела козина и слой мазнина',
     hint: 'Бялата мечка има бяла козина – като цвета на снега.',
+    trap: { t: 'Пъстра козина, която се вижда отдалеч', why: 'В снега пъстрата козина се вижда отдалеч. Бялата козина скрива мечката.' },
     done: 'Гъстата козина и мазнината под кожата пазят бялата мечка от студа. Бялият цвят я прави незабележима в снега. Тя живее около Северния полюс.' },
   { id: 'penguin', label: 'Пингвин', hab: 'polar', adapt: 'Гъсти пера и слой мазнина',
     hint: 'Повечето пингвини живеят на студени места в южната част на Земята.',
+    trap: { t: 'Дълги крака за бързо бягане по леда', why: 'Пингвинът има къси крака. Във водата той плува с крилата си.' },
     done: 'Гъстите пера и мазнината пазят пингвина от студа, а крилата му са като перки за плуване. Повечето пингвини живеят в студените южни морета.' },
-  { id: 'fish', label: 'Риба', hab: 'water', adapt: 'Хриле, с които диша във водата',
+  { id: 'fish', old: true, label: 'Риба', hab: 'water', adapt: 'Хриле, с които диша във водата',
     hint: 'Рибата не може да живее без вода.',
+    trap: { t: 'Бели дробове, с които диша въздух', why: 'Повечето риби нямат бели дробове. Те дишат с хриле кислорода от водата.' },
     done: 'С хрилете рибата взима кислород от водата. Перките и гладкото тяло ѝ помагат да плува.' },
-  { id: 'duck', label: 'Патица', hab: 'water', adapt: 'Ципести крака за плуване',
+  { id: 'duck', old: true, label: 'Патица', hab: 'water', adapt: 'Ципести крака за плуване',
     hint: 'Патицата плува по водата и се гмурка за храна.',
+    trap: { t: 'Пера, които попиват вода', why: 'Перата на патицата са намазани с мазнина и не се мокрят.' },
     done: 'Между пръстите на патицата има ципи. С тях тя гребе като с весла. Перата ѝ са намазани с мазнина и не се мокрят.' },
 ];
 const ORG = Object.fromEntries(ORGS.map((o) => [o.id, o]));
+// Нови примери за приспособления (кактусът, рибата и патицата са от 3. клас).
+const NEW_ADAPT = [
+  { q: '🌳 <b>Кълвачът</b> живее в гората. Яде насекоми, скрити под кората на дърветата. Какво му помага?',
+    opts: ['Здрав клюн, с който дълбае дървото, и дълъг език', 'Ципести крака за плуване', 'Гърбица със запас от мазнини'],
+    why: ['', 'Ципите помагат при плуване. Кълвачът търси храна по дърветата.', 'Гърбицата е запас на камилата в пустинята. Как кълвачът стига до насекомите под кората?'],
+    done: 'Вярно! Със здравия си клюн кълвачът пробива кората. С дългия си език вади насекомите.' },
+  { q: '🦒 <b>Жирафът</b> живее в саваната в Африка. Яде листа от високи дървета. Какво му помага?',
+    opts: ['Дълга шия и дълги крака', 'Бяла козина', 'Хриле'],
+    why: ['', 'Бялата козина скрива бялата мечка в снега. Как жирафът стига до високите листа?', 'С хриле дишат рибите във водата. Жирафът живее на сушата.'],
+    done: 'Вярно! С дългата шия и дългите крака жирафът стига до листата високо по дърветата.' },
+];
+// Хранителна верига в изкуствено съобщество — нивата.
+const FIELD_CHAIN = [
+  { t: 'Пшеница', d: 'Пшеницата е растение. Тя сама си прави храна.' },
+  { t: 'Мишка', d: 'Мишката яде зърната на пшеницата.' },
+  { t: 'Сова', d: 'Совата лови мишки.' },
+];
+// Наблюдение: видове, които учениците са видели в гората и в нивата.
+const OBSERVED = {
+  forest: ['дъб', 'бук', 'папрат', 'горска ягода', 'сърна', 'лисица', 'катерица', 'кълвач'],
+  field: ['пшеница', 'мишка', 'сова'],
+};
 
 // Вреди и мерки (стъпка 4).
 const HARMS = [
@@ -1660,7 +1691,7 @@ function build(container, { onComplete }, restart) {
     let mistakes = m0;
     say(animals.fox, '<b>Представи си:</b> всички лисици изчезват от гората.', 'wide', animals.fox.userData.top);
     const box = shell.setControls('<div></div>').firstChild;
-    choiceBox(box, 'Какво ще стане тогава?', ['Зайците също ще изчезнат.', 'Зайците ще станат много и ще изядат тревата.', 'Нищо няма да се промени.'], 1,
+    choiceBox(box, 'Какво може да стане тогава?', ['Зайците също ще изчезнат.', 'Зайците може да станат много и да изядат тревата.', 'Нищо няма да се промени.'], 1,
       (i) => (i === 0 ? 'Зайците не ядат лисици – те ядат трева. Помисли: кой вече няма да лови зайците?' : 'Всички в хранителната верига са свързани. Ако едно звено изчезне, другите се променят.'),
       async () => {
         shell.msg('Да видим какво ще се случи…', 'good');
@@ -1688,7 +1719,7 @@ function build(container, { onComplete }, restart) {
           grassM.color.copy(grass0).lerp(brown, k);
           meadowPatches.forEach((g, i) => { g.scale.set(s0[i], Math.max(0.2, 1 - k * 0.75), s0[i]); });
         });
-        say(BUBBLE_AT.meadow, 'Без лисици никой не лови зайците. Те стават много и изяждат тревата. После и самите зайци остават без храна. <b>Равновесието в природата е нарушено.</b>', 'wide bad', 0.6);
+        say(BUBBLE_AT.meadow, 'Без лисици зайците може да станат много. Тогава те изяждат тревата. После и самите зайци остават без храна. <b>Така се нарушава равновесието в природата.</b>', 'wide bad', 0.6);
         shell.task('<p>В природата растенията, растителноядните животни и хищниците се пазят в <b>равновесие</b>. Ако изчезне едно звено от веригата, страдат и другите.</p>');
         shell.msg('Наблюдавай какво стана с ливадата.', 'good');
         shell.score(`Грешки: ${mistakes}`);
@@ -1751,18 +1782,111 @@ function build(container, { onComplete }, restart) {
     function pondQuestion() {
       shell.msg('Вярно! Водорасли → водни бълхи → риба → чапла.', 'good');
       const q = shell.setControls('<div></div>').firstChild;
-      choiceBox(q, '<b>Предскажи:</b> всички риби в езерото изчезват. Какво ще стане?', [
-        'Водните бълхи ще станат много, а чаплите ще останат без храна.',
+      choiceBox(q, '<b>Предскажи:</b> всички риби в езерото изчезват. Какво може да стане?', [
+        'Водните бълхи може да станат много, а чаплите — да останат без храна.',
         'Чаплите ще станат повече.',
         'Нищо няма да се промени.',
       ], 0,
       (i) => (i === 1 ? 'Чаплата лови риба. Ще има ли какво да яде, ако няма риби?' : 'Всички в хранителната верига са свързани. Ако едно звено изчезне, другите се променят.'),
       () => {
-        shell.msg('Вярно! Без риби водните бълхи се намножават. А чаплите остават без храна. Равновесието е нарушено.', 'good');
+        shell.msg('Вярно! Без риби водните бълхи може да се намножат. А чаплите може да останат без храна. Така се нарушава равновесието.', 'good');
+        shell.score(`Грешки: ${mistakes}`);
+        shell.controls.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary">Верига в нивата →</button></div>');
+        shell.controls.querySelector('.btn.primary').addEventListener('click', () => {
+          clearTip();
+          shell.msg('');
+          fieldChain(mistakes);
+        });
+      },
+      () => { mistakes++; shell.score(`Грешки: ${mistakes}`); });
+    }
+  }
+
+  // Верига в изкуственото съобщество: пшеница → мишка → сова.
+  function fieldChain(m0) {
+    let mistakes = m0;
+    VIEW.field();
+    const seq = [];
+    let wrongRow = 0;
+    const order = [2, 0, 1];
+    const draw = () => {
+      shell.task(`<p><b>Верига в нивата.</b> Нивата е изкуствено съобщество. И в нея живите същества са свързани чрез храната си.</p>
+        <p><b>Подреди веригата:</b> кликни първо върху това, което само си прави храна, а после — кой кого яде.</p>
+        <p class="ecosystems-chain">${seq.length ? seq.map((i) => esc(FIELD_CHAIN[i].t)).join(' → ') : '…'}</p>`);
+      shell.score(`Грешки: ${mistakes}`);
+    };
+    draw();
+    const box = shell.setControls(`<div class="choices ecosystems-four">${order.map((i) => `<button class="choice" data-o="${i}">${esc(FIELD_CHAIN[i].t)}</button>`).join('')}</div>`);
+    box.querySelectorAll('.choice').forEach((b) => b.addEventListener('click', () => {
+      const i = +b.dataset.o;
+      if (i !== seq.length) {
+        mistakes++; wrongRow++;
+        const why = !seq.length ? 'Веригата започва от растение. То само си прави храна.' : `Кой яде ${FIELD_CHAIN[seq.length - 1].t === 'Пшеница' ? 'зърната на пшеницата' : 'мишки'}?`;
+        shell.msg(why + (wrongRow >= 2 ? ' Подсказка: мишката яде зърна, а совата лови мишки.' : ''), 'bad');
+        draw();
+        return;
+      }
+      wrongRow = 0;
+      seq.push(i);
+      b.disabled = true;
+      b.classList.add('right');
+      shell.msg(`✓ ${FIELD_CHAIN[i].d}`, 'good');
+      draw();
+      if (seq.length === FIELD_CHAIN.length) {
+        wait(0.8).then(() => {
+          shell.msg('Вярно! Пшеница → мишка → сова.', 'good');
+          shell.setControls('<button class="btn primary">Наблюдение →</button>').querySelector('button').addEventListener('click', () => { shell.msg(''); observe(mistakes); });
+        });
+      }
+    }));
+  }
+
+  // Наблюдение: колко вида живеят в гората и колко в нивата.
+  function observe(m0) {
+    let mistakes = m0;
+    const count = { forest: null, field: null };
+    const shown = { forest: [], field: [] };
+    let busy = false;
+    const row = (k, name) => `<tr><td><b>${name}:</b> ${shown[k].length ? esc(shown[k].join(', ')) : '…'}</td><td class="n">${count[k] ?? '?'}</td></tr>`;
+    const draw = () => {
+      shell.task(`<p><b>Наблюдение.</b> Учениците отидоха в гората и в нивата. Записаха всеки вид растение и животно, който видяха.</p>
+        <p>Отвори бележника за всяко място и виж колко вида са записали.</p>
+        <table class="ecosystems-obs"><tr><td>Видове</td><td class="n">Брой</td></tr>${row('forest', '🌲 Гора')}${row('field', '🌾 Нива')}</table>`);
+      shell.score(`Грешки: ${mistakes}`);
+    };
+    draw();
+    const c = shell.setControls('<div class="row"><button class="btn fo">🔍 Гората</button><button class="btn fi">🔍 Нивата</button></div><div class="ecosystems-more"></div>');
+    const run = async (k) => {
+      if (busy || count[k] != null) return;
+      busy = true;
+      VIEW[k]();
+      for (const sp of OBSERVED[k]) {
+        shown[k].push(sp);
+        draw();
+        await wait(0.35);
+      }
+      count[k] = OBSERVED[k].length;
+      draw();
+      c.querySelector(k === 'forest' ? '.fo' : '.fi').disabled = true;
+      busy = false;
+      if (count.forest != null && count.field != null) ask();
+    };
+    c.querySelector('.fo').addEventListener('click', () => run('forest'));
+    c.querySelector('.fi').addEventListener('click', () => run('field'));
+    function ask() {
+      c.querySelector('.row').remove();
+      choiceBox(c.querySelector('.ecosystems-more'), 'Какво показва наблюдението?', [
+        'В нивата има повече видове, защото човекът се грижи за нея.',
+        'В гората живеят много повече видове, отколкото в нивата.',
+        'В гората и в нивата има еднакво много видове.',
+      ], 1,
+      (i) => (i === 0 ? 'Погледни числата в бележника. Къде видовете са повече?' : `Сравни двете числа: ${count.forest} и ${count.field}. Еднакви ли са?`),
+      () => {
+        shell.msg('Вярно! В естественото съобщество живеят много видове. В нивата човекът отглежда почти само един вид растение – пшеница.', 'good');
         shell.score(`Грешки: ${mistakes}`);
         shell.controls.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary">Напред →</button></div>');
         shell.controls.querySelector('.btn.primary').addEventListener('click', () => {
-          scores.push(stepScore(mistakes, 5));
+          scores.push(stepScore(mistakes, 7));
           clearTip();
           shell.msg('');
           step3();
@@ -1831,11 +1955,12 @@ function build(container, { onComplete }, restart) {
         g.rotation.y = id === 'fish' ? 0 : -0.3;
         shell.msg(`Вярно! ${o.label} живее ${IN_HAB[o.hab]}.`, 'good');
         say(g, `<b>${esc(o.label)}</b>: какво ми помага да живея тук?`, '', g.userData.top - 0.1);
-        const others = shuffle(ORGS.filter((x) => x.hab !== o.hab)).slice(0, 2);
-        const opts = shuffle([o, ...others]);
+        // Грешни отговори: едно приспособление на организъм от друга среда и една правдоподобна грешка.
+        const other = shuffle(ORGS.filter((x) => x.hab !== o.hab))[0];
+        const opts = shuffle([o, other, { adapt: o.trap.t, why: o.trap.why }]);
         const box = shell.setControls('<div></div>').firstChild;
-        choiceBox(box, `Кое приспособление помага на организма „${esc(o.label)}“ да живее ${IN_HAB[o.hab]}?`, opts.map((x) => esc(x.adapt)), opts.indexOf(o),
-          (i) => `„${opts[i].adapt}“ е приспособление на друг организъм. Помисли какво е нужно, за да се живее ${IN_HAB[o.hab]}.`,
+        choiceBox(box, `${o.old ? '<span class="small">🔁 Припомни от 3. клас</span><br>' : ''}Кое приспособление помага на организма „${esc(o.label)}“ да живее ${IN_HAB[o.hab]}?`, opts.map((x) => esc(x.adapt)), opts.indexOf(o),
+          (i) => (opts[i].why || `„${opts[i].adapt}“ е приспособление на друг организъм. Помисли какво е нужно, за да се живее ${IN_HAB[o.hab]}.`),
           () => {
             done.add(id);
             say(g, `✓ ${esc(o.done)}`, 'wide good', g.userData.top - 0.1);
@@ -1847,16 +1972,39 @@ function build(container, { onComplete }, restart) {
             shell.task('<p>Всички организми са в своята среда! Те имат <b>приспособления</b>, с които оцеляват в жега, в студ или във вода.</p>');
             upd();
             shell.msg(`✓ ${o.adapt}`, 'good');
-            shell.setControls('<button class="btn primary">Напред →</button>').querySelector('button').addEventListener('click', () => {
-              scores.push(stepScore(mistakes, 4));
+            shell.setControls('<button class="btn primary">Още приспособления →</button>').querySelector('button').addEventListener('click', () => {
               clearTip();
               shell.msg('');
-              step4();
+              moreAdapt(0);
             });
           },
           () => { mistakes++; upd(); });
       },
     });
+    // Нови примери: кълвач и жираф.
+    function moreAdapt(k) {
+      const A = NEW_ADAPT[k];
+      shell.task(`<p><b>Още приспособления.</b> Всеки организъм е приспособен към своята среда — и в гората, и в саваната.</p>
+        <p class="small">Въпрос ${k + 1} от ${NEW_ADAPT.length}</p>`);
+      shell.score(`Грешки: ${mistakes}`);
+      const ord = shuffle(A.opts.map((x, i) => i));
+      const box = shell.setControls('<div></div>').firstChild;
+      choiceBox(box, A.q, ord.map((i) => esc(A.opts[i])), ord.indexOf(0),
+        (j) => A.why[ord[j]],
+        () => {
+          shell.msg(A.done, 'good');
+          const last = k === NEW_ADAPT.length - 1;
+          shell.controls.insertAdjacentHTML('beforeend', `<div class="row"><button class="btn primary">${last ? 'Напред →' : 'Следващ въпрос →'}</button></div>`);
+          shell.controls.querySelector('.btn.primary').addEventListener('click', () => {
+            shell.msg('');
+            if (!last) { moreAdapt(k + 1); return; }
+            scores.push(stepScore(mistakes, 5));
+            clearTip();
+            step4();
+          });
+        },
+        () => { mistakes++; shell.score(`Грешки: ${mistakes}`); });
+    }
   }
 
   // =================== 4. РАВНОВЕСИЕ ===================

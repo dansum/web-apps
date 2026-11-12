@@ -1,6 +1,7 @@
 // 4.3.1 „Как се хранят и размножават растенията“ — слънчев перваз с растения, буркан с водно растение и лампа.
-// Стъпки: опознай частите → как растението си прави храна (схема, опит с буркана, покрито растение)
-// → размножаване (пчела, тичинки, плодник, плод) → жизнен цикъл на фасула с плъзгач „Дни“.
+// Стъпки: опознай частите → как растението си прави храна (схема, опит с буркана, лампа близо/далеч,
+// покрито растение) → размножаване (пчела, тичинки, плодник, плод) → жизнен цикъл на фасула с плъзгач „Дни“
+// (опитът с трите саксии е „Припомни от 3. клас“).
 import { createStage, labelSprite, mat, addHitBox, cornerMenu, THREE, esc, shuffle } from '../kit.js';
 import { createShell, stepScore } from './shell.js';
 
@@ -67,6 +68,8 @@ function injectStyle() {
   .plants-range { width:100%; margin:10px 0 2px; accent-color:#2e7d32; height:28px; }
   .plants-days { display:flex; justify-content:space-between; font-size:.8rem; color:#5b6b7b; }
   .plants-legend { margin:6px 0 0; padding-left:18px; font-size:.88rem; } .plants-legend li { margin:2px 0; }
+  .plants-count { width:100%; border-collapse:collapse; margin:8px 0 2px; font-size:.9rem; }
+  .plants-count td { border:1px solid #c9d4df; padding:4px 8px; } .plants-count td.n { text-align:center; font-weight:800; width:4.5em; }
   `;
   document.head.appendChild(s);
 }
@@ -648,6 +651,10 @@ function build(container, { onComplete }, restart) {
   scene.add(lamp);
   addHitBox(lamp, 0.4);
   let lampOn = true;
+  // Опит „близо или далеч“: мехурчетата излизат през равни промеждутъци и се броят.
+  let bubTimer = null; // { every, t, n }
+  const LAMP_NEAR = JX - 1.05;
+  const LAMP_FAR = JX - 2.05;
   function setLamp(on) {
     lampOn = on;
     beam.visible = on;
@@ -803,9 +810,14 @@ function build(container, { onComplete }, restart) {
     }
     for (const w of bee.userData.wings) w.hinge.rotation.x = w.s * (0.3 + Math.sin(t * 45) * 0.5);
     // мехурчета кислород в буркана
+    if (bubTimer && lampOn) bubTimer.t += dt;
     for (const b of jBubs) {
       if (!b.visible) {
-        if (lampOn && Math.random() < 0.05) {
+        let go = false;
+        if (bubTimer) {
+          if (lampOn && bubTimer.t >= bubTimer.every) { bubTimer.t -= bubTimer.every; bubTimer.n++; go = true; }
+        } else go = lampOn && Math.random() < 0.05;
+        if (go) {
           const tip = elTips[Math.floor(Math.random() * elTips.length)];
           b.position.copy(tip);
           b.userData.v = 0.18 + Math.random() * 0.12;
@@ -1101,7 +1113,67 @@ function build(container, { onComplete }, restart) {
           setLamp(true);
           shell.msg('Вярно! На светлина растението си прави храна и отделя кислород — мехурчетата.', 'good');
           say(jarG.position.clone().add(new V3(0, 1.1, 0)), '🫧 Мехурчетата са главно <b>кислород</b>. Те излизат само на светлина.', 'good', 0.05);
-          nextBtn('Опит с кутията →', () => { clearTip(); boxTest(); });
+          nextBtn('Опит: лампата близо или далеч →', () => { clearTip(); distTest(); });
+        }, () => { mistakes++; upd(); });
+      }
+    }
+
+    // Опит: лампата близо или далеч — колко мехурчета за 10 секунди.
+    function distTest() {
+      shell.msg('');
+      clickHandler = null;
+      fitView([JX - 0.9, 0.95, 0.15], narrow ? 1.55 : 1.9, 1.05);
+      setLamp(true);
+      const res = { near: null, far: null };
+      let busy = false;
+      const table = () => `<table class="plants-count"><tr><td>💡 Лампата е <b>близо</b></td><td class="n">${res.near ?? '?'}</td></tr>
+        <tr><td>💡 Лампата е <b>далеч</b></td><td class="n">${res.far ?? '?'}</td></tr></table>`;
+      const draw = () => shell.task(`<p><b>Нов опит.</b> Слагаме лампата <b>близо</b> до буркана, после <b>далеч</b> от него. Всеки път броим мехурчетата за 10 секунди.</p>
+        <p class="small">Мехурчета за 10 секунди:</p>${table()}`);
+      draw();
+      const c = shell.setControls('<div class="row"><button class="btn near">💡 Близо</button><button class="btn far">💡 Далеч</button></div><div class="plants-more"></div>');
+      const run = async (key) => {
+        if (busy) return;
+        busy = true;
+        c.querySelectorAll('.near, .far').forEach((x) => { x.disabled = true; });
+        const to = key === 'near' ? LAMP_NEAR : LAMP_FAR;
+        const from = lamp.position.x;
+        await phase(0.8, (k) => { lamp.position.x = lerp(from, to, ease(k)); });
+        lamp.position.x = to;
+        jBubs.forEach((b) => { b.visible = false; });
+        bubTimer = { every: key === 'near' ? 0.8 : 2.5, t: 0, n: 0 };
+        const tg = tag(jarG.position.clone().add(new V3(0, 1.15, 0)), '⏱ 10 с · 🫧 0', 0.05);
+        await phase(10, (k) => { tg.set(`⏱ ${Math.ceil(10 - k * 10)} с · 🫧 ${bubTimer.n}`); });
+        res[key] = bubTimer.n;
+        tg.set(`🫧 ${bubTimer.n} мехурчета`);
+        bubTimer = null;
+        draw();
+        await wait(0.6);
+        tg.remove();
+        tags.splice(tags.indexOf(tg), 1);
+        busy = false;
+        c.querySelectorAll('.near, .far').forEach((x) => { x.disabled = false; });
+        if (res.near != null && res.far != null) ask();
+        else shell.msg(key === 'near' ? 'Сега сложи лампата далеч.' : 'Сега сложи лампата близо.');
+      };
+      c.querySelector('.near').addEventListener('click', () => run('near'));
+      c.querySelector('.far').addEventListener('click', () => run('far'));
+      let asked = false;
+      function ask() {
+        if (asked) return;
+        asked = true;
+        c.querySelector('.row').remove();
+        choiceBox(c.querySelector('.plants-more'), 'Какво показва опитът?', [
+          'Мехурчетата са еднакво много, където и да е лампата.',
+          'Колкото по-близо е лампата, толкова повече мехурчета има.',
+          'Когато лампата е далеч, мехурчетата са повече.',
+        ], 1, ['Погледни числата в таблицата. Еднакви ли са?', '', 'Сравни двете числа. Кога мехурчетата са повече?'], () => {
+          shell.msg('Вярно! Близо до лампата светлината е по-силна. Растението отделя повече кислород.', 'good');
+          nextBtn('Опит с кутията →', () => {
+            clearTip();
+            lamp.position.x = LAMP_NEAR;
+            boxTest();
+          });
         }, () => { mistakes++; upd(); });
       }
     }
@@ -1150,7 +1222,7 @@ function build(container, { onComplete }, restart) {
               'Събират праха с корените си.',
             ], 1, ['Обратно е: спомни си кои частици влизаха в листата и кои излизаха.', '', 'Корените са в почвата и поемат вода. Помисли какво правят листата.'], () => {
               shell.msg('Вярно! Растенията поемат въглероден диоксид и обогатяват въздуха с кислород, който дишаме.', 'good');
-              nextBtn('Напред →', () => { scores.push(stepScore(mistakes, 3)); clearTip(); shell.msg(''); step3(); });
+              nextBtn('Напред →', () => { scores.push(stepScore(mistakes, 4)); clearTip(); shell.msg(''); step3(); });
             }, () => { mistakes++; upd(); });
           }, () => { mistakes++; upd(); });
         });
@@ -1302,7 +1374,7 @@ function build(container, { onComplete }, restart) {
     upd();
     beanView();
     beans.forEach((B) => setBean(B, 0, B.kind));
-    shell.task(`<p>В три саксии засадихме по едно <b>семе от фасул</b> в един и същи ден.</p>
+    shell.task(`<p class="small"><b>🔁 Припомни от 3. клас</b></p><p>В три саксии засадихме по едно <b>семе от фасул</b> в един и същи ден.</p>
       <ul class="plants-legend"><li><b>1</b> — на светло, поливаме го.</li><li><b>2</b> — в тъмен шкаф, поливаме го.</li><li><b>3</b> — на светло, но <b>не</b> го поливаме.</li></ul>
       <p>ℹ️ <b>Цветовете на фасула обикновено се опрашват сами.</b> Прашецът пада върху плодника на същия цвят. Много други растения имат нужда от пчели.</p>`);
     choiceBox(askBox(), 'Предскажи: в коя саксия фасулът ще порасне, ще цъфне и ще даде нови семена?', ['В саксия 1', 'В саксия 2', 'В саксия 3'], 0, (i, n) => {
@@ -1384,7 +1456,7 @@ function build(container, { onComplete }, restart) {
         'За една година израства от семе, цъфти, дава плод със семена и изсъхва.',
         'Защото расте само една седмица.',
       ], 1, ['Така живеят многогодишните растения, например дърветата. Погледни какво стана с фасула накрая.', '', 'Фасулът живя много повече от седмица — цели три месеца, до есента.'], () => {
-        shell.msg('Вярно! Едногодишното растение живее само един сезон, но оставя семена.', 'good');
+        shell.msg('Вярно! Едногодишното растение изживява целия си живот за една година. Но оставя семена.', 'good');
         nextBtn('Виж резултата', () => {
           scores.push(stepScore(mistakes, 3));
           clearTip(); clearTags();
