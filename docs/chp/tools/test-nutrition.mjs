@@ -18,7 +18,7 @@ await t.choose(0); await t.next();
 // 3. Животното
 await t.btn('.feed'); await wait(3000); await t.shot('3a');
 await page.waitForSelector('.xp-controls .ord', { timeout: 10000 });
-await orderAll(t, 6); await sortAll(t); await t.shot('3b'); await t.next();
+await orderAll(t, 7); await sortAll(t); await t.shot('3b'); await t.next();
 // 4. Сравни и предскажи
 await wait(500); await t.shot('4a');
 await sortAll(t); await t.choose(0); await t.shot('4b'); await t.next();
