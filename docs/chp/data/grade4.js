@@ -434,7 +434,7 @@ export default {
             objects: [
               { id: "sun", label: "Слънце", shape: "sphere", color: "#ffcc33", pos: [-3.5, 1.5, 0], scale: 1.5, note: "Слънцето е звезда. То е източник на светлина и топлина. Не е в мащаб." },
               { id: "earth", label: "Земя", shape: "sphere", color: "#2f7fd1", pos: [0, 1.5, 0], scale: 0.5, note: "Земята е третата планета от Слънцето. Има форма на кълбо. Не е в мащаб." },
-              { id: "moon", label: "Луна", shape: "sphere", color: "#cccccc", pos: [1, 1.8, 0.5], scale: 0.18, note: "Луната е естественият спътник на Земята. Не е в мащаб." },
+              { id: "moon", label: "Луна", shape: "sphere", color: "#cccccc", pos: [1, 1.8, 0.5], scale: 0.18, note: "Луната е естественият спътник на Земята. Тя обикаля около Земята и не е направена от хората. Не е в мащаб." },
               { id: "mars", label: "Марс", shape: "sphere", color: "#c1440e", pos: [1.8, 1.5, -1], scale: 0.35, note: "Марс е четвъртата планета. Наричат го „червената планета“. Не е в мащаб." },
               { id: "jupiter", label: "Юпитер", shape: "sphere", color: "#d8a35d", pos: [3, 1.5, 1], scale: 0.9, note: "Юпитер е най-голямата планета в Слънчевата система. Не е в мащаб." },
               { id: "saturn", label: "Сатурн", shape: "sphere", color: "#e3c98f", pos: [3.5, 1.5, -2], scale: 0.7, note: "Сатурн има красиви пръстени. Не е в мащаб." },
