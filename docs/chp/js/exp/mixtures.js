@@ -1577,7 +1577,7 @@ export function mount(container, { onComplete }) {
       container.querySelectorAll('.mixtures-slot')[wrongAt].classList.add('wrong');
       let why;
       if (seq.includes('sieve')) why = 'Пясъкът, солта и стърготините са еднакво ситни — ситото няма да ги раздели.';
-      else if (seq[0] !== 'magnet' && seq.indexOf('magnet') > 0) why = 'Ако първо сипеш всичко във вода, стърготините ще се намокрят и смесят с пясъка. Кое вещество можеш да извадиш, докато сместа е още суха?';
+      else if (seq[0] !== 'magnet' && seq.indexOf('magnet') > 0) why = 'Във водата стърготините ще потънат при пясъка. Мокри, те се вадят по-трудно с магнит. Кое вещество можеш да извадиш, докато сместа е още суха?';
       else if (seq.indexOf('filter') < seq.indexOf('dissolve')) why = 'Филтърът отделя течност от неразтворено вещество. Първо трябва да има течност.';
       else if (seq.indexOf('evap') < seq.indexOf('filter')) why = 'Ако изпариш водата преди филтруването, солта пак ще е смесена с пясъка.';
       else why = 'Редът не е верен. Помисли кое вещество какво свойство има.';
