@@ -345,7 +345,7 @@ export function mount(container, { onComplete }) {
       }
       ctx.click = null;
       pointer.visible = true; umiLines.visible = true; umiLbl.visible = true;
-      ctx.say(skyStars.polaris, '✔ <b>Полярната звезда</b> е края на опашката на <b>Малката мечка</b>. Тя е почти точно над Северния полюс и показва посоката <b>север</b>. Цялото небе бавно се върти около нея.', 'good wide', 0.3);
+      ctx.say(skyStars.polaris, '✔ <b>Полярната звезда</b> е в края на опашката на <b>Малката мечка</b>. Тя е почти точно над Северния полюс и показва посоката <b>север</b>. Цялото небе бавно се върти около нея.', 'good wide', 0.3);
       shell.setControls('');
       setTimeout(() => facts(), 1500);
     };

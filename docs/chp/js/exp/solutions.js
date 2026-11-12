@@ -341,7 +341,7 @@ export function mount(container, { onComplete }) {
     function boil() {
       lakeTags.forEach((b) => b.remove()); lakeTags = [];
       ctx.clearTip();
-      shell.task('<p>Чистата вода се топи при <b>0 °C</b>. А кога кипи?</p>');
+      shell.task('<p>Чистата вода се топи при <b>0 °C</b>. А кога кипи?</p><p class="small"><b>Нормално атмосферно налягане</b> е обичайното налягане на въздуха близо до морското равнище.</p>');
       choice(ctx, {
         q: 'При каква температура кипи чистата вода при нормално атмосферно налягане?',
         options: [
