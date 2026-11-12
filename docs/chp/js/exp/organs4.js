@@ -1125,7 +1125,7 @@ export function mount(container, { onComplete }) {
 
   function foodJourney() {
     clearTip();
-    const intro = `<p><b>Пътят на хапката.</b> Кликни поред органите, през които минава хапката — от устата до края на пътя.</p>`;
+    const intro = `<p class="small"><b>🔁 Припомни от 3. клас</b></p><p><b>Пътят на хапката.</b> Кликни поред органите, през които минава хапката — от устата до края на пътя.</p>`;
     journey({
       list: FOOD, hints: FOOD_HINT, done: FOOD_DONE, intro,
       other: (id) => (id === 'liver' ? 'Черният дроб помага за смилането, но храната не минава през него.'
@@ -1182,14 +1182,41 @@ export function mount(container, { onComplete }) {
         later(next, 500);
       },
       onEnd: () => {
-        scores.push(stepScore(s2mistakes, 4));
         shell.msg(s2mistakes ? `Готово! Грешки: ${s2mistakes}.` : 'И двата пътя — без нито една грешка! 🎉', 'good');
         stage.flyTo([0.6, 2.8, fit(5.4)], [0.5, 2.6, 0], 1);
         say(sideAnchor, 'Гледай: при вдишване диафрагмата слиза надолу, белите дробове се пълнят с въздух и гърдите се повдигат.', 'wide', 0);
-        const c = shell.setControls('<button class="btn primary">Напред →</button>');
-        c.querySelector('button').addEventListener('click', step3);
+        later(diaphragmQ, 1200);
       },
     });
+  }
+
+  // Нов въпрос: диафрагмата (в 3. клас не е учена).
+  function diaphragmQ() {
+    const box = shell.setControls(`<p><b>Какво прави диафрагмата, когато вдишваш?</b></p>${choicesHTML('dia', shuffle([
+      { v: 'ok', t: 'Слиза надолу и белите дробове се пълнят с въздух' },
+      { v: 'food', t: 'Смила храната в корема' },
+      { v: 'up', t: 'Качва се нагоре и изтласква въздуха навън' }]))}`);
+    const bad = {
+      food: 'Храната се смила в стомаха и червата. Диафрагмата е мускул за дишане.',
+      up: 'Така е при издишване. Погледни Боби, когато вдишва.',
+    };
+    box.querySelectorAll('.choice').forEach((b) => b.addEventListener('click', () => {
+      if (b.disabled) return;
+      if (b.dataset.v !== 'ok') {
+        s2mistakes++;
+        shell.score(`Грешки: ${s2mistakes}`);
+        b.classList.add('wrong');
+        b.disabled = true;
+        shell.msg(bad[b.dataset.v], 'bad');
+        return;
+      }
+      b.classList.add('right');
+      box.querySelectorAll('.choice').forEach((x) => { x.disabled = true; });
+      scores.push(stepScore(s2mistakes, 5));
+      shell.msg('Вярно! Диафрагмата слиза надолу и въздухът влиза в белите дробове.', 'good');
+      box.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary">Напред →</button></div>');
+      box.querySelector('.btn.primary').addEventListener('click', step3);
+    }));
   }
 
   // ---------- 3. Подреди и свържи ----------
