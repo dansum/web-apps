@@ -656,7 +656,7 @@ export function mount(container, { onComplete }) {
   let menuHandler = null;
   const EXTRA = {
     meter: { id: 'meter', root: meter, label: 'Шумомер', icon: '📟', lift: 1.15,
-      note: 'Шумомерът мери колко силен е звукът — в <b>децибели</b> (dB). Зелено — тихо, жълто — нормално, червено — вредно за слуха.' },
+      note: 'Шумомерът мери колко силен е звукът — в <b>децибели</b> (съкратено dB, чете се „децибела“). Зелено — тихо, жълто — нормално, червено — вредно за слуха.' },
     kid: { id: 'kid', root: kid, label: 'Дете', icon: '👂', lift: 1.4,
       note: 'Звукът стига до нас през въздуха. Чуваме го с ушите. Слухът е едно от петте сетива — трябва да го пазим.' },
   };
@@ -774,7 +774,7 @@ export function mount(container, { onComplete }) {
       const count = () => { mistakes++; shell.score(`Въпроси · грешки: ${mistakes}`); };
       choiceQ(container.querySelector('.sound-qs'), {
         q: 'Какво общо имаха барабанът, струната, линийката и камертонът, докато звучаха?',
-        opts: ['Всички трептяха', 'Всички бяха от метал', 'Всички бяха големи'],
+        opts: ['Всички трептяха', 'Всички бяха от метал', 'Всички бяха кухи отвътре'],
         right: 0, count,
         bad: 'Спомни си зрънцата върху барабана и пръските във водата. Какво правеше всяко тяло?',
         ok: 'Вярно! Звук издават трептящи тела. Трептят и гласните връзки в гърлото ни, когато говорим.',
@@ -797,8 +797,8 @@ export function mount(container, { onComplete }) {
     { id: 'whisper', label: 'Шепот', db: 30 },
     { id: 'talk', label: 'Разговор', db: 60 },
     { id: 'street', label: 'Улица с коли', db: 70 },
-    { id: 'phones', label: 'Слушалки на максимум', db: 100 },
-    { id: 'plane', label: 'Излитащ самолет', db: 120 },
+    { id: 'phones', label: 'Слушалки на максимум', db: 100, cond: 'зависи от телефона и слушалките' },
+    { id: 'plane', label: 'Излитащ самолет', db: 120, cond: 'отблизо е още по-силно' },
   ];
   const sortWorld = new THREE.Group();
   scene.add(sortWorld);
@@ -893,7 +893,7 @@ export function mount(container, { onComplete }) {
       if (!hit || !hit.root.userData.o) { clearTip(); return; }
       const g = hit.root;
       measure(g);
-      say(g, `📟 ${esc(g.userData.o.label)}: <b>${g.userData.o.db} dB</b>`, 'tag', 1.15);
+      say(g, `📟 ${esc(g.userData.o.label)}: <b>около ${g.userData.o.db} dB</b>${g.userData.o.cond ? ` (${esc(g.userData.o.cond)})` : ''}`, 'tag', 1.15);
     };
     stopDrag = stage.enableDrag({
       planeY: 0,
@@ -937,7 +937,7 @@ export function mount(container, { onComplete }) {
   const HABITS = [
     { t: 'Слушам музиката в слушалките тихо', good: true },
     { t: 'Правя почивки в тишина', good: true },
-    { t: 'При много силен шум слагам антифони или запушвам ушите си', good: true },
+    { t: 'При много силен шум слагам тапи за уши (антифони) или запушвам ушите си', good: true },
     { t: 'Стоя далеч от колоните на концерт', good: true },
     { t: 'Усилвам слушалките до край, за да не чувам улицата', good: false, why: 'Така звукът в ушите става много силен. Ако го слушаме дълго, той вреди на слуха.' },
     { t: 'Викам силно в ухото на приятел', good: false, why: 'Силният звук отблизо може да нарани ухото.' },

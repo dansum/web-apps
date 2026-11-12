@@ -577,7 +577,7 @@ export function mount(container, { onComplete }) {
     turbine: { root: turbine, label: 'Вятърна турбина', icon: '🌬', kind: 'rotate', lift: 3.4, at: () => turbine.userData.rotor,
       note: 'Вятърът върти перките ѝ около оста в средата. Така турбината произвежда електричество.' },
     clock: { root: clock, label: 'Часовник с махало', icon: '🕰', kind: 'osc', lift: 3.3,
-      note: 'Махалото се движи наляво-надясно през равни интервали от време. Така часовникът отмерва времето.' },
+      note: 'Махалото се люлее наляво-надясно. Всяко люлеене трае еднакво време. Така часовникът отмерва времето.' },
   };
   Object.entries(OBJ).forEach(([id, o]) => {
     o.id = id;
@@ -808,7 +808,7 @@ export function mount(container, { onComplete }) {
       let tries = 0;
       shell.score(`Движение ${i + 1} от ${ORDER.length} · грешки: ${mistakes}`);
       shell.task(`<p><b>${esc(o.icon)} ${esc(o.label)}</b></p>
-        <p class="small">Точките в следата се оставят през равни интервали от време. Гледай каква линия очертават и как се движи тялото.</p>
+        <p class="small">Точките в следата се оставят една след друга, през еднакво време. Гледай каква линия очертават и как се движи тялото.</p>
         <p>Какво е движението?</p>${kindButtons()}`);
       const c = shell.setControls('<div class="row"><button class="btn again">▶ Пусни</button></div>');
       const again = c.querySelector('.again');
