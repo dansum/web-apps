@@ -20,6 +20,14 @@ const CSS = `
 .xp-task .choices.wc-pick .choice { justify-content: center; flex-direction: column; gap: 2px; padding: 8px 4px; font-weight: 700; }
 .xp-task .choices.wc-pick .choice span { font-size: 1.5rem; }
 .bubble.wc-ttag { font-weight: 900; font-size: 0.95rem; padding: 4px 9px; }
+.wc-view { position: absolute; top: 8px; right: 8px; z-index: 8; display: flex; border-radius: 99px; overflow: hidden;
+  border: 2px solid #3d4a58; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
+.wc-view button { border: 0; background: #fff; color: #3d4a58; font: inherit; font-weight: 800; font-size: 0.85rem; padding: 6px 10px; cursor: pointer; }
+.wc-view button.on { background: #3d4a58; color: #fff; }
+.wc-flat { position: absolute; inset: 0; z-index: 7; background: #f4f9ff; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 44px 6px 6px; }
+.wc-flat[hidden] { display: none; }
+.wc-flat svg { width: 100%; height: 100%; max-width: 720px; }
+.wc-flat svg text { font-family: system-ui, "Segoe UI", Roboto, Arial, sans-serif; }
 `;
 function injectCss() {
   if (document.getElementById('wc-style')) return;
@@ -920,6 +928,58 @@ export function mount(container, { onComplete }) {
     onSelect: (id) => menuHandler && menuHandler(id),
   });
 
+  // ---------- превключвател „3D / Плоска схема“ ----------
+  // Плоската схема показва кръговрата като рисунка с подписани стрелки (програмата: „описва по схема“).
+  const FLAT_SVG = `<svg viewBox="0 0 360 340" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Плоска схема на кръговрата на водата">
+    <defs><marker id="wc-arr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#e65100"/></marker>
+      <marker id="wc-arr-b" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#1565c0"/></marker></defs>
+    <rect x="0" y="0" width="360" height="232" fill="#dcefff"/>
+    <rect x="0" y="236" width="360" height="104" fill="#c49a6c"/>
+    <rect x="150" y="226" width="210" height="14" fill="#7cb342"/>
+    <polygon points="196,232 290,112 360,214 360,232" fill="#8d9ba8"/>
+    <polygon points="290,112 274,133 284,129 292,136 300,128 307,134" fill="#ffffff"/>
+    <rect x="0" y="222" width="168" height="52" fill="#3a86c8"/>
+    <text x="18" y="256" font-size="15" font-weight="800" fill="#ffffff">Море</text>
+    <circle cx="38" cy="40" r="21" fill="#ffca28"/>
+    <text x="38" y="78" font-size="13" font-weight="700" fill="#5d4037" text-anchor="middle">Слънце</text>
+    <g fill="#ffffff" stroke="#9fb3c8" stroke-width="1.5"><ellipse cx="232" cy="62" rx="30" ry="17"/><ellipse cx="258" cy="54" rx="24" ry="17"/><ellipse cx="270" cy="68" rx="24" ry="14"/><ellipse cx="240" cy="72" rx="32" ry="12" stroke="none"/></g>
+    <g fill="#90caf9">${[[96, 205], [88, 185], [102, 165], [94, 145], [108, 125]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3"/>`).join('')}</g>
+    <g stroke="#1e88e5" stroke-width="2.5" stroke-linecap="round">${[[236, 92], [252, 98], [268, 92], [244, 112], [262, 116]].map(([x, y]) => `<line x1="${x}" y1="${y}" x2="${x - 3}" y2="${y + 9}"/>`).join('')}</g>
+    <path d="M262 228 C 235 236, 205 226, 172 234" stroke="#4fa3e0" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <g fill="none" stroke="#e65100" stroke-width="3.5" stroke-linecap="round">
+      <path d="M78 214 C 64 180, 84 160, 74 132 S 96 100, 118 92" marker-end="url(#wc-arr)"/>
+      <path d="M134 84 C 156 70, 176 62, 194 62" marker-end="url(#wc-arr)"/>
+      <path d="M286 92 C 298 116, 300 140, 296 166" marker-end="url(#wc-arr)"/>
+      <path d="M244 214 C 222 220, 200 222, 178 222" marker-end="url(#wc-arr)"/>
+    </g>
+    <path d="M340 300 C 280 304, 220 300, 176 284" stroke="#1565c0" stroke-width="3.5" stroke-dasharray="7 5" fill="none" marker-end="url(#wc-arr-b)"/>
+    <g font-size="14" font-weight="800">
+      <rect x="104" y="166" width="104" height="24" rx="6" fill="#fff3e0" stroke="#e65100"/><text x="112" y="183" fill="#bf360c">1. Изпарение</text>
+      <rect x="72" y="8" width="120" height="42" rx="6" fill="#fff3e0" stroke="#e65100"/><text x="80" y="25" fill="#bf360c">2. Втечняване</text><text x="80" y="43" fill="#bf360c" font-size="13">(облак)</text>
+      <rect x="300" y="92" width="56" height="42" rx="6" fill="#fff3e0" stroke="#e65100"/><text x="306" y="109" fill="#bf360c">3.</text><text x="306" y="127" fill="#bf360c">Валеж</text>
+      <rect x="196" y="244" width="160" height="24" rx="6" fill="#fff3e0" stroke="#e65100"/><text x="204" y="261" fill="#bf360c">4. Оттичане — реки</text>
+      <rect x="196" y="308" width="140" height="24" rx="6" fill="#e3f2fd" stroke="#1565c0"/><text x="204" y="325" fill="#0d47a1">4. Подземни води</text>
+    </g>
+  </svg>`;
+  const viewSw = document.createElement('div');
+  viewSw.className = 'wc-view';
+  viewSw.innerHTML = '<button type="button" data-v="3d" class="on">🧊 3D</button><button type="button" data-v="flat">🗺 Плоска схема</button>';
+  const flat = document.createElement('div');
+  flat.className = 'wc-flat';
+  flat.hidden = true;
+  flat.innerHTML = FLAT_SVG;
+  shell.stageEl.append(flat, viewSw);
+  function setFlat(on) {
+    flat.hidden = !on;
+    viewSw.querySelectorAll('button').forEach((b) => b.classList.toggle('on', (b.dataset.v === 'flat') === on));
+  }
+  viewSw.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) setFlat(b.dataset.v === 'flat'); });
+  // Кликовете и влаченето върху схемата не стигат до 3D сцената.
+  for (const ev of ['pointerdown', 'pointerup', 'click', 'wheel', 'touchstart']) {
+    flat.addEventListener(ev, (e) => e.stopPropagation());
+    viewSw.addEventListener(ev, (e) => e.stopPropagation());
+  }
+
   const narrow = () => (shell.stageEl.clientWidth || 600) < 560;
   function overview(dur = 1.1) {
     stage.stopFollow();
@@ -955,6 +1015,7 @@ export function mount(container, { onComplete }) {
   // ---------- 1. Опознай ----------
   function step1() {
     shell.step(0);
+    setFlat(false);
     clearTip();
     showPlaceLabels(true);
     menu.show(true);
@@ -1239,7 +1300,8 @@ export function mount(container, { onComplete }) {
     overview();
     const drawTask = () => {
       shell.task(`<p>Водата прави кръг. <b>Кликни етапите по ред</b>, като започнеш от морето.</p>
-        <p>Редът: <b>${done.length ? done.map((id) => esc(STAGES.find((s) => s.id === id).label)).join(' → ') : '—'}</b></p>`);
+        <p>Редът: <b>${done.length ? done.map((id) => esc(STAGES.find((s) => s.id === id).label)).join(' → ') : '—'}</b></p>
+        <p class="small">Бутонът „🗺 Плоска схема“ горе вдясно показва кръговрата като рисунка. С „🧊 3D“ се връщаш в макета.</p>`);
       shell.score(`Подредени: ${done.length} от ${STAGES.length} · грешки: ${mistakes}`);
     };
     drawTask();
