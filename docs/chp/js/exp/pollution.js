@@ -1227,7 +1227,7 @@ function build(container, { onComplete }, restart) {
     const view4 = () => fitView([(zx[0] + zx[1]) / 2, 0.4, ZZ - 0.2], camera.aspect < 1 ? 3.0 : 3.4, 1.9, 0.8);
     view4();
     const upd = () => shell.score(`Подредени: ${cur} от ${items.length} · грешки: ${mistakes}`);
-    shell.task(`<p>Какво правят хората всеки ден? Кое <b>опазва</b> природата и кое я <b>замърсява</b>?</p>
+    shell.task(`<p class="small"><b>🔁 Припомни от 3. клас</b></p><p>Какво правят хората всеки ден? Кое <b>опазва</b> природата и кое я <b>замърсява</b>?</p>
       <p><b>Влачи</b> всяко действие в правилния кръг.</p>`);
     shell.setControls('');
     const show = () => {
@@ -1267,9 +1267,45 @@ function build(container, { onComplete }, restart) {
         cur++;
         if (cur < items.length) { show(); return; }
         upd();
-        predict();
+        soil();
       },
     });
+    // Ново за 4. клас: кое замърсява почвата.
+    const SOIL = [
+      { t: 'Твърде много торове на нивата', bad: true, say: 'Излишните торове замърсяват почвата, а с дъжда и водата.' },
+      { t: 'Разлято масло или нафта', bad: true, say: 'Маслото и нафтата попиват в земята и я тровят.' },
+      { t: 'Стари батерии в общия боклук', bad: true, say: 'Батериите съдържат вредни вещества. На сметището те попиват в почвата.' },
+      { t: 'Компост от окапали листа', bad: false, say: 'Компостът храни почвата, без да я трови.' },
+      { t: 'Батерии в специалната кутия', bad: false, say: 'Така батериите не стигат до почвата.' },
+      { t: 'Дървета, засадени по склона', bad: false, say: 'Корените на дърветата задържат почвата.' },
+    ];
+    async function soil() {
+      await wait(1.0);
+      clearTip();
+      shell.msg('');
+      let found = 0;
+      const sc = () => shell.score(`Намерени: ${found} от 3 · грешки: ${mistakes}`);
+      sc();
+      shell.task(`<p><b>🆕 Ново: почвата.</b> Кое от тези <b>замърсява почвата</b>? Избери всички — те са 3.</p>
+        <div class="choices pollution-soil">${shuffle(SOIL.map((x, i) => i)).map((i) => `<button class="choice" data-i="${i}">${esc(SOIL[i].t)}</button>`).join('')}</div>`);
+      shell.setControls('');
+      container.querySelectorAll('.pollution-soil .choice').forEach((b) => b.addEventListener('click', () => {
+        if (b.disabled) return;
+        const S = SOIL[+b.dataset.i];
+        b.disabled = true;
+        if (!S.bad) { mistakes++; b.classList.add('wrong'); shell.msg(`Това пази почвата. ${S.say}`, 'bad'); sc(); return; }
+        b.classList.add('right');
+        found++;
+        sc();
+        shell.msg(`Вярно! ${S.say}`, 'good');
+        if (found === 3) {
+          container.querySelectorAll('.pollution-soil .choice').forEach((x) => { x.disabled = true; });
+          shell.msg('Браво! Почвата пазим, когато торим умерено, не разливаме масла и предаваме батериите в специални кутии.', 'good');
+          const c = shell.setControls('<button class="btn primary">Напред →</button>');
+          c.querySelector('button').addEventListener('click', () => { shell.msg(''); predict(); });
+        }
+      }));
+    }
     async function predict() {
       await wait(1.0);
       clearTip();
