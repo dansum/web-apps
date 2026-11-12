@@ -206,7 +206,7 @@ export function mount(container, { onComplete }) {
       c.querySelector('.adds').addEventListener('click', () => {
         c.querySelector('.adds').disabled = true;
         setModel('salty', 'смес: вода + сол');
-        ctx.say(boxG, 'Сега частиците са от <b>два вида</b>: това е <b>смес</b>. Солената вода изглежда еднаква навсякъде, но е смес.', 'wide', 1.4);
+        ctx.say(boxG, 'Сега частиците са от <b>два вида</b>: това е <b>смес</b>. Солената вода изглежда еднаква навсякъде, но е смес. Тук солта е показана опростено.', 'wide', 1.4);
         nextBtn(ctx, 'Разпознай моделите →', sortModels);
       }, { once: true });
     }
