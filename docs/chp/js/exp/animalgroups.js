@@ -1,5 +1,6 @@
 // 4.3.3 „Групи животни“ — 3D природонаучен музей със зоопарк: голям аквариум, терариум и открит двор с езерце.
-// Стъпки: опознай → рентген: гръбначни и безгръбначни → подреди по групи → вода и суша, предскажи.
+// Стъпки: опознай → рентген: гръбначни и безгръбначни → подреди по групи → вода и суша („Припомни от 3. клас“),
+// колко групи животни живеят в езерото, предскажи.
 import { createStage, labelSprite, mat, zoneRing, addHitBox, cornerMenu, THREE, esc } from '../kit.js';
 import { createShell, stepScore } from './shell.js';
 
@@ -933,7 +934,7 @@ export function mount(container, { onComplete }) {
   style.textContent = CSS;
   document.head.appendChild(style);
 
-  const STEPS = ['Опознай музея', 'Гръбначни и безгръбначни', 'Подреди по групи', 'Вода и суша'];
+  const STEPS = ['Опознай музея', 'Гръбначни и безгръбначни', 'Подреди по групи', 'Вода, суша и езеро'];
   const shell = createShell(container, { steps: STEPS });
   const BG = new THREE.Color(0xcfe6f7);
   const stage = createStage(shell.stageEl, {
@@ -1554,7 +1555,7 @@ export function mount(container, { onComplete }) {
     let placed = 0;
     const tries = new Map();
     const used = { water: 0, land: 0 };
-    shell.task(`<p>Живи същества има навсякъде — и във водата, и на сушата.</p>
+    shell.task(`<p class="small"><b>🔁 Припомни от 3. клас</b></p><p>Живи същества има навсякъде — и във водата, и на сушата.</p>
       <p><b>Провлачи всяко растение и животно</b> там, където живее: във <b>водата</b> или на <b>сушата</b>.</p>`);
     shell.setControls('');
     const upd = () => shell.score(`Подредени: ${placed} от ${H_IDS.length} · грешки: ${mistakes}`);
@@ -1613,10 +1614,86 @@ export function mount(container, { onComplete }) {
           stopDrag(); stopDrag = null;
           shell.msg('Браво! И във водата, и на сушата живеят много различни растения и животни. Това е видовото разнообразие.', 'good');
           const c = shell.setControls('<button class="btn primary">Напред →</button>');
-          c.querySelector('button').addEventListener('click', () => { shell.msg(''); questions(); });
+          c.querySelector('button').addEventListener('click', () => { shell.msg(''); pondTask(); });
         }
       },
     });
+
+    // Разнообразие: колко различни групи животни живеят в езерото и около него?
+    const POND = [['carp', 0.15, 0.2], ['lily', -0.45, -0.15], ['seaweed', 0.55, -0.3], ['frog', -0.95, 0.55], ['turtle', 1.0, 0.5], ['stork', -1.05, -0.75]];
+    const show = (g, a) => {
+      const what = a.plant ? (a.id === 'seaweed' ? 'не са животни' : 'растение, не е животно') : ONE[a.group];
+      say(g, `${a.icon} <b>${esc(a.label)}</b> — ${esc(what)}`, 'tag', 1.2);
+    };
+    function pondTask() {
+      clearTip(); clearSort();
+      const narrow = isNarrow();
+      const RX = narrow ? 1.9 : 3.0;
+      const RZ = narrow ? 1.5 : 1.45;
+      const ZC = -1.6;
+      const grass = new THREE.Mesh(new THREE.CircleGeometry(1, 40), mat(0x7cb342));
+      grass.rotation.x = -Math.PI / 2;
+      grass.scale.set(RX * 1.45, RZ * 1.55, 1);
+      grass.position.set(0, 0.01, ZC);
+      const water = new THREE.Mesh(new THREE.CircleGeometry(1, 40), new THREE.MeshStandardMaterial({ color: 0x4f9fd6, roughness: 0.15 }));
+      water.rotation.x = -Math.PI / 2;
+      water.scale.set(RX, RZ, 1);
+      water.position.set(0, 0.03, ZC);
+      sortWorld.add(grass, water);
+      const seen = new Set();
+      for (const [id, fx, fz] of POND) {
+        const g = makeToken(A[id], 0.85, 'p-');
+        g.remove(g.userData.puck);
+        g.userData.locked = true;
+        g.position.set(fx * RX, 0, ZC + fz * RZ);
+      }
+      shell.task(`<p><b>Езерото.</b> В езерото и около него живеят много различни организми.</p>
+        <p><b>Кликни всеки организъм</b> и виж какъв е.</p>`);
+      shell.setControls('');
+      const upd = () => shell.score(`Разгледани: ${seen.size} от ${POND.length} · грешки: ${mistakes}`);
+      upd();
+      clickHandler = (id, hit) => {
+        if (!hit || !hit.root.userData.a) return clearTip();
+        const a = hit.root.userData.a;
+        show(hit.root, a);
+        if (seen.has(a.id)) return;
+        seen.add(a.id);
+        upd();
+        if (seen.size === POND.length) ask();
+      };
+      function ask() {
+        clickHandler = (id, hit) => {
+          if (!hit || !hit.root.userData.a) return clearTip();
+          show(hit.root, hit.root.userData.a);
+        };
+        const opts = ['4', '6', '3'];
+        const bad = {
+          6: 'Водната лилия и водораслите не са животни. Брой само групите животни.',
+          3: 'Кликни пак животните и провери групата на всяко.',
+        };
+        const wrap = document.createElement('div');
+        wrap.className = 'animalgroups-q';
+        wrap.innerHTML = `<p><b>Колко различни групи животни живеят в езерото и около него?</b></p><div class="choices">${opts.slice().sort(() => Math.random() - 0.5).map((o) => `<button class="choice" data-v="${o}">${o}</button>`).join('')}</div>`;
+        container.querySelector('.xp-task').appendChild(wrap);
+        wrap.querySelectorAll('.choice').forEach((b) => b.addEventListener('click', () => {
+          if (b.disabled) return;
+          if (b.dataset.v !== '4') {
+            mistakes++;
+            upd();
+            b.classList.add('wrong');
+            b.disabled = true;
+            shell.msg(bad[b.dataset.v], 'bad');
+            return;
+          }
+          b.classList.add('right');
+          wrap.querySelectorAll('.choice').forEach((x) => { x.disabled = true; });
+          shell.msg('Вярно! Риби, земноводни, влечуги и птици — 4 групи животни около едно езеро. Там растат и растения. Това е разнообразието на живота.', 'good');
+          const c = shell.setControls('<button class="btn primary">Напред →</button>');
+          c.querySelector('button').addEventListener('click', () => { clickHandler = null; clearTip(); shell.msg(''); questions(); });
+        }));
+        wrap.scrollIntoView({ block: 'nearest' });
+      }
+    }
 
     function questions() {
       clearTip();
@@ -1674,7 +1751,7 @@ export function mount(container, { onComplete }) {
       wrap.scrollIntoView({ block: 'nearest' });
     }
     function finishAll() {
-      scores.push(stepScore(mistakes, 3));
+      scores.push(stepScore(mistakes, 4));
       const btn = shell.setControls('<button class="btn primary">Виж резултата</button>').querySelector('button');
       btn.addEventListener('click', () => {
         clearTip();
