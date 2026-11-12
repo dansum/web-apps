@@ -332,7 +332,7 @@ export function mount(container, { onComplete }) {
     S.spin = true; S.skyRot = ROT0;
     umaLines.visible = true; umaLbl.visible = true; umiLines.visible = false; umiLbl.visible = false; pointer.visible = false;
     view(ctx, [0, 4.3, SKYZ], 5.6, { halfH: 4.5, elev: 0.02 });
-    shell.task('<p>Ясна нощ, гледаме на <b>север</b>. Свързани с линии са седемте ярки звезди на <b>Голямата мечка</b> (наричат я и Голямата кола).</p><p><b>Намери Полярната звезда:</b> продължи линията през двете крайни звезди на „кофата“ около 5 пъти и кликни звездата.</p>');
+    shell.task('<p>Ясна нощ, гледаме на <b>север</b>. Свързани с линии са седемте ярки звезди от съзвездието <b>Голямата мечка</b>. Те образуват <b>Голямата кола</b>.</p><p><b>Намери Полярната звезда:</b> продължи линията през двете крайни звезди на „кофата“ около 5 пъти и кликни звездата.</p>');
     shell.setControls('<div class="row"><button class="btn tip">💡 Покажи линията</button></div>').querySelector('.tip').addEventListener('click', () => { pointer.visible = true; }, { once: true });
     let mistakes = 0;
     ctx.click = (id) => {
