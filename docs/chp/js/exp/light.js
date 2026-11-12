@@ -979,7 +979,7 @@ function build(container, { onComplete }, restart) {
         setup: () => { setLamp(false); blindsTo = 0; VIEWS.sun(); },
         after: async () => { blindsTo = 1; await wait(0.8); say(ANCH.sun[0], 'Виж! Слънчевият лъч е права светла ивица от прозореца до масата.', 'wide', 0.2); } },
       { q: 'По обед слънцето е високо и сенките са къси. Вечер слънцето е ниско. Каква ще бъде сянката на мечето, ако свалим лампата ниско?',
-        a: ['По-дълга.', 'По-къса.', 'Същата.'], right: 0, predict: true,
+        a: ['По-дълга.', 'По-къса.', 'Същата.'], right: 0, predict: true, free: true, // сенките са от 5. клас — без точки
         explain: 'Когато светлината идва ниско, мечето спира лъчите по-дълго разстояние зад себе си — сянката се издължава. Затова вечер сенките са дълги.',
         setup: async () => {
           blindsTo = 0; setTorch(false); screenB.visible = false; screenShadowOn = false; tableShadowOn = true;
@@ -998,7 +998,7 @@ function build(container, { onComplete }, restart) {
       clearTip();
       shell.msg('');
       shell.score('');
-      shell.task(`<p>${Q.predict ? 'Предскажи' : 'Приложи наученото'} (${qi + 1} от ${QS.length}).</p><div class="light-p"></div>`);
+      shell.task(`<p>${Q.predict ? 'Предскажи' : 'Приложи наученото'} (${qi + 1} от ${QS.length}).</p>${Q.free ? '<p class="small">Това е упражнение за любопитни — не носи точки.</p>' : ''}<div class="light-p"></div>`);
       shell.setControls('');
       await Q.setup();
       const bx = container.querySelector('.light-p');
@@ -1007,7 +1007,7 @@ function build(container, { onComplete }, restart) {
         const i = +b.dataset.i;
         bx.querySelectorAll('.choice').forEach((x) => { x.disabled = true; });
         const ok = i === Q.right;
-        if (ok) good++;
+        if (ok && !Q.free) good++;
         b.classList.add(ok ? 'right' : 'wrong');
         if (!ok) bx.querySelector(`.choice[data-i="${Q.right}"]`).classList.add('right');
         shell.msg((ok ? 'Вярно! ' : 'Не е така. ') + Q.explain, ok ? 'good' : 'bad');
@@ -1020,7 +1020,7 @@ function build(container, { onComplete }, restart) {
         c.querySelector('button').addEventListener('click', () => {
           if (!last) { ask(); return; }
           clearTip();
-          scores.push(good / QS.length);
+          scores.push(good / QS.filter((q) => !q.free).length);
           const ratio = scores.reduce((x, y) => x + y, 0) / scores.length;
           shell.finish(ratio, onComplete, restart);
         });
