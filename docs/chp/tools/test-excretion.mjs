@@ -16,7 +16,7 @@ await t.btn('.sun'); await wait(3400); await t.shot('2a');
 await t.btn('.fall'); await wait(3000); await t.shot('2b');
 await t.choose(0); await t.next();
 // 3. Бозайникът
-await wait(500); await t.shot('3'); await sortAll(t); await orderAll(t, 5); await t.next();
+await wait(500); await t.shot('3'); await sortAll(t); await orderAll(t, 6); await t.next();
 // 4. Ако отделянето спре
 await t.choose(0); await t.btn('.stop'); await wait(3800); await t.shot('4');
 await t.btn('.back'); await t.choose(0); await t.next();

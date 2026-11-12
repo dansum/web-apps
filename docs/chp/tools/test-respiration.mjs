@@ -17,7 +17,7 @@ await t.choose(0); await t.next();
 // 3. Органи
 await wait(500); await t.shot('3'); await sortAll(t); await t.next();
 // 4. Пътят на кислорода
-await wait(800); await orderAll(t, 6); await wait(500); await t.shot('4');
+await wait(800); await orderAll(t, 8); await wait(500); await t.shot('4');
 await t.choose(0); await t.choose(0); await t.next();
 await t.shot('5');
 await t.done((0.75 + 1 + 1) / 3);

@@ -201,7 +201,7 @@ export function mount(container, { onComplete }) {
       c.querySelector('.addw').addEventListener('click', () => {
         c.querySelector('.addw').disabled = true; c.querySelector('.adds').disabled = false;
         setModel('water', 'чисто вещество: вода');
-        ctx.say(boxG, 'Всички частици са еднакви: това е <b>чисто вещество</b>.', 'wide', 1.4);
+        ctx.say(boxG, 'Всички частици са еднакви: това е <b>чисто вещество</b>. Тук всяка частица вода е едно кълбо. Всъщност тя е от три атома: два водорода и един кислород.', 'wide', 1.4);
       }, { once: true });
       c.querySelector('.adds').addEventListener('click', () => {
         c.querySelector('.adds').disabled = true;
@@ -219,7 +219,7 @@ export function mount(container, { onComplete }) {
         items: [
           { t: 'Модел А', bin: 0, show: show('m1'), why: 'Чисто вещество: всички частици са еднакви.' },
           { t: 'Модел Б', bin: 1, show: show('m2'), why: 'Смес: два вида частици.' },
-          { t: 'Модел В', bin: 0, show: show('m3'), why: 'Чисто вещество: всяка частица е от два атома, но всички частици са <b>еднакви</b>. Такова е водата.'.replace(/<\/?b>/g, ''), no: 'Погледни внимателно: има ли различни частици, или всички са еднакви?' },
+          { t: 'Модел В', bin: 0, show: show('m3'), why: 'Чисто вещество: всяка частица е от два атома, но всички частици са <b>еднакви</b>.'.replace(/<\/?b>/g, ''), no: 'Погледни внимателно: има ли различни частици, или всички са еднакви?' },
           { t: 'Модел Г', bin: 1, show: show('m4'), why: 'Смес: три вида частици.' },
           { t: 'Модел Д', bin: 0, show: show('m5'), why: 'Чисто вещество: еднакви частици, подредени плътно — като в твърд метал.' },
           { t: 'Модел Е (въздух)', bin: 1, show: show('m6'), why: 'Смес: във въздуха има частици на азот и на кислород (и малко други газове).', no: 'Всички частици ли са еднакви? Виж цветовете.' },
@@ -295,7 +295,7 @@ export function mount(container, { onComplete }) {
     setModel('cu', 'модел: мед');
     view(ctx, [-2.6, 0.5, 0.8], 2.6, { halfH: 1.1, elev: 0.6 });
     circuit.visible = true; magnet.visible = true; magnet.position.set(-4.0, 0.9, 0.0);
-    shell.task('<p>Изследвай <b>медната жица</b>. Направи и трите опита.</p>');
+    shell.task('<p><b>Физични свойства</b> са цвят, блясък, твърдост, провеждане на ток и топлина. Наблюдаваме ги, без веществото да се превръща в друго.</p><p>Изследвай <b>медната жица</b>. Направи и трите опита.</p>');
     let mistakes = 0;
     const done = new Set();
     const c = shell.setControls('<div class="row"><button class="btn tmag">🧲 Магнит</button><button class="btn tcur">💡 Включи във веригата</button><button class="btn tbend">✋ Огъни</button></div>');
