@@ -1410,7 +1410,8 @@ export function mount(container, { onComplete }) {
     setMonths(1);
     stage.stopFollow();
     stage.flyTo([-0.6, 2.6, fit(5.6)], [-1.0, 2.1, -1.2], 1.2);
-    shell.task(`<p>Всеки човек някога е бил бебе. Преди да се роди, бебето расте в <b>матката</b> на майка си. Матката е специален орган при жената. Тя не е стомахът.</p>
+    shell.task(`<p class="small"><b>ℹ️ Тази тема още се обработва, защото е чувствителна. Учителят ще я обсъди с вас.</b></p>
+      <p>Всеки човек започва живота си от две клетки — една от майката и една от бащата. Преди да се роди, бебето расте в <b>матката</b> на майка си. Матката е специален орган при жената. Тя не е стомахът. След раждането детето расте и се развива.</p>
       <p><b>Плъзни „Месеци“ надясно и виж как расте бебето.</b></p>
       <label class="organs4-slider">Месеци: <span class="organs4-val">1</span><input type="range" class="organs4-months" min="1" max="9" step="1" value="1"></label>`);
     shell.setControls('');
@@ -1430,8 +1431,13 @@ export function mount(container, { onComplete }) {
           { v: 'ok', t: 'Около 9 месеца' }, { v: 'd', t: 'Около 3 месеца' }, { v: 'y', t: 'Около 1 година' }],
         'Точно така! Бебето расте в матката около 9 месеца.',
         'Не съвсем. Погледни плъзгача: колко месеца отброи?', () => {
-          const c = shell.setControls('<button class="btn primary">Напред: растем →</button>');
-          c.querySelector('button').addEventListener('click', growPart);
+          askQ('cells', 'С какво започва животът на всеки човек?', [
+            { v: 'ok', t: 'С две клетки — една от майката и една от бащата' }, { v: 'm', t: 'С една клетка само от майката' }, { v: 'e', t: 'С яйце, което майката мъти в гнездо' }],
+          'Точно така! Новият човек започва от две клетки — от майката и от бащата.',
+          'Не съвсем. Прочети пак началото на задачата.', () => {
+            const c = shell.setControls('<button class="btn primary">Напред: растем →</button>');
+            c.querySelector('button').addEventListener('click', growPart);
+          });
         });
       }
     });
@@ -1545,7 +1551,7 @@ export function mount(container, { onComplete }) {
     }
   }
   function finish4() {
-    scores.push(q4 / 4);
+    scores.push(q4 / 5);
     const c = shell.setControls('<button class="btn primary">Виж резултата</button>');
     c.querySelector('button').addEventListener('click', () => {
       clearTip();
