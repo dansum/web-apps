@@ -221,7 +221,7 @@ export function mount(container, { onComplete }) {
     shell.step(1);
     sceneA();
     view(ctx, [0, 0, 0], 9, { halfH: 4.5, elev: 0.55 });
-    shell.task('<p>Земята обикаля около Слънцето, а оста ѝ е наклонена. През лятото в България е топло, а през зимата — студено.</p>');
+    shell.task('<p>Земята обикаля около Слънцето, а оста ѝ е наклонена. През лятото в България е топло, а през зимата — студено.</p><p class="small"><b>Полукълбо</b> е половината от Земята. Екваторът я дели на Северно и Южно полукълбо. България е в Северното.</p>');
     let mistakes = 0;
     let readout = null;
     choice(ctx, {
@@ -239,13 +239,14 @@ export function mount(container, { onComplete }) {
       ctx.answer = T.d;
       shell.task(`<p><b>Премести Земята на ${T.name}</b> с плъзгача и натисни „Провери“.</p>
         <label class="small">Дата: <b class="dv">${dateOf(SA.day)}</b>
-        <input class="slider dd" type="range" min="1" max="365" step="1" value="${SA.day}"></label>`);
+        <input class="slider dd" type="range" min="1" max="365" step="1" value="${SA.day}"></label>
+        <p class="small">Градусите (°) тук не са температура. Те показват колко високо над хоризонта е Слънцето.</p>`);
       const sl = container.querySelector('.dd'); const dv = container.querySelector('.dv');
       if (!readout) readout = stage.bubble(EA.g, '', { cls: 'tag', lift: 1.3 });
       const upd = () => {
         SA.day = +sl.value; placeA(); dv.textContent = dateOf(SA.day);
         const s = sky(SA.day);
-        readout.set(`📅 ${dateOf(SA.day)} · в България по обед Слънцето е на ${Math.round(s.alt)}° · денят е ≈ ${Math.round(s.hours)} ч`);
+        readout.set(`📅 ${dateOf(SA.day)} · в България по обед Слънцето е на ${Math.round(s.alt)}° над хоризонта · денят е ≈ ${Math.round(s.hours)} ч`);
       };
       sl.addEventListener('input', upd); upd();
       const c = shell.setControls('<div class="row"><button class="btn primary chk">Провери</button></div>');
@@ -254,10 +255,10 @@ export function mount(container, { onComplete }) {
           c.querySelector('.chk').disabled = true; sl.disabled = true;
           const s = sky(SA.day);
           if (which === 'june') {
-            ctx.say(sunG, `21 юни: Северното полукълбо е <b>наклонено към Слънцето</b>. Лъчите падат по-отвесно (${Math.round(s.alt)}°), а денят е дълъг (≈ ${Math.round(s.hours)} ч). В България е <b>лято</b>.`, 'wide', 1.7);
+            ctx.say(sunG, `21 юни: Северното полукълбо е <b>наклонено към Слънцето</b>. Лъчите падат по-отвесно (Слънцето е на ${Math.round(s.alt)}° над хоризонта), а денят е дълъг (≈ ${Math.round(s.hours)} ч). В България е <b>лято</b>.`, 'wide', 1.7);
             nextBtn(ctx, 'Сега зима →', () => { ctx.clearTip(); move('dec'); });
           } else {
-            ctx.say(sunG, `21 декември: Северното полукълбо е <b>наклонено обратно</b>. Лъчите падат полегато (${Math.round(s.alt)}°) и денят е кратък (≈ ${Math.round(s.hours)} ч). В България е <b>зима</b>, а в Австралия — лято.`, 'wide', 1.7);
+            ctx.say(sunG, `21 декември: Северното полукълбо е <b>наклонено обратно</b>. Лъчите падат полегато (Слънцето е само на ${Math.round(s.alt)}° над хоризонта) и денят е кратък (≈ ${Math.round(s.hours)} ч). В България е <b>зима</b>, а в Австралия — лято.`, 'wide', 1.7);
             ctx.answer = null;
             ctx.scores[0] = stepScore(mistakes, 3);
             nextBtn(ctx, 'Напред →', () => { readout.remove(); readout = null; step3(); });
