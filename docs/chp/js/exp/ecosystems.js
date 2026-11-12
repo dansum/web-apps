@@ -1,5 +1,6 @@
 // 4.3.4 „Съобщества и равновесие в природата“ — естествена гора с ливада и езеро до нива, овощна градина и парк, създадени от хората.
-// Стъпки: опознай → естествено или изкуствено (+ хранителна верига и „ако изчезнат лисиците“) → приспособления (пустиня, полярни ледове, вода) → равновесие (вреди и мерки + предсказване).
+// Стъпки: опознай → естествено или изкуствено (+ хранителни вериги в гората, езерото и нивата, наблюдение: брой видове)
+// → приспособления (пустиня, полярни ледове, вода) → равновесие (вреди и мерки + предсказване).
 import { createStage, labelSprite, mat, addHitBox, cornerMenu, THREE, esc, shuffle } from '../kit.js';
 import { createShell, stepScore } from './shell.js';
 
@@ -27,6 +28,8 @@ function injectStyle() {
   .ecosystems-tally span { font-size:.78rem; border-radius:99px; padding:2px 8px; font-weight:700; color:#fff; }
   .ecosystems-tally .n { background:#2f8f46; } .ecosystems-tally .a { background:#d9822b; }
   .ecosystems-chain { font-size:1.05rem; font-weight:800; margin-top:4px; }
+  .ecosystems-obs { width:100%; border-collapse:collapse; margin:6px 0 2px; font-size:.86rem; }
+  .ecosystems-obs td { border:1px solid #cfd8e3; padding:4px 6px; vertical-align:top; } .ecosystems-obs td.n { text-align:center; font-weight:800; width:3em; }
   @media (max-width:520px) { .ecosystems-hud { min-width:120px; font-size:.72rem; padding:4px 8px; } }
   `;
   document.head.appendChild(s);
@@ -102,6 +105,17 @@ const ORGS = [
     done: 'Между пръстите на патицата има ципи. С тях тя гребе като с весла. Перата ѝ са намазани с мазнина и не се мокрят.' },
 ];
 const ORG = Object.fromEntries(ORGS.map((o) => [o.id, o]));
+// Хранителна верига в изкуствено съобщество — нивата.
+const FIELD_CHAIN = [
+  { t: 'Пшеница', d: 'Пшеницата е растение. Тя сама си прави храна.' },
+  { t: 'Мишка', d: 'Мишката яде зърната на пшеницата.' },
+  { t: 'Сова', d: 'Совата лови мишки.' },
+];
+// Наблюдение: видове, които учениците са видели в гората и в нивата.
+const OBSERVED = {
+  forest: ['дъб', 'бук', 'папрат', 'горска ягода', 'сърна', 'лисица', 'катерица', 'кълвач'],
+  field: ['пшеница', 'мишка', 'сова'],
+};
 
 // Вреди и мерки (стъпка 4).
 const HARMS = [
@@ -1766,9 +1780,102 @@ function build(container, { onComplete }, restart) {
       () => {
         shell.msg('Вярно! Без риби водните бълхи може да се намножат. А чаплите може да останат без храна. Така се нарушава равновесието.', 'good');
         shell.score(`Грешки: ${mistakes}`);
+        shell.controls.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary">Верига в нивата →</button></div>');
+        shell.controls.querySelector('.btn.primary').addEventListener('click', () => {
+          clearTip();
+          shell.msg('');
+          fieldChain(mistakes);
+        });
+      },
+      () => { mistakes++; shell.score(`Грешки: ${mistakes}`); });
+    }
+  }
+
+  // Верига в изкуственото съобщество: пшеница → мишка → сова.
+  function fieldChain(m0) {
+    let mistakes = m0;
+    VIEW.field();
+    const seq = [];
+    let wrongRow = 0;
+    const order = [2, 0, 1];
+    const draw = () => {
+      shell.task(`<p><b>Верига в нивата.</b> Нивата е изкуствено съобщество. И в нея живите същества са свързани чрез храната си.</p>
+        <p><b>Подреди веригата:</b> кликни първо върху това, което само си прави храна, а после — кой кого яде.</p>
+        <p class="ecosystems-chain">${seq.length ? seq.map((i) => esc(FIELD_CHAIN[i].t)).join(' → ') : '…'}</p>`);
+      shell.score(`Грешки: ${mistakes}`);
+    };
+    draw();
+    const box = shell.setControls(`<div class="choices ecosystems-four">${order.map((i) => `<button class="choice" data-o="${i}">${esc(FIELD_CHAIN[i].t)}</button>`).join('')}</div>`);
+    box.querySelectorAll('.choice').forEach((b) => b.addEventListener('click', () => {
+      const i = +b.dataset.o;
+      if (i !== seq.length) {
+        mistakes++; wrongRow++;
+        const why = !seq.length ? 'Веригата започва от растение. То само си прави храна.' : `Кой яде ${FIELD_CHAIN[seq.length - 1].t === 'Пшеница' ? 'зърната на пшеницата' : 'мишки'}?`;
+        shell.msg(why + (wrongRow >= 2 ? ' Подсказка: мишката яде зърна, а совата лови мишки.' : ''), 'bad');
+        draw();
+        return;
+      }
+      wrongRow = 0;
+      seq.push(i);
+      b.disabled = true;
+      b.classList.add('right');
+      shell.msg(`✓ ${FIELD_CHAIN[i].d}`, 'good');
+      draw();
+      if (seq.length === FIELD_CHAIN.length) {
+        wait(0.8).then(() => {
+          shell.msg('Вярно! Пшеница → мишка → сова.', 'good');
+          shell.setControls('<button class="btn primary">Наблюдение →</button>').querySelector('button').addEventListener('click', () => { shell.msg(''); observe(mistakes); });
+        });
+      }
+    }));
+  }
+
+  // Наблюдение: колко вида живеят в гората и колко в нивата.
+  function observe(m0) {
+    let mistakes = m0;
+    const count = { forest: null, field: null };
+    const shown = { forest: [], field: [] };
+    let busy = false;
+    const row = (k, name) => `<tr><td><b>${name}:</b> ${shown[k].length ? esc(shown[k].join(', ')) : '…'}</td><td class="n">${count[k] ?? '?'}</td></tr>`;
+    const draw = () => {
+      shell.task(`<p><b>Наблюдение.</b> Учениците отидоха в гората и в нивата. Записаха всеки вид растение и животно, който видяха.</p>
+        <p>Отвори бележника за всяко място и виж колко вида са записали.</p>
+        <table class="ecosystems-obs"><tr><td>Видове</td><td class="n">Брой</td></tr>${row('forest', '🌲 Гора')}${row('field', '🌾 Нива')}</table>`);
+      shell.score(`Грешки: ${mistakes}`);
+    };
+    draw();
+    const c = shell.setControls('<div class="row"><button class="btn fo">🔍 Гората</button><button class="btn fi">🔍 Нивата</button></div><div class="ecosystems-more"></div>');
+    const run = async (k) => {
+      if (busy || count[k] != null) return;
+      busy = true;
+      VIEW[k]();
+      for (const sp of OBSERVED[k]) {
+        shown[k].push(sp);
+        draw();
+        await wait(0.35);
+      }
+      count[k] = OBSERVED[k].length;
+      draw();
+      c.querySelector(k === 'forest' ? '.fo' : '.fi').disabled = true;
+      busy = false;
+      if (count.forest != null && count.field != null) ask();
+    };
+    c.querySelector('.fo').addEventListener('click', () => run('forest'));
+    c.querySelector('.fi').addEventListener('click', () => run('field'));
+    function ask() {
+      c.querySelector('.row').remove();
+      choiceBox(c.querySelector('.ecosystems-more'), 'Какво показва наблюдението?', [
+        'В нивата има повече видове, защото човекът се грижи за нея.',
+        'В гората живеят много повече видове, отколкото в нивата.',
+        'В гората и в нивата има еднакво много видове.',
+      ], 1,
+      (i) => (i === 0 ? 'Погледни числата в бележника. Къде видовете са повече?' : `Сравни двете числа: ${count.forest} и ${count.field}. Еднакви ли са?`),
+      () => {
+        shell.msg('Вярно! В естественото съобщество живеят много видове. В нивата човекът отглежда почти само един вид растение – пшеница.', 'good');
+        shell.score(`Грешки: ${mistakes}`);
         shell.controls.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary">Напред →</button></div>');
         shell.controls.querySelector('.btn.primary').addEventListener('click', () => {
-          scores.push(stepScore(mistakes, 5));
+          scores.push(stepScore(mistakes, 7));
           clearTip();
           shell.msg('');
           step3();
