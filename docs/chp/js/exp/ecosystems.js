@@ -1499,7 +1499,8 @@ function build(container, { onComplete }, restart) {
   function step1() {
     shell.step(0);
     const seen = new Set();
-    shell.task(`<p>Вляво е природата: <b>гора, ливада и езеро</b>. Вдясно са земите, които са направили хората: <b>нива, овощна градина и парк</b>.</p>
+    shell.task(`<p><b>Съобщество</b> са растенията и животните, които живеят заедно на едно място.</p>
+      <p>Вляво е природата: <b>гора, ливада и езеро</b>. Вдясно са земите, които са направили хората: <b>нива, овощна градина и парк</b>.</p>
       <p><b>Разгледай всичко:</b> избери от менюто в ъгъла или кликни върху местата в сцената.</p>`);
     const ctrl = shell.setControls('<div class="row"><button class="btn all">🔭 Целият пейзаж</button><button class="btn primary nx" disabled>Напред →</button></div>');
     const next = ctrl.querySelector('.nx');
@@ -1585,7 +1586,7 @@ function build(container, { onComplete }, restart) {
             overview();
             clearTip();
             shell.task(`<p>Гората, ливадата и езерото са <b>естествени съобщества</b>. Нивата, овощната градина и паркът са <b>изкуствени съобщества</b>.</p>
-              <p>В естествените съобщества живеят много различни видове, а в изкуствените – малко.</p>${tally()}`);
+              <p>В естествените съобщества живеят много различни видове, а в изкуствените – обикновено по-малко.</p>${tally()}`);
             upd();
             shell.msg('Подреди всички места!', 'good');
             shell.setControls('<button class="btn primary">Към хранителната верига →</button>').querySelector('button').addEventListener('click', () => chain(mistakes));
@@ -1611,7 +1612,7 @@ function build(container, { onComplete }, restart) {
     const seq = [];
     const names = { grass: 'Трева', rabbit: 'Заек', fox: 'Лисица' };
     const draw = () => {
-      shell.task(`<p>Животните в гората са свързани чрез храната си.</p>
+      shell.task(`<p class="small"><b>🔁 Припомни от 3. клас</b></p><p>Животните в гората са свързани чрез храната си.</p>
         <p><b>Построй хранителна верига:</b> кликни първо върху растението, после върху животното, което го яде, и накрая върху хищника.</p>
         <p class="ecosystems-chain">${seq.length ? seq.map((x) => esc(names[x])).join(' → ') : '…'}</p>`);
       shell.score(`Грешки: ${mistakes}`);
@@ -1692,7 +1693,6 @@ function build(container, { onComplete }, restart) {
         shell.msg('Наблюдавай какво стана с ливадата.', 'good');
         shell.score(`Грешки: ${mistakes}`);
         shell.setControls('<button class="btn primary">Напред →</button>').querySelector('button').addEventListener('click', () => {
-          scores.push(stepScore(mistakes, 4));
           // Природата се връща в равновесие.
           for (const g of extraRabbitObjs) { land.remove(g); extraRabbits.splice(extraRabbits.indexOf(g), 1); }
           extraRabbitObjs.length = 0;
@@ -1703,10 +1703,73 @@ function build(container, { onComplete }, restart) {
           for (const k of ['rabbit', 'fox']) { animals[k].userData.free = true; settle(animals[k]); }
           clearTip();
           shell.msg('');
+          pondChain(mistakes);
+        });
+      },
+      () => { mistakes++; shell.score(`Грешки: ${mistakes}`); });
+  }
+
+  // Нова верига в езерото: водорасли → водни бълхи → риба → чапла.
+  const POND_CHAIN = [
+    { t: 'Водорасли', d: 'Водораслите сами си правят храна, като растенията.' },
+    { t: 'Водни бълхи', d: 'Водните бълхи са съвсем малки рачета. Те ядат водорасли.' },
+    { t: 'Риба', d: 'Рибата яде водни бълхи.' },
+    { t: 'Чапла', d: 'Чаплата лови риба.' },
+  ];
+  function pondChain(m0) {
+    let mistakes = m0;
+    VIEW.pond();
+    const seq = [];
+    let wrongRow = 0;
+    const order = shuffle(POND_CHAIN.map((x, i) => i));
+    if (order.every((v, i) => v === i)) order.reverse();
+    const draw = () => {
+      shell.task(`<p><b>Нова верига — в езерото.</b> И тук живите същества са свързани чрез храната си.</p>
+        <p><b>Подреди веригата:</b> кликни първо върху това, което само си прави храна, а после — кой кого яде.</p>
+        <p class="ecosystems-chain">${seq.length ? seq.map((i) => esc(POND_CHAIN[i].t)).join(' → ') : '…'}</p>`);
+      shell.score(`Грешки: ${mistakes}`);
+    };
+    draw();
+    const box = shell.setControls(`<div class="choices ecosystems-four">${order.map((i) => `<button class="choice" data-o="${i}">${esc(POND_CHAIN[i].t)}</button>`).join('')}</div>`);
+    box.querySelectorAll('.choice').forEach((b) => b.addEventListener('click', () => {
+      const i = +b.dataset.o;
+      if (i !== seq.length) {
+        mistakes++; wrongRow++;
+        const why = !seq.length ? 'Веригата започва от това, което само си прави храна.' : `Кой яде ${POND_CHAIN[seq.length - 1].t.toLowerCase()}?`;
+        shell.msg(why + (wrongRow >= 2 ? ' Подсказка: водораслите сами си правят храна, а чаплата лови риба.' : ''), 'bad');
+        draw();
+        return;
+      }
+      wrongRow = 0;
+      seq.push(i);
+      b.disabled = true;
+      b.classList.add('right');
+      shell.msg(`✓ ${POND_CHAIN[i].d}`, 'good');
+      draw();
+      if (seq.length === POND_CHAIN.length) wait(0.8).then(pondQuestion);
+    }));
+    function pondQuestion() {
+      shell.msg('Вярно! Водорасли → водни бълхи → риба → чапла.', 'good');
+      const q = shell.setControls('<div></div>').firstChild;
+      choiceBox(q, '<b>Предскажи:</b> всички риби в езерото изчезват. Какво ще стане?', [
+        'Водните бълхи ще станат много, а чаплите ще останат без храна.',
+        'Чаплите ще станат повече.',
+        'Нищо няма да се промени.',
+      ], 0,
+      (i) => (i === 1 ? 'Чаплата лови риба. Ще има ли какво да яде, ако няма риби?' : 'Всички в хранителната верига са свързани. Ако едно звено изчезне, другите се променят.'),
+      () => {
+        shell.msg('Вярно! Без риби водните бълхи се намножават. А чаплите остават без храна. Равновесието е нарушено.', 'good');
+        shell.score(`Грешки: ${mistakes}`);
+        shell.controls.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary">Напред →</button></div>');
+        shell.controls.querySelector('.btn.primary').addEventListener('click', () => {
+          scores.push(stepScore(mistakes, 5));
+          clearTip();
+          shell.msg('');
           step3();
         });
       },
       () => { mistakes++; shell.score(`Грешки: ${mistakes}`); });
+    }
   }
 
   // =================== 3. ПРИСПОСОБЛЕНИЯ ===================

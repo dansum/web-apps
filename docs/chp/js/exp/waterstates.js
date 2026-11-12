@@ -859,7 +859,7 @@ function build(container, { onComplete }, restart) {
         const v = parseFloat(String(inp.value).replace(',', '.').replace('−', '-'));
         if (Number.isNaN(v)) { shell.msg('Напиши число.', 'bad'); return; }
         if (Math.abs(v - m.value) < 0.05) {
-          shell.msg(m.kind === 'med' ? 'Вярно! 36,6 °C — нормална телесна температура. Ако е над 37 °C, човек е болен и има температура.' : `Вярно! ${m.subj}: ${fmt(m.value)} °C.`, 'good');
+          shell.msg(m.kind === 'med' ? 'Вярно! 36,6 °C — нормална телесна температура. Ако термометърът показва около 38 °C или повече, човек има температура. Кажи на възрастен.' : `Вярно! ${m.subj}: ${fmt(m.value)} °C.`, 'good');
           return done();
         }
         mistakes++; wrongHere++;
@@ -1010,10 +1010,25 @@ function build(container, { onComplete }, restart) {
       { q: 'Мира разля малко вода на масата до прозореца, на слънце. След час водата я нямаше. Къде отиде? Така изчезват и локвите след дъжд.', view: 'win',
         a: ['Изпари се — превърна се във водни пари във въздуха.', 'Замръзна.', 'Втечни се.'], right: 0,
         explain: 'Водата се изпарява и при обикновена температура, а на слънце — по-бързо.' },
-      { q: 'Пълна догоре стъклена бутилка с вода остана във фризера. Тя се спука! Защо?', view: 'freezer',
-        a: ['Във фризера е горещо.', 'Водата се изпари и избута тапата.', 'Водата замръзна, а ледът заема повече място от водата.'], right: 2,
-        explain: 'При замръзване водата се разширява. Ледът няма място и пука бутилката.' },
     ];
+    // Разширяването на леда е от програмата за 5. клас — тук е само „Знаеш ли?“, без въпрос и точки.
+    const didYouKnow = async () => {
+      clearTip();
+      shell.msg('');
+      shell.setControls('');
+      shell.task(`<p><b>❄️ Знаеш ли?</b></p><p>Пълна догоре стъклена бутилка с вода остана във фризера. Водата замръзна и бутилката се спука!</p>
+        <p>При замръзване водата се разширява. Ледът заема повече място от водата и няма къде да се побере.</p>
+        <p class="small">Това не е задача — само любопитен факт.</p>`);
+      await show({ view: 'freezer' });
+      const c = shell.setControls('<button class="btn primary">Виж резултата</button>');
+      c.querySelector('button').addEventListener('click', () => {
+        freezerOpen = 0;
+        clearTip();
+        scores.push(good / QS.length);
+        const ratio = scores.reduce((x, y) => x + y, 0) / scores.length;
+        shell.finish(ratio, onComplete, restart);
+      });
+    };
     let qi = 0;
     const show = async (Q) => {
       if (Q.view === 'pot') {
@@ -1078,15 +1093,11 @@ function build(container, { onComplete }, restart) {
         await show(Q);
         qi++;
         const last = qi >= QS.length;
-        const c = shell.setControls(`<button class="btn primary">${last ? 'Виж резултата' : 'Следващ въпрос →'}</button>`);
+        const c = shell.setControls(`<button class="btn primary">${last ? 'Знаеш ли? →' : 'Следващ въпрос →'}</button>`);
         c.querySelector('button').addEventListener('click', async () => {
           if (Q.view === 'pot') { W.lidOn = false; hop(lid, LID_HOME, 0.6, 0.3, [0, 0, 0]); }
-          if (Q.view === 'freezer') freezerOpen = 0;
           if (!last) { ask(); return; }
-          clearTip();
-          scores.push(good / QS.length);
-          const ratio = scores.reduce((x, y) => x + y, 0) / scores.length;
-          shell.finish(ratio, onComplete, restart);
+          didYouKnow();
         });
       }));
     };

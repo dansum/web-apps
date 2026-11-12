@@ -19,8 +19,8 @@ const CSS = `
 
 const ZONES = [
   { id: 'quiet', name: 'тихо', range: 'под 40 dB', max: 40, color: 0x43a047, css: '#43a047' },
-  { id: 'normal', name: 'нормално', range: '40 – 80 dB', max: 80, color: 0xfbc02d, css: '#c79100' },
-  { id: 'harm', name: 'вредно', range: 'над 80 dB', max: 200, color: 0xe53935, css: '#e53935' },
+  { id: 'normal', name: 'нормално', range: '40 – 85 dB', max: 85, color: 0xfbc02d, css: '#c79100' },
+  { id: 'harm', name: 'вредно', range: 'около 85 dB и повече', max: 200, color: 0xe53935, css: '#e53935' },
 ];
 const zoneOf = (db) => ZONES.find((z) => db < z.max) || ZONES[2];
 
@@ -549,7 +549,7 @@ export function mount(container, { onComplete }) {
     curtains.forEach((c, i) => { c.rotation.y = Math.sin(t * 0.7 + i) * 0.06; });
     kid.userData.head.rotation.y = Math.sin(t * 0.5) * 0.4;
     kid.position.y = Math.abs(Math.sin(t * 1.2)) * 0.012;
-    kidPhones.userData.head.rotation.z = phonesDb !== null && phonesDb > 80 ? Math.sin(t * 9) * 0.05 : Math.sin(t * 2) * 0.12;
+    kidPhones.userData.head.rotation.z = phonesDb !== null && phonesDb >= 85 ? Math.sin(t * 9) * 0.05 : Math.sin(t * 2) * 0.12;
     camQ.copy(camera.quaternion);
 
     let loudest = 30;
@@ -777,7 +777,7 @@ export function mount(container, { onComplete }) {
         opts: ['Всички трептяха', 'Всички бяха от метал', 'Всички бяха големи'],
         right: 0, count,
         bad: 'Спомни си зрънцата върху барабана и пръските във водата. Какво правеше всяко тяло?',
-        ok: 'Вярно! Звук издават трептящи тела. Трептят и гласните ни връзки, когато говорим.',
+        ok: 'Вярно! Звук издават трептящи тела. Трептят и гласните връзки в гърлото ни, когато говорим.',
         then: (w) => choiceQ(w, {
           q: 'Какво стана, когато хвана трептящото тяло с ръка?',
           opts: ['Трептенето спря и звукът спря', 'Звукът стана по-силен', 'Нищо не се промени'],
@@ -884,9 +884,10 @@ export function mount(container, { onComplete }) {
     let placed = 0;
     const tries = new Map();
     shell.task(`<p>Шумомерът на стената показва колко силен е звукът.</p>
-      <p><b>Кликни</b> върху източник на звук, за да го измериш, и го <b>провлачи</b> в зоната: тихо, нормално или вредно.</p>`);
+      <p><b>Кликни</b> върху източник на звук, за да го измериш, и го <b>провлачи</b> в зоната: тихо, нормално или вредно.</p>
+      <p class="small">Това е упражнение за любопитни — не носи точки.</p>`);
     shell.setControls('');
-    const upd = () => shell.score(`Подредени: ${placed} от ${SOURCES.length} · грешки: ${mistakes}`);
+    const upd = () => shell.score(`Подредени: ${placed} от ${SOURCES.length} · упражнение без точки`);
     upd();
     clickHandler = (id, hit) => {
       if (!hit || !hit.root.userData.o) { clearTip(); return; }
@@ -924,8 +925,8 @@ export function mount(container, { onComplete }) {
         upd();
         if (placed === SOURCES.length) {
           stopDrag(); stopDrag = null;
-          scores.push(stepScore(mistakes, 3));
-          shell.msg('Браво! Над 80 dB звукът е вреден — особено ако го слушаме дълго.', 'good');
+          // Числовите зони в dB не са в програмата за 4. клас — стъпката е упражнение без точки.
+          shell.msg('Браво! Звук от около 85 dB и повече вреди на слуха, ако го слушаме дълго.', 'good');
           shell.setControls('<button class="btn primary">Напред →</button>').querySelector('button').addEventListener('click', step4);
         }
       },
@@ -938,7 +939,7 @@ export function mount(container, { onComplete }) {
     { t: 'Правя почивки в тишина', good: true },
     { t: 'При много силен шум слагам антифони или запушвам ушите си', good: true },
     { t: 'Стоя далеч от колоните на концерт', good: true },
-    { t: 'Усилвам слушалките до край, за да не чувам улицата', good: false, why: 'Така звукът в ушите става над 80 dB — вредно за слуха.' },
+    { t: 'Усилвам слушалките до край, за да не чувам улицата', good: false, why: 'Така звукът в ушите става много силен. Ако го слушаме дълго, той вреди на слуха.' },
     { t: 'Викам силно в ухото на приятел', good: false, why: 'Силният звук отблизо може да нарани ухото.' },
     { t: 'Заспивам със силна музика в слушалките', good: false, why: 'Дълго слушане на силен звук уврежда слуха, без да го усетим веднага.' },
   ];
@@ -981,9 +982,9 @@ export function mount(container, { onComplete }) {
     let tries = 0;
     done.addEventListener('click', () => {
       const db = dbOf(vol);
-      if (db > 80) {
+      if (db >= 85) {
         count(); tries++;
-        shell.msg(tries >= 2 ? 'Подсказка: шумомерът трябва да е в жълтата или зелената зона — до 80 dB.' : `${db} dB е в червената зона — още е вредно.`, 'bad');
+        shell.msg(tries >= 2 ? 'Подсказка: шумомерът трябва да е в жълтата или зелената зона — под 85 dB.' : `${db} dB е в червената зона — още е вредно.`, 'bad');
         return;
       }
       rng.disabled = true;

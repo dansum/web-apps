@@ -43,7 +43,7 @@ const ITEMS = [
   { id: 'lamp', label: 'Лампа', icon: '💡',
     note: '<b>Настолна лампа.</b> Тя също е източник на светлина. Включихме я — виж сянката на мечето на екрана. Ще местим лампата и ще гледаме как се променя сянката.' },
   { id: 'sun', label: 'Слънце през прозореца', icon: '☀️',
-    note: '<b>Слънцето</b> е най-големият източник на светлина. Виж слънчевия сноп през прозореца. В прашния въздух той изглежда като <b>права</b> светла ивица.' },
+    note: '<b>Слънцето</b> е най-важният източник на светлина за нас. Виж слънчевия сноп през прозореца. В прашния въздух той изглежда като <b>права</b> светла ивица.' },
 ];
 const ITEM = Object.fromEntries(ITEMS.map((i) => [i.id, i]));
 
@@ -876,8 +876,8 @@ function build(container, { onComplete }, restart) {
     sDist.addEventListener('input', () => { lampState.dist = +sDist.value; placeLamp(); check(); });
     sSide.addEventListener('input', () => { lampState.side = +sSide.value; placeLamp(); check(); });
     onLampMove = () => { syncSliders(); check(); };
-    shell.task('<p>Включихме лампата. Мечето спира част от светлината и на екрана се вижда неговата <b>сянка</b>.</p><p>Първо <b>предскажи</b>, после <b>провери</b>, като местиш лампата.</p>');
-    const upd = () => shell.score(`Опит ${Math.min(ri + 1, 4)} от 4`);
+    shell.task('<p>Включихме лампата. Мечето спира част от светлината и на екрана се вижда неговата <b>сянка</b>.</p><p>Първо <b>предскажи</b>, после <b>провери</b>, като местиш лампата.</p><p class="small">Това е упражнение за любопитни — не носи точки.</p>');
+    const upd = () => shell.score(`Опит ${Math.min(ri + 1, 4)} от 4 · упражнение без точки`);
     const round = () => {
       const R = ROUNDS[ri];
       upd();
@@ -926,7 +926,7 @@ function build(container, { onComplete }, restart) {
       });
       say(new V3(BX + 0.8, 0.6, TOY_Z + 1.0), 'Лампата е вдясно от мечето.', 'tag', 0.3);
       box.innerHTML = '<p class="light-q">Лампата е изключена и сега е <b>вдясно</b> от мечето. Когато я включим, къде ще падне сянката? <b>Кликни върху знака на екрана</b>.</p>';
-      shell.score('Опит 4 от 4');
+      shell.score('Опит 4 от 4 · упражнение без точки');
       clickHandler = async (id) => {
         if (!id || !id.startsWith('mark')) return;
         const m = marks.find((g) => g.userData.pickId === id);
@@ -944,7 +944,7 @@ function build(container, { onComplete }, restart) {
         marks.forEach((g) => { g.visible = false; });
         say(new V3(expectX, 1.3, SCR_Z), 'Позна! Лампата е вдясно, а сянката падна вляво. Лампата, мечето и сянката са на една права линия.', 'wide good', 0.3);
         shell.msg('Браво!', 'good');
-        scores.push(stepScore(mistakes, 3));
+        // Сенките (големина и посока) са от програмата за 5. клас — стъпката е упражнение без точки.
         box.innerHTML = '';
         shell.setControls('<button class="btn primary">Напред →</button>').querySelector('button').addEventListener('click', step4);
       };
@@ -960,7 +960,7 @@ function build(container, { onComplete }, restart) {
     let good = 0;
     const QS = [
       { q: 'Приятелят ти се е скрил зад ъгъла на къщата. Чуваш го, но не го виждаш. Защо?',
-        a: ['Светлината от него се движи по права линия и не може да завие зад ъгъла към очите ми.', 'Защото зад ъгъла винаги е тъмно.', 'Защото светлината се движи по-бавно от звука.'], right: 0,
+        a: ['Светлината от него се движи по права линия. Тя не може да завие зад ъгъла към очите ми.', 'Защото зад ъгъла винаги е тъмно.', 'Защото светлината се движи по-бавно от звука.'], right: 0,
         explain: 'Виждаме нещо, когато светлина от него стигне до очите ни. Светлината се движи по права линия и не заобикаля ъгли — точно като при картоните.',
         setup: () => { setLamp(false); setTorch(true); cards.forEach((c) => { c.position.z = RZ; }); VIEWS.rigA(); },
         after: async () => {
@@ -975,11 +975,11 @@ function build(container, { onComplete }, restart) {
         after: async () => { say(new V3(BX, 1.25, SCR_Z), 'Мечето спира светлината. Зад него, на екрана, остава сянка.', 'wide', 0.3); } },
       { q: 'В тъмна прашна стая през процеп на завесите влиза слънчев лъч. Как изглежда той?',
         a: ['Като права светла ивица.', 'Като крива светла змийка.', 'Като светло кръгче само около прозореца.'], right: 0,
-        explain: 'Прашинките във въздуха светят, когато светлината ги огрее. Затова виждаме пътя на лъча — права ивица от прозореца до масата.',
+        explain: 'Прашинките във въздуха отразяват светлината към очите ни. Затова виждаме пътя на лъча — права ивица от прозореца до масата.',
         setup: () => { setLamp(false); blindsTo = 0; VIEWS.sun(); },
         after: async () => { blindsTo = 1; await wait(0.8); say(ANCH.sun[0], 'Виж! Слънчевият лъч е права светла ивица от прозореца до масата.', 'wide', 0.2); } },
       { q: 'По обед слънцето е високо и сенките са къси. Вечер слънцето е ниско. Каква ще бъде сянката на мечето, ако свалим лампата ниско?',
-        a: ['По-дълга.', 'По-къса.', 'Същата.'], right: 0, predict: true,
+        a: ['По-дълга.', 'По-къса.', 'Същата.'], right: 0, predict: true, free: true, // сенките са от 5. клас — без точки
         explain: 'Когато светлината идва ниско, мечето спира лъчите по-дълго разстояние зад себе си — сянката се издължава. Затова вечер сенките са дълги.',
         setup: async () => {
           blindsTo = 0; setTorch(false); screenB.visible = false; screenShadowOn = false; tableShadowOn = true;
@@ -998,7 +998,7 @@ function build(container, { onComplete }, restart) {
       clearTip();
       shell.msg('');
       shell.score('');
-      shell.task(`<p>${Q.predict ? 'Предскажи' : 'Приложи наученото'} (${qi + 1} от ${QS.length}).</p><div class="light-p"></div>`);
+      shell.task(`<p>${Q.predict ? 'Предскажи' : 'Приложи наученото'} (${qi + 1} от ${QS.length}).</p>${Q.free ? '<p class="small">Това е упражнение за любопитни — не носи точки.</p>' : ''}<div class="light-p"></div>`);
       shell.setControls('');
       await Q.setup();
       const bx = container.querySelector('.light-p');
@@ -1007,7 +1007,7 @@ function build(container, { onComplete }, restart) {
         const i = +b.dataset.i;
         bx.querySelectorAll('.choice').forEach((x) => { x.disabled = true; });
         const ok = i === Q.right;
-        if (ok) good++;
+        if (ok && !Q.free) good++;
         b.classList.add(ok ? 'right' : 'wrong');
         if (!ok) bx.querySelector(`.choice[data-i="${Q.right}"]`).classList.add('right');
         shell.msg((ok ? 'Вярно! ' : 'Не е така. ') + Q.explain, ok ? 'good' : 'bad');
@@ -1020,7 +1020,7 @@ function build(container, { onComplete }, restart) {
         c.querySelector('button').addEventListener('click', () => {
           if (!last) { ask(); return; }
           clearTip();
-          scores.push(good / QS.length);
+          scores.push(good / QS.filter((q) => !q.free).length);
           const ratio = scores.reduce((x, y) => x + y, 0) / scores.length;
           shell.finish(ratio, onComplete, restart);
         });
