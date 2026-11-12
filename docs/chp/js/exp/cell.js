@@ -297,7 +297,7 @@ const ORGS = [
   { id: 'yeast', label: 'Дрожди', uni: true, note: 'Едноклетъчни гъби. Правят тестото да втасва.' },
   { id: 'leaf', label: 'Лист', uni: false, note: 'Част от растение. Изграден е от милиони клетки.' },
   { id: 'mushroom', label: 'Печурка', uni: false, note: 'Многоклетъчна гъба.' },
-  { id: 'ant', label: 'Мравка', uni: false, note: 'Многоклетъчно животно — дори малкото тяло има милиони клетки.' },
+  { id: 'ant', label: 'Мравка', uni: false, note: 'Многоклетъчно животно — дори малкото му тяло е изградено от много клетки.' },
   { id: 'onion', label: 'Лук', uni: false, note: 'Многоклетъчно растение. Ти видя клетките на кожицата му.' },
 ];
 
@@ -407,6 +407,11 @@ function orgModel(id) {
 export function mount(container, { onComplete }) {
   const STEPS = ['Подготви микроскопа', 'Фокусирай', 'Части на клетката', 'Едноклетъчни и многоклетъчни'];
   const shell = createShell(container, { steps: STEPS });
+  const scaleNote = document.createElement('div');
+  scaleNote.textContent = '⚠ Клетките са силно уголемени. Частите не са в мащаб.';
+  scaleNote.style.cssText = 'position:absolute;left:8px;bottom:8px;z-index:4;pointer-events:none;background:rgba(255,255,255,.9);color:#8a6d00;font-size:.78rem;border-radius:8px;padding:3px 8px';
+  scaleNote.hidden = true;
+  shell.stageEl.appendChild(scaleNote);
   const stage = createStage(shell.stageEl, {
     background: 0xe9eef5, camPos: [3.2, 3.6, 5.2], target: [0, 1.3, 0], shadows: true, maxDistance: 14, minDistance: 1.5,
     maxPolarAngle: Math.PI * 0.62,
@@ -522,6 +527,7 @@ export function mount(container, { onComplete }) {
     shell.step(0);
     clearTip();
     lab.visible = true; cellWorld.visible = false; dropWorld.visible = false;
+    scaleNote.hidden = true;
     stage.flyTo([3.2, 3.6, 5.2], [0, 1.3, 0]);
     menu.setTitle('Части на микроскопа');
     menu.setItems(Object.keys(PARTS).map((id) => ({ id, label: PARTS[id].label, icon: PART_ICONS[id] })));
@@ -715,6 +721,7 @@ export function mount(container, { onComplete }) {
     clearTip();
     lab.visible = false;
     cellWorld.visible = true;
+    scaleNote.hidden = false;
     scene.background = new THREE.Color(0x0f1e33);
     stage.controls.maxPolarAngle = Math.PI;
     stage.controls.maxDistance = 14;
@@ -809,6 +816,7 @@ export function mount(container, { onComplete }) {
     shell.step(3);
     clearTip();
     cellWorld.visible = false;
+    scaleNote.hidden = true;
     dropWorld.visible = true;
     scene.background = new THREE.Color(0xe8f5ee);
     stage.controls.maxPolarAngle = Math.PI * 0.47;
@@ -968,5 +976,5 @@ export function mount(container, { onComplete }) {
 
   void lamp;
   step1();
-  return { dispose() { if (stopDrag) stopDrag(); stage.dispose(); } };
+  return { dispose() { if (stopDrag) stopDrag(); scaleNote.remove(); stage.dispose(); } };
 }
