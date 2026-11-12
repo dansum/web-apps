@@ -222,7 +222,7 @@ export function mount(container, { onComplete }) {
           b.disabled = true;
           setTimeout(() => {
             shell.msg('');
-            ctx.say(main, `Сложихме ${M.salt} g сол, а на дъното остана неразтворена сол. Разтворени са около ${dissolved()} g.`, 'wide', 1.3);
+            ctx.say(main, `Сложихме ${M.salt} g сол, а на дъното остана неразтворена сол. Разтворени са около ${dissolved()} g. Везната показва ${100 + M.salt} g: водата, разтворената сол и солта на дъното.`, 'wide', 1.3);
             choice(ctx, {
               q: 'Какъв е този разтвор?',
               options: [
