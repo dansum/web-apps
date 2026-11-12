@@ -50,6 +50,11 @@ const strafeOk = Math.abs(sd[2] - y0) < 1e-6 && b[2] - sd[1] > 0.5 && Math.abs(s
 console.log('крачка наляво: без завъртане и встрани', strafeOk, 'm', (b[2] - sd[1]).toFixed(1));
 const moved = Math.hypot(b[1] - a[1], b[2] - a[2]);
 console.log('разходка: активна', b[0], 'изминати m', moved.toFixed(1));
+// Тичане: със Shift за същото време се изминава повече път (напред-назад по площада).
+const run = async (shift) => { await demo('(d) => { const s = d.walk.state; s.x = -150; s.z = 21; s.yaw = Math.PI / 2; }'); if (shift) await page.keyboard.down('Shift'); await page.keyboard.down('ArrowUp'); await wait(2000); await page.keyboard.up('ArrowUp'); if (shift) await page.keyboard.up('Shift'); return (await demo('(d) => d.walk.state.x')) + 150; };
+const dWalk = await run(false), dRun = await run(true);
+const runOk = dRun > dWalk * 1.5;
+console.log('тичане със Shift: ходене m', dWalk.toFixed(1), 'тичане m', dRun.toFixed(1), runOk);
 // Оглеждане с мишка: влачене наляво обръща погледа наляво (yaw намалява), влачене нагоре — нагоре (pitch намалява).
 const box = await page.locator('.xp-stage canvas').first().boundingBox(), mx = box.x + box.width * 0.5, my = box.y + box.height * 0.45;
 const l0 = await demo('(d) => [d.walk.state.yaw, d.walk.state.pitch]');
@@ -116,5 +121,5 @@ const again = await demo('(d) => [document.querySelectorAll(".corner-menu").leng
 console.log('отначало:', again);
 console.log('грешки в конзолата:', errors.length ? errors : 'няма');
 await browser.close();
-const ok = lookOk && strafeOk && talkOk && arrived && toStand < 1 && maxStep < 25 && Math.abs(result - want) < 1e-6 && !errors.length && b[0] && moved > 2 && Math.abs(wallZ - 2) < 1.6 && again[0] === 1 && again[1].startsWith('1.') && again[2] && !again[3];
+const ok = runOk && lookOk && strafeOk && talkOk && arrived && toStand < 1 && maxStep < 25 && Math.abs(result - want) < 1e-6 && !errors.length && b[0] && moved > 2 && Math.abs(wallZ - 2) < 1.6 && again[0] === 1 && again[1].startsWith('1.') && again[2] && !again[3];
 process.exit(ok ? 0 : 1);

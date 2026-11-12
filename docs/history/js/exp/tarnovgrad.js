@@ -68,7 +68,7 @@ const PREDICT = [
 
 export function mount(container, { onComplete }) {
   const shell = createShell(container, { steps: ['Опознай', 'Защо градът расте?', 'Находка и място', 'Предскажи'] });
-  container.querySelector('.scene-hint').textContent = 'Отгоре: върти и приближавай сцената. Разходка: върви със стрелките или бутоните (наляво и надясно са крачка встрани), оглеждай се с влачене, докосни улицата, за да отидеш там.';
+  container.querySelector('.scene-hint').textContent = 'Отгоре: върти и приближавай сцената. Разходка: върви със стрелките или бутоните (наляво и надясно са крачка встрани), оглеждай се с влачене, тичай със Shift, докосни улицата, за да отидеш там.';
   const aspect = (shell.stageEl.clientWidth || 600) / (shell.stageEl.clientHeight || 400);
   const far = aspect < 1.4 ? 1.35 / Math.max(aspect, 0.5) : 1;
   const weak = (navigator.hardwareConcurrency || 4) <= 2;
