@@ -1,7 +1,7 @@
 // Downloads the OpenStreetMap data around 20 Serdika St and saves it as data/osm.json,
 // so that the page loads fast and does not depend on the Overpass servers.
 // Uses the same queries as the page (js/osm.js). Requests go through curl, so proxies work.
-//   node tools/fetch-osm.mjs          (run from docs/serdika20)
+//   node tools/fetch-osm.mjs          (run from docs/ul_serdika)
 import { execFileSync } from 'node:child_process';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
