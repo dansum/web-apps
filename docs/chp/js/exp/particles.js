@@ -517,7 +517,7 @@ function build(container, { onComplete }, restart) {
     const seen = new Set();
     shell.task(`<p>Всяко вещество е изградено от мънички <b>градивни частици</b>. Такива частици са <b>молекулите</b> и <b>атомите</b>. Молекулите са съставени от атоми. Тук частиците са увеличени стотици милиони пъти.</p>
       <p>В кутията има вода. <b>Избери от менюто</b> лед, вода и пара и гледай как се държат частиците. Проследи и една частица.</p>`);
-    const ctrl = shell.setControls('<div class="row"><button class="btn all">🔭 Цялата маса</button><button class="btn primary nx" disabled>Напред →</button></div>');
+    const ctrl = shell.setControls('<div class="row"><button class="btn all">🔭 Цялата сцена</button><button class="btn primary nx" disabled>Напред →</button></div>');
     const next = ctrl.querySelector('.nx');
     ctrl.querySelector('.all').addEventListener('click', () => { clearTip(); setHighlight(-1); menu.setActive(null); overview(); });
     const upd = () => shell.score(`Разгледани: ${seen.size} от ${MENU.length}`);

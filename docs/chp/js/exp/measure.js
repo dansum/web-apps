@@ -651,7 +651,7 @@ function build(container, { skill, onComplete }, restart) {
     const menu = cornerMenu(stage, { title: g5 ? 'Уреди и тела' : 'Тела и уреди', items: items.map(({ id, label, icon }) => ({ id, label, icon })), onSelect: (id) => menuHandler && menuHandler(id) });
     const seen = new Set();
     shell.task(intro);
-    const ctrl = shell.setControls('<div class="row"><button class="btn all">🔭 Цялата маса</button><button class="btn primary nx" disabled>Напред →</button></div>');
+    const ctrl = shell.setControls('<div class="row"><button class="btn all">🔭 Цялата сцена</button><button class="btn primary nx" disabled>Напред →</button></div>');
     const nx = ctrl.querySelector('.nx');
     ctrl.querySelector('.all').addEventListener('click', () => { clearTip(); overview(); });
     const upd = () => shell.score(`Разгледани: ${seen.size} от ${items.length}`);
@@ -1563,7 +1563,8 @@ function build5(A) {
           <label class="num">Вода преди: V₁ = <input class="i1" type="text" inputmode="decimal"> mL</label>
           <label class="num">Вода с камъчето: V₂ = <input class="i2" type="text" inputmode="decimal"> mL</label>
           <label class="num">Обем на камъчето: V = <input class="iv" type="text" inputmode="decimal"> cm³</label></div>
-          <p class="small">1 mL = 1 cm³. Обемът на камъчето е колкото се е покачила водата: V = V₂ − V₁.</p>` : ''}`);
+          <p class="small"><b>cm³</b> (кубичен сантиметър) е обемът на кубче със страна 1 cm. 1 mL = 1 cm³.</p>
+          <p class="small">Обемът на камъчето е колкото се е покачила водата: V = V₂ − V₁.</p>` : ''}`);
       shell.score(`Грешки: ${mistakes}`);
     };
     draw();
@@ -1645,7 +1646,7 @@ function build5(A) {
     const okAll = () => waterIn.size >= 2 && stoneIn.size >= 1 && gasJar;
     let asked = false;
     const draw = () => {
-      shell.task(`<p>Избери <b>какво</b> да преместиш, после кликни <b>съда</b> (висока чаша, купа, колба или буркан).</p>
+      shell.task(`<p class="small"><b>🔁 Припомни от 3. клас</b></p><p>Избери <b>какво</b> да преместиш, после кликни <b>съда</b> (висока чаша, купа, колба или буркан).</p>
         <div class="measure-mat">
           <button class="btn ${matSel === 'stone' ? 'on' : ''}" data-m="stone">🪨 Камъчето</button>
           <button class="btn ${matSel === 'water' ? 'on' : ''}" data-m="water">💧 Водата (${target} mL)</button>
@@ -1721,6 +1722,35 @@ function build5(A) {
       if (okAll() && !asked) grid();
     });
     void gasOut;
+    // Новото в 5. клас: маса и обем на течността след преливането.
+    function newQs() {
+      clearTip();
+      shell.msg('');
+      shell.task('<p><b>Ново в 5. клас:</b> вече не само сравняваш, но и измерваш.</p><p class="small">Водата смени няколко съда. Не сме добавяли и не сме махали вода.</p>');
+      const c = shell.setControls('<div class="q"></div>');
+      const err = () => { mistakes++; shell.score(`Грешки: ${mistakes}`); };
+      choiceBox(c.querySelector('.q'), 'Каква е масата на водата сега?', [`${target} g`, `Повече от ${target} g`, `По-малко от ${target} g`], 0,
+        { 1: 'Формата на съда не променя масата. Колко показа везната в стъпка 2?', 2: 'Не сме махали вода. Масата зависи ли от формата на съда?' },
+        () => {
+          shell.msg(`Вярно! В стъпка 2 претегли водата: m = ${target} g. Формата се смени, но масата остана същата.`, 'good');
+          setTimeout(() => {
+            if (!A.alive()) return;
+            choiceBox(c.querySelector('.q'), 'Как да измерим обема на водата сега?', [
+              'Да я прелеем в мерителния цилиндър и да отчетем по скалата.',
+              'Да я сложим на везната без съд.',
+              'Да измерим с линийка колко е висока водата в съда.',
+            ], 0, {
+              1: 'Водата не може да стои на везната без съд. А и везната мери маса, а не обем.',
+              2: 'Съдът няма скала и формата му не е като на цилиндъра. С кой уред мерим обем на течност?',
+            }, () => {
+              shell.msg(`Вярно! Обема на течност мерим с мерителен цилиндър. Ще отчетем пак ${target} mL.`, 'good');
+              scores.push(stepScore(mistakes, 3));
+              c.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary nx">Виж резултата</button></div>');
+              c.querySelector('.nx').addEventListener('click', A.finishAll);
+            }, err);
+          }, 1400);
+        }, err);
+    }
     function grid() {
       asked = true;
       const ROWS = [['Твърдо тяло (камъче)', [1, 1, 1]], ['Течност (вода)', [0, 1, 1]], ['Газ', [0, 0, 1]]];
@@ -1748,10 +1778,9 @@ function build5(A) {
         });
         if (!bad) {
           c.querySelectorAll('button').forEach((b) => { b.disabled = true; });
-          scores.push(stepScore(mistakes, 3));
           shell.msg('Вярно! Твърдите тела имат собствена форма и обем, течностите — само собствен обем, а газовете заемат целия съд. И трите имат маса.', 'good');
-          c.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary nx">Виж резултата</button></div>');
-          c.querySelector('.nx').addEventListener('click', A.finishAll);
+          c.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary nx">Напред →</button></div>');
+          c.querySelector('.nx').addEventListener('click', newQs, { once: true });
           return;
         }
         mistakes++; tries++;

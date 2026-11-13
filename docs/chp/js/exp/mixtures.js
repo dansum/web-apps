@@ -1260,7 +1260,7 @@ export function mount(container, { onComplete }) {
     const ALL = ['goggles', 'lamp', ...TOOL_IDS];
     shell.task(`<p>Добре дошъл в химическата лаборатория! Тук ще разделяме смеси.</p>
       <p><b>Разгледай всички уреди</b> — кликни върху тях или ги избери от менюто в ъгъла. Започни с <b>предпазните очила</b>.</p>`);
-    const ctrl = shell.setControls('<div class="row"><button class="btn all">🔭 Цялата маса</button></div>');
+    const ctrl = shell.setControls('<div class="row"><button class="btn all">🔭 Цялата сцена</button></div>');
     ctrl.querySelector('.all').addEventListener('click', () => overview());
     const upd = () => shell.score(`Разгледани: ${seen.size} от ${ALL.length}`);
     upd();
