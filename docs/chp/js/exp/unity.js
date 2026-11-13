@@ -3,7 +3,7 @@
 // Стъпки: опознай → пътят на една капка вода и свойствата на живата и неживата природа → гората и реката (симулация)
 // → как човекът пази природата и здравето си.
 import { labelSprite, mat, addHitBox, THREE } from '../kit.js';
-import { scaffold, explore, choice, nextBtn, finishBtn, view, stepScore } from './labkit.js';
+import { scaffold, explore, choice, predict, compare, nextBtn, finishBtn, view, stepScore } from './labkit.js';
 import { sortTask } from './labtasks.js';
 import { curveOf } from './anatomy.js';
 
@@ -135,15 +135,15 @@ export function mount(container, { onComplete }) {
     view(ctx, [0, 1.6, 0], 4.2, { halfH: 2.6, elev: 0.3 });
     shell.task('<p>Водата е навсякъде: в реката, във въздуха, в растенията и в нас.</p>');
     let mistakes = 0;
-    choice(ctx, {
+    predict(ctx, {
       q: 'Може ли една и съща капка вода да бъде в реката, после в облак, после в дърво и накрая в човек?',
       options: [
-        { t: 'Да: веществата преминават от неживата в живата природа и обратно.', ok: true, why: 'Да проследим капката!' },
-        { t: 'Не: водата в живите организми е различна от водата в реката.', ok: false, why: 'Водата е едно и също вещество — откъдето и да идва. Къде отива водата, която пием?' },
-        { t: 'Само ако е морска вода.', ok: false, why: 'Всяка вода участва в кръговрата. Какво става с водата от реката, когато се изпари?' },
+        { t: 'Да: веществата преминават от неживата в живата природа и обратно.', ok: true },
+        { t: 'Не: водата в живите организми е различна от водата в реката.', ok: false },
+        { t: 'Само ако е морска вода.', ok: false },
       ],
-      hint: 'Спомни си кръговрата на водата.',
-      onRight: (m) => { mistakes = m; journey(); },
+      note: 'Запомни прогнозата си. Сега проследи капката!',
+      onPick: () => { mistakes = ctx.predMiss; setTimeout(journey, 900); },
     });
     function journey() {
       // Капката тръгва от реката и трябва да стигне до човека. Приемаме всеки верен път.
@@ -185,6 +185,13 @@ export function mount(container, { onComplete }) {
         if (at === 'human') {
           ctx.click = null;
           setTimeout(() => {
+            compare(ctx, {
+              result: 'Капката от реката стигна до човека.',
+              why: 'Водата е едно и също вещество в реката, в облака, в дървото и в нас. Тя минава от неживата в живата природа и обратно.',
+            });
+            nextBtn(ctx, 'Напред →', sortProps);
+          }, 1500);
+          function sortProps() {
             ctx.clearTip();
             shell.task('<p>Водата, въглеродният диоксид и минералните соли от неживата природа влизат в телата на организмите. Това е <b>единството на материалния свят</b>.</p>');
             sortTask(ctx, {
@@ -202,7 +209,7 @@ export function mount(container, { onComplete }) {
               mistakes,
               onDone: (m) => { ctx.scores[0] = stepScore(m, 3); shell.msg('Браво!', 'good'); nextBtn(ctx, 'Напред →', step3); },
             });
-          }, 1500);
+          }
         }
       };
     }
@@ -214,47 +221,80 @@ export function mount(container, { onComplete }) {
     ctx.clearTip(); drop.visible = false;
     view(ctx, [0.2, 0.5, -1.4], 7, { halfH: 3.4, elev: 0.6 });
     shell.task('<p>На склона над реката расте гора. Долу край реката има село.</p>');
+    E.cut = false; E.raining = false;
     let mistakes = 0;
-    choice(ctx, {
+    predict(ctx, {
       q: 'Хората изсичат цялата гора по склона. Какво ще стане при силен дъжд?',
       options: [
-        { t: 'Водата ще отмие почвата, реката ще стане мътна и може да прелее към селото.', ok: true, why: 'Да проверим в модела!' },
-        { t: 'Нищо: дърветата не влияят на дъжда.', ok: false, why: 'Корените на дърветата задържат почвата и водата. Какво става без тях?' },
-        { t: 'Реката ще стане по-чиста.', ok: false, why: 'Откъде ще дойде калта, ако няма кой да държи почвата?' },
+        { t: 'Водата ще отмие почвата, реката ще стане мътна и може да прелее към селото.', ok: true },
+        { t: 'Нищо: дърветата не влияят на дъжда.', ok: false },
+        { t: 'Реката ще стане по-чиста.', ok: false },
       ],
-      hint: 'Корените задържат почвата.',
-      onRight: (m) => { mistakes = m; cut(); },
+      note: 'Запомни прогнозата си. Сега опитай в модела!',
+      onPick: () => { mistakes = ctx.predMiss; setTimeout(choose, 900); },
     });
-    function cut() {
-      const c = shell.controls;
-      c.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary cut">🪓 Изсечи гората</button><button class="btn rain" disabled>🌧 Пороен дъжд</button></div>');
-      c.querySelector('.cut').addEventListener('click', (e) => { e.target.disabled = true; E.cut = true; c.querySelector('.rain').disabled = false; }, { once: true });
-      c.querySelector('.rain').addEventListener('click', (e) => {
-        e.target.disabled = true; E.raining = true;
+    // Два избора с различни последствия в модела. Детето опитва и двата.
+    const ACT = {
+      keep: { b: '🌳 Запази гората', at: () => forestAt, say: 'Корените на дърветата задържат почвата. Реката остава почти бистра, а селото — сухо. Това е опростен модел.' },
+      cut: { b: '🪓 Изсечи цялата гора', at: () => villageAt, say: 'Почвата се отми, реката стана мътна и преля към селото. Природата и хората пострадаха. Това е опростен модел.' },
+    };
+    const tried = new Set();
+    function choose() {
+      shell.msg('');
+      shell.task('<p>Какво да направят хората със склона? <b>Избери</b>, после пусни дъжда. <b>Опитай и двата избора.</b></p>');
+      row(shell.setControls(''));
+    }
+    function row(c) {
+      c.querySelectorAll('.acts').forEach((e) => e.remove());
+      c.insertAdjacentHTML('beforeend', `<div class="row acts">${Object.keys(ACT).map((k) => `<button class="btn do-${k}"${tried.has(k) ? ' disabled' : ''}>${ACT[k].b}</button>`).join('')}<button class="btn primary rain" disabled>🌧 Пороен дъжд</button></div>`);
+      const rainB = c.querySelector('.acts .rain');
+      let pick = null;
+      Object.keys(ACT).forEach((k) => c.querySelector(`.acts .do-${k}`).addEventListener('click', () => {
+        ctx.clearTip();
+        pick = k;
+        E.raining = false; E.cut = k === 'cut';
+        c.querySelectorAll('.acts [class*="do-"]').forEach((b) => { b.disabled = true; });
+        rainB.disabled = false;
+      }, { once: true }));
+      rainB.addEventListener('click', () => {
+        rainB.disabled = true; E.raining = true;
+        tried.add(pick);
         setTimeout(() => {
-          ctx.say(villageAt, 'Почвата се отми, реката стана мътна и преля към селото. Природата и хората пострадаха. Това е опростен модел.', 'wide', 0.8);
-          const cc = shell.setControls('<div class="row"><button class="btn primary plant">🌱 Залеси склона отново</button></div>');
-          cc.querySelector('.plant').addEventListener('click', () => {
-            E.raining = false; E.cut = false;
-            ctx.clearTip();
-            ctx.say(forestAt, '✔ Новата гора задържа почвата. Реката постепенно се избистря.', 'good wide', 0.6);
-            setTimeout(() => {
+          ctx.say(ACT[pick].at(), ACT[pick].say, 'wide', pick === 'cut' ? 0.8 : 0.6);
+          let cc = shell.controls;
+          if (pick === 'cut') {
+            cc = compare(ctx, {
+              result: 'Без гората дъждът отми почвата. Реката стана мътна и преля към селото.',
+              why: 'Корените на дърветата задържат почвата. Без тях водата я отмива по склона.',
+            });
+          }
+          if (tried.size < 2) { row(cc); return; }
+          cc.querySelectorAll('.acts').forEach((e) => e.remove());
+          if (E.cut) {
+            cc.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary plant">🌱 Залеси склона отново</button></div>');
+            cc.querySelector('.plant').addEventListener('click', () => {
+              E.raining = false; E.cut = false;
               ctx.clearTip();
-              choice(ctx, {
-                q: 'Защо казваме, че човекът е част от природата?',
-                options: [
-                  { t: 'Диша въздух, пие вода и се храни с растения и животни — зависи от природата.', ok: true, why: 'Вярно! Каквото правим с природата, се връща към нас.' },
-                  { t: 'Защото може да я променя, както иска.', ok: false, why: 'Видя какво стана, когато хората изсякоха гората. Независими ли сме от природата?' },
-                  { t: 'Не е: човекът живее в градове.', ok: false, why: 'И в града дишаме въздух, пием вода и ядем храна. Откъде идват те?' },
-                ],
-                hint: 'От какво има нужда човек, за да живее?',
-                mistakes,
-                onRight: (m2) => { ctx.scores[1] = stepScore(m2, 3); nextBtn(ctx, 'Напред →', step4); },
-              });
-            }, 1800);
-          }, { once: true });
+              ctx.say(forestAt, '✔ Новата гора задържа почвата. Реката постепенно се избистря.', 'good wide', 0.6);
+              setTimeout(last, 1800);
+            }, { once: true });
+          } else nextBtn(ctx, 'Напред →', () => { E.raining = false; last(); });
         }, 4500);
       }, { once: true });
+    }
+    function last() {
+      ctx.clearTip();
+      choice(ctx, {
+        q: 'Защо казваме, че човекът е част от природата?',
+        options: [
+          { t: 'Диша въздух, пие вода и се храни с растения и животни — зависи от природата.', ok: true, why: 'Вярно! Каквото правим с природата, се връща към нас.' },
+          { t: 'Защото може да я променя, както иска.', ok: false, why: 'Видя какво стана, когато хората изсякоха гората. Независими ли сме от природата?' },
+          { t: 'Не е: човекът живее в градове.', ok: false, why: 'И в града дишаме въздух, пием вода и ядем храна. Откъде идват те?' },
+        ],
+        hint: 'От какво има нужда човек, за да живее?',
+        mistakes,
+        onRight: (m2) => { ctx.scores[1] = stepScore(m2, 3); nextBtn(ctx, 'Напред →', step4); },
+      });
     }
   }
 
