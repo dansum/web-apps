@@ -767,8 +767,10 @@ export function mount(container, { onComplete }) {
     stage.controls.maxPolarAngle = Math.PI;
     stage.controls.maxDistance = 14;
     const base = cellWorld.position;
-    camera.position.set(base.x, base.y + 1.5, base.z + 9);
-    stage.flyTo([base.x, base.y + 1.2, base.z + 7.5], [base.x, base.y, base.z], 0.8);
+    // На тесен екран отдалечаваме камерата, за да се виждат и двете клетки с всички точки.
+    const far = Math.min(13.5, 7.5 * Math.max(1, 1.45 / (camera.aspect || 1.5)));
+    camera.position.set(base.x, base.y + 1.5, base.z + far + 1.5);
+    stage.flyTo([base.x, base.y + 1.2, base.z + far], [base.x, base.y, base.z], 0.8);
     let mistakes = 0;
     const todo = [
       ...Object.keys(plant.userData.pins).map((k) => ({ cell: plant, part: k })),
@@ -863,7 +865,7 @@ export function mount(container, { onComplete }) {
     const keys = Object.keys(DRAW_NAMES).sort(() => Math.random() - 0.5);
     shell.task(`<p><b>Запиши наблюдението по план.</b></p>
       <ol class="small" style="margin:4px 0 6px;padding-left:20px">
-        <li>Какво гледаш: клетка от зелен лист, увеличена 400 пъти.</li>
+        <li>Какво гледаш: нов препарат — клетка от зелен лист, увеличена 400 пъти. За разлика от луковата кожица, тя има хлоропласти.</li>
         <li>Рисунка: готова е отдолу.</li>
         <li>Означения: <b>избери име, после кликни номера</b> на рисунката.</li></ol>
       ${cellDrawing()}
