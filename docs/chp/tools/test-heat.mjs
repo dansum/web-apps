@@ -1,5 +1,5 @@
 // Изиграва 5.1.4 „Топлопроводност и конвекция“ (js/exp/heat.js) докрай с четири умишлени грешки.
-// Очакван резултат: (0.75 + 1 + 0.25) / 3 — една грешка в предсказанието на стъпка 2
+// Очакван резултат: (0.75 + 1 + 0.25) / 3 — една грешка в (отворената) прогноза на стъпка 2
 // и три в стъпка 4: топене, кипене и тенджерата (конвекция).
 // Употреба: NODE_PATH=$(npm root -g) node tools/test-heat.mjs http://localhost:8765/chp/ <папка> [ширина]
 import { open } from './xp-lib.mjs';
@@ -10,14 +10,17 @@ const { page, wait } = t;
 await t.menuAll();
 await t.shot('1');
 await t.next();
-// 2. Пръчките: една умишлена грешка в предсказанието
-await t.choose(1); console.log('грешка:', await t.msg());
-await t.choose(0);
-await t.btn('.pour'); await wait(6000); await t.shot('2a');
+// 2. Пръчките: отворена прогноза — умишлено грешна (= 1 грешка); опитът пак тръгва
+await t.choose(1); console.log('прогноза:', await t.msg());
+await t.btn('.pour');
+await page.waitForSelector('.xp-controls .cmp.miss', { timeout: 20000 }); await t.shot('2a');
+console.log('сравнение:', (await page.textContent('.xp-controls .cmp')).replace(/\s+/g, ' ').trim());
+await t.next();
 await page.waitForSelector('.xp-controls .ord', { timeout: 20000 });
 await orderAll(t, 4); await t.shot('2b'); await t.next();
 // 3. Конвекция
 await t.choose(0); await t.btn('.fire'); await wait(4500); await t.shot('3a');
+if (!(await page.locator('.xp-controls .cmp.ok').count())) throw new Error('няма сравнение след вярна прогноза');
 await t.btn('.mid'); await wait(2500); await t.next();
 await wait(800); await t.click('spot-high'); await wait(3800); await t.shot('3b');
 await t.click('spot-low'); await wait(3200);
