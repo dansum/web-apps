@@ -261,7 +261,7 @@
     function faces(list) { return list.map(function (p) { return '<span data-pid="' + (p.avatar ? '' : p.id) + '">' + (p.avatar ? Art.avatar(p.avatar) : Art.svg(p)) + '</span>'; }).join(''); }
     var secs = document.getElementById('sections');
     secs.innerHTML =
-      '<a class="sec" href="deset.html"><span class="big" aria-hidden="true">10</span><h3>10 БУМа</h3><p>Десетте най-известни и най-важни приноса на българи чрез математика и науки – от първия електронен компютър до кристалите в лазерите.</p><div class="faces">' + faces(TEN.slice(0, 6)) + '</div></a>' +
+      '<a class="sec" href="deset.html"><span class="big" aria-hidden="true">10</span><h3>10 БУМа</h3><p>Десетте най-известни приноса на българи в математиката и науките – от компютъра на Атанасов до кристалите в лазерите.</p><div class="faces">' + faces(TEN.slice(0, 6)) + '</div></a>' +
       '<a class="sec" href="sto.html"><span class="big" aria-hidden="true">100</span><h3>СтоБУМ</h3><p>Сто истории на успеха – не всички прочути, но всички истински. Жени и мъже от различни векове и области.</p><div class="faces">' + faces(withPhotos(STO, 6)) + '</div></a>' +
       '<a class="sec" href="kilo.html"><span class="big" aria-hidden="true">1000</span><h3>КилоБУМ</h3><p>Истории, които събираме чрез интервюта – с хора около нас, които правят нещо важно с математика. Засега: примерни статии.</p><div class="faces">' + faces(KILO) + '</div></a>';
     secs.querySelectorAll('[data-pid=""]').forEach(function (n) { n.removeAttribute('data-pid'); });
@@ -529,6 +529,7 @@
   /* Връзки, избрани на ръка: [id, id, защо са свързани]. Останалите връзки свързват
      хората от една и съща основна сфера по реда на раждане. */
   var LINKS = [
+    ['john-atanasoff', 'blagovest-sendov', 'Сендов кани Атанасов в България (1970)'],
     ['ivan-stranski', 'lyubomir-krastanov', 'механизмът Странски–Кръстанов'],
     ['ivan-stranski', 'rostislav-kaishev', 'теорията за растежа на кристалите'],
     ['blagovest-sendov', 'rumen-tsanev', 'общ математически модел на гените'],
@@ -595,7 +596,7 @@
     var fieldsUsed = Object.keys(FIELDS).filter(function (f) { return nodes.some(function (n) { return n.p.field === f; }); });
     var W = 1000, H = 720, d3 = window.d3;
     var centers = {}; fieldsUsed.forEach(function (f, i) { var a = i / fieldsUsed.length * 2 * Math.PI - Math.PI / 2; centers[f] = [W / 2 + 270 * Math.cos(a), H / 2 + 200 * Math.sin(a)]; });
-    var svg = d3.select(box).append('svg').attr('viewBox', '0 0 ' + W + ' ' + H).attr('role', 'img').attr('aria-label', 'Мисловна карта на 110 истории');
+    var svg = d3.select(box).append('svg').attr('viewBox', '0 0 ' + W + ' ' + H).attr('role', 'img').attr('aria-label', 'Мисловна карта на ' + nodes.length + ' истории');
     var g = svg.append('g');
     var zoom = d3.zoom().scaleExtent([0.3, 6]).on('zoom', function (e) { g.attr('transform', e.transform); g.classed('zoomed', e.transform.k > 1.6); });
     svg.call(zoom);
