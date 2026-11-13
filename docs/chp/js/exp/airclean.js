@@ -3,7 +3,7 @@
 // Опитът (решение 27): детето избира 3 от 5 места и резултатът зависи от избора му.
 // Старият адрес #/s/5.2.4?v=b води до същото.
 import { labelSprite, mat, addHitBox, THREE, esc } from '../kit.js';
-import { scaffold, explore, choice, nextBtn, finishBtn, view, bar, stepScore } from './labkit.js';
+import { scaffold, explore, choice, predict, compare, nextBtn, finishBtn, view, bar, stepScore } from './labkit.js';
 import { sortTask, fillTask } from './labtasks.js';
 
 const SAFE = '<p class="warn">⚠ Картончетата се поставят <b>с възрастен</b>, далеч от платното на пътя. След опита измий ръцете.</p>';
@@ -259,18 +259,19 @@ export function mount(container, { onComplete }) {
     function predictB(placed) {
       shell.score('');
       const best = placed.reduce((a, b) => (b.dots > a.dots ? b : a));
-      choice(ctx, {
+      // Решение 21: отворена прогноза — опитът тръгва с каквото детето е избрало, после сравнение.
+      predict(ctx, {
         q: 'Къде картончето ще събере най-много прах?',
         options: [
-          ...placed.map((c) => ({ t: c.name[0].toUpperCase() + c.name.slice(1), ok: c === best, why: c === best ? 'Да проверим!' : `Какво има близо до мястото „${c.name}“? Сравни с другите две места.` })),
-          { t: 'Навсякъде еднакво', ok: false, why: 'Близо ли е всяко място до източник на замърсяване?' },
+          ...placed.map((c) => ({ t: c.name[0].toUpperCase() + c.name.slice(1), ok: c === best, card: c })),
+          { t: 'Навсякъде еднакво', ok: false },
         ],
-        hint: 'Помисли кое място е най-близо до коли, комини и печки.',
-        onRight: (m) => { mistakes = m; waitWeek(); },
+        onPick: (o) => { ctx.predCard = o.card || null; waitWeek(); },
       });
     }
     function waitWeek() {
-      const cc = shell.setControls('<div class="row"><button class="btn primary wait">⏳ Изчакай една седмица</button></div>');
+      const cc = shell.controls;
+      cc.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary wait">⏳ Изчакай една седмица</button></div>');
       cc.querySelector('.wait').addEventListener('click', () => {
         cc.querySelector('.wait').disabled = true;
         ctx.clearTip();
@@ -301,17 +302,34 @@ export function mount(container, { onComplete }) {
           <tr><td style="padding:2px 4px;vertical-align:top"><b>Ход</b></td><td>Намазваме картончетата, оставяме ги 7 дни, гледаме ги с лупа.</td></tr>
           <tr><td style="padding:2px 4px;vertical-align:top"><b>Наблюдения</b></td><td>${obs}</td></tr>
         </table>`;
-      shell.task(table('<i>попълни отдолу</i>'));
-      fillTask(ctx, {
-        lead: '<b>Попълни реда „Наблюдения“.</b> Числото до лупата показва колко прахови частици има на картончето. Сравни трите.',
-        rows: placed.map((c) => ({ label: c.name, options: WORDS, answer: WORDS.indexOf(c.word), why: 'Най-много частици — „много“, най-малко — „малко“.' })),
-        hint: 'Подреди числата до лупите от най-голямото към най-малкото.',
-        mistakes,
-        onDone: (m) => {
-          shell.task(table(placed.map((c) => `${c.name}: <b>${c.word}</b> прахови частици`).join('<br>')));
-          conclude(placed, rank, m);
-        },
+      // Сравнение „прогноза / какво стана / защо“; при грешна прогноза балонче до избраното картонче.
+      const hi = rank[0];
+      mistakes += ctx.predMiss || 0;
+      const pc = ctx.predCard;
+      if (!ctx.prediction.ok) {
+        ctx.say(pc ? pc.g : hi.g, pc
+          ? `Твоята прогноза: тук. Но тук има ${pc.dots} частици, а ${hi.name} — ${hi.dots}.`
+          : `Не е еднакво: ${rank.map((c) => c.dots).join(', ')} частици.`, 'bad', 2.1);
+      }
+      compare(ctx, {
+        result: `Най-много прах събра картончето ${hi.name} (${hi.dots} частици).`,
+        why: `То е близо до ${esc(hi.near)}. Колкото по-близо е източникът на прах, толкова повече прах полепва.`,
       });
+      nextBtn(ctx, 'Попълни протокола →', fill);
+      function fill() {
+        ctx.clearTip();
+        shell.task(table('<i>попълни отдолу</i>'));
+        fillTask(ctx, {
+          lead: '<b>Попълни реда „Наблюдения“.</b> Числото до лупата показва колко прахови частици има на картончето. Сравни трите.',
+          rows: placed.map((c) => ({ label: c.name, options: WORDS, answer: WORDS.indexOf(c.word), why: 'Най-много частици — „много“, най-малко — „малко“.' })),
+          hint: 'Подреди числата до лупите от най-голямото към най-малкото.',
+          mistakes,
+          onDone: (m) => {
+            shell.task(table(placed.map((c) => `${c.name}: <b>${c.word}</b> прахови частици`).join('<br>')));
+            conclude(placed, rank, m);
+          },
+        });
+      }
     }
     function conclude(placed, rank, m0) {
       const hi = rank[0], lo = rank[rank.length - 1];
