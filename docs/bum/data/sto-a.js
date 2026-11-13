@@ -271,7 +271,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     tags: ['теория на кодирането', 'грешки', 'БАН']
   },
   {
-    id: 'asen-dontchev',
+    id: 'asen-dontchev', wikidata: 'Q102122758',
     name: 'Асен Дончев',
     sex: 'm',
     born: 1948,
@@ -346,7 +346,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     tags: ['образование', 'Лого', 'програмиране']
   },
   {
-    id: 'svetlozar-rachev',
+    id: 'svetlozar-rachev', wikidata: 'Q21062234',
     name: 'Светлозар Рачев',
     sex: 'm',
     born: 1951,
@@ -419,7 +419,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     tags: ['оптимизация', 'риск', 'вероятности']
   },
   {
-    id: 'ludmil-katzarkov',
+    id: 'ludmil-katzarkov', wikidata: 'Q1873902', photoFile: 'Katzarkov.jpg',
     name: 'Людмил Кацарков',
     sex: 'm',
     born: 1961,

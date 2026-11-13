@@ -73,7 +73,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     wiki: {}
   },
   {
-    id: 'kristina-toutanova', name: 'Кристина Тутанова', sex: 'f', born: 1975, bornApprox: true, died: null,
+    id: 'kristina-toutanova', wikidata: 'Q57267422', name: 'Кристина Тутанова', sex: 'f', born: 1975, bornApprox: true, died: null,
     place: 'България', field: 'cs', motif: 'neural',
     tags: ['изкуствен интелект', 'BERT', 'езикови модели'],
     title: 'Една от четиримата създатели на BERT',
