@@ -146,24 +146,43 @@ export function mount(container, { onComplete }) {
       onRight: (m) => { mistakes = m; journey(); },
     });
     function journey() {
-      const order = ['river', 'cloud', 'tree', 'human'];
-      const text = { river: 'Капката е в реката.', cloud: 'Изпари се и стана част от облака.', tree: 'Падна с дъжда, корените я поеха и тя стигна до листата.', human: 'Човекът изяде плод от дървото и водата стана част от тялото му.' };
-      let k = 0;
-      ctx.answer = order[0];
-      shell.task('<p><b>Проследи капката:</b> кликни реката, облака, дървото и човека — в този ред.</p>');
+      // Капката тръгва от реката и трябва да стигне до човека. Приемаме всеки верен път.
+      const MOVES = {
+        river: { cloud: 'Капката се изпари и стана част от облака.', tree: 'Корените на дървото поеха капката от влажната почва.', human: 'Човекът пи вода от реката, след като я пречистиха.' },
+        cloud: { tree: 'Капката падна с дъжда, корените я поеха и тя стигна до листата.', river: 'Капката падна с дъжда обратно в реката.' },
+        tree: { human: 'Човекът изяде плод от дървото и водата стана част от тялото му.', cloud: 'Листата изпариха капката и тя стигна до облака.' },
+      };
+      const NO = { cloud: { human: 'От облака капката трябва първо да падне с дъжда.' }, tree: { river: 'Дървото отделя водата през листата като пара. Къде отива парата?' } };
+      const NEXT = { river: 'cloud', cloud: 'tree', tree: 'human' };
+      let at = null;
+      let steps = 0;
+      ctx.answer = 'river';
+      shell.task('<p><b>Проследи капката</b> от реката до човека. Кликни местата, през които минава. Има няколко верни пътя.</p>');
       shell.setControls('');
+      const wrong = (txt) => { mistakes++; shell.msg(`${txt}${mistakes >= 2 ? ' Подсказка: например река → облак → дърво → човек.' : ''}`, 'bad'); };
       ctx.click = (id) => {
-        if (!id) return;
-        if (id !== order[k]) {
-          if (order.includes(id) || ['rock', 'reserve'].includes(id)) { mistakes++; shell.msg(`Капката още не може да стигне там.${mistakes >= 2 ? ' Подсказка: река → облак → дърво → човек.' : ''}`, 'bad'); }
+        if (!id || id === at) return;
+        const known = ['river', 'cloud', 'tree', 'human', 'rock', 'reserve'].includes(id);
+        if (!known) return;
+        if (!at) {
+          if (id !== 'river') { wrong('Капката започва от реката.'); return; }
+          at = 'river';
+          moveDrop('river');
+          shell.msg('Капката е в реката.', 'good');
+          ctx.say(posOf.river(), 'Капката е в реката.', 'tag', 0.4);
+          ctx.answer = NEXT.river;
           return;
         }
+        const txt = MOVES[at] && MOVES[at][id];
+        if (!txt) { wrong((NO[at] && NO[at][id]) || 'Капката не може да стигне там направо. Опитай друго място.'); return; }
+        at = id;
+        steps++;
         moveDrop(id);
-        shell.msg(text[id], 'good');
-        ctx.say(posOf[id](), text[id], 'tag', 0.4);
-        k++;
-        ctx.answer = order[k] || null;
-        if (k === order.length) {
+        const extra = id === 'human' && steps === 1 ? ' Има и по-дълъг път: през облака и дървото.' : '';
+        shell.msg(txt + extra, 'good');
+        ctx.say(posOf[id](), txt, 'tag', 0.4);
+        ctx.answer = NEXT[id] || null;
+        if (at === 'human') {
           ctx.click = null;
           setTimeout(() => {
             ctx.clearTip();
