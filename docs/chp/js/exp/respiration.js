@@ -1,7 +1,7 @@
 // 5.3.3 „Дишане“ — опит с покълнали и сварени семена, аквариум с риба, жаба, бръмбар, растение и мишка-схема (не в мащаб).
 // Стъпки: опознай → дишат ли семената (опит с варна вода и треска) → органи за дишане → пътят на кислорода и предсказване.
 import { labelSprite, mat, addHitBox, THREE } from '../kit.js';
-import { scaffold, explore, choice, nextBtn, finishBtn, labRoom, glass, view, stepScore } from './labkit.js';
+import { scaffold, explore, choice, predict, compare, nextBtn, finishBtn, labRoom, glass, view, stepScore } from './labkit.js';
 import { sortTask, orderTask } from './labtasks.js';
 import { curveOf, flowDots, glassMat, organMat } from './anatomy.js';
 
@@ -19,15 +19,21 @@ export function mount(container, { onComplete }) {
   shell.stageEl.appendChild(note);
 
   // ---------- Буркани със семена ----------
+  // Съдържание на буркан (решение 26): live — покълнали семена, dead — сварени семена, empty — празен.
+  const CONTENT = { live: 'покълнали семена', dead: 'сварени семена', empty: 'празен' };
   const jars = ['А', 'Б'].map((name, i) => {
     const g = new THREE.Group();
     const side = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 1.1, 28, 1, true), glass(0.25)); side.position.y = 0.55;
     const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.08, 28), mat(0x8d6e63)); lid.position.y = 1.14;
     g.add(side, lid);
-    for (let k = 0; k < 26; k++) {
-      const s = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 6), mat(i ? 0xbcaaa4 : 0xf0d9a0)); s.scale.set(1.3, 0.8, 1);
-      s.position.set((Math.random() - 0.5) * 0.6, 0.05 + Math.random() * 0.1, (Math.random() - 0.5) * 0.6); g.add(s);
-      if (!i && k % 2) { const sprout = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.12, 4), mat(0xf5f5dc)); sprout.position.copy(s.position); sprout.position.y += 0.07; sprout.rotation.z = Math.random() - 0.5; g.add(sprout); }
+    const seeds = { live: new THREE.Group(), dead: new THREE.Group() };
+    for (const kind of ['live', 'dead']) {
+      for (let k = 0; k < 26; k++) {
+        const s = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 6), mat(kind === 'dead' ? 0xbcaaa4 : 0xf0d9a0)); s.scale.set(1.3, 0.8, 1);
+        s.position.set((Math.random() - 0.5) * 0.6, 0.05 + Math.random() * 0.1, (Math.random() - 0.5) * 0.6); seeds[kind].add(s);
+        if (kind === 'live' && k % 2) { const sprout = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.12, 4), mat(0xf5f5dc)); sprout.position.copy(s.position); sprout.position.y += 0.07; sprout.rotation.z = Math.random() - 0.5; seeds[kind].add(sprout); }
+      }
+      g.add(seeds[kind]);
     }
     const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.11, 0.22, 16, 1, true), glass(0.4)); cup.position.set(0.15, 0.3, 0.1);
     const lime = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.1, 0.16, 16), new THREE.MeshStandardMaterial({ color: 0xe3f2fd, transparent: true, opacity: 0.55 })); lime.position.set(0.15, 0.27, 0.1);
@@ -38,10 +44,17 @@ export function mount(container, { onComplete }) {
     splint.add(wood, fl); splint.position.set(-0.1, 0.55, 0); splint.visible = false; g.add(splint);
     g.position.set(-4.6 + i * 1.3, 0, 0.3);
     g.userData.pickId = 'jar-' + i;
-    tag(g, `${name}: ${i ? 'сварени семена' : 'покълнали семена'}`, 1.45, 0.17);
     scene.add(g); addHitBox(g, 0.6);
-    return { g, lime, splint, fl, milky: 0, target: 0 };
+    return { g, name, seeds, lime, splint, fl, milky: 0, target: 0, content: null, label: null };
   });
+  // Слага съдържание в буркана и сменя надписа. c = null — още не е избрано.
+  const fillJar = (j, c) => {
+    j.content = c;
+    j.seeds.live.visible = c === 'live'; j.seeds.dead.visible = c === 'dead';
+    if (j.label) { j.g.remove(j.label); j.label.material.map.dispose(); }
+    j.label = tag(j.g, `${j.name}: ${c ? CONTENT[c] : '?'}`, 1.45, 0.17);
+  };
+  fillJar(jars[0], 'live'); fillJar(jars[1], 'dead');
   const jarsAt = new THREE.Object3D(); jarsAt.position.set(-3.95, 0.8, 0.3); scene.add(jarsAt);
 
   // ---------- Аквариум с риба ----------
@@ -120,6 +133,7 @@ export function mount(container, { onComplete }) {
     shell.step(0);
     ctx.clearTip();
     jars.forEach((j) => { j.target = 0; j.milky = 0; j.splint.visible = false; j.fl.visible = true; });
+    fillJar(jars[0], 'live'); fillJar(jars[1], 'dead');
     airDots.visible = o2Dots.visible = false;
     view(ctx, [0, 0.7, 0.2], 6.4, { halfH: 1.8 });
     explore(ctx, {
@@ -138,51 +152,88 @@ export function mount(container, { onComplete }) {
   }
 
   // ---------- 2. Опит със семената ----------
+  // Решение 26: детето само избира съдържанието на двата буркана. Варната вода помътнява само там, където
+  // има покълнали (живи) семена. Честен опит = едно различие: ако бурканите са еднакви, няма с какво да сравним.
   function step2() {
     shell.step(1);
     view(ctx, [-3.95, 0.7, 0.3], 1.6, { halfH: 1.0, elev: 0.3 });
-    shell.task(`<p>Затваряме двата буркана за едно денонощие.</p>${SAFE}`);
     let mistakes = 0;
-    choice(ctx, {
-      q: 'В кой буркан варната вода ще помътнее?',
-      options: [
-        { t: 'В А — покълналите семена са живи и дишат.', ok: true, why: 'Да проверим!' },
-        { t: 'В Б — при сварените семена.', ok: false, why: 'Могат ли мъртвите семена да дишат?' },
-        { t: 'И в двата еднакво.', ok: false, why: 'Едните семена са живи, а другите — не. Кои дишат?' },
-      ],
-      hint: 'Варната вода помътнява от въглероден диоксид. Кой го отделя?',
-      onRight: (m) => { mistakes = m; wait(); },
-    });
-    function wait() {
-      const c = shell.controls;
-      c.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary day">⏳ Едно денонощие</button></div>');
-      c.querySelector('.day').addEventListener('click', () => {
-        c.querySelector('.day').disabled = true;
-        jars[0].target = 1;
+    setup();
+    function setup() {
+      ctx.clearTip();
+      jars.forEach((j) => { j.target = 0; j.milky = 0; j.splint.visible = false; j.fl.visible = true; fillJar(j, null); });
+      shell.task(`<p><b>Ти нареждаш опита.</b> Избери какво да има във всеки буркан. В двата има чашка с <b>варна вода</b>. Тя помътнява от въглероден диоксид.</p>${SAFE}`);
+      shell.msg('');
+      const row = (j, i) => `<p class="small"><b>Буркан ${j.name}:</b></p><div class="choices">${Object.keys(CONTENT).map((c) => `<button class="choice ja" data-j="${i}" data-c="${c}">${{ live: '🌱', dead: '🍲', empty: '◻' }[c]} ${CONTENT[c]}</button>`).join('')}</div>`;
+      const c = shell.setControls(`${jars.map(row).join('')}<div class="row"><button class="btn primary go" disabled>▶ Затвори бурканите</button></div>`);
+      const go = c.querySelector('.go');
+      c.querySelectorAll('.ja').forEach((b) => b.addEventListener('click', () => {
+        const j = jars[+b.dataset.j];
+        c.querySelectorAll(`.ja[data-j="${b.dataset.j}"]`).forEach((x) => x.classList.toggle('on', x === b));
+        fillJar(j, b.dataset.c);
+        go.disabled = !jars.every((x) => x.content);
+      }));
+      go.addEventListener('click', guess, { once: true });
+    }
+    function guess() {
+      const [A, B] = jars.map((j) => j.content === 'live');
+      shell.task(`<p>Бурканите са затворени за едно денонощие.</p><p class="small">А: ${CONTENT[jars[0].content]} · Б: ${CONTENT[jars[1].content]}</p>`);
+      predict(ctx, {
+        q: 'В кой буркан варната вода ще помътнее?',
+        options: [
+          { t: 'В А', ok: A && !B },
+          { t: 'В Б', ok: B && !A },
+          { t: 'И в двата', ok: A && B },
+          { t: 'В нито един', ok: !A && !B },
+        ],
+        onPick: () => {
+          shell.controls.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary day">⏳ Едно денонощие</button></div>');
+          shell.controls.querySelector('.day').addEventListener('click', run, { once: true });
+        },
+      });
+    }
+    function run() {
+      shell.controls.querySelector('.day').disabled = true;
+      const live = jars.filter((j) => j.content === 'live');
+      live.forEach((j) => { j.target = 1; });
+      setTimeout(() => {
+        jars.forEach((j) => { j.splint.visible = true; });
         setTimeout(() => {
-          ctx.say(jars[0].g, 'Варната вода в А <b>помътня</b>: там има въглероден диоксид.', 'tag', 1.6);
-          const cc = shell.setControls('<div class="row"><button class="btn primary spl">🔥 Внеси горяща треска</button></div>');
-          cc.querySelector('.spl').addEventListener('click', () => {
-            cc.querySelector('.spl').disabled = true;
-            jars.forEach((j) => { j.splint.visible = true; });
-            setTimeout(() => {
-              jars[0].fl.visible = false;
-              ctx.say(jars[0].g, 'В А треската <b>угасна</b>: семената са изразходвали кислорода. В Б гори.', 'wide', 1.6);
-              choice(ctx, {
-                q: 'Кое вещество поемат и кое отделят покълналите семена?',
-                options: [
-                  { t: 'Поемат кислород и отделят въглероден диоксид.', ok: true, why: 'Вярно! Така дишат и растенията, и животните.' },
-                  { t: 'Поемат въглероден диоксид и отделят кислород.', ok: false, why: 'Защо тогава угасна треската и помътня варната вода?' },
-                  { t: 'Не поемат и не отделят нищо.', ok: false, why: 'Нещо в буркана А се промени. Какво?' },
-                ],
-                hint: 'Огънят гори с кислород, а варната вода помътнява от въглероден диоксид.',
-                mistakes,
-                onRight: (m) => { ctx.scores[0] = stepScore(m, 3); nextBtn(ctx, 'Напред →', step3); },
-              });
-            }, 1800);
-          }, { once: true });
-        }, 2400);
-      }, { once: true });
+          live.forEach((j) => { j.fl.visible = false; });
+          const names = live.map((j) => j.name).join(' и ');
+          const result = live.length ? `Варната вода помътня в ${names}, а треската там угасна.` : 'Варната вода остана бистра в двата буркана. Треската гори и в двата.';
+          ctx.say(jarsAt, live.length ? `Помътня там, където има <b>покълнали семена</b>: ${names}.` : 'Без живи семена варната вода остава <b>бистра</b>.', 'wide', 1.2);
+          compare(ctx, {
+            result,
+            why: 'Покълналите семена са живи и дишат: поемат кислород и отделят въглероден диоксид. Сварените семена не дишат.',
+          });
+          mistakes = ctx.predMiss || 0;
+          const same = jars[0].content === jars[1].content;
+          if (same || !live.length) {
+            shell.controls.insertAdjacentHTML('beforeend', `<p class="small"><b>${same
+              ? 'Двата буркана са еднакви — няма с какво да сравниш. Честният опит има само едно различие между бурканите.'
+              : 'В нито един буркан няма живи семена. Сложи покълнали семена в единия буркан.'}</b></p>`);
+            nextBtn(ctx, '🔄 Нареди бурканите отново', setup);
+            return;
+          }
+          const other = jars.find((j) => j.content !== 'live');
+          shell.controls.insertAdjacentHTML('beforeend', `<p class="small">Буркан ${other.name} (${CONTENT[other.content]}) е <b>контролният</b>: с него сравняваме.</p>`);
+          nextBtn(ctx, 'Напред →', ask);
+        }, 1800);
+      }, 2400);
+    }
+    function ask() {
+      choice(ctx, {
+        q: 'Кое вещество поемат и кое отделят покълналите семена?',
+        options: [
+          { t: 'Поемат кислород и отделят въглероден диоксид.', ok: true, why: 'Вярно! Така дишат и растенията, и животните.' },
+          { t: 'Поемат въглероден диоксид и отделят кислород.', ok: false, why: 'Защо тогава угасна треската и помътня варната вода?' },
+          { t: 'Не поемат и не отделят нищо.', ok: false, why: 'Нещо в буркана с покълналите семена се промени. Какво?' },
+        ],
+        hint: 'Огънят гори с кислород, а варната вода помътнява от въглероден диоксид.',
+        mistakes,
+        onRight: (m) => { ctx.scores[0] = stepScore(m, 3); nextBtn(ctx, 'Напред →', step3); },
+      });
     }
   }
 
