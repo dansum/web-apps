@@ -448,3 +448,4 @@ table.pivot { border-collapse: collapse; width: 100%; font-size: 15px; }
 .m-credit a { color: var(--muted); }
 .article .share { margin-top: 6px; padding: 9px 16px; font-size: 14px; }
 .share-msg { font-size: 13px; color: var(--muted); min-height: 1em; word-break: break-all; }
+.lic-check { font-style: italic; }

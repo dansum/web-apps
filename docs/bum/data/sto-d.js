@@ -150,7 +150,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     tags: ["лингвистика", "олимпиади", "обобщаване на текст"]
   },
   {
-    id: "kalina-boncheva",
+    id: "kalina-boncheva", wikidata: 'Q50281620',
     name: "Калина Бончева",
     sex: "f",
     born: 1973,
@@ -198,7 +198,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     tags: ["език", "гласови асистенти", "езикови модели"]
   },
   {
-    id: "bistra-dilkina",
+    id: "bistra-dilkina", wikidata: 'Q88430697',
     name: "Бистра Дилкина",
     sex: "f",
     born: 1979,
