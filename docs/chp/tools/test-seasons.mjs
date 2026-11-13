@@ -1,5 +1,5 @@
 // Изиграва 5.1.6 „Сезони, фази на Луната, затъмнения“ (js/exp/seasons.js) докрай с една умишлена грешка.
-// Очакван резултат: (0.75 + 1 + 0.75) / 3 — грешките са в предсказанието на стъпка 2 и в мястото на Луната за слънчевото затъмнение.
+// Очакван резултат: (0.75 + 1 + 0.75) / 3 — грешките са в (отворената) прогноза на стъпка 2 и в мястото на Луната за слънчевото затъмнение.
 // Употреба: NODE_PATH=$(npm root -g) node tools/test-seasons.mjs http://localhost:8765/chp/ <папка> [ширина]
 import { open } from './xp-lib.mjs';
 import { orderAll } from './xp5.mjs';
@@ -11,10 +11,13 @@ await t.menuAll();
 await t.shot('1');
 await t.next();
 // 2. Сезоните: една умишлена грешка в предсказанието
-await t.choose(1); console.log('грешка:', await t.msg());
-await t.choose(0);
+// Отворена прогноза (решение 21): умишлено грешна — опитът пак тръгва, накрая сравнение.
+await t.choose(1); console.log('прогноза:', await t.msg()); await t.next();
 await t.slider('.dd', await answer()); await t.btn('.chk'); await wait(800); await t.shot('2a'); await t.next();
-await t.slider('.dd', await answer()); await t.btn('.chk'); await wait(800); await t.shot('2b'); await t.next();
+await t.slider('.dd', await answer()); await t.btn('.chk'); await wait(800); await t.shot('2b');
+const cmp = await page.textContent('.xp-controls .cmp'); console.log('сравнение:', cmp.replace(/\s+/g, ' ').slice(0, 120));
+if (!/Твоята прогноза:\s*Земята ту се приближава/.test(cmp)) throw new Error('няма сравнение на прогнозата');
+await t.next();
 // 3. Фазите
 for (let k = 0; k < 3; k++) {
   await t.slider('.mp', await answer()); await t.btn('.chk'); await wait(600);
