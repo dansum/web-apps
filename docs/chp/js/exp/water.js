@@ -1,7 +1,7 @@
 // 5.2.6 „Опазване чистотата на водата“ — домашен филтър, макет на пречиствателна станция, езеро до наторено поле, чешма.
 // Стъпки: опознай → филтър за мътна вода (опит) → пречиствателната станция и замърсителите → торовете и езерото.
 import { labelSprite, mat, addHitBox, shuffle, THREE } from '../kit.js';
-import { scaffold, explore, choice, nextBtn, finishBtn, labRoom, glass, view, stepScore } from './labkit.js';
+import { scaffold, explore, choice, predict, compare, nextBtn, finishBtn, labRoom, glass, view, stepScore } from './labkit.js';
 import { sortTask, orderTask } from './labtasks.js';
 
 const SAFE = '<p class="warn">⚠ Филтрираната вода <b>не се пие</b>: в нея може да има микроби и разтворени вещества.</p>';
@@ -239,15 +239,15 @@ export function mount(container, { onComplete }) {
     view(ctx, [FX - 0.4, 1.45, 0.1], 1.4, { halfH: 1.65, elev: 0.15 });
     shell.task(`<p>Ще прецедим мътна вода през домашен филтър.</p>${SAFE}`);
     let mistakes = 0;
-    choice(ctx, {
+    // Решение 21: отворена прогноза — опитът тръгва с каквото детето е избрало, после сравнение.
+    predict(ctx, {
       q: 'Каква ще бъде водата след филтъра?',
       options: [
-        { t: 'По-бистра, но не е сигурно, че е годна за пиене.', ok: true, why: 'Да проверим! Първо напълни филтъра.' },
-        { t: 'Чиста и годна за пиене.', ok: false, why: 'Филтърът спира песъчинките и праха. А микробите, които не се виждат?' },
-        { t: 'Същата като преди.', ok: false, why: 'Пясъкът и чакълът задържат частиците. Ще се промени ли нещо?' },
+        { t: 'По-бистра, но не е сигурно, че е годна за пиене.', ok: true },
+        { t: 'Чиста и годна за пиене.', ok: false },
+        { t: 'Същата като преди.', ok: false },
       ],
-      hint: 'Микробите са толкова малки, че минават през пясъка.',
-      onRight: (m) => { mistakes = m; build(); },
+      onPick: () => { mistakes = ctx.predMiss || 0; nextBtn(ctx, 'Напълни филтъра →', build); },
     });
     // Детето само избира реда на слоевете. Грешният ред дава по-лош резултат и се подрежда отново.
     let wrongBuilds = 0;
@@ -283,8 +283,11 @@ export function mount(container, { onComplete }) {
             F.run = false; muddyTop.visible = false;
             clean.material.color.set(0xd6e6ee);
             ctx.say(filt, 'Водата е <b>по-бистра</b>: чакълът и пясъкът задържаха частиците, а <b>активният въглен</b> (въглен с много мънички пори) — част от цвета и мириса. Но в нея може да има <b>микроби</b> — не я пий!', 'wide', 2.0);
-            shell.msg('Вярно подредено!', 'good');
             ctx.scores[0] = stepScore(mistakes, 3);
+            compare(ctx, {
+              result: 'Водата стана по-бистра. Частиците останаха в слоевете.',
+              why: 'Филтърът задържа песъчинките и калта. Микробите са толкова малки, че минават през пясъка. Затова тази вода не се пие.',
+            });
             nextBtn(ctx, 'Напред →', step3);
           }, 4500);
           return;
@@ -349,16 +352,15 @@ export function mount(container, { onComplete }) {
     view(ctx, [-1.8, 0.3, -1.6], 2.2, { halfH: 1.0, elev: 0.75 });
     shell.task('<p>Фермерът е сложил много торове на полето до езерото. Задава се дъжд.</p>');
     let mistakes = 0;
-    choice(ctx, {
+    predict(ctx, {
       q: 'Какво ще стане с езерото, ако дъждът отмие торовете в него?',
       options: [
-        { t: 'Водораслите ще се размножат, кислородът ще намалее и рибите ще загинат.', ok: true, why: 'Да проверим! Пусни дъжда.' },
-        { t: 'Рибите ще пораснат по-големи от торовете.', ok: false, why: 'Торовете са храна за растенията. Кой ще се размножи във водата?' },
-        { t: 'Нищо: торовете ще потънат на дъното.', ok: false, why: 'Торовете се разтварят във водата. Кой ще ги използва?' },
+        { t: 'Водораслите ще се размножат, кислородът ще намалее и рибите ще загинат.', ok: true },
+        { t: 'Рибите ще пораснат по-големи от торовете.', ok: false },
+        { t: 'Нищо: торовете ще потънат на дъното.', ok: false },
       ],
-      hint: 'Торовете хранят растенията — и водораслите.',
-      onRight: (m) => {
-        mistakes = m;
+      onPick: () => {
+        mistakes = ctx.predMiss || 0;
         const c = shell.controls;
         c.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary rain">🌧 Пусни дъжда</button></div>');
         c.querySelector('.rain').addEventListener('click', () => {
@@ -367,7 +369,11 @@ export function mount(container, { onComplete }) {
           setTimeout(() => {
             L.rain = false;
             ctx.say(lakeAt, 'Водораслите покриха езерото. Когато загиват, разграждането им изразходва кислорода във водата и рибите се задушават.', 'wide', 0.6);
-            measures();
+            compare(ctx, {
+              result: 'Езерото позеленя от водорасли, а рибите се задушиха.',
+              why: 'Торовете се разтварят във водата и хранят водораслите. Те плъзват. Когато загиват, гниенето им изразходва кислорода.',
+            });
+            nextBtn(ctx, 'Как да помогнем? →', measures);
           }, 4500);
         }, { once: true });
       },
