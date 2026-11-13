@@ -1,5 +1,5 @@
 // Изиграва 5.1.6 „Сезони, фази на Луната, затъмнения“ (js/exp/seasons.js) докрай с една умишлена грешка.
-// Очакван резултат: (0.75 + 1 + 1) / 3 — грешката е в предсказанието на стъпка 2.
+// Очакван резултат: (0.75 + 1 + 0.75) / 3 — грешките са в предсказанието на стъпка 2 и в мястото на Луната за слънчевото затъмнение.
 // Употреба: NODE_PATH=$(npm root -g) node tools/test-seasons.mjs http://localhost:8765/chp/ <папка> [ширина]
 import { open } from './xp-lib.mjs';
 import { orderAll } from './xp5.mjs';
@@ -23,8 +23,13 @@ for (let k = 0; k < 3; k++) {
 }
 await orderAll(t, 4); await t.shot('3b'); await t.next();
 // 4. Затъмнения
-await t.choose(0); await wait(3000); await t.shot('4a'); await t.next();
-await t.choose(0); await wait(3500); await t.shot('4b'); await t.next();
+// Решение 25: детето мести само Луната. Първо грешно място: сянката ѝ не пада върху Земята.
+await t.slider('.ep', 90); await t.btn('.chk'); await wait(600); await t.shot('4w');
+const bw = await page.textContent('.bubble'); console.log('грешно място:', bw);
+if (!/не пада върху Земята/.test(bw)) throw new Error('сцената не показва защо мястото е грешно');
+if (await page.locator('.xp-panel .slider').count() !== 1) throw new Error('плъзгачът трябва да е само за Луната');
+await t.slider('.ep', await answer()); await t.btn('.chk'); await wait(800); await t.shot('4a'); await t.next();
+await t.slider('.ep', await answer()); await t.btn('.chk'); await wait(1500); await t.shot('4b'); await t.next();
 await t.choose(0); await t.shot('4c'); await t.next();
 await t.shot('5');
-await t.done((0.75 + 1 + 1) / 3);
+await t.done((0.75 + 1 + 0.75) / 3);
