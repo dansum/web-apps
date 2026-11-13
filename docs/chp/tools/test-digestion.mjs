@@ -1,5 +1,5 @@
 // Изиграва 5.3.5 „Храносмилателна система на човека“ (js/exp/digestion.js) докрай с една умишлена грешка.
-// Очакван резултат: (0.5 + 1 + 1) / 3 — грешките са в предсказанието на стъпка 2 и във въпроса за жлъчката.
+// Очакван резултат: (0.5 + 1 + 1) / 3 — грешките са в (отворената) прогноза на стъпка 2 и във въпроса за жлъчката.
 // Употреба: NODE_PATH=$(npm root -g) node tools/test-digestion.mjs http://localhost:8765/chp/ <папка> [ширина]
 import { open } from './xp-lib.mjs';
 import { sortAll } from './xp5.mjs';
@@ -21,8 +21,8 @@ await t.menuAll();
 await t.shot('1');
 await t.next();
 // 2. Хапката: една умишлена грешка в предсказанието
-await t.choose(1); console.log('грешка:', await t.msg());
-await t.choose(0);
+// Отворена прогноза (решение 21): умишлено грешна — пак следваме хапката, накрая сравнение.
+await t.choose(1); console.log('прогноза:', await t.msg()); await t.next();
 for (const id of ['mouth', 'esophagus', 'stomach', 'liver', 'pancreas', 'small', 'large']) {
   await clickOrgan(id);
   if (id === 'stomach') await t.shot('2a');
@@ -35,7 +35,10 @@ for (const id of ['mouth', 'esophagus', 'stomach', 'liver', 'pancreas', 'small',
 }
 const bad = await page.evaluate(() => document.querySelector('.xp-msg').className);
 console.log('последно съобщение:', bad, await t.msg());
-await wait(800); await t.shot('2b'); await t.next();
+await wait(800); await t.shot('2b');
+const cmp = await page.textContent('.xp-controls .cmp'); console.log('сравнение:', cmp.replace(/\s+/g, ' ').slice(0, 100));
+if (!/Твоята прогноза:\s*В стомаха/.test(cmp)) throw new Error('няма сравнение на прогнозата');
+await t.next();
 // 3. Храните и кръвта
 await wait(800); await t.shot('3'); await sortAll(t); await wait(300); await sortAll(t); await t.next();
 // 4. Навици

@@ -2,7 +2,7 @@
 // маса с храни и увеличен участък от тънкото черво (не в мащаб).
 // Стъпки: опознай → какво става във всеки орган (хапката пътува) → храните и кръвта → здравословни навици.
 import { labelSprite, mat, addHitBox, THREE } from '../kit.js';
-import { scaffold, explore, choice, nextBtn, finishBtn, view, stepScore } from './labkit.js';
+import { scaffold, explore, choice, predict, compare, nextBtn, finishBtn, view, stepScore } from './labkit.js';
 import { sortTask } from './labtasks.js';
 import { curveOf, flowDots, organMat, glowOf, hitTube } from './anatomy.js';
 import { buildKid, buildStomach, buildIntestines, buildLiver, buildEsophagus } from './organs4.js';
@@ -148,15 +148,15 @@ export function mount(container, { onComplete }) {
     view(ctx, [KX, 2.6, 0], 1.6, { halfH: 1.6, elev: 0.1 });
     shell.task('<p>Боби отхапа от сандвич. Хапката тръгва по храносмилателната система.</p>');
     let mistakes = 0;
-    choice(ctx, {
+    // Решение 21: отворена прогноза — детето следва хапката с каквото е избрало, накрая сравнение.
+    predict(ctx, {
       q: 'Как мислиш: къде хранителните вещества преминават в кръвта?',
       options: [
-        { t: 'В тънкото черво', ok: true, why: 'Да проверим! Следвай хапката.' },
-        { t: 'В стомаха', ok: false, why: 'В стомаха смилането едва започва. Къде храната е смляна докрай?' },
-        { t: 'В дебелото черво', ok: false, why: 'В дебелото черво се поема главно водата. А хранителните вещества — по-рано.' },
+        { t: 'В тънкото черво', ok: true },
+        { t: 'В стомаха', ok: false },
+        { t: 'В дебелото черво', ok: false },
       ],
-      hint: 'Най-дългата част на храносмилателната тръба.',
-      onRight: (m) => { mistakes = m; tasks(); },
+      onPick: () => { mistakes = ctx.predMiss || 0; nextBtn(ctx, 'Следвай хапката →', tasks); },
     });
     // Решение 23: кликанията се редуват с въпроси „Какво ще стане, ако…“ (най-много 2 клика подред).
     const TASKS = [
@@ -222,6 +222,11 @@ export function mount(container, { onComplete }) {
         if (id === 'large') { vessel.visible = true; nutri.visible = true; }
         ctx.scores[0] = stepScore(mistakes, 3);
         shell.task('<p>Хранителните вещества (жълтите точки) вече са в кръвта.</p>');
+        ctx.say(organs.small, 'Тук, в <b>тънкото черво</b>, смлените вещества минават в кръвта.', 'wide', 0.4);
+        compare(ctx, {
+          result: 'Хранителните вещества минаха в кръвта в тънкото черво.',
+          why: 'В стомаха смилането едва започва. В тънкото черво храната се смила докрай и веществата минават в кръвта. В дебелото черво се поема главно водата.',
+        });
         nextBtn(ctx, 'Напред →', step3);
       };
     }
