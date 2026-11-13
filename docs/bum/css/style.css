@@ -1,4 +1,4 @@
-/* БУМ — Български Успехи с Математика */
+/* БУМ — Български успехи с математика */
 @font-face { font-family: "Lato"; src: url("../fonts/lato-regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
 @font-face { font-family: "Lato"; src: url("../fonts/lato-bold.woff2") format("woff2"); font-weight: 700 900; font-display: swap; }
 /* Цветове на „Образование без раници“ (същите като в логото) */
@@ -71,8 +71,9 @@ img { max-width: 100%; display: block; }
 }
 @media (max-width: 460px) {
   .brand span { display: none; }
-  .nav { margin-left: 0; flex: 1; justify-content: center; }
-  .nav a { padding: 7px 8px; font-size: 13.5px; }
+  .nav { margin-left: 0; flex: 1; justify-content: flex-start; gap: 2px; }
+  .nav a { padding: 7px 7px; font-size: 13.5px; }
+  .brand svg { width: 34px; height: 34px; }
 }
 
 /* ---------- общи ---------- */
@@ -332,3 +333,44 @@ table.pivot { border-collapse: collapse; width: 100%; font-size: 15px; }
 .why .stats-more { grid-column: 1 / -1; text-align: center; color: var(--teal); font-weight: 700; text-decoration: none; padding-top: 4px; }
 .why .stats-more:hover { text-decoration: underline; }
 .pivot thead th.tot { background: #B86A0C; color: #fff; }
+
+/* ---------- МИСЛОВНА КАРТА ---------- */
+.m-tools { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.m-tools .row { display: flex; flex-wrap: wrap; gap: 8px; }
+.m-tools .sel { flex: 1 1 150px; max-width: 240px; }
+.m-tools .count { margin: 0; }
+.chip.m-dot::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--dc); margin-right: 6px; vertical-align: 0; }
+.m-wrap { display: grid; grid-template-columns: 1fr 340px; gap: 16px; align-items: start; margin-bottom: 30px; }
+.m-map { background: var(--paper); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; touch-action: none; }
+.m-map svg { display: block; width: 100%; height: auto; max-height: 78vh; cursor: grab; }
+.m-link { stroke: var(--muted); stroke-opacity: .18; stroke-width: 1; }
+.m-link.hand { stroke: var(--navy); stroke-opacity: .55; stroke-width: 1.8; }
+:root[data-theme="dark"] .m-link.hand { stroke: #9DB4F0; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .m-link.hand { stroke: #9DB4F0; } }
+.m-link.hi { stroke: var(--orange); stroke-opacity: 1; stroke-width: 3; }
+.m-link.off { stroke-opacity: .04; }
+.m-node { cursor: pointer; }
+.m-node circle { stroke: var(--paper); stroke-width: 2; transition: opacity .2s; }
+.m-node.ten circle { stroke-width: 3; }
+.m-node.sel circle { stroke: var(--orange); stroke-width: 5; }
+.m-node.near circle { stroke: var(--orange); stroke-width: 2.5; }
+.m-node.off { opacity: .1; }
+.m-node:focus-visible circle { stroke: var(--teal); stroke-width: 5; }
+.m-label { font: 700 12px var(--sans); fill: var(--head); paint-order: stroke; stroke: var(--paper); stroke-width: 3px; pointer-events: none; display: none; }
+.m-node.ten .m-label { display: block; font-size: 14px; }
+.zoomed .m-label, .m-node.sel .m-label, .m-node.near .m-label, .m-node:hover .m-label { display: block; }
+.m-node.off .m-label { display: none; }
+.m-panel { background: var(--paper); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; position: sticky; top: 80px; }
+.m-panel .m-art { height: 170px; }
+.m-panel .m-art .portrait { width: 110px; height: 110px; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+.m-panel .m-art .portrait .mono { font-size: 34px; }
+.m-body { padding: 16px 18px 20px; display: flex; flex-direction: column; gap: 8px; }
+.m-body h2 { font-size: 22px; }
+.m-body .yrs { color: var(--muted); font-size: 14px; }
+.m-body p { margin: 0; font-size: 15px; }
+.m-body .btn { align-self: flex-start; margin-top: 4px; }
+.m-body h3 { font-size: 14px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: 8px; }
+.m-rel { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.m-rel button { border: 0; background: none; padding: 0; font: 700 14px var(--sans); color: var(--link); cursor: pointer; text-decoration: underline; }
+.m-rel span { color: var(--muted); }
+@media (max-width: 900px) { .m-wrap { grid-template-columns: 1fr; } .m-panel { position: static; } .m-map svg { max-height: 70vh; } }

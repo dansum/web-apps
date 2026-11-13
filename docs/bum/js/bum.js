@@ -133,10 +133,11 @@
     if (top) {
       top.className = 'top';
       top.innerHTML = '<div class="wrap"><a class="brand" href="index.html" aria-label="БУМ — начало">' + logo() +
-        '<span><b>БУМ</b><small>Български Успехи<br>с Математика</small></span></a>' +
+        '<span><b>БУМ</b><small>Български успехи<br>с математика</small></span></a>' +
         '<nav class="nav" aria-label="Секции"><a href="deset.html"' + (active === 'ten' ? ' aria-current="page"' : '') + '>10 БУМа</a>' +
         '<a href="sto.html"' + (active === 'sto' ? ' aria-current="page"' : '') + '>СтоБУМ</a>' +
         '<a href="kilo.html"' + (active === 'kilo' ? ' aria-current="page"' : '') + '>КилоБУМ</a>' +
+        '<a href="karta.html" class="nav-stats"' + (active === 'map' ? ' aria-current="page"' : '') + ' aria-label="Карта"><span aria-hidden="true">🕸</span><span class="lbl"> Карта</span></a>' +
         '<a href="statistika.html" class="nav-stats"' + (active === 'stats' ? ' aria-current="page"' : '') + ' aria-label="Статистика"><span aria-hidden="true">📊</span><span class="lbl"> Статистика</span></a></nav>' +
         '<button class="theme" id="theme" type="button"></button></div>';
       applyTheme(getTheme());
@@ -150,7 +151,7 @@
       f.innerHTML = '<div class="obr-band"><div class="wrap"><p>БУМ е проект на „Образование без раници“ — сдружението, което превежда Кан Академия на български и помага на учители и ученици да учат умно с технологии.</p>' +
         '<a class="obr-link" href="' + DONATE_URL + '" target="_blank" rel="noopener" aria-label="Образование без раници — дари">' +
         '<img class="light" src="media/obr-logo.svg" alt="Образование без раници"><img class="dark" src="media/obr-logo-light.svg" alt="Образование без раници"><span class="give">Дари ♥</span></a></div></div>' +
-        '<div class="wrap meta"><span><b>БУМ</b> — Български Успехи с Математика · истории за хора, които променят света с числа</span>' +
+        '<div class="wrap meta"><span><b>БУМ</b> — Български успехи с математика · истории за хора, които променят света с числа</span>' +
         '<span>Снимки: Уикипедия / Уикимедия Общомедия, свободни лицензи · <a href="../">Още проекти</a> · <button type="button" class="ck" onclick="window.d4Consent&&d4Consent.reset()">Бисквитки</button></span></div>';
     }
   }
@@ -222,7 +223,7 @@
     var real = TEN.concat(STO), women = real.filter(function (p) { return p.sex === 'f'; }).length;
     var cs = real.map(century).filter(Boolean), minC = Math.min.apply(null, cs), maxC = Math.max.apply(null, cs);
     document.querySelector('main').appendChild(kaBlock('@home', 'Математиката зад откритията'));
-    document.getElementById('stats').innerHTML = '<div><b>' + real.length + '</b><span>истински истории</span></div><div><b>' + women + '</b><span>жени</span></div><div><b>' + roman(minC) + '–' + roman(maxC) + '</b><span>век</span></div>' + '<a class="stats-more" href="statistika.html">Всички числа и осева таблица →</a>';
+    document.getElementById('stats').innerHTML = '<div><b>' + real.length + '</b><span>истински истории</span></div><div><b>' + women + '</b><span>жени</span></div><div><b>' + roman(minC) + '–' + roman(maxC) + '</b><span>век</span></div>' + '<a class="stats-more" href="statistika.html">Всички числа и осева таблица →</a> <a class="stats-more" href="karta.html">Мисловна карта на всички истории →</a>';
   }
 
   /* ---------- 10 БУМа ---------- */
@@ -374,7 +375,7 @@
       if (k !== 'none') rowSel.add(new Option(DIMS[k].t, k));
       colSel.add(new Option(DIMS[k].t, k));
     });
-    rowSel.value = 'cent'; colSel.value = 'sex';
+    rowSel.value = 'field'; colSel.value = 'cent';
     var inc = { ten: true, sto: true, kilo: false };
     ['ten', 'sto', 'kilo'].forEach(function (k) {
       var c = document.getElementById('inc-' + k); c.checked = inc[k];
@@ -449,8 +450,9 @@
       var cs = P.map(century).filter(Boolean), cities = {}; P.forEach(function (p) { if (p.city !== 'неизвестно') cities[p.city] = 1; });
       var fl = {}; P.forEach(function (p) { p.fields.forEach(function (k) { fl[k] = 1; }); });
       document.getElementById('cards').innerHTML = [
-        [P.length, 'истории'], [Math.round(f / n * 100) + '%', 'жени (' + f + ')'], [Math.round(bg / n * 100) + '%', 'живеят основно в България'],
-        [cs.length ? roman(Math.min.apply(null, cs)) + '–' + roman(Math.max.apply(null, cs)) : '—', 'век на раждане'], [Object.keys(cities).length, 'града на раждане'], [Object.keys(fl).length, 'сфери']
+        [P.length, 'истории'], [Math.round(bg / n * 100) + '%', 'живеят основно в България'],
+        [cs.length ? roman(Math.min.apply(null, cs)) + '–' + roman(Math.max.apply(null, cs)) : '—', 'век на раждане'], [Object.keys(cities).length, 'града на раждане'], [Object.keys(fl).length, 'сфери'],
+        [Math.round(f / n * 100) + '%', 'жени (' + f + ')']
       ].map(function (x) { return '<div><b>' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join('');
     }
     document.getElementById('csv').onclick = function () {
@@ -466,6 +468,172 @@
     document.querySelector('main').appendChild(kaBlock('@stats', 'Научи се да четеш таблици и данни'));
   }
 
+  /* ---------- МИСЛОВНА КАРТА (d3-force) ---------- */
+  /* Връзки, избрани на ръка: [id, id, защо са свързани]. Останалите връзки свързват
+     хората от една и съща основна сфера по реда на раждане. */
+  var LINKS = [
+    ['ivan-stranski', 'lyubomir-krastanov', 'механизмът Странски–Кръстанов'],
+    ['ivan-stranski', 'rostislav-kaishev', 'теорията за растежа на кристалите'],
+    ['blagovest-sendov', 'rumen-tsanev', 'общ математически модел на гените'],
+    ['blagovest-sendov', 'evgenia-sendova', 'баща и дъщеря; компютрите в училище'],
+    ['vladimir-koylazov', 'petar-mitev', 'основават заедно Chaos (V-Ray)'],
+    ['georgi-ivanov', 'aleksandar-aleksandrov', 'първите двама български космонавти'],
+    ['georgi-ivanov', 'kiril-serafimov', 'българските космически изследвания'],
+    ['aleksandar-aleksandrov', 'tanya-ivanova', 'станция „Мир“'],
+    ['veselin-topalov', 'antoaneta-stefanova', 'световни шампиони по шах'],
+    ['antoaneta-stefanova', 'venka-asenova', 'българският женски шах'],
+    ['antoaneta-stefanova', 'nurgyul-salimova', 'българският женски шах'],
+    ['veselin-topalov', 'kiril-georgiev', 'български гросмайстори'],
+    ['pencho-raykov', 'teodora-raykova-kovacheva', 'баща и дъщеря, химици'],
+    ['elisaveta-karamihailova', 'georgi-nadjakov', 'физиката в Софийския университет'],
+    ['lyubomir-chakalov', 'nikola-obreshkov', 'софийската школа по анализ'],
+    ['lyubomir-chakalov', 'yaroslav-tagamlitzki', 'софийската школа по анализ'],
+    ['emanuil-ivanov', 'kiril-popov', 'първите професори по математика'],
+    ['anastasia-golovina', 'tota-venkova', 'първите българки лекарки'],
+    ['maria-luisa-doseva', 'victoria-angelova', 'първите българки архитектки'],
+    ['vladimir-shkodrov', 'nikola-bonev', 'обсерваторията „Рожен“'],
+    ['vladimir-shkodrov', 'violeta-ivanova', 'астероиди, открити от Рожен'],
+    ['preslav-nakov', 'zornitsa-kozareva', 'компютърна лингвистика'],
+    ['kalina-boncheva', 'galia-angelova', 'компютърна лингвистика'],
+    ['dragomir-radev', 'preslav-nakov', 'компютърна лингвистика'],
+    ['kristina-toutanova', 'zornitsa-kozareva', 'езикови модели'],
+    ['martin-vechev', 'preslav-nakov', 'изкуствен интелект'],
+    ['doncho-kostov', 'hristo-daskalov', 'генетика на растенията'],
+    ['rayna-georgieva', 'doncho-kostov', 'генетика на растенията'],
+    ['hristaki-pavlovich', 'petar-beron', 'първите учебници по смятане'],
+    ['ivan-gyuzelev', 'hristaki-pavlovich', 'възрожденски учебници'],
+    ['john-atanasoff', 'lyubomir-iliev', 'първите компютри'],
+    ['lyubomir-iliev', 'ivan-marangozov', 'българските компютри'],
+    ['ivan-marangozov', 'lyubomir-antonov-elka', 'българската изчислителна техника'],
+    ['lyubomir-iliev', 'blagovest-sendov', 'Институтът по математика на БАН'],
+    ['stefan-dodunekov', 'lyubomir-iliev', 'Институтът по математика на БАН'],
+    ['petar-kenderov', 'zvezdelina-stankova', 'математическите олимпиади'],
+    ['zvezdelina-stankova', 'greta-panova', 'олимпиади и комбинаторика'],
+    ['kristalina-georgieva', 'simeon-dyankov', 'Световната банка'],
+    ['dimitar-sasselov', 'ellie-hadjiyska-schmelzer', 'търсенето на екзопланети'],
+    ['svetlin-nakov', 'svetozar-georgiev', 'Телерик и Телерик Академия'],
+    ['georgi-zlatarski', 'nikola-pushkarov', 'картите на българските земи'],
+    ['spas-vatsov', 'marin-bachevarov', 'метеорологичните наблюдения'],
+    ['ivan-todorov', 'valentina-petkova', 'математическа физика'],
+    ['katya-georgieva', 'penka-maglova', 'слънчевата активност']
+  ];
+  function pageMap() {
+    chrome('map');
+    var box = document.getElementById('map'), panel = document.getElementById('panel');
+    if (!window.d3) { box.innerHTML = '<p class="empty">Картата не можа да се зареди. Провери връзката с интернет.</p>'; return; }
+    var nodes = TEN.concat(STO).map(function (p) { return { id: p.id, p: p, r: p.sec === 'ten' ? 17 : 7 }; });
+    var byId = {}; nodes.forEach(function (n) { byId[n.id] = n; });
+    var links = [];
+    LINKS.forEach(function (l) { if (byId[l[0]] && byId[l[1]]) links.push({ source: l[0], target: l[1], why: l[2], k: 'hand' }); });
+    Object.keys(FIELDS).forEach(function (f) {
+      var L = nodes.filter(function (n) { return n.p.field === f; }).sort(function (a, b) { return a.p.born - b.p.born; });
+      for (var i = 1; i < L.length; i++) {
+        var a = L[i - 1].id, b = L[i].id;
+        if (!links.some(function (l) { return (l.source === a && l.target === b) || (l.source === b && l.target === a); }))
+          links.push({ source: a, target: b, why: 'една сфера: ' + FIELDS[f], k: 'field' });
+      }
+    });
+    var css = getComputedStyle(document.documentElement);
+    function col(f) { return (css.getPropertyValue('--f-' + f) || '#888').trim(); }
+    var fieldsUsed = Object.keys(FIELDS).filter(function (f) { return nodes.some(function (n) { return n.p.field === f; }); });
+    var W = 1000, H = 720, d3 = window.d3;
+    var centers = {}; fieldsUsed.forEach(function (f, i) { var a = i / fieldsUsed.length * 2 * Math.PI - Math.PI / 2; centers[f] = [W / 2 + 270 * Math.cos(a), H / 2 + 200 * Math.sin(a)]; });
+    var svg = d3.select(box).append('svg').attr('viewBox', '0 0 ' + W + ' ' + H).attr('role', 'img').attr('aria-label', 'Мисловна карта на 110 истории');
+    var g = svg.append('g');
+    var zoom = d3.zoom().scaleExtent([0.3, 6]).on('zoom', function (e) { g.attr('transform', e.transform); g.classed('zoomed', e.transform.k > 1.6); });
+    svg.call(zoom);
+    /* Събира всички точки в рамката. */
+    function fit(animate) {
+      var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+      nodes.forEach(function (d) { x0 = Math.min(x0, d.x - d.r); y0 = Math.min(y0, d.y - d.r); x1 = Math.max(x1, d.x + d.r); y1 = Math.max(y1, d.y + d.r + 16); });
+      var k = Math.min(W / (x1 - x0 + 60), H / (y1 - y0 + 60), 2);
+      var t = d3.zoomIdentity.translate(W / 2 - k * (x0 + x1) / 2, H / 2 - k * (y0 + y1) / 2).scale(k);
+      (animate ? svg.transition().duration(600) : svg).call(zoom.transform, t);
+    }
+    var link = g.append('g').attr('class', 'm-links').selectAll('line').data(links).join('line').attr('class', function (d) { return 'm-link ' + d.k; });
+    var node = g.append('g').selectAll('g').data(nodes).join('g').attr('class', function (d) { return 'm-node ' + d.p.sec; }).attr('tabindex', 0).attr('role', 'button')
+      .attr('aria-label', function (d) { return d.p.name + ', ' + FIELDS[d.p.field]; });
+    node.append('circle').attr('r', function (d) { return d.r; }).attr('fill', function (d) { return col(d.p.field); });
+    node.append('text').attr('class', 'm-label').attr('dy', function (d) { return d.r + 13; }).attr('text-anchor', 'middle').text(function (d) { return d.p.name; });
+    node.append('title').text(function (d) { return d.p.name + ' · ' + years(d.p) + ' · ' + FIELDS[d.p.field]; });
+    var sim = d3.forceSimulation(nodes)
+      .force('link', d3.forceLink(links).id(function (d) { return d.id; }).distance(function (l) { return l.k === 'hand' ? 70 : 40; }).strength(function (l) { return l.k === 'hand' ? 0.25 : 0.35; }))
+      .force('charge', d3.forceManyBody().strength(function (d) { return d.r > 10 ? -180 : -45; }).distanceMax(260))
+      .force('collide', d3.forceCollide().radius(function (d) { return d.r + 4; }))
+      .force('x', d3.forceX(function (d) { return centers[d.p.field][0]; }).strength(0.07))
+      .force('y', d3.forceY(function (d) { return centers[d.p.field][1]; }).strength(0.07))
+      .on('tick', function () {
+        link.attr('x1', function (d) { return d.source.x; }).attr('y1', function (d) { return d.source.y; }).attr('x2', function (d) { return d.target.x; }).attr('y2', function (d) { return d.target.y; });
+        node.attr('transform', function (d) { return 'translate(' + d.x + ',' + d.y + ')'; });
+      })
+      .on('end', function () { if (!fitted) { fitted = true; fit(true); } });
+    var fitted = false;
+    sim.tick(200); fit(false);
+    node.call(d3.drag()
+      .on('start', function (e, d) { if (!e.active) sim.alphaTarget(0.2).restart(); d.fx = d.x; d.fy = d.y; })
+      .on('drag', function (e, d) { d.fx = e.x; d.fy = e.y; })
+      .on('end', function (e, d) { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }));
+
+    /* ---------- филтри ---------- */
+    var st = { field: '', cent: '', lives: '', city: '', sec: '', sex: '' };
+    var P = nodes.map(function (n) { return n.p; });
+    function opts(id, label, pairs) {
+      var s = document.getElementById(id); s.innerHTML = ''; s.add(new Option(label, ''));
+      pairs.forEach(function (x) { s.add(new Option(x[1], x[0])); });
+      s.onchange = function () { st[id.slice(2)] = s.value; apply(); };
+    }
+    var cents = []; P.forEach(function (p) { var c = century(p); if (c && cents.indexOf(c) < 0) cents.push(c); }); cents.sort(function (a, b) { return a - b; });
+    var cityCnt = {}; P.forEach(function (p) { cityCnt[p.city] = (cityCnt[p.city] || 0) + 1; });
+    var cities = Object.keys(cityCnt).sort(function (a, b) { return (a === 'неизвестно') - (b === 'неизвестно') || cityCnt[b] - cityCnt[a] || a.localeCompare(b, 'bg'); });
+    opts('m-cent', 'Всички векове', cents.map(function (c) { return [String(c), roman(c) + ' век']; }));
+    opts('m-lives', 'Живее: навсякъде', [['bg', LIVES.bg], ['both', LIVES.both], ['abroad', LIVES.abroad]]);
+    opts('m-city', 'Всички градове', cities.map(function (c) { return [c, c + ' (' + cityCnt[c] + ')']; }));
+    opts('m-sec', 'Всички раздели', [['ten', '10 БУМа'], ['sto', 'СтоБУМ']]);
+    opts('m-sex', 'Жени и мъже', [['f', 'Жени'], ['m', 'Мъже']]);
+    var leg = document.getElementById('m-field');
+    leg.innerHTML = '<button type="button" class="chip" data-v="" aria-pressed="true">Всички сфери</button>' + fieldsUsed.map(function (f) {
+      return '<button type="button" class="chip m-dot" data-v="' + f + '" aria-pressed="false" style="--dc:' + col(f) + '">' + FIELDS[f] + '</button>';
+    }).join('');
+    leg.querySelectorAll('.chip').forEach(function (b) { b.onclick = function () { st.field = b.dataset.v; apply(); }; });
+    document.getElementById('m-reset').onclick = function () {
+      Object.keys(st).forEach(function (k) { st[k] = ''; }); ['m-cent', 'm-lives', 'm-city', 'm-sec', 'm-sex'].forEach(function (id) { document.getElementById(id).value = ''; }); apply();
+    };
+    function ok(p) {
+      return (!st.field || p.fields.indexOf(st.field) >= 0) && (!st.cent || String(century(p)) === st.cent) && (!st.lives || p.lives === st.lives) &&
+        (!st.city || p.city === st.city) && (!st.sec || p.sec === st.sec) && (!st.sex || p.sex === st.sex);
+    }
+    function apply() {
+      var n = 0;
+      node.classed('off', function (d) { var o = !ok(d.p); if (!o) n++; return o; });
+      link.classed('off', function (d) { return !ok(d.source.p) || !ok(d.target.p); });
+      leg.querySelectorAll('.chip').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === st.field)); });
+      document.getElementById('m-count').textContent = n === nodes.length ? 'Всички ' + n + ' истории' : n + ' от ' + nodes.length + ' истории отговарят на филтрите';
+    }
+    /* ---------- избор на точка ---------- */
+    function show(d, scroll) {
+      node.classed('sel', function (x) { return x === d; });
+      var nb = links.filter(function (l) { return l.source === d || l.target === d; });
+      node.classed('near', function (x) { return nb.some(function (l) { return l.source === x || l.target === x; }) && x !== d; });
+      link.classed('hi', function (l) { return l.source === d || l.target === d; });
+      var p = d.p; panel.innerHTML = '';
+      var a = artBlock(p); a.classList.add('m-art'); panel.appendChild(a);
+      var b = el('div', 'm-body');
+      b.innerHTML = '<div class="tags" style="justify-content:flex-start">' + p.fields.map(function (k) { return '<span class="field-tag f-' + k + '">' + FIELDS[k] + '</span>'; }).join(' ') + '</div>' +
+        '<h2>' + esc(p.name) + '</h2><div class="yrs">' + esc(years(p)) + (p.city !== 'неизвестно' ? ' · ' + esc(p.city) : '') + ' · ' + SECTIONS[p.sec].name + '</div>' +
+        '<p><b>' + esc(p.title) + '</b></p><p>' + esc(p.lede) + '</p><a class="btn" href="' + url(p) + '">Прочети историята →</a>' +
+        (nb.length ? '<h3>Свързани</h3><ul class="m-rel">' + nb.map(function (l) { var o = l.source === d ? l.target : l.source; return '<li><button type="button" data-id="' + o.id + '">' + esc(o.p.name) + '</button> <span>' + esc(l.why) + '</span></li>'; }).join('') + '</ul>' : '');
+      panel.appendChild(b); panel.hidden = false;
+      b.querySelectorAll('button[data-id]').forEach(function (x) { x.onclick = function () { show(byId[x.dataset.id], true); }; });
+      loadPhotos(panel);
+      if (scroll && window.innerWidth < 900) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    node.on('click', function (e, d) { show(d, true); }).on('keydown', function (e, d) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); show(d, true); } });
+    apply();
+    var start = byId[new URLSearchParams(location.search).get('id')] || byId['john-atanasoff'];
+    setTimeout(function () { show(start); }, 50);
+    document.querySelector('main').appendChild(kaBlock('@karta', 'Филтрите са множества: научи се да ги пресичаш'));
+  }
+
   window.BUM = { TEN: TEN, STO: STO, KILO: KILO, FIELDS: FIELDS };
   var page = document.body.getAttribute('data-page');
   if (page === 'home') pageHome();
@@ -474,4 +642,5 @@
   else if (page === 'kilo') pageList('kilo');
   else if (page === 'story') pageStory();
   else if (page === 'stats') pageStats();
+  else if (page === 'map') pageMap();
 })();
