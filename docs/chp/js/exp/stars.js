@@ -283,8 +283,8 @@ export function mount(container, { onComplete }) {
         q: 'Коя сила задържа Луната и космическата станция по орбитите им около Земята?',
         options: [
           { t: 'Притеглянето на Земята (гравитацията)', ok: true, why: 'Вярно! Земята притегля Луната и спътниците, както Слънцето притегля планетите.' },
-          { t: 'Силата на вятъра', ok: false, why: 'В космоса няма въздух, значи няма и вятър.' },
-          { t: 'Магнитът на Луната', ok: false, why: 'Луната не е магнит. Каква сила задържа Земята около Слънцето?' },
+          { t: 'Нищо не ги задържа: те просто летят сами.', ok: false, why: 'Спомни си Земята без притегляне: тя полетя по права линия. Какво кара Луната да завива?' },
+          { t: 'Въртенето на Земята около оста ѝ', ok: false, why: 'Въртенето около оста сменя деня и нощта. Каква сила задържа Земята около Слънцето?' },
         ],
         hint: 'Същата сила, която те кара да падаш, когато скочиш.',
         mistakes,
@@ -307,7 +307,31 @@ export function mount(container, { onComplete }) {
       hint: 'Сравни размера: газовите гиганти са много по-големи от Земята.',
       onDone: (m) => {
         ctx.clearTip(); stage.stopFollow();
+        shell.msg('');
         view(ctx, [0, 0, 0], 11, { halfH: 7, elev: 0.75 });
+        shell.task(`<p><b>Сравни двете групи</b></p>
+          <table class="small" style="width:100%;border-collapse:collapse">
+            <tr><th></th><th style="text-align:left">Земна група</th><th style="text-align:left">Газови гиганти</th></tr>
+            <tr><td>Размер</td><td>малки</td><td>много големи</td></tr>
+            <tr><td>Повърхност</td><td>твърда, каменна</td><td>няма твърда повърхност</td></tr>
+            <tr><td>Спътници</td><td>малко или нито един</td><td>много</td></tr>
+            <tr><td>Пръстени</td><td>нямат</td><td>имат</td></tr>
+          </table>`);
+        choice(ctx, {
+          q: 'Учените откриват около друга звезда огромна планета без твърда повърхност. На коя група прилича тя?',
+          options: [
+            { t: 'На газовите гиганти', ok: true, why: 'Вярно! Огромна планета без твърда повърхност прилича на Юпитер и Сатурн.' },
+            { t: 'На планетите от земната група', ok: false, why: 'Виж таблицата: коя група няма твърда повърхност?' },
+            { t: 'Не може да е планета, щом няма твърда повърхност.', ok: false, why: 'Юпитер и Сатурн също нямат твърда повърхност, а са планети.' },
+          ],
+          hint: 'Прочети реда „Повърхност“ в таблицата.',
+          mistakes: m,
+          onRight: (m1) => nextBtn(ctx, 'Напред →', () => flights(m1)),
+        });
+      },
+    });
+    function flights(m) {
+        shell.msg('');
         shell.task('<p>Хората изследват космоса с <b>изкуствени спътници</b>, <b>космически сонди</b> (апарати без хора, които летят до други планети) и <b>космически станции</b>.</p><p class="small">Сондата „Вояджър 1“ е изстреляна през 1977 г. Тя е снимала отблизо Юпитер и Сатурн. Днес е най-далечният апарат, направен от хората.</p>');
         orderTask(ctx, {
           q: 'Подреди събитията по реда, в който са се случили.',
@@ -320,8 +344,7 @@ export function mount(container, { onComplete }) {
             nextBtn(ctx, 'Към звездите →', step4);
           },
         });
-      },
-    });
+    }
   }
 
   // ---------- 4. Звездите ----------
@@ -330,26 +353,70 @@ export function mount(container, { onComplete }) {
     ctx.clearTip();
     showSky();
     S.spin = true; S.skyRot = ROT0;
-    umaLines.visible = true; umaLbl.visible = true; umiLines.visible = false; umiLbl.visible = false; pointer.visible = false;
+    umaLines.visible = false; umaLbl.visible = false; umiLines.visible = false; umiLbl.visible = false; pointer.visible = false;
     view(ctx, [0, 4.3, SKYZ], 5.6, { halfH: 4.5, elev: 0.02 });
-    shell.task('<p>Ясна нощ, гледаме на <b>север</b>. Свързани с линии са седемте ярки звезди от съзвездието <b>Голямата мечка</b>. Те образуват <b>Голямата кола</b>.</p><p><b>Намери Полярната звезда:</b> продължи линията през двете крайни звезди на „кофата“ около 5 пъти и кликни звездата.</p>');
-    shell.setControls('<div class="row"><button class="btn tip">💡 Покажи линията</button></div>').querySelector('.tip').addEventListener('click', () => { pointer.visible = true; }, { once: true });
+    const UMA_IDS = UMA.flat(); const UMI_IDS = UMI.flat(); const CAS_IDS = ['caph', 'schedar', 'gcas', 'ruchbah', 'segin'];
+    const starOf = (id) => (id === 'polaris' ? 'polaris' : String(id).replace(/^star-/, ''));
     let mistakes = 0;
+    // а) Голямата мечка
+    shell.task('<p>Ясна нощ, гледаме на <b>север</b>.</p><p><b>Намери Голямата мечка:</b> седем ярки звезди. Четири от тях образуват „кофа“, а три — „дръжка“. Кликни една от тези седем звезди.</p>');
+    shell.setControls('<div class="row"><button class="btn tip">💡 Покажи съзвездието</button></div>').querySelector('.tip').addEventListener('click', showUma, { once: true });
+    function showUma() {
+      ctx.click = null;
+      umaLines.visible = true; umaLbl.visible = true;
+      ctx.say(skyStars.megrez, '✔ <b>Голямата мечка</b>. Седемте ѝ ярки звезди образуват <b>Голямата кола</b>.', 'good wide', 0.3);
+      shell.setControls('');
+      setTimeout(findPolaris, 1500);
+    }
     ctx.click = (id) => {
       if (!id) return;
-      if (id !== 'polaris') {
-        mistakes++;
-        shell.msg(`Не е тази звезда.${mistakes >= 2 ? ' Подсказка: натисни „Покажи линията“ и следвай жълтата линия.' : ' Продължи линията от кофата нагоре.'}`, 'bad');
-        if (mistakes >= 2) pointer.visible = true;
-        return;
-      }
-      ctx.click = null;
-      pointer.visible = true; umiLines.visible = true; umiLbl.visible = true;
-      ctx.say(skyStars.polaris, '✔ <b>Полярната звезда</b> е в края на опашката на <b>Малката мечка</b>. Тя е почти точно над Северния полюс и показва посоката <b>север</b>. Цялото небе бавно се върти около нея.', 'good wide', 0.3);
-      shell.setControls('');
-      setTimeout(() => facts(), 1500);
+      const s = starOf(id);
+      if (UMA_IDS.includes(s)) { showUma(); return; }
+      mistakes++;
+      if (CAS_IDS.includes(s)) shell.msg('Това е Касиопея: пет звезди като буквата W. Търси седем звезди с форма на кофа с дръжка.', 'bad');
+      else if (UMI_IDS.includes(s)) shell.msg('Тази звезда е от Малката мечка. Голямата мечка е по-голяма: търси кофа с дръжка.', 'bad');
+      else shell.msg('Не е тази звезда. Търси седем ярки звезди: кофа с дръжка.', 'bad');
     };
+    // б) Полярната звезда
+    function findPolaris() {
+      ctx.clearTip();
+      shell.msg('');
+      shell.task('<p><b>Намери Полярната звезда:</b> продължи линията през двете крайни звезди на „кофата“ около 5 пъти и кликни звездата.</p>');
+      shell.setControls('<div class="row"><button class="btn tip">💡 Покажи линията</button></div>').querySelector('.tip').addEventListener('click', () => { pointer.visible = true; }, { once: true });
+      let miss = 0;
+      ctx.click = (id) => {
+        if (!id) return;
+        if (id !== 'polaris') {
+          mistakes++; miss++;
+          shell.msg(`Не е тази звезда.${miss >= 2 ? ' Подсказка: натисни „Покажи линията“ и следвай жълтата линия.' : ' Продължи линията от кофата нагоре.'}`, 'bad');
+          if (miss >= 2) pointer.visible = true;
+          return;
+        }
+        ctx.click = null;
+        pointer.visible = true; umiLines.visible = true;
+        ctx.say(skyStars.polaris, '✔ <b>Полярната звезда</b> е почти точно над Северния полюс и показва посоката <b>север</b>. Цялото небе бавно се върти около нея.', 'good wide', 0.3);
+        shell.msg('');
+        setTimeout(umi, 1500);
+      };
+    }
+    // в) Малката мечка
+    function umi() {
+      choice(ctx, {
+        q: 'Полярната звезда е в края на „дръжката“ на друго съзвездие. Кое е то?',
+        options: [
+          { t: 'Малката мечка', ok: true, why: 'Вярно! Полярната звезда е последната звезда в „дръжката“ на Малката мечка.' },
+          { t: 'Голямата мечка', ok: false, why: 'Голямата мечка вече е свързана с линии. Полярната звезда е в друго, по-малко съзвездие.' },
+          { t: 'Касиопея', ok: false, why: 'Касиопея има пет звезди като буквата W. Виж новите линии около Полярната звезда.' },
+        ],
+        hint: 'Съзвездието прилича на Голямата мечка, но е по-малко.',
+        mistakes,
+        onRight: (m) => { mistakes = m; umiLbl.visible = true; nextBtn(ctx, 'Напред →', facts); },
+      });
+    }
     function facts() {
+      ctx.clearTip();
+      shell.msg('');
+      shell.task('<p><b>Галактика</b> е огромна група от милиарди звезди. Нашата галактика се казва <b>Млечен път</b>.</p>');
       choice(ctx, {
         q: 'Кое твърдение е вярно?',
         options: [
@@ -368,7 +435,7 @@ export function mount(container, { onComplete }) {
         q: 'Защо звездите ни изглеждат като малки точки, макар че много от тях са по-големи от Слънцето?',
         options: [
           { t: 'Защото са много по-далеч от нас, отколкото Слънцето.', ok: true, why: 'Вярно! Светлината от Слънцето стига до нас за около 8 минути, а от най-близката друга звезда — за повече от 4 години.' },
-          { t: 'Защото са малки колкото лампички.', ok: false, why: 'Звездите са огромни кълба от горещ газ, като Слънцето. Какво ги прави да изглеждат малки?' },
+          { t: 'Защото всички са по-малки от Слънцето.', ok: false, why: 'Много звезди са по-големи от Слънцето. Какво ги прави да изглеждат малки?' },
           { t: 'Защото светят само нощем.', ok: false, why: 'Звездите светят и денем, но Слънцето ги заслепява. Въпросът е защо са толкова малки.' },
         ],
         hint: 'Колкото по-далеч е един предмет, толкова по-малък изглежда.',
