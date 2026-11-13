@@ -97,22 +97,35 @@ export function mount(container, { onComplete }) {
   const PL = { stage: 5 };
 
   // ---------- Езеро до наторено поле ----------
-  const lake = new THREE.Group();
-  const lakeW = new THREE.Mesh(new THREE.CircleGeometry(1.1, 36), waterM(0x29b6f6, 0.9)); lakeW.rotation.x = -Math.PI / 2; lakeW.position.y = 0.03; lake.add(lakeW);
-  const algae = new THREE.Mesh(new THREE.CircleGeometry(1.08, 36), new THREE.MeshStandardMaterial({ color: 0x7cb342, transparent: true, opacity: 0, depthWrite: false })); algae.rotation.x = -Math.PI / 2; algae.position.y = 0.04; lake.add(algae);
-  const field = new THREE.Group();
-  for (let i = 0; i < 7; i++) { const r = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.05, 0.1), mat(i % 2 ? 0xc0ca33 : 0x8d6e63)); r.position.set(0, 0.03, -0.35 + i * 0.12); field.add(r); }
-  field.position.set(-2.0, 0, 0); lake.add(field);
+  // mkLake — езеро с поле, риби, водорасли и капки тор при дъжд. strip — ивица дървета между полето и езерото.
+  const mkLake = () => {
+    const g = new THREE.Group();
+    const w = new THREE.Mesh(new THREE.CircleGeometry(1.1, 36), waterM(0x29b6f6, 0.9)); w.rotation.x = -Math.PI / 2; w.position.y = 0.03; g.add(w);
+    const al = new THREE.Mesh(new THREE.CircleGeometry(1.08, 36), new THREE.MeshStandardMaterial({ color: 0x7cb342, transparent: true, opacity: 0, depthWrite: false })); al.rotation.x = -Math.PI / 2; al.position.y = 0.04; g.add(al);
+    const fl = new THREE.Group();
+    for (let i = 0; i < 7; i++) { const r = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.05, 0.1), mat(i % 2 ? 0xc0ca33 : 0x8d6e63)); r.position.set(0, 0.03, -0.35 + i * 0.12); fl.add(r); }
+    fl.position.set(-2.0, 0, 0); g.add(fl);
+    const fs = [];
+    for (let i = 0; i < 3; i++) {
+      const f = new THREE.Group();
+      const b = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), mat(0xff8f00)); b.scale.set(1.7, 0.8, 0.6);
+      const tl = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.09, 6), mat(0xff8f00)); tl.rotation.z = Math.PI / 2; tl.position.x = -0.14;
+      f.add(b, tl); f.userData.k = i * 2.1; g.add(f); fs.push(f);
+    }
+    const ro = [];
+    for (let i = 0; i < 14; i++) { const d = new THREE.Mesh(new THREE.SphereGeometry(0.03, 6, 5), new THREE.MeshBasicMaterial({ color: 0xcddc39 })); d.visible = false; d.userData.k = i / 14; g.add(d); ro.push(d); }
+    const strip = new THREE.Group();
+    for (let i = 0; i < 5; i++) {
+      const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.03, 0.14, 6), mat(0x6d4c41)); tr.position.set(0, 0.07, -0.4 + i * 0.2);
+      const cr = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.26, 8), mat(0x2e7d32)); cr.position.set(0, 0.26, -0.4 + i * 0.2);
+      strip.add(tr, cr);
+    }
+    strip.position.set(-1.2, 0, 0); strip.visible = false; g.add(strip);
+    return { g, algae: al, fish: fs, runoff: ro, strip, st: { fert: 0, shown: 0, rain: false } };
+  };
+  const L1 = mkLake();
+  const lake = L1.g;
   const fieldAt = new THREE.Object3D(); fieldAt.position.set(-2.0, 0.2, 0); lake.add(fieldAt);
-  const fish = [];
-  for (let i = 0; i < 3; i++) {
-    const f = new THREE.Group();
-    const b = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), mat(0xff8f00)); b.scale.set(1.7, 0.8, 0.6);
-    const tl = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.09, 6), mat(0xff8f00)); tl.rotation.z = Math.PI / 2; tl.position.x = -0.14;
-    f.add(b, tl); f.userData.k = i * 2.1; lake.add(f); fish.push(f);
-  }
-  const runoff = [];
-  for (let i = 0; i < 14; i++) { const d = new THREE.Mesh(new THREE.SphereGeometry(0.03, 6, 5), new THREE.MeshBasicMaterial({ color: 0xcddc39 })); d.visible = false; d.userData.k = i / 14; lake.add(d); runoff.push(d); }
   const oil = new THREE.Mesh(new THREE.CircleGeometry(0.28, 20), new THREE.MeshStandardMaterial({ color: 0x1b1b1b, metalness: 0.6, roughness: 0.2, transparent: true, opacity: 0.85 }));
   oil.rotation.x = -Math.PI / 2; oil.position.set(0.55, 0.05, 0.45); oil.scale.set(1.3, 0.8, 1); lake.add(oil);
   const oilAt = new THREE.Object3D(); oilAt.position.set(0.55, 0.1, 0.45); lake.add(oilAt);
@@ -124,7 +137,13 @@ export function mount(container, { onComplete }) {
   oilAt.userData.pickId = 'oil';
   { const h = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.2, 0.5), new THREE.MeshBasicMaterial({ visible: false })); oilAt.add(h); }
   const lakeAt = new THREE.Object3D(); lakeAt.position.set(-1.0, 0.2, -1.6); scene.add(lakeAt);
-  const L = { fert: 0, shown: 0, rain: false };
+  const L = L1.st;
+  // Второто езеро е само за сравнението „Без мярка“ / „С мярка“ (решение 30).
+  const L2 = mkLake();
+  L2.g.position.set(3.4, 0, -1.6); L2.g.visible = false; scene.add(L2.g);
+  const L2At = new THREE.Object3D(); L2At.position.set(3.4, 0.2, -1.6); scene.add(L2At);
+  const tagNo = labelSprite('Без мярка', { size: 0.24 }); tagNo.position.set(-1.0, 0.3, -0.25); tagNo.visible = false; scene.add(tagNo); stage.steadyLabel(tagNo, 9);
+  const tagYes = labelSprite('С мярка', { size: 0.24 }); tagYes.position.set(3.4, 0.3, -0.25); tagYes.visible = false; scene.add(tagYes); stage.steadyLabel(tagYes, 9);
 
   // ---------- Чешма ----------
   const tap = new THREE.Group();
@@ -158,23 +177,29 @@ export function mount(container, { onComplete }) {
       if (k > 0.9) d.material.color.set(0x4fc3f7);
     });
     bubbles.forEach((b) => { const k = (b.userData.k + t * 0.5) % 1; b.position.set(0.35 + b.userData.x, 0.3 + k * 0.26, b.userData.z); });
-    // езерото
-    L.shown += (L.fert - L.shown) * Math.min(1, dt * 0.6);
-    algae.material.opacity = Math.min(0.92, L.shown * 0.9);
-    const ok = 1 - Math.max(0, L.shown - 0.55) / 0.45;
-    fish.forEach((f) => {
-      const a = t * 0.4 * Math.max(0.05, ok) + f.userData.k;
-      const r = 0.45 + f.userData.k * 0.08;
-      f.position.set(Math.cos(a) * r, 0.0 + (1 - ok) * 0.08, Math.sin(a) * r * 0.7);
-      f.rotation.y = -a - Math.PI / 2;
-      f.children.forEach((c) => c.material.color.setRGB(1 * ok + 0.6 * (1 - ok), 0.56 * ok + 0.6 * (1 - ok), 0.6 * (1 - ok)));
-      f.visible = true;
-    });
-    runoff.forEach((d) => {
-      d.visible = L.rain;
-      const k = (d.userData.k + t * 0.35) % 1;
-      d.position.set(-2.0 + k * 1.4, 0.06, -0.3 + (d.userData.k - 0.5) * 0.6);
-    });
+    // езерата
+    for (const LK of [L1, L2]) {
+      const S = LK.st;
+      S.shown += (S.fert - S.shown) * Math.min(1, dt * 0.6);
+      LK.algae.material.opacity = Math.min(0.92, S.shown * 0.9);
+      const ok = 1 - Math.max(0, S.shown - 0.55) / 0.45;
+      LK.fish.forEach((f) => {
+        const a = t * 0.4 * Math.max(0.05, ok) + f.userData.k;
+        const r = 0.45 + f.userData.k * 0.08;
+        f.position.set(Math.cos(a) * r, 0.0 + (1 - ok) * 0.08, Math.sin(a) * r * 0.7);
+        f.rotation.y = -a - Math.PI / 2;
+        f.children.forEach((c) => c.material.color.setRGB(1 * ok + 0.6 * (1 - ok), 0.56 * ok + 0.6 * (1 - ok), 0.6 * (1 - ok)));
+        f.visible = true;
+      });
+      // При ивица дървета повечето капки тор спират в нея (стигат само до x = −1.25).
+      LK.runoff.forEach((d) => {
+        d.visible = S.rain;
+        const k = (d.userData.k + t * 0.35) % 1;
+        const x = -2.0 + k * 1.4;
+        const stop = LK.strip.visible && d.userData.k > 0.2;
+        d.position.set(stop ? Math.min(x, -1.3) : x, 0.06, -0.3 + (d.userData.k - 0.5) * 0.6);
+      });
+    }
     stream.scale.y = 1 + Math.sin(t * 20) * 0.03;
     oil.rotation.z = Math.sin(t * 0.3) * 0.2;
     glowRing.scale.setScalar(1 + Math.sin(t * 4) * 0.05);
@@ -188,6 +213,8 @@ export function mount(container, { onComplete }) {
     F.level = 0; F.run = false; muddyTop.visible = false;
     PL.stage = 5; glowRing.visible = false;
     L.fert = 0; L.shown = 0; L.rain = false;
+    L1.strip.visible = false; L2.g.visible = false; tagNo.visible = false; tagYes.visible = false; plant.visible = true;
+    (ctx.bubbles2 || []).forEach((b) => b.remove()); ctx.bubbles2 = null;
     view(ctx, [-0.5, 0.8, -0.2], 6.8, { halfH: 2 });
     explore(ctx, {
       title: 'Разгледай',
@@ -341,16 +368,53 @@ export function mount(container, { onComplete }) {
             const cc = shell.setControls('<div class="row"><button class="btn fix">🌳 Торове умерено + ивица дървета до брега</button></div>');
             cc.querySelector('.fix').addEventListener('click', () => {
               cc.querySelector('.fix').disabled = true;
-              L.fert = 0.15;
+              L.fert = 0.15; L1.strip.visible = true;
               ctx.say(lakeAt, '✔ Ивица дървета и храсти задържа торовете. Езерото постепенно се възстановява.', 'good wide', 0.6);
-              setTimeout(save, 2200);
+              setTimeout(twoLakes, 2200);
             }, { once: true });
           }, 4500);
         }, { once: true });
       },
     });
+    // Решение 30: двете езера едно до друго след един и същ дъжд — „Без мярка“ и „С мярка“.
+    function twoLakes() {
+      ctx.clearTip();
+      plant.visible = false;
+      L1.strip.visible = false; L2.strip.visible = true; L2.g.visible = true;
+      Object.assign(L1.st, { fert: 0, shown: 0, rain: false });
+      Object.assign(L2.st, { fert: 0, shown: 0, rain: false });
+      tagNo.visible = true; tagYes.visible = true;
+      view(ctx, [1.2, 0.3, -1.6], 4.7, { halfH: 1.2, elev: 0.7 });
+      shell.task('<p><b>Сравни двете езера.</b> Полетата до тях са наторени. Вляво няма мярка. Вдясно торовете са умерено и до брега има ивица дървета.</p>');
+      shell.msg('');
+      const c = shell.setControls('<div class="row"><button class="btn primary rain2">🌧 Пусни един и същ дъжд над двете</button></div>');
+      c.querySelector('.rain2').addEventListener('click', () => {
+        c.querySelector('.rain2').disabled = true;
+        L1.st.rain = true; L2.st.rain = true; L1.st.fert = 1; L2.st.fert = 0.15;
+        setTimeout(() => {
+          L1.st.rain = false; L2.st.rain = false;
+          ctx.bubbles2 = [
+            stage.bubble(lakeAt, '❌ Водорасли. Рибите се задушават.', { cls: 'bad', lift: 0.35 }),
+            stage.bubble(L2At, '✔ Бистра вода. Рибите са живи.', { cls: 'good', lift: 2.4 }),
+          ];
+          choice(ctx, {
+            q: 'Дъждът беше един и същ. Какво направи разликата?',
+            options: [
+              { t: 'Ивицата дървета задържа торовете, а и торовете бяха по-малко.', ok: true, why: 'Вярно! До второто езеро стигна много по-малко тор. Водораслите не плъзнаха.' },
+              { t: 'Над второто езеро валя по-малко.', ok: false, why: 'Дъждът беше един и същ. Виж къде спряха жълтите капки тор вдясно.' },
+              { t: 'Рибите във второто езеро са по-силни.', ok: false, why: 'Рибите са еднакви. Разликата е между полето и езерото.' },
+            ],
+            hint: 'Какво има между полето и езерото вдясно?',
+            mistakes,
+            onRight: (m) => { mistakes = m; nextBtn(ctx, 'Напред →', save); },
+          });
+        }, 4500);
+      }, { once: true });
+    }
     function save() {
       ctx.clearTip();
+      (ctx.bubbles2 || []).forEach((b) => b.remove()); ctx.bubbles2 = null;
+      tagNo.visible = false; tagYes.visible = false; L2.g.visible = false; plant.visible = true;
       view(ctx, [-3.5, 0.6, -0.6], 3.6, { halfH: 1.4, elev: 0.5 });
       shell.task('<p>Пренеси към живота: <b>опазва</b> ли водата всяко действие?</p>');
       shell.msg('');

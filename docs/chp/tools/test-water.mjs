@@ -27,6 +27,12 @@ await sortAll(t); await t.next();
 // 4. Езерото
 await t.choose(0); await t.btn('.rain'); await wait(5000); await t.shot('4a');
 await t.btn('.fix'); await wait(2800); await t.shot('4b');
+// Двете езера след един и същ дъжд (решение 30)
+await t.btn('.rain2'); await wait(5000); await t.shot('4c');
+const b2 = await page.$$eval('.bubble', (e) => e.map((x) => x.textContent.trim()).filter(Boolean));
+console.log('балончета:', b2.join(' | '));
+if (!b2.some((x) => /задушават/.test(x)) || !b2.some((x) => /живи/.test(x))) throw new Error('няма сравнението на двете езера');
+await t.choose(0); await t.next();
 await sortAll(t); await t.next();
 await t.shot('5');
 await t.done((0.5 + 1 + 1) / 3);
