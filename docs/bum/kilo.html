@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>КилоБУМ — БУМ</title>
+<meta name="description" content="КилоБУМ — истории, които събираме чрез интервюта с хора, които правят нещо важно с математика.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+
+<link rel="preload" href="fonts/lato-bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css">
+<script>try{var t=localStorage.getItem('bum-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body data-page="kilo">
+<header id="top"></header>
+<main class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">КилоБУМ</span>
+    <h1>Хиляда истории от хора около нас</h1>
+    <p>Тук ще събираме истории чрез интервюта — с учители, ученици, изследователки, инженери и всички, които правят нещо важно с математика. Всяка история има снимка, картина от работата, кратко видео и интервю.</p>
+  </div>
+  <div class="notice"><span class="fict">Примерни статии</span><p>Засега тук има <b>три примерни статии за измислени хора</b>. Те показват как ще изглеждат истинските истории. Портретите са рисунки, а интервютата и видеата — измислени.</p></div>
+  <div class="strip-head"><h2>Истории</h2><button class="linkbtn" type="button" id="shuffle">🎲 Разбъркай</button></div>
+  <div class="strip" id="strip"></div>
+  <div class="tools">
+    <div class="row">
+      <label class="sr" for="q">Търсене</label>
+      <input class="search" id="q" type="search" placeholder="Търси по име, тема, място…" autocomplete="off">
+      <label class="sr" for="sort">Подреди</label>
+      <select class="sel" id="sort">
+        <option value="born">По година ↑</option>
+        <option value="born-desc">По година ↓</option>
+        <option value="name">По име А–Я</option>
+        <option value="random">Случайно</option>
+      </select>
+    </div>
+    <div class="chips" id="f-sex" role="group" aria-label="Пол"></div>
+    <div class="chips" id="f-cent" role="group" aria-label="Век"></div>
+    <div class="chips" id="f-field" role="group" aria-label="Област"></div>
+  </div>
+  <p class="count" id="count" aria-live="polite"></p>
+  <ul class="list" id="list"></ul>
+</main>
+<footer id="foot"></footer>
+<script src="data/ten.js"></script>
+<script src="data/sto-a.js"></script>
+<script src="data/sto-b.js"></script>
+<script src="data/sto-c.js"></script>
+<script src="data/sto-d.js"></script>
+<script src="data/sto-e.js"></script>
+<script src="data/kilo.js"></script>
+<script src="data/ka.js"></script>
+<script src="data/facets.js"></script>
+<script src="js/art.js"></script>
+<script src="js/bum.js"></script>
+<script src="../consent.js" defer></script>
+</body>
+</html>
