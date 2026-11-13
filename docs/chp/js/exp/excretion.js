@@ -152,7 +152,7 @@ export function mount(container, { onComplete }) {
         c.querySelector('.sun').disabled = true;
         T.wetT = 1;
         setTimeout(() => {
-          ctx.say(bagAt, 'Водната пара от листата се охлади по найлона и стана на <b>капки вода</b>. Водата не е вредно вещество. Тук я броим към отделянето, защото излиза от растението.', 'wide', 0.6);
+          ctx.say(bagAt, 'Водата се изпарява от листата. Това се нарича <b>транспирация</b>. Парата се охлади по найлона и стана на <b>капки вода</b>. Водата не е вредно вещество. Тук я броим към отделянето, защото излиза от растението.', 'wide', 0.6);
           const cc = shell.setControls('<div class="row"><button class="btn primary fall">🍂 Дойде есента</button></div>');
           cc.querySelector('.fall').addEventListener('click', () => {
             cc.querySelector('.fall').disabled = true;
@@ -184,7 +184,8 @@ export function mount(container, { onComplete }) {
     ctx.clearTip();
     co2.visible = true;
     view(ctx, [AX + 0.2, 1.1, 0.1], 2.3, { halfH: 1.3, elev: 0.2 });
-    shell.task('<p>Жълтите точки са ненужните вещества в кръвта. Кои органи ги изхвърлят?</p>');
+    shell.task('<p>Жълтите точки са ненужните вещества в кръвта. Кои органи ги изхвърлят?</p>'
+      + '<p class="small"><b>Пикочопроводи</b> — две тънки тръбички от бъбреците до пикочния мехур.<br><b>Пикочен мехур</b> — торбичка, в която урината се събира, преди да излезе навън.</p>');
     const look = (o, t) => () => ctx.say(o, t, 'tag', 0.3);
     sortTask(ctx, {
       bins: ['Бъбреци', 'Бели дробове', 'Кожа'],

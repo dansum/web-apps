@@ -1,6 +1,6 @@
 // „measure“ — тела, вещества, обем и маса; измерване.
 // 3.1.1 (3. клас): от какво са телата → колко място заемат (водата в каната се покачва) → кое е по-тежко (везна с блюда) → подреди по вещество.
-// 5.1.1 (5. клас): опознай уредите → налей точно и отчети по скалата, L ↔ mL → маса и обем на камъче (V = V2 − V1) → твърдо, течно, газ: форма, обем, маса.
+// 5.1.1 (5. клас): опознай уредите → претегли празния цилиндър, налей точно и отчети по скалата, претегли водата (m = m2 − m1), L ↔ mL → маса и обем на камъче (V = V2 − V1) → твърдо, течно, газ: форма, обем, маса.
 import { createStage, labelSprite, mat, addHitBox, cornerMenu, zoneRing, THREE, esc } from '../kit.js';
 import { createShell, stepScore } from './shell.js';
 
@@ -526,7 +526,7 @@ export function mount(container, opts) {
 function build(container, { skill, onComplete }, restart) {
   const g5 = !!(skill && String(skill.id).startsWith('5'));
   const STEPS = g5
-    ? ['Опознай уредите', 'Измери обем на течност', 'Маса и обем на камъче', 'Твърдо, течно, газ']
+    ? ['Опознай уредите', 'Обем и маса на течност', 'Маса и обем на камъче', 'Твърдо, течно, газ']
     : ['Опознай телата', 'Колко място заемат?', 'Кое е по-тежко?', 'От какво са направени?'];
   const shell = createShell(container, { steps: STEPS });
   const stage = createStage(shell.stageEl, { background: 0xe8f1f8, camPos: [0, 5, 9], target: [0, 0.7, 0], maxDistance: 18, minDistance: 2 });
@@ -1382,8 +1382,73 @@ function build5(A) {
       { 1: 'Преброй малките деления между 10 и 20 mL — колко са?', 2: 'Числата 10, 20, 30… са на големите черти. Между тях има още деления.' },
       () => { shell.msg('Вярно! Едно деление е 1 mL.', 'good'); setTimeout(fill, 700); },
       () => { mistakes++; shell.score(`Грешки: ${mistakes}`); });
+    // Маса на течност: празният цилиндър (m₁), после цилиндърът с водата (m₂); m = m₂ − m₁.
+    const CYL_M = 135;
+    const fillView = () => { if (narrow) fitView([-1.55, 1.05, -0.2], 1.6, 1.35, 0.3); else fitView([-3.0, 1.1, -0.2], 2.1, 1.35, 0.3); };
+    function weigh(full, done) {
+      if (!A.alive()) return;
+      clearTip();
+      showMag(false);
+      pip.visible = false;
+      const home = cyl.position.clone();
+      if (narrow) fitView([-0.35, 1.0, -0.4], 1.9, 1.5, 0.45); else fitView([-1.85, 1.1, -0.4], 3.0, 1.8, 0.45);
+      shell.task(full
+        ? `<p>Сега претегли <b>цилиндъра с водата</b>.</p><p class="small">Празният цилиндър: m₁ = ${CYL_M} g.</p>`
+        : '<p>Ще измерим и <b>масата на водата</b>. Водата не може да стои на везната без съд.</p><p>Първо претегли <b>празния цилиндър</b>.</p>');
+      shell.msg('');
+      const c = shell.setControls('<div class="row"><button class="btn primary wg">⚖️ Сложи цилиндъра на везната</button></div>');
+      c.querySelector('.wg').addEventListener('click', async () => {
+        c.querySelector('.wg').disabled = true;
+        await hop(cyl, new V3(bal.position.x, bal.userData.panY, bal.position.z), 0.7, 0.5);
+        if (!A.alive()) return;
+        bal.userData.setMass(full ? CYL_M + target : CYL_M);
+        await phase(0.9);
+        if (!A.alive()) return;
+        const back = async () => {
+          clearTip();
+          bal.userData.setMass(0);
+          await hop(cyl, home, 0.7, 0.5);
+          if (!A.alive()) return;
+          done();
+        };
+        if (!full) {
+          say(bal, `Празният цилиндър: <b>m₁ = ${CYL_M} g</b>`, '', 0.75);
+          const n = shell.setControls('<div class="row"><button class="btn primary bk">Върни го и налей вода →</button></div>');
+          n.querySelector('.bk').addEventListener('click', () => { n.querySelector('.bk').disabled = true; back(); }, { once: true });
+          return;
+        }
+        say(bal, `Цилиндърът с водата: <b>m₂ = ${CYL_M + target} g</b>`, '', 0.75);
+        shell.task(`<p>Каква е масата на водата?</p>
+          <p class="small">Празният цилиндър: m₁ = ${CYL_M} g. С водата: m₂ = ${CYL_M + target} g.</p>
+          <div class="measure-in"><label class="num">Маса на водата: m = <input class="iw" type="text" inputmode="decimal"> g</label></div>`);
+        let tries = 0;
+        const k = shell.setControls('<button class="btn primary">Провери</button>');
+        k.querySelector('button').addEventListener('click', () => {
+          const inp = container().querySelector('.iw');
+          const v = num(inp.value);
+          if (!Number.isFinite(v)) { shell.msg('Напиши число.', 'bad'); return; }
+          const ok = Math.abs(v - target) < 0.01;
+          inp.classList.toggle('right', ok); inp.classList.toggle('wrong', !ok);
+          if (ok) {
+            inp.disabled = true;
+            shell.msg(`Вярно! m = ${CYL_M + target} g − ${CYL_M} g = ${target} g. Всеки 1 mL вода има маса около 1 g.`, 'good');
+            const n = shell.setControls('<div class="row"><button class="btn primary bk">Напред →</button></div>');
+            n.querySelector('.bk').addEventListener('click', () => { n.querySelector('.bk').disabled = true; back(); }, { once: true });
+            return;
+          }
+          mistakes++; tries++;
+          shell.msg(`От масата на пълния цилиндър извади масата на празния.${tries >= 2 ? ` Подсказка: ${CYL_M + target} − ${CYL_M}.` : ''}`, 'bad');
+          shell.score(`Грешки: ${mistakes}`);
+        });
+      }, { once: true });
+    }
     function fill() {
       if (!A.alive()) return;
+      weigh(false, pourStep);
+    }
+    function pourStep() {
+      if (!A.alive()) return;
+      fillView();
       clearTip();
       showMag(true);
       pip.visible = true;
@@ -1433,7 +1498,7 @@ function build5(A) {
           shell.msg(`Точно ${target} mL. Отлично измерване!`, 'good');
           say(cyl, `<b>V = ${target} mL</b>`, 'good', 2.3);
           pip.visible = false;
-          setTimeout(convert, 800);
+          setTimeout(() => weigh(true, convert), 1200);
           return;
         }
         mistakes++;

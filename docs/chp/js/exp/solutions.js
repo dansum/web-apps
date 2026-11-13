@@ -222,7 +222,7 @@ export function mount(container, { onComplete }) {
           b.disabled = true;
           setTimeout(() => {
             shell.msg('');
-            ctx.say(main, `Сложихме ${M.salt} g сол, а на дъното остана неразтворена сол. Разтворени са около ${dissolved()} g.`, 'wide', 1.3);
+            ctx.say(main, `Сложихме ${M.salt} g сол, а на дъното остана неразтворена сол. Разтворени са около ${dissolved()} g. Везната показва ${100 + M.salt} g: водата, разтворената сол и солта на дъното.`, 'wide', 1.3);
             choice(ctx, {
               q: 'Какъв е този разтвор?',
               options: [
@@ -341,7 +341,7 @@ export function mount(container, { onComplete }) {
     function boil() {
       lakeTags.forEach((b) => b.remove()); lakeTags = [];
       ctx.clearTip();
-      shell.task('<p>Чистата вода се топи при <b>0 °C</b>. А кога кипи?</p>');
+      shell.task('<p>Чистата вода се топи при <b>0 °C</b>. А кога кипи?</p><p class="small"><b>Нормално атмосферно налягане</b> е обичайното налягане на въздуха близо до морското равнище.</p><p class="small">Водата провежда топлината слабо. В тенджерата тя се затопля главно чрез конвекция.</p>');
       choice(ctx, {
         q: 'При каква температура кипи чистата вода при нормално атмосферно налягане?',
         options: [

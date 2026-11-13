@@ -152,13 +152,13 @@ export function mount(container, { onComplete }) {
       c.querySelector('.chk').addEventListener('click', () => {
         if (shade() >= 1) {
           c.querySelector('.chk').disabled = true; sl.disabled = true; ctx.answer = null;
-          ctx.say(at.bladder, '✔ Урината е светла. При жега и движение пием повече вода — около 6–8 чаши на ден.', 'good wide', 0.3);
+          ctx.say(at.bladder, '✔ Урината е светла. При жега и движение пием повече вода от обикновено.', 'good wide', 0.3);
           ctx.scores[0] = stepScore(mistakes, 3);
           nextBtn(ctx, 'Напред →', step3);
           return;
         }
         mistakes++;
-        shell.msg(`Урината още е тъмна: водата не стига.${mistakes >= 2 ? ' Подсказка: в жега са нужни поне 6 чаши.' : ''}`, 'bad');
+        shell.msg(`Урината още е тъмна: водата не стига.${mistakes >= 2 ? ' Подсказка: в този модел в жега са нужни поне 6 чаши.' : ''}`, 'bad');
       });
     }
   }
