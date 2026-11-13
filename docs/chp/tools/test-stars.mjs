@@ -1,5 +1,5 @@
 // Изиграва 5.1.7 „Слънчевата система и звездите“ (js/exp/stars.js) докрай с две умишлени грешки.
-// Очакван резултат: (0.75 + 1 + 0.75) / 3 — грешките са в предсказанието на стъпка 2
+// Очакван резултат: (0.75 + 1 + 0.75) / 3 — грешките са в (отворената) прогноза на стъпка 2
 // и в разпознаването на Малката мечка в стъпка 4.
 // Употреба: NODE_PATH=$(npm root -g) node tools/test-stars.mjs http://localhost:8765/chp/ <папка> [ширина]
 import { open } from './xp-lib.mjs';
@@ -10,11 +10,11 @@ const { page, wait } = t;
 await t.menuAll();
 await t.shot('1');
 await t.next();
-// 2. Притеглянето: една умишлена грешка в предсказанието
+// 2. Притеглянето: отворена прогноза — умишлено грешна (= 1 грешка); опитът пак тръгва
 await wait(500); await t.shot('2a');
-await t.choose(1); console.log('грешка:', await t.msg());
-await t.choose(0);
+await t.choose(1); console.log('прогноза:', await t.msg());
 await t.btn('.off'); await wait(4000); await t.shot('2b');
+console.log('сравнение:', (await page.textContent('.xp-controls .cmp.miss')).replace(/\s+/g, ' ').trim());
 await t.btn('.back'); await wait(1200);
 await t.choose(0); await t.next();
 // 3. Планетите и полетите
