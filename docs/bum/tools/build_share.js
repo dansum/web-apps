@@ -18,22 +18,23 @@ const font = f => 'data:font/woff2;base64,' + fs.readFileSync(path.join(ROOT, 'f
   const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1200, height: 630 } });
   await pg.setContent('<html><body></body></html>');
   await pg.addScriptTag({ path: path.join(ROOT, 'js', 'art.js') });
+  await pg.addScriptTag({ path: path.join(ROOT, 'js', 'emblems.js') });
   for (const p of people) {
     const html = `<style>@font-face{font-family:Lato;src:url(${font('lato-bold.woff2')});font-weight:700 900}@font-face{font-family:Lato;src:url(${font('lato-regular.woff2')});font-weight:400}
       html,body{margin:0}body{width:1200px;height:630px;display:grid;grid-template-columns:520px 680px;font-family:Lato,sans-serif;background:#0A2A66;color:#fff}
       .art{position:relative;overflow:hidden}.art svg{position:absolute;inset:0;width:100%;height:100%}
-      .pt{position:absolute;left:50%;top:50%;width:240px;height:240px;transform:translate(-50%,-50%);border-radius:50%;box-shadow:0 0 0 8px #fff;overflow:hidden;background:rgba(8,18,48,.92);display:grid;place-items:center;font-size:96px;font-weight:900}
-      .pt svg{position:absolute;inset:0;width:100%;height:100%}
+      .pt{position:absolute;left:50%;top:50%;width:240px;height:240px;transform:translate(-50%,-50%);border-radius:50%;box-shadow:0 0 0 8px #fff;overflow:hidden;background:radial-gradient(circle at 30% 25%,#1B3F86,#0A2A66 70%);display:grid;place-items:center;font-size:96px;font-weight:900}
+      .pt svg{position:absolute;inset:0;width:100%;height:100%}.pt.e svg{inset:13%;width:74%;height:74%}
       .tx{padding:56px 56px 40px;display:flex;flex-direction:column;gap:18px}
       .brand{font-size:30px;font-weight:900;color:#14BF96}.brand span{color:#fff;font-weight:700;font-size:22px;margin-left:10px}
       .f{font-size:22px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#FA961E}
       h1{margin:0;font-size:${p.title.length > 52 ? 50 : 58}px;line-height:1.1;font-weight:900}
       .nm{font-size:30px;font-weight:700;margin-top:auto}.nm span{font-weight:400;opacity:.8}
       .fx{display:inline-block;background:#FFE14D;color:#241c00;font-weight:900;font-size:20px;padding:6px 12px;border-radius:8px;align-self:flex-start}</style>
-      <div class="art">${window_svg(p)}<div class="pt">${p.avatar ? '' : esc(initials(p.name))}</div></div>
+      <div class="art">${window_svg(p)}<div class="pt${p.avatar ? "" : " e"}"></div></div>
       <div class="tx"><div class="brand">БУМ<span>Български успехи с математика</span></div><div class="f">${esc(FIELDS[p.field] || '')}</div><h1>${esc(p.title)}</h1>
       ${p.fictional ? '<div class="fx">⚠ Примерна история за измислен човек</div>' : ''}<div class="nm">${esc(p.name)} <span>· ${esc(years(p))}</span></div></div>`;
-    await pg.evaluate(([h, pp]) => { document.body.outerHTML = '<body>' + h + '</body>'; const s = document.querySelector('.art'); s.insertAdjacentHTML('afterbegin', window.BUMArt.svg(pp)); if (pp.avatar) document.querySelector('.pt').insertAdjacentHTML('afterbegin', window.BUMArt.avatar(pp.avatar)); }, [html, { id: p.id, field: p.field, motif: p.motif, art: p.art, avatar: p.avatar }]);
+    await pg.evaluate(([h, pp]) => { document.body.outerHTML = '<body>' + h + '</body>'; const s = document.querySelector('.art'); s.insertAdjacentHTML('afterbegin', window.BUMArt.svg(pp)); document.querySelector('.pt').insertAdjacentHTML('afterbegin', pp.avatar ? window.BUMArt.avatar(pp.avatar) : window.BUMEmblem.svg(pp)); }, [html, { id: p.id, field: p.field, motif: p.motif, art: p.art, avatar: p.avatar }]);
     await pg.waitForTimeout(60);
     await pg.screenshot({ path: path.join(ROOT, 'media', 'og', p.id + '.jpg'), type: 'jpeg', quality: 72 });
     const url = BASE + 'i/' + p.id + '.html', target = '../story.html?id=' + encodeURIComponent(p.id);
