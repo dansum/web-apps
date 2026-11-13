@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Карта — БУМ</title>
+<meta name="description" content="Мисловна карта на 110 истории от БУМ: цветът е сферата, размерът — важността, линиите — връзките между хората.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+
+<link rel="preload" href="fonts/lato-bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css">
+<script>try{var t=localStorage.getItem('bum-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body data-page="map">
+<header id="top"></header>
+<main class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">Карта</span>
+    <h1>Мисловна карта на БУМ</h1>
+    <p>Всяка точка е история. Цветът е основната сфера, голямата точка е от „10 БУМа“, малката — от „СтоБУМ“. Плътните линии свързват хора с обща история, тънките — хората от една сфера по реда на раждане. Влачи, приближавай и натисни точка.</p>
+  </div>
+  <div class="m-tools">
+    <div class="chips" id="m-field" role="group" aria-label="Сфера"></div>
+    <div class="row">
+      <label class="sr" for="m-cent">Век</label><select class="sel" id="m-cent"></select>
+      <label class="sr" for="m-lives">Живее</label><select class="sel" id="m-lives"></select>
+      <label class="sr" for="m-city">Град</label><select class="sel" id="m-city"></select>
+      <label class="sr" for="m-sec">Раздел</label><select class="sel" id="m-sec"></select>
+      <label class="sr" for="m-sex">Пол</label><select class="sel" id="m-sex"></select>
+      <button class="btn ghost" type="button" id="m-reset">Изчисти</button>
+    </div>
+    <p class="count" id="m-count" aria-live="polite"></p>
+  </div>
+  <div class="m-wrap">
+    <div class="m-map" id="map"></div>
+    <aside class="m-panel" id="panel" hidden></aside>
+  </div>
+</main>
+<footer id="foot"></footer>
+<script src="data/ten.js"></script>
+<script src="data/sto-a.js"></script>
+<script src="data/sto-b.js"></script>
+<script src="data/sto-c.js"></script>
+<script src="data/sto-d.js"></script>
+<script src="data/sto-e.js"></script>
+<script src="data/kilo.js"></script>
+<script src="data/ka.js"></script>
+<script src="data/facets.js"></script>
+<script src="js/vendor/d3.v7.8.5.min.js"></script>
+<script src="js/art.js"></script>
+<script src="js/bum.js"></script>
+<script src="../consent.js" defer></script>
+</body>
+</html>

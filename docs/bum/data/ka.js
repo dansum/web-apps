@@ -1417,5 +1417,17 @@ window.BUM_KA = {
    "c": "6. клас",
    "u": "https://bg.khanacademy.org/math/6-klas/x8f4872fe3845cd98:elementi-ot-veroyatnosti-i-statistika/x8f4872fe3845cd98:organizirane-i-predstavyane-na-danni"
   }
+ ],
+ "@karta": [
+  {
+   "t": "Множества и операции с тях",
+   "c": "6. клас",
+   "u": "https://bg.khanacademy.org/math/6-klas/x8f4872fe3845cd98:elementi-ot-veroyatnosti-i-statistika/x8f4872fe3845cd98:mnozhestva-i-operatsii"
+  },
+  {
+   "t": "Въведение в теорията на множествата",
+   "c": "9. клас",
+   "u": "https://bg.khanacademy.org/math/9-klas/xee41df55c1c831f0:veroyatnosti-kombinatorika/xee41df55c1c831f0:uvod-v-teoriyata-na-mnozhestvata"
+  }
  ]
 };
