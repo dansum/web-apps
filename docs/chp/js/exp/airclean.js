@@ -1,19 +1,14 @@
 // 5.2.4 „Опазване чистотата на въздуха“ — макет на град: път с коли, завод, къщи с печки, парк, далечен вулкан.
 // Стъпки: опознай → опит с лепливи картончета и протокол → източници и замърсители → направи въздуха по-чист.
-// Два варианта на опита (избор с адреса): А (по подразбиране, #/s/5.2.4) — три зададени места;
-// Б (#/s/5.2.4?v=b) — детето избира 3 от 5 места и резултатът зависи от избора му.
+// Опитът (решение 27): детето избира 3 от 5 места и резултатът зависи от избора му.
+// Старият адрес #/s/5.2.4?v=b води до същото.
 import { labelSprite, mat, addHitBox, THREE, esc } from '../kit.js';
 import { scaffold, explore, choice, nextBtn, finishBtn, view, bar, stepScore } from './labkit.js';
 import { sortTask, fillTask } from './labtasks.js';
 
 const SAFE = '<p class="warn">⚠ Картончетата се поставят <b>с възрастен</b>, далеч от платното на пътя. След опита измий ръцете.</p>';
 // dots — колко прахови частици се виждат с лупата след седмица (условни числа за модела).
-const SPOTS_A = [
-  { id: 'card-road', name: 'до пътя', pos: [0.6, 0, 1.75], dirt: 0.9, dots: 28 },
-  { id: 'card-park', name: 'в парка', pos: [-0.6, 0, -2.6], dirt: 0.18, dots: 4 },
-  { id: 'card-yard', name: 'в училищния двор', pos: [4.3, 0, 0.3], dirt: 0.45, dots: 11 },
-];
-const SPOTS_B = [
+const SPOTS = [
   { id: 'card-road', name: 'до пътя', pos: [0.6, 0, 1.75], dirt: 0.9, dots: 28, near: 'колите по пътя' },
   { id: 'card-factory', name: 'до завода', pos: [-2.6, 0, -0.5], dirt: 0.75, dots: 22, near: 'комина на завода' },
   { id: 'card-houses', name: 'до къщите с печки', pos: [2.4, 0, -0.75], dirt: 0.6, dots: 16, near: 'комините на печките' },
@@ -31,8 +26,6 @@ const MEASURES = [
 ];
 
 export function mount(container, { onComplete }) {
-  const VB = /[?&]v=b(&|$)/i.test(location.hash);
-  const SPOTS = VB ? SPOTS_B : SPOTS_A;
   const STEPS = ['Опознай', 'Опит с картончета', 'Източници и замърсители', 'По-чист въздух'];
   const ctx = scaffold(container, { steps: STEPS, stage: { background: 0xbcd7ee, camPos: [0, 8, 12], target: [0, 0.5, 0], maxDistance: 30 } });
   const { shell, stage, scene } = ctx;
@@ -241,24 +234,12 @@ export function mount(container, { onComplete }) {
   function step2() {
     shell.step(1);
     setCards(true);
-    view(ctx, [VB ? 0.8 : 1.6, 0.6, -0.3], VB ? 5.4 : 4.2, { halfH: 2.4, elev: 0.75 });
+    view(ctx, [0.8, 0.6, -0.3], 5.4, { halfH: 2.4, elev: 0.75 });
     shell.task(`<p><b>Опит:</b> картончета, намазани с вазелин, остават една седмица на три места. Прахът във въздуха полепва по тях.</p>${SAFE}`);
     let mistakes = 0;
-    if (VB) { place(); return; }
-    choice(ctx, {
-      q: 'Къде картончето ще събере най-много прах?',
-      options: [
-        { t: 'До пътя', ok: true, why: 'Да проверим! Постави трите картончета.' },
-        { t: 'В парка', ok: false, why: 'Какво има в парка: коли или дървета? А какво има до пътя?' },
-        { t: 'Навсякъде еднакво', ok: false, why: 'Близо ли е всяко място до източник на замърсяване?' },
-      ],
-      hint: 'Помисли къде има най-много източници на прах и газове.',
-      onRight: (m) => { mistakes = m; place(); },
-    });
+    place();
     function place() {
-      shell.task(VB
-        ? `<p><b>Ти избираш местата.</b> Имаш 3 картончета, а зелените кръгове са 5. <b>Кликни 3 кръга</b>, за да поставиш картончетата там.</p>${SAFE}`
-        : `<p><b>Кликни трите зелени кръга</b>, за да поставиш картончетата: до пътя, в парка и в училищния двор.</p>${SAFE}`);
+      shell.task(`<p><b>Ти избираш местата.</b> Имаш 3 картончета, а зелените кръгове са 5. <b>Кликни 3 кръга</b>, за да поставиш картончетата там.</p>${SAFE}`);
       shell.setControls('');
       ctx.click = (id, hit) => {
         // кликът може да попадне в съседен обект (парка, пътя): взимаме най-близкото картонче
@@ -268,14 +249,11 @@ export function mount(container, { onComplete }) {
         c.placed = true; setCards(true);
         ctx.say(c.g, `картонче ${c.name}`, 'tag', 1.2);
         const placed = cards.filter((x) => x.placed);
-        shell.score(VB ? `Поставени: ${placed.length} от 3` : '');
+        shell.score(`Поставени: ${placed.length} от 3`);
         if (placed.length < 3) return;
         ctx.click = null;
-        if (VB) {
-          cards.forEach((x) => { if (!x.placed) x.g.visible = false; });
-          return predictB(placed);
-        }
-        waitWeek();
+        cards.forEach((x) => { if (!x.placed) x.g.visible = false; });
+        predictB(placed);
       };
     }
     function predictB(placed) {
@@ -337,17 +315,11 @@ export function mount(container, { onComplete }) {
     }
     function conclude(placed, rank, m0) {
       const hi = rank[0], lo = rank[rank.length - 1];
-      const options = VB
-        ? [
-          { t: `Най-много прах има ${hi.name}, а най-малко — ${lo.name}.`, ok: true, why: `Вярно! Изводът отговаря на целта и се опира на наблюденията. Най-много прах събра картончето близо до ${esc(hi.near)}.` },
-          { t: `Най-много прах има ${lo.name}, а най-малко — ${hi.name}.`, ok: false, why: 'Погледни пак реда „Наблюдения“ в протокола.' },
-          { t: 'Прахът идва само от вулкана.', ok: false, why: 'Тогава картончетата щяха да са еднакво мръсни. Така ли е?' },
-        ]
-        : [
-          { t: 'Най-много прах има до пътя, а най-малко — в парка. Край пътя въздухът е най-прашен.', ok: true, why: 'Вярно! Изводът отговаря на целта и се опира на наблюденията.' },
-          { t: 'Прахът идва само от вулкана.', ok: false, why: 'Тогава картончетата щяха да са еднакво мръсни. Така ли е?' },
-          { t: 'В парка въздухът е най-мръсен.', ok: false, why: 'Погледни реда „Наблюдения“ в протокола.' },
-        ];
+      const options = [
+        { t: `Най-много прах има ${hi.name}, а най-малко — ${lo.name}.`, ok: true, why: `Вярно! Изводът отговаря на целта и се опира на наблюденията. Най-много прах събра картончето близо до ${esc(hi.near)}.` },
+        { t: `Най-много прах има ${lo.name}, а най-малко — ${hi.name}.`, ok: false, why: 'Погледни пак реда „Наблюдения“ в протокола.' },
+        { t: 'Прахът идва само от вулкана.', ok: false, why: 'Тогава картончетата щяха да са еднакво мръсни. Така ли е?' },
+      ];
       choice(ctx, {
         q: 'Довърши протокола. Какъв е изводът?',
         options,
