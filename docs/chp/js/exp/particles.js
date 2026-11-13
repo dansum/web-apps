@@ -517,7 +517,7 @@ function build(container, { onComplete }, restart) {
     const seen = new Set();
     shell.task(`<p>Всяко вещество е изградено от мънички <b>градивни частици</b>. Такива частици са <b>молекулите</b> и <b>атомите</b>. Молекулите са съставени от атоми. Тук частиците са увеличени стотици милиони пъти.</p>
       <p>В кутията има вода. <b>Избери от менюто</b> лед, вода и пара и гледай как се държат частиците. Проследи и една частица.</p>`);
-    const ctrl = shell.setControls('<div class="row"><button class="btn all">🔭 Цялата маса</button><button class="btn primary nx" disabled>Напред →</button></div>');
+    const ctrl = shell.setControls('<div class="row"><button class="btn all">🔭 Цялата сцена</button><button class="btn primary nx" disabled>Напред →</button></div>');
     const next = ctrl.querySelector('.nx');
     ctrl.querySelector('.all').addEventListener('click', () => { clearTip(); setHighlight(-1); menu.setActive(null); overview(); });
     const upd = () => shell.score(`Разгледани: ${seen.size} от ${MENU.length}`);
@@ -773,7 +773,7 @@ function build(container, { onComplete }, restart) {
           2: 'Никой не е бъркал — смесването стана само.',
         }, () => {
           clearTip();
-          shell.msg('Вярно! Смесването на вещества само, без разбъркване, заради движението на частиците им се нарича дифузия. При по-висока температура тя е по-бърза.', 'good');
+          shell.msg('Вярно! Смесването на вещества само, без разбъркване, заради движението на частиците им се нарича дифузия. При по-висока температура тя е по-бърза. В истинска чаша с гореща вода има и течения (конвекция). Те също разнасят мастилото.', 'good');
           scores.push(stepScore(mistakes, 2));
           nextBtn(c, 'Напред →', step4);
         }, () => { mistakes++; });

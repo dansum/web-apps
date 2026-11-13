@@ -2,7 +2,7 @@
 // Стъпки: опознай → наситен разтвор и маса на разтвора (опит) → разтворимост и протокол → свойствата на водата.
 import { labelSprite, mat, addHitBox, THREE } from '../kit.js';
 import { scaffold, explore, choice, nextBtn, finishBtn, labRoom, glass, view, lcd, stepScore } from './labkit.js';
-import { sortTask } from './labtasks.js';
+import { sortTask, fillTask } from './labtasks.js';
 
 const SAFE = '<p class="warn">⚠ В кабинета <b>не опитваме</b> веществата на вкус и не ги пипаме с ръце.</p>';
 const SOL = 36;          // около 36 g сол се разтварят в 100 g вода при 20 °C
@@ -10,7 +10,7 @@ const BX = -3.4;         // чашата на везната
 const TESTS = [
   { id: 'b-sugar', name: 'захар', x: -0.9, kind: 'sol', note: 'разтвори се напълно' },
   { id: 'b-gyps', name: 'гипс', x: 0.3, kind: 'little', note: 'малка част се разтвори, повечето остана на дъното' },
-  { id: 'b-chalk', name: 'тебешир', x: 1.5, kind: 'none', note: 'водата помътня, после всичко се утаи' },
+  { id: 'b-chalk', name: 'креда', x: 1.5, kind: 'none', note: 'водата помътня, после всичко се утаи' },
   { id: 'b-sand', name: 'пясък', x: 2.7, kind: 'none', note: 'песъчинките паднаха на дъното' },
 ];
 
@@ -157,7 +157,7 @@ export function mount(container, { onComplete }) {
       T.t += dt;
       if (T.kind === 'sol') { T.haze.material.opacity = Math.max(0, 0.25 - T.t * 0.12); }
       else if (T.kind === 'little') { T.haze.material.opacity = 0.08; T.sed.scale.y = Math.min(0.06, T.t * 0.04); }
-      else if (T.name === 'тебешир') { T.haze.material.opacity = Math.max(0.0, 0.55 - Math.max(0, T.t - 1) * 0.12); T.sed.scale.y = Math.min(0.08, T.t * 0.02); }
+      else if (T.name === 'креда') { T.haze.material.opacity = Math.max(0.0, 0.55 - Math.max(0, T.t - 1) * 0.12); T.sed.scale.y = Math.min(0.08, T.t * 0.02); }
       else { T.sed.scale.y = Math.min(0.08, T.t * 0.06); }
       T.sed.position.y = T.sed.scale.y / 2 + 0.005;
     }
@@ -187,7 +187,7 @@ export function mount(container, { onComplete }) {
       items: [
         { id: 'main', label: 'Чаша вода на везна', icon: '⚖', note: 'В чашата има <b>100 g чиста вода</b> при 20 °C. Везната показва масата на водата (без чашата). Чистата вода е без цвят, мирис и вкус.', obj: () => main, dist: 2.8 },
         { id: 'salt', label: 'Сол', icon: '🧂', note: 'Готварската сол се <b>разтваря</b> във вода. Получава се <b>разтвор</b> — еднородна смес.', obj: () => salt, dist: 2.4 },
-        { id: 'b-sugar', label: 'Четири чаши', icon: '🧪', note: 'Ще изследваме кое вещество се разтваря във вода: захар, гипс, тебешир, пясък.', obj: () => tests[1].b, dist: 3.4 },
+        { id: 'b-sugar', label: 'Четири чаши', icon: '🧪', note: 'Ще изследваме кое вещество се разтваря във вода: захар, гипс, креда, пясък. Кредата е мек бял варовик. Не я бъркай с училищния тебешир: той често е от гипс.', obj: () => tests[1].b, dist: 3.4 },
         { id: 'syrups', label: 'Два сиропа', icon: '🥤', note: 'В двете чаши има еднакво вода, но различно количество сироп. Цветът подсказва кой разтвор е по-концентриран, т.е. в кой има повече сироп в същото количество вода.', obj: () => syrAt, dist: 3 },
         { id: 'lake', label: 'Езеро в разрез', icon: '🧊', note: 'Езеро през зимата: отгоре има лед, а отдолу — вода. Как оцеляват рибите?', obj: () => lake, dist: 3.6, bubble: 1.5 },
       ],
@@ -259,20 +259,38 @@ export function mount(container, { onComplete }) {
     };
     function proto() {
       ctx.clearTip();
-      shell.task(`<p><b>Протокол от наблюдението</b></p>
+      // Детето само попълва колоната „Какво видяхме“: избор за всяка чаша и число за солта.
+      const OPT = ['всичко', 'малка част', 'почти нищо'];
+      const OBS = ['разтвори се напълно', 'малка част се разтвори', 'почти нищо не се разтвори, утаи се'];
+      const KIND = { sol: 0, little: 1, none: 2 };
+      const table = (filled) => `<p><b>Протокол от наблюдението</b></p>
         <table class="small" style="border-collapse:collapse;width:100%">
         <tr><td style="padding:2px 4px"><b>Вещество</b></td><td><b>Какво видяхме</b></td></tr>
-        ${tests.map((T) => `<tr><td style="padding:2px 4px">${T.name}</td><td>${T.note}</td></tr>`).join('')}
-        <tr><td style="padding:2px 4px">сол</td><td>36 g се разтвориха в 100 g вода (опитът с везната)</td></tr>
-        </table>`);
+        ${tests.map((T) => `<tr><td style="padding:2px 4px">${T.name}</td><td>${filled ? OBS[KIND[T.kind]] : '…'}</td></tr>`).join('')}
+        <tr><td style="padding:2px 4px">сол</td><td>${filled ? `${SOL} g се разтвориха в 100 g вода (опитът с везната)` : '…'}</td></tr>
+        </table>`;
+      shell.task(table(false));
+      ctx.click = (id) => { const T = tests.find((x) => x.id === id); if (T) ctx.say(T.b, `${T.name}: ${T.note}`, 'tag', 1.25); };
+      fillTask(ctx, {
+        lead: '<b>Попълни протокола.</b> Колко от всяко вещество се разтвори? Можеш пак да кликнеш чаша в сцената.',
+        rows: [
+          ...tests.map((T) => ({ label: T.name, options: OPT, answer: KIND[T.kind], why: 'Кликни пак чашата в сцената и виж какво е останало на дъното.' })),
+          { label: 'сол: колко грама се разтвориха в 100 g вода?', number: true, answer: SOL, unit: 'g', why: 'Спомни си опита с везната: колко сол се разтвори, преди да остане сол на дъното?' },
+        ],
+        hint: 'Разтвореното вещество не се вижда и не се утаява.',
+        onDone: (m0) => { ctx.click = null; ctx.clearTip(); shell.task(table(true)); classify(m0); },
+      });
+    }
+    function classify(m0) {
       sortTask(ctx, {
+        mistakes: m0,
         lead: 'Класифицирай веществата по разтворимостта им във вода.',
         bins: ['Разтворимо', 'Малко разтворимо', 'Практически неразтворимо'],
         items: [
           { t: 'захар', bin: 0, why: 'Захарта е разтворима.' },
           { t: 'сол', bin: 0, why: 'Солта е разтворима.' },
           { t: 'гипс', bin: 1, why: 'Гипсът е малко разтворим.', no: 'Виж протокола: колко от гипса се разтвори?' },
-          { t: 'тебешир', bin: 2, why: 'Тебеширът е практически неразтворим: помътнява водата, но после се утаява.', no: 'Помътняването не е разтваряне. Какво остана накрая?' },
+          { t: 'креда', bin: 2, why: 'Кредата е практически неразтворима: помътнява водата, но после се утаява.', no: 'Помътняването не е разтваряне. Какво остана накрая?' },
           { t: 'пясък', bin: 2, why: 'Пясъкът е практически неразтворим.' },
         ],
         hint: 'Разтвореното вещество не се вижда и не се утаява.',
@@ -315,7 +333,7 @@ export function mount(container, { onComplete }) {
         mistakes = m;
         I.drop = true; I.v = 0;
         setTimeout(() => {
-          ctx.say(iceGlass, 'Ледът плава: той е по-лек от същия обем вода. Повечето вещества са по-плътни в твърдо състояние, а водата — не. Това е <b>аномалия на водата</b>.', 'wide', 1.2);
+          ctx.say(iceGlass, 'Ледът плава: кубче лед е по-леко от кубче вода със същия размер. При повечето вещества твърдото парче потъва в своята течност. При водата е обратното. Това е <b>аномалия на водата</b>.', 'wide', 1.2);
           nextBtn(ctx, 'Към езерото →', lakeQ);
         }, 2200);
       },
@@ -329,7 +347,7 @@ export function mount(container, { onComplete }) {
       choice(ctx, {
         q: 'Защо рибите оцеляват през зимата?',
         options: [
-          { t: 'Ледът остава отгоре и пази водата отдолу. На дъното водата е около 4 °C.', ok: true, why: 'Вярно! Водата е най-плътна при около 4 °C и затова се събира на дъното.' },
+          { t: 'Ледът остава отгоре и пази водата отдолу. На дъното водата е около 4 °C.', ok: true, why: 'Вярно! При около 4 °C една и съща чаша вода тежи най-много. Затова тази вода се събира на дъното.' },
           { t: 'Рибите не усещат студа.', ok: false, why: 'Рибите не могат да живеят в лед. Погледни къде е ледът.' },
           { t: 'Ледът потъва и затопля дъното.', ok: false, why: 'Видя опита с чашата: ледът потъва ли?' },
         ],

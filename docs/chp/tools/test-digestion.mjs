@@ -23,7 +23,7 @@ await t.next();
 // 2. Хапката: една умишлена грешка в предсказанието
 await t.choose(1); console.log('грешка:', await t.msg());
 await t.choose(0);
-for (const id of ['mouth', 'esophagus', 'stomach', 'liver', 'small', 'large']) {
+for (const id of ['mouth', 'esophagus', 'stomach', 'liver', 'pancreas', 'small', 'large']) {
   await clickOrgan(id);
   if (id === 'stomach') await t.shot('2a');
 }

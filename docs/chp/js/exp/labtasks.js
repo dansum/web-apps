@@ -79,3 +79,73 @@ export function pickTask(ctx, { ok, onWrong, onRight }) {
   };
   return { get mistakes() { return m; } };
 }
+
+// Попълване на протокол: детето само попълва клетките (избор от думи или число), после натиска „Провери“.
+// rows: [{ label, options: [..], answer: индекс, why? }] или [{ label, number: true, answer, tol = 0, unit, why? }].
+// Грешните клетки се оцветяват и могат да се поправят; всяка неуспешна проверка е една грешка.
+// ctx.fill пази верните отговори за автоматичните тестове.
+export function fillTask(ctx, { lead = '', rows, hint = '', mistakes = 0, onDone }) {
+  const { shell } = ctx;
+  let m = mistakes;
+  const val = rows.map(() => null);
+  ctx.fill = rows.map((r) => r.answer);
+  const c = shell.setControls(`${lead ? `<p>${lead}</p>` : ''}
+    ${rows.map((r, k) => `<div class="fill-row" data-k="${k}" style="margin:8px 0"><div class="small"><b>${r.label}</b></div>
+      ${r.number
+        ? `<input class="fill-num" type="text" inputmode="decimal" autocomplete="off" style="width:6em;font:inherit;padding:4px 6px;border:2px solid #bfe9dc;border-radius:8px" aria-label="${esc(r.label)}"> ${esc(r.unit || '')}`
+        : `<div class="xp-chips">${r.options.map((o, i) => `<span class="chip fill-opt" role="button" tabindex="0" data-i="${i}">${esc(o)}</span>`).join('')}</div>`}</div>`).join('')}
+    <div class="row"><button class="btn primary fill-check" disabled>Провери</button></div>`);
+  const btn = c.querySelector('.fill-check');
+  const upd = () => { btn.disabled = val.some((v) => v === null); };
+  c.querySelectorAll('.fill-row').forEach((row) => {
+    const k = +row.dataset.k;
+    row.querySelectorAll('.fill-opt').forEach((ch) => {
+      const pick = () => {
+        if (row.dataset.ok) return;
+        row.querySelectorAll('.fill-opt').forEach((x) => x.classList.remove('held', 'wrong'));
+        ch.classList.add('held');
+        val[k] = +ch.dataset.i;
+        upd();
+      };
+      ch.addEventListener('click', pick);
+      ch.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+    });
+    const inp = row.querySelector('.fill-num');
+    if (inp) inp.addEventListener('input', () => {
+      const v = parseFloat(inp.value.replace(',', '.'));
+      val[k] = Number.isFinite(v) ? v : null;
+      inp.style.borderColor = '#bfe9dc';
+      upd();
+    });
+  });
+  btn.addEventListener('click', () => {
+    const bad = [];
+    rows.forEach((r, k) => {
+      const row = c.querySelector(`.fill-row[data-k="${k}"]`);
+      if (row.dataset.ok) return;
+      const ok = r.number ? Math.abs(val[k] - r.answer) <= (r.tol || 0) + 1e-9 : val[k] === r.answer;
+      const inp = row.querySelector('.fill-num');
+      const ch = row.querySelector('.fill-opt.held');
+      if (ok) {
+        row.dataset.ok = '1';
+        if (inp) { inp.disabled = true; inp.style.borderColor = 'var(--green)'; }
+        if (ch) { ch.classList.remove('held'); ch.classList.add('right'); }
+      } else {
+        bad.push(r);
+        if (inp) inp.style.borderColor = 'var(--red)';
+        if (ch) { ch.classList.remove('held'); ch.classList.add('wrong'); val[k] = null; }
+      }
+    });
+    if (bad.length) {
+      m++;
+      upd();
+      shell.msg(`Провери пак: ${bad.map((r) => `„${r.label}“`).join(', ')}. ${bad[0].why || ''}${m >= 2 && hint ? ' Подсказка: ' + hint : ''}`, 'bad');
+      return;
+    }
+    btn.disabled = true;
+    ctx.fill = null;
+    shell.msg('Протоколът е попълнен вярно!', 'good');
+    onDone(m);
+  });
+  return c;
+}

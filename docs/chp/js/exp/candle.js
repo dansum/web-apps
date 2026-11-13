@@ -1,5 +1,6 @@
 // 5.2.3 „Въздухът: състав и свойства“ — свещи под стъкленици, проба за кислород и въглероден диоксид.
-// Стъпки: опознай → свещ под стъкленица (опит) → кой газ е в съда (приложи) → предскажи и пренеси.
+// Стъпки: опознай → свещ под стъкленица (опит, „Припомни от 3. клас“) → кой газ е в съда (приложи)
+// → газирана вода на студено и на топло (разтворимост на газовете) → предскажи и пренеси.
 import { labelSprite, mat, addHitBox, THREE, esc } from '../kit.js';
 import { scaffold, explore, choice, nextBtn, finishBtn, labRoom, glass, view, bar, stepScore } from './labkit.js';
 
@@ -46,7 +47,7 @@ function jarModel(r, h) {
 }
 
 export function mount(container, { onComplete }) {
-  const STEPS = ['Опознай', 'Свещ под стъкленица', 'Кой газ е в съда?', 'Предскажи'];
+  const STEPS = ['Опознай', 'Свещ под стъкленица', 'Кой газ е в съда?', 'Газирана вода', 'Предскажи'];
   const ctx = scaffold(container, { steps: STEPS, stage: { camPos: [0, 3.6, 9.5], target: [0, 0.7, 0], maxDistance: 20 } });
   const { shell, stage, scene } = ctx;
   labRoom(scene, { w: 13, d: 4.6 });
@@ -262,6 +263,88 @@ export function mount(container, { onComplete }) {
     stage.tick((dt, t) => { plant.rotation.y = Math.sin(t * 0.6) * 0.08; });
   }
 
+  // ---------- Газирана вода на студено и на топло (стъпка 4) ----------
+  const soda = new THREE.Group();
+  soda.visible = false;
+  scene.add(soda);
+  const BOTTLES = [
+    { id: 'soda-cold', warm: false, x: 1.9, label: 'Студена вода', water: 0x7ec8ff },
+    { id: 'soda-warm', warm: true, x: 3.6, label: 'Топла вода', water: 0xff9a6b },
+  ];
+  const bottles = BOTTLES.map((B) => {
+    const g = new THREE.Group();
+    g.position.x = B.x;
+    const basin = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.55, 0.45, 28, 1, true), glass(0.3));
+    basin.position.y = 0.225;
+    const bath = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.54, 0.36, 28), new THREE.MeshStandardMaterial({ color: B.water, transparent: true, opacity: 0.5, depthWrite: false }));
+    bath.position.y = 0.19;
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.9, 24, 1, true), glass(0.35));
+    body.position.y = 0.47;
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.22, 0.28, 24, 1, true), glass(0.35));
+    neck.position.y = 1.06;
+    const liquid = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.78, 24), new THREE.MeshStandardMaterial({ color: 0xe3f6ea, transparent: true, opacity: 0.55, depthWrite: false }));
+    liquid.position.y = 0.43;
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.095, 0.08, 16), mat(0x2e7d32));
+    cap.position.y = 1.24;
+    const bubbles = [];
+    const bgeo = new THREE.SphereGeometry(0.025, 8, 6);
+    const bmat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
+    for (let i = 0; i < 40; i++) {
+      const b = new THREE.Mesh(bgeo, bmat);
+      b.visible = false;
+      g.add(b);
+      bubbles.push(b);
+    }
+    const tag = labelSprite(B.label, { size: 0.2 });
+    tag.position.set(0, -0.02, 0.9);
+    stage.steadyLabel(tag, 6);
+    g.add(basin, bath, body, neck, liquid, cap, tag);
+    g.userData.pickId = B.id;
+    addHitBox(g, 0.8);
+    soda.add(g);
+    return { B, g, cap, bubbles, open: false, acc: 0, count: 0, meter: null };
+  });
+  function resetSoda() {
+    for (const S of bottles) {
+      S.open = false; S.acc = 0; S.count = 0; S.cap.visible = true;
+      for (const b of S.bubbles) b.visible = false;
+      if (S.meter) { S.meter.remove(); S.meter = null; }
+    }
+  }
+  function openBottle(S) {
+    if (S.open) return;
+    S.open = true;
+    S.cap.visible = false;
+    S.meter = stage.bubble(new THREE.Vector3(S.B.x, 1.75, 0), '', { cls: 'tag', lift: 0 });
+  }
+  stage.tick((dt) => {
+    if (!soda.visible) return;
+    for (const S of bottles) {
+      if (!S.open) continue;
+      // В топла вода газът се разтваря по-малко, затова излиза по-бързо (скоростите са условни).
+      S.acc += dt * (S.B.warm ? 16 : 3);
+      while (S.acc >= 1) {
+        S.acc -= 1;
+        const b = S.bubbles.find((x) => !x.visible);
+        if (!b) break;
+        b.visible = true;
+        b.position.set((Math.random() - 0.5) * 0.28, 0.08, (Math.random() - 0.5) * 0.28);
+        b.userData.v = 0.45 + Math.random() * 0.35;
+      }
+      for (const b of S.bubbles) {
+        if (!b.visible) continue;
+        b.position.y += b.userData.v * dt;
+        if (b.position.y > 0.82) { b.visible = false; S.count++; }
+      }
+      if (S.meter) S.meter.set(`мехурчета: ${S.count}`);
+    }
+  });
+  function showGasTable(on) {
+    for (const J of gasJars) J.g.visible = on;
+    limeCup.visible = on;
+    splintTool.visible = on;
+  }
+
   function showSet(which) {
     airBox.visible = which === 'main' && shell.stageEl && ctx.stepNo === 0;
     for (const r of main) { r.g.visible = which === 'main'; resetRig(r); }
@@ -275,6 +358,9 @@ export function mount(container, { onComplete }) {
     ctx.stepNo = 0;
     shell.step(0);
     ctx.clearTip();
+    showGasTable(true);
+    soda.visible = false;
+    resetSoda();
     showSet('main');
     for (const J of gasJars) { J.state = null; J.water.material.opacity = 0; }
     view(ctx, [0, 0.6, 0], 6.4);
@@ -283,7 +369,7 @@ export function mount(container, { onComplete }) {
       intro: `<p>Въздухът е около нас, но не го виждаме. От какво е съставен и защо без него свещта угасва?</p>
         <p><b>Разгледай всичко</b> от менюто в ъгъла или с клик върху предмета.</p>${SAFE}`,
       items: [
-        { id: 'air', label: 'Въздух отблизо', icon: '🫧', note: 'Въздухът е <b>смес от газове</b>. От всеки 100 частици около 78 са азот (сини), около 21 са кислород (червени) и около 1 е друг газ (сиви). Във въздуха има и водни пари. <i>Частиците са увеличени, не са в мащаб.</i>', obj: () => airBox, dist: 3.4 },
+        { id: 'air', label: 'Въздух отблизо', icon: '🫧', note: 'Въздухът е <b>смес от газове</b>. От всеки 100 частици около 78 са азот (сини), около 21 са кислород (червени) и около 1 е друг газ (сиви). Във въздуха има и водни пари. Кислородът е нужен за <b>горенето</b> и за <b>дишането</b>. <i>Частиците са увеличени, не са в мащаб.</i>', obj: () => airBox, dist: 3.4 },
         { id: 'jar-m', label: 'Свещ', icon: '🕯', note: 'Свещта гори, докато около пламъка има достатъчно <b>кислород</b>. При горенето се получават въглероден диоксид и водни пари.', obj: () => main[1].g, dist: 3.6 },
         { id: 'jar-l', label: 'Стъкленица', icon: '🫙', note: 'Похлупената стъкленица не пуска нов въздух вътре. Свещта може да използва само въздуха, който е под нея.', obj: () => main[2].g, dist: 4, bubble: 1.9 },
         { id: 'splint', label: 'Тлееща трескичка', icon: '🪵', note: 'Трескичката е тънко парче дърво. Тлееща значи, че жари без пламък. Тя <b>пламва в кислород</b>, а във въглероден диоксид угасва.', obj: () => splintTool, dist: 3 },
@@ -300,7 +386,7 @@ export function mount(container, { onComplete }) {
     shell.step(1);
     showSet('main');
     view(ctx, [-2.65, 1.1, 0], 2.7, { halfH: 1.7 });
-    shell.task(`<p>Три еднакви свещи горят. Над тях има стъкленици с различен обем.</p>${SAFE}`);
+    shell.task(`<p class="small"><b>🔁 Припомни от 3. клас</b></p><p>Свещ, покрита с буркан, скоро угасва. Сега ще сравним <b>три стъкленици</b> с различен обем.</p>${SAFE}`);
     shell.score('');
     choice(ctx, {
       q: 'Ако ги похлупим, коя свещ ще гори най-дълго?',
@@ -329,7 +415,7 @@ export function mount(container, { onComplete }) {
         choice(ctx, {
           q: 'Защо свещта под голямата стъкленица гори най-дълго?',
           options: [
-            { t: 'Под нея има най-много въздух, а значи и най-много кислород.', ok: true, why: 'Вярно! Горенето изразходва кислорода. Когато той намалее твърде много, пламъкът угасва.' },
+            { t: 'Под нея има най-много въздух, а значи и най-много кислород.', ok: true, why: 'Вярно! Горенето изразходва кислорода. Когато той намалее твърде много, пламъкът угасва. Хората и животните също изразходват кислород, когато дишат.' },
             { t: 'Голямата стъкленица има по-дебело стъкло.', ok: false, why: 'Дебелината на стъклото не дава нищо на пламъка. Какво има вътре в стъкленицата?' },
             { t: 'Под нея има повече азот, а азотът поддържа горенето.', ok: false, why: 'Азотът не поддържа горенето. Кой газ от въздуха е нужен на пламъка?' },
             { t: 'В голямата стъкленица е по-студено.', ok: false, why: 'Температурата тук не е причината. Сравни колко въздух има под всяка стъкленица.' },
@@ -352,6 +438,9 @@ export function mount(container, { onComplete }) {
     ctx.stepNo = 2;
     shell.step(2);
     ctx.clearTip();
+    showGasTable(true);
+    soda.visible = false;
+    resetSoda();
     showSet('none');
     for (const J of gasJars) { J.state = null; J.water.material.opacity = 0; }
     view(ctx, [3.3, 0.8, 0], 3.1, { halfH: 1.4, elev: 0.32 });
@@ -411,7 +500,7 @@ export function mount(container, { onComplete }) {
           ctx.click = null;
           ctx.scores[1] = stepScore(mistakes, 3);
           shell.task('<p>Различихме безцветните газове само с опит. 👏</p>');
-          nextBtn(ctx, 'Напред →', step4);
+          nextBtn(ctx, 'Напред →', stepSoda);
           return;
         }
         mistakes++;
@@ -423,13 +512,92 @@ export function mount(container, { onComplete }) {
     }
   }
 
-  // ---------- 4. Предскажи ----------
-  function step4() {
+  // ---------- 4. Газирана вода ----------
+  function stepSoda() {
     ctx.stepNo = 3;
     shell.step(3);
     shell.score('');
     ctx.clearTip();
     ctx.click = null;
+    showSet('none');
+    showGasTable(false);
+    resetSoda();
+    soda.visible = true;
+    view(ctx, [2.75, 0.75, 0], 2.2, { halfH: 1.3, elev: 0.3 });
+    shell.task(`<p>В газираната вода е разтворен газ — <b>въглероден диоксид</b>.</p>
+      <p>Две еднакви затворени бутилки газирана вода стоят в купи. Едната купа е със <b>студена</b> вода, другата — с <b>топла</b>.</p>`);
+    let mistakes = 0;
+    choice(ctx, {
+      q: 'Ако отворим бутилките, от коя ще излизат повече мехурчета?',
+      options: [
+        { t: 'От бутилката в топлата вода', ok: true, why: 'Да проверим! Кликни всяка бутилка, за да я отвориш.' },
+        { t: 'От бутилката в студената вода', ok: false, why: 'Помисли: кога газираната напитка „изветрява“ по-бързо — студена или топла?' },
+        { t: 'От двете еднакво', ok: false, why: 'Бутилките са еднакви, но водата около тях е с различна температура.' },
+        { t: 'От никоя', ok: false, why: 'Когато отворим газирана вода, от нея винаги излизат мехурчета. Въпросът е откъде повече.' },
+      ],
+      hint: 'Студената газирана напитка запазва газа си по-дълго.',
+      onRight: (m) => { mistakes = m; openStep(); },
+    });
+    function openStep() {
+      shell.task('<p><b>Отвори двете бутилки:</b> кликни всяка от тях или натисни бутона. Наблюдавай мехурчетата.</p>');
+      const c = shell.setControls('<div class="row"><button class="btn open-all">Отвори двете</button></div>');
+      let done = false;
+      const check = () => {
+        if (done || !bottles.every((S) => S.open)) return;
+        done = true;
+        ctx.click = null;
+        shell.setControls('');
+        setTimeout(() => {
+          shell.msg('От бутилката в топлата вода излизат много повече мехурчета.', 'good');
+          why();
+        }, 4000);
+      };
+      c.querySelector('.open-all').addEventListener('click', () => { bottles.forEach(openBottle); check(); });
+      ctx.click = (id) => { const S = bottles.find((x) => x.B.id === id); if (S) { openBottle(S); check(); } };
+    }
+    function why() {
+      choice(ctx, {
+        q: 'Защо от топлата бутилка излиза повече газ?',
+        options: [
+          { t: 'В топла вода газовете се разтварят по-малко и излизат от нея.', ok: true, why: 'Вярно! Колкото по-топла е водата, толкова по-малко газ остава разтворен в нея.' },
+          { t: 'В топлата бутилка от началото има повече газ.', ok: false, why: 'Бутилките са еднакви. Различна е само температурата на водата около тях.' },
+          { t: 'Мехурчетата са водни пари, защото водата кипи.', ok: false, why: 'Водата в купата е топла, но не кипи. Мехурчетата са от въглеродния диоксид в бутилката.' },
+          { t: 'Мехурчетата идват от водата в купата.', ok: false, why: 'Купата е отвън. Мехурчетата се появяват вътре в бутилката.' },
+        ],
+        hint: 'Сравни: студената газирана напитка задържа газа си по-дълго.',
+        mistakes,
+        onRight: (m) => { mistakes = m; fish(); },
+      });
+    }
+    function fish() {
+      shell.task('<p>Пренеси към природата. Рибите дишат с <b>кислорода, разтворен във водата</b>.</p>');
+      choice(ctx, {
+        q: 'През горещото лято водата в едно езеро се затопля. Какво става с кислорода в нея?',
+        options: [
+          { t: 'Разтваря се по-малко и за рибите остава по-малко кислород.', ok: true, why: 'Вярно! Като въглеродния диоксид в газираната вода, и кислородът се разтваря по-малко в топла вода.' },
+          { t: 'Разтваря се повече, защото водата е топла.', ok: false, why: 'Видя обратното с газираната вода. Кога газът излизаше по-бързо?' },
+          { t: 'Не се променя, защото кислородът не се разтваря във вода.', ok: false, why: 'Във водата има разтворен кислород. Иначе рибите не биха могли да дишат.' },
+        ],
+        hint: 'Газовете се разтварят по-малко в топла вода.',
+        mistakes,
+        onRight: (m) => {
+          ctx.scores[2] = stepScore(m, 3);
+          nextBtn(ctx, 'Напред →', step4);
+        },
+      });
+    }
+  }
+
+  // ---------- 5. Предскажи ----------
+  function step4() {
+    ctx.stepNo = 4;
+    shell.step(4);
+    shell.score('');
+    ctx.clearTip();
+    ctx.click = null;
+    showGasTable(true);
+    soda.visible = false;
+    resetSoda();
     for (const J of gasJars) { J.state = null; J.water.material.opacity = 0; }
     showSet('pair');
     view(ctx, [-2.6, 1.1, 0], 2.0, { halfH: 1.6 });
@@ -467,7 +635,7 @@ export function mount(container, { onComplete }) {
         hint: 'Какво спира свещта под стъкленицата?',
         mistakes,
         onRight: (m) => {
-          ctx.scores[2] = stepScore(m, 3);
+          ctx.scores[3] = stepScore(m, 3);
           finishBtn(ctx, onComplete, restart);
         },
       });

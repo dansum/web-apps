@@ -16,7 +16,7 @@ const PARTS = [
   { id: 'bronchi', label: 'Бронхи', icon: '🌳', glow: 0x4fc3f7,
     note: 'Трахеята се разделя на два бронха — към левия и към десния бял дроб. В дробовете те се разклоняват като дърво на тънки бронхиоли.' },
   { id: 'lungs', label: 'Бели дробове', icon: '🫁', glow: 0xff8a80,
-    note: 'Два меки, гъбести органа в гръдния кош. Десният има три дяла, а левият — два, защото до него е сърцето.' },
+    note: 'Два меки, гъбести органа в гръдния кош. Десният има три дяла, а левият — два, защото до него е сърцето. Дял е голяма отделна част на белия дроб.' },
   { id: 'alveoli', label: 'Алвеоли', icon: '🫧', glow: 0xff4081,
     note: 'Белодробни мехурчета в края на бронхиолите — стотици милиони! Обвити са с капиляри — най-тънките кръвоносни съдове. Тук кислородът минава в кръвта, а въглеродният диоксид — от кръвта във въздуха.' },
   { id: 'diaphragm', label: 'Диафрагма', icon: '⛰️', glow: 0xff7043,
@@ -262,7 +262,7 @@ export function mount(container, { onComplete }) {
   for (const s of [1, -1]) {
     const main = curveOf([[0, 2.32, 0.05], [s * 0.18, 2.2, 0.04], [s * 0.36, 2.06, 0.03]]);
     bronchi.add(tube(main, 0.045, bM, 12, 10));
-    bronchi.add(hitTube(main, 0.11));
+    bronchi.add(hitTube(main, 0.16));
     const tr = growTree(s);
     for (const sg of tr.segs) bronchi.add(tube([sg.a, sg.b], sg.r, bM, 2, 6));
     trees[s] = { main, tips: tr.tips };
@@ -474,7 +474,7 @@ export function mount(container, { onComplete }) {
 
   const scores = [];
   let clickHandler = null;
-  stage.onClick((hit) => { if (clickHandler) clickHandler(hit ? hit.root.userData.pickId : null, hit); });
+  stage.onClick((hit, ev) => { if (clickHandler) clickHandler(hit ? hit.root.userData.pickId : null, hit, ev); });
   let menuHandler = null;
   const menu = cornerMenu(stage, {
     title: 'Части',
@@ -562,9 +562,12 @@ export function mount(container, { onComplete }) {
     shell.setControls('');
     const upd = () => shell.score(`Стъпки: ${k} от ${ORDER.length} · грешки: ${mistakes}`);
     upd();
-    clickHandler = (id) => {
+    clickHandler = (id0, hit, ev) => {
+      let id = id0;
       if (!id) return;
       const want = ORDER[k];
+      // Бронхите са вътре в прозрачните дробове: ако лъчът минава и през тях, броим клика за бронхите.
+      if (id === 'lungs' && want === 'bronchi' && ev && stage.pickAt(ev, 'pickId', [bronchi])) id = 'bronchi';
       if (id === want) {
         flash.set(id, { k: 0.8, color: 0x66ff99 });
         lit.add(id);
@@ -1031,7 +1034,7 @@ export function mount(container, { onComplete }) {
       <p><b>Предскажи: колко кислород ще минава в кръвта?</b></p>${choicesHTML('p', pr)}`);
     let pred = null;
     shell.msg('');
-    const c = shell.setControls('<button class="btn primary" disabled>🚬 Провери</button>');
+    const c = shell.setControls('<button class="btn primary" disabled>Провери</button>');
     const go = c.querySelector('button');
     container.querySelectorAll('.xp-task .choice').forEach((bt) => bt.addEventListener('click', () => {
       if (bt.disabled) return;
@@ -1050,7 +1053,7 @@ export function mount(container, { onComplete }) {
       const cc = shell.setControls(`<div class="breathing-airs">${Object.entries(AIRS).map(([k, a]) => `<button class="btn ${k === 'smoke' ? 'on' : ''}" data-a="${k}">${a.label}</button>`).join('')}</div>`);
       const tried = new Set(['smoke']);
       const notes = {
-        smoke: '<b>Тютюнев дим.</b> Катранът полепва по стените на алвеолите. През тях минава по-малко кислород. Никотинът вреди и на сърцето.',
+        smoke: '<b>Тютюнев дим.</b> В него има катран — тъмно лепкаво вещество. То полепва по стените на алвеолите. В дима има и угарен газ. Той пречи на кръвта да носи кислород. Затова кислородът в кръвта е по-малко.',
         smog: '<b>Мръсен въздух.</b> Ситният прах и саждите от колите и комините също стигат до алвеолите. Те дразнят белите дробове и пречат на дишането.',
         clean: '<b>Чист въздух.</b> Така дишат здравите бели дробове. Ако човек спре да пуши, дишането му постепенно се подобрява. Но част от вредата остава. Затова е най-добре изобщо да не се пуши.',
       };

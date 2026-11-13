@@ -123,6 +123,34 @@ export function mount(container, { onComplete }) {
     m.userData.p = new THREE.Vector3((Math.random() * 2 - 1) * 0.5, Math.random() * 0.15 + 0.03, (Math.random() * 2 - 1) * 0.35);
     bk.add(m); grains.push(m);
   }
+  // Лед и мехурчета за опита „температура на топене и кипене“ (стъпка 4).
+  const iceCubes = new THREE.Group();
+  const iceMat = new THREE.MeshStandardMaterial({ color: 0xe3f4ff, transparent: true, opacity: 0.85, roughness: 0.1 });
+  for (const [x, z, a] of [[-0.22, 0.05, 0.3], [0.12, -0.15, 1.1], [0.25, 0.18, 2.0]]) {
+    const c = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.18, 0.2), iceMat);
+    c.position.set(x, 0.1, z); c.rotation.y = a; iceCubes.add(c);
+  }
+  iceCubes.visible = false; bk.add(iceCubes);
+  const bubbles = [];
+  const bubMat = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.7 });
+  for (let i = 0; i < 16; i++) {
+    const b = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), bubMat);
+    b.userData = { k: i / 16, x: (Math.random() * 2 - 1) * 0.4, z: (Math.random() * 2 - 1) * 0.3 };
+    b.visible = false; bk.add(b); bubbles.push(b);
+  }
+  // В опита в чашата отначало има само лед; водата се появява, докато ледът се топи.
+  const MB = { on: false, ice: 0, boil: false };
+  const MB_LEVEL = BK.h * 0.32;
+  let mbTag = null;
+  function setMB(on) {
+    MB.on = on; MB.boil = false; MB.ice = on ? 1 : 0;
+    for (const g of grains) g.visible = !on;
+    if (!on) { bkWater.scale.y = 1; bkWater.position.y = BK.h * 0.425; }
+  }
+  function resetMB() {
+    setMB(false);
+    if (mbTag) { mbTag.remove(); mbTag = null; }
+  }
   const lamp = new THREE.Group();
   {
     const body = new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 10), new THREE.MeshStandardMaterial({ color: 0xcfe9ff, transparent: true, opacity: 0.55 }));
@@ -358,13 +386,26 @@ export function mount(container, { onComplete }) {
       v.material.opacity = 0.3 * (1 - k);
     }
     cloth.userData.c.rotation.y = Math.sin(t * 1.3) * 0.15;
+    // лед и мехурчета в чашата
+    iceCubes.visible = MB.on && MB.ice > 0.03;
+    for (const c of iceCubes.children) c.scale.setScalar(Math.max(0.05, MB.ice));
+    if (MB.on) {
+      const lv = Math.max(0.002, (1 - MB.ice) * MB_LEVEL);
+      bkWater.scale.y = lv / (BK.h * 0.85); bkWater.position.y = lv / 2;
+    }
+    for (const b of bubbles) {
+      b.visible = MB.boil;
+      if (!MB.boil) continue;
+      const k = (b.userData.k + t * 0.7) % 1;
+      b.position.set(b.userData.x + Math.sin(t * 5 + b.userData.k * 9) * 0.02, 0.04 + k * (MB_LEVEL - 0.06), b.userData.z);
+    }
   });
 
   // ---------- 1. Опознай ----------
   function step1() {
     shell.step(0);
     ctx.clearTip(); clearRoomTags();
-    S.melt = 0; resetRods(); flame.visible = false; placeLamp(-1); RS.on = false; placeRad('low');
+    S.melt = 0; resetRods(); resetMB(); flame.visible = false; placeLamp(-1); RS.on = false; placeRad('low');
     spots.low.visible = spots.high.visible = false;
     view(ctx, [-0.2, 0.9, 0], 6.8, { halfH: 1.8 });
     explore(ctx, {
@@ -530,7 +571,7 @@ export function mount(container, { onComplete }) {
     shell.step(3);
     ctx.clearTip(); clearRoomTags(); RS.on = false;
     view(ctx, [-1.3, 1.85, -1.9], 3.2, { halfH: 0.9, elev: 0.25 });
-    shell.task('<p>Около нас веществата постоянно сменят състоянието си. <b>Как се казва всеки преход?</b></p><p class="small">Топене: твърдо → течно. Втвърдяване: течно → твърдо. Изпаряване: течно → газ. Кондензация: газ → течно. В 4. клас я нарекохме втечняване.</p><p class="small"><b>Температура на топене</b> е температурата, при която веществото се топи. За леда тя е 0 °C. <b>Температура на кипене</b> е температурата, при която течността кипи. За чистата вода тя е 100 °C при нормално атмосферно налягане. Това е обичайното налягане на въздуха близо до морското равнище.</p>');
+    shell.task('<p class="small"><b>🔁 Припомни от 4. клас</b></p><p>Около нас веществата постоянно сменят състоянието си. <b>Как се казва всеки преход?</b></p><p class="small">Топене: твърдо → течно. Втвърдяване: течно → твърдо. Изпаряване: течно → газ. Кондензация: газ → течно. В 4. клас я нарекохме втечняване.</p>');
     const show = (o, txt) => () => ctx.say(o, txt, 'tag', 0.55);
     sortTask(ctx, {
       bins: ['Топене', 'Втвърдяване', 'Изпаряване', 'Кондензация'],
@@ -543,27 +584,90 @@ export function mount(container, { onComplete }) {
         { t: 'Сутрин по тревата има роса.', bin: 3, why: 'Кондензация: през нощта водната пара от въздуха се охлажда и става на капки.' },
       ],
       hint: 'Попитай се: от какво състояние в какво преминава веществото?',
-      onDone: (m) => {
+      onDone: (m) => { ctx.clearTip(); meltBoil(m); },
+    });
+    // Ново в 5. клас: температура на топене и на кипене — проверка с термометъра в чашата.
+    function meltBoil(m0) {
+      flame.visible = false; placeLamp(0);
+      shell.msg('');
+      view(ctx, [BK.x, 1.0, 0], 2.4, { halfH: 1.3, elev: 0.55 });
+      setMB(true);
+      let T = -10;
+      if (mbTag) mbTag.remove();
+      mbTag = stage.bubble(bkG, '🌡 −10 °C', { cls: 'tag', lift: 1.75 });
+      const log = [];
+      const draw = () => shell.task(`<p><b>Ново:</b> <b>температура на топене</b> е температурата, при която веществото се топи. <b>Температура на кипене</b> е температурата, при която течността кипи.</p>
+        <p>В чашата има само лед от фризера (−10 °C). Ще го нагряваме и ще разбъркваме. Гледай термометъра.</p>${SAFE}
+        ${log.length ? `<ul class="small">${log.map((x) => `<li>${x}</li>`).join('')}</ul>` : ''}`);
+      draw();
+      const c = shell.setControls('<div class="row"><button class="btn primary heat">🔥 Запали лампата</button></div>');
+      c.querySelector('.heat').addEventListener('click', () => {
+        c.querySelector('.heat').disabled = true;
+        flame.visible = true;
+        let phase = 'cold'; let hold = 0;
+        const stop = stage.tick((dt) => {
+          if (phase === 'cold') { T = Math.min(0, T + dt * 6); if (T >= 0) { phase = 'melt'; log.push('0 °C: ледът се топи. Термометърът стои на 0 °C.'); draw(); } }
+          else if (phase === 'melt') { MB.ice = Math.max(0, MB.ice - dt * 0.22); if (MB.ice <= 0) { phase = 'warm'; log.push('Целият лед се стопи. Температурата пак расте.'); draw(); } }
+          else if (phase === 'warm') { T = Math.min(100, T + dt * 22); if (T >= 100) { phase = 'boil'; MB.boil = true; log.push('100 °C: водата кипи. Термометърът стои на 100 °C.'); draw(); } }
+          else if (phase === 'boil') { hold += dt; if (hold > 3.5) { phase = 'done'; stop(); flame.visible = false; MB.boil = false; ask(); } }
+          if (mbTag) mbTag.set(`🌡 ${T < 0 ? '−' : ''}${Math.abs(Math.round(T))} °C${phase === 'melt' ? ' · топене' : phase === 'boil' ? ' · кипене' : ''}`);
+        });
+      }, { once: true });
+      function ask() {
+        choice(ctx, {
+          q: 'Какво показваше термометърът, докато ледът се топеше?',
+          options: [
+            { t: 'Стоеше на 0 °C, докато имаше лед.', ok: true, why: 'Вярно! Температурата на топене на леда е 0 °C.' },
+            { t: 'Растеше през цялото време.', ok: false, why: 'Виж записките: имаше ли време, когато числото стоеше на едно място?' },
+            { t: 'Стоеше на −10 °C.', ok: false, why: '−10 °C беше в началото, преди ледът да започне да се топи.' },
+          ],
+          hint: 'Прочети първия ред в записките.',
+          mistakes: m0,
+          onRight: (m1) => nextBtn(ctx, 'Още един въпрос →', () => choice(ctx, {
+            q: 'Каква е температурата на кипене на чистата вода?',
+            options: [
+              { t: '100 °C', ok: true, why: 'Вярно! Докато водата кипи, термометърът стои на 100 °C. На високо в планината водата кипи при малко по-ниска температура.' },
+              { t: '0 °C', ok: false, why: 'При 0 °C ледът се топи. А при колко градуса водата кипеше?' },
+              { t: 'Расте, колкото по-дълго кипи водата.', ok: false, why: 'Виж записките: менеше ли се числото, докато водата кипеше?' },
+            ],
+            hint: 'Прочети последния ред в записките.',
+            mistakes: m1,
+            onRight: (m2) => nextBtn(ctx, 'Напред →', () => { resetMB(); windows(m2); }),
+          })),
+        });
+      }
+    }
+    function windows(m) {
         ctx.clearTip();
+        shell.msg('');
         view(ctx, [-0.2, 0.9, 0], 6.8, { halfH: 1.8 });
         shell.task('<p>Пренеси към живота.</p>');
         choice(ctx, {
           q: 'Защо прозорците с два слоя стъкло пазят стаята топла през зимата?',
           options: [
-            { t: 'Между стъклата има въздух, а въздухът е лош проводник на топлина.', ok: true, why: 'Вярно! Затова и вълнените дрехи топлят: между нишките има въздух.' },
+            { t: 'Между стъклата има въздух, а въздухът е лош проводник на топлина.', ok: true, why: 'Вярно! Затвореният въздух между стъклата задържа топлината. Затова и вълнените дрехи топлят: между нишките има въздух.' },
             { t: 'Стъклото е добър проводник на топлина.', ok: false, why: 'Ако провежда добре, топлината ще излиза навън по-бързо, а не по-бавно.' },
             { t: 'Двете стъкла правят конвекция навън.', ok: false, why: 'Помисли какво има между стъклата и как то провежда топлина.' },
           ],
           hint: 'Спомни си дървената пръчка: лошите проводници задържат топлината.',
           mistakes: m,
-          onRight: (m2) => {
-            ctx.scores[2] = stepScore(m2, 3);
-            ctx.say(shelfAt, 'Топлинните явления са навсякъде: изпаряването от моретата дава облаци и дъжд, конвекцията затопля стаите, а лошите проводници ни пазят от студ и от изгаряне.', 'wide', 0.4);
-            finishBtn(ctx, onComplete, restart);
-          },
+          onRight: (m2) => nextBtn(ctx, 'Още един въпрос →', () => choice(ctx, {
+            q: 'Тенджера с вода е на котлона. Как се затопля водата горе?',
+            options: [
+              { t: 'Топлата вода от дъното се издига, а по-студената слиза: конвекция.', ok: true, why: 'Вярно! Като стърготините в чашата: водата се движи в кръг и пренася топлината.' },
+              { t: 'Водата горе не се затопля, докато не заври.', ok: false, why: 'Спомни си стърготините в чашата: стояха ли на дъното, или водата се движеше?' },
+              { t: 'Студената вода се издига нагоре към капака.', ok: false, why: 'Коя вода е по-лека при същия обем: топлата или студената?' },
+            ],
+            hint: 'Топлата вода е по-рядка и се издига.',
+            mistakes: m2,
+            onRight: (m3) => {
+              ctx.scores[2] = stepScore(m3, 3);
+              ctx.say(shelfAt, 'Топлинните явления са навсякъде: изпаряването от моретата дава облаци и дъжд, конвекцията затопля стаите, а лошите проводници ни пазят от студ и от изгаряне.', 'wide', 0.4);
+              finishBtn(ctx, onComplete, restart);
+            },
+          })),
         });
-      },
-    });
+    }
   }
 
   function restart() {

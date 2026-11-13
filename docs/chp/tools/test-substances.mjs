@@ -23,6 +23,6 @@ await t.btn('.tmag'); await t.btn('.tcur'); await t.btn('.tbend'); await wait(22
 await t.choose(0); await t.next();
 await wait(800); await t.shot('4b');
 await t.choose(0); await t.next();
-await t.choose(0); await t.next();
+await wait(500); await sortAll(t); await t.next();
 await t.shot('5');
 await t.done((0.75 + 1 + 1) / 3);

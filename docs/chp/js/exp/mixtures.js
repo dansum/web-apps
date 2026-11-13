@@ -2,6 +2,7 @@
 // Стъпки: опознай уредите и правилата → раздели смесите → кой метод? → трудна смес и смесите около нас.
 import { createStage, labelSprite, mat, addHitBox, cornerMenu, THREE, esc, shuffle } from '../kit.js';
 import { createShell, stepScore } from './shell.js';
+import { fillTask } from './labtasks.js';
 
 const V3 = THREE.Vector3;
 const ease = (k) => (k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2);
@@ -1260,7 +1261,7 @@ export function mount(container, { onComplete }) {
     const ALL = ['goggles', 'lamp', ...TOOL_IDS];
     shell.task(`<p>Добре дошъл в химическата лаборатория! Тук ще разделяме смеси.</p>
       <p><b>Разгледай всички уреди</b> — кликни върху тях или ги избери от менюто в ъгъла. Започни с <b>предпазните очила</b>.</p>`);
-    const ctrl = shell.setControls('<div class="row"><button class="btn all">🔭 Цялата маса</button></div>');
+    const ctrl = shell.setControls('<div class="row"><button class="btn all">🔭 Цялата сцена</button></div>');
     ctrl.querySelector('.all').addEventListener('click', () => overview());
     const upd = () => shell.score(`Разгледани: ${seen.size} от ${ALL.length}`);
     upd();
@@ -1397,7 +1398,7 @@ export function mount(container, { onComplete }) {
         ${proto.map((r) => `<tr class="${r.method ? 'done' : ''}"><td>${esc(r.name)}</td><td>${esc(r.method || '—')}</td><td>${esc(r.result || '')}</td></tr>`).join('')}</table>`;
     };
     const intro = protocol
-      ? '<p><b>Провлачи всяко бурканче</b> до уреда, с който ще разделиш сместа. Гледай какво става!</p><p class="small">Кликни бурканче, за да видиш каква е сместа.</p>'
+      ? '<p><b>Провлачи всяко бурканче</b> до уреда, с който ще разделиш сместа. Гледай какво става! След всеки опит <b>попълни реда в протокола</b>.</p><p class="small">Кликни бурканче, за да видиш каква е сместа.</p>'
       : '<p>Ето нови смеси. <b>Провлачи всяка до уреда</b> с подходящия метод.</p><p class="small">Кликни бурканче, за да видиш каква е сместа.</p>';
     const drawTask = () => shell.task(intro + drawProto());
     drawTask();
@@ -1457,7 +1458,23 @@ export function mount(container, { onComplete }) {
         sayTool(id, `✔ <b>${esc(m.method || TOOLS[id].method)}</b><br>${esc(m.result)}`, 'good');
         shell.msg('Вярно!', 'good');
         if (proto) {
+          // Детето само попълва реда: метода и какво се получи.
           const row = proto.find((r) => r.id === m.id);
+          const methods = Object.values(TOOLS).map((T) => T.method);
+          const others = shuffle(list.filter((x) => x !== m).map((x) => x.proto)).slice(0, 2);
+          const results = shuffle([m.proto, ...others]);
+          const fx = Object.assign(container.__xp || (container.__xp = {}), { shell });
+          mistakes = await new Promise((resolve) => fillTask(fx, {
+            lead: `📋 <b>Запиши в протокола</b> реда за „${esc(m.name)}“.`,
+            rows: [
+              { label: 'Метод', options: methods, answer: methods.indexOf(m.method || TOOLS[id].method), why: 'Спомни си при кой уред остави бурканчето.' },
+              { label: 'Какво се получи', options: results, answer: results.indexOf(m.proto), why: 'Виж какво остана в уреда и какво мина през него.' },
+            ],
+            hint: 'Прочети пак балончето до уреда.',
+            mistakes,
+            onDone: resolve,
+          }));
+          shell.setControls('');
           row.method = m.method || TOOLS[id].method;
           row.result = m.proto;
           drawTask();

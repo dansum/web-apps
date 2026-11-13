@@ -104,7 +104,7 @@ function monSource(course, item) {
   return `<details class="monbox"><summary>📘 По учебната програма на МОН: <b>${esc(course.source.pdf)}</b>, стр. ${esc(pages)}</summary>
     ${item.mon.topic ? `<p><b>Тема:</b> ${esc(item.mon.topic)}</p>` : ''}
     ${item.mon.competences?.length ? `<p><b>Очаквани резултати:</b></p><ul>${item.mon.competences.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}
-    <p class="small">${esc(course.source.title)}. Текстът е извлечен автоматично от PDF файла и предстои дословна сверка.</p></details>`;
+    <p class="small">${esc(course.source.title)}.${course.source.verified ? '' : ' Текстът е извлечен автоматично от PDF файла и предстои дословна сверка.'}</p></details>`;
 }
 function crumbs(parts) {
   return `<nav class="crumbs">${parts.map(([href, t]) => href ? `<a href="${href}">${esc(t)}</a>` : `<span>${esc(t)}</span>`).join(' › ')}</nav>`;
@@ -523,7 +523,7 @@ function drawStats(course) {
   el.hidden = false;
 }
 store.onChange(() => {
-  const h = location.hash.replace(/^#\/?/, '').split('/');
+  const h = location.hash.replace(/^#\/?/, '').split('?')[0].split('/');
   drawStats(courseOfRoute(h[0], h[1]));
 });
 
@@ -532,7 +532,8 @@ function route() {
   voice.stop();
   for (const fn of cleanup) { try { fn(); } catch (e) { console.warn(e); } }
   cleanup = [];
-  const h = location.hash.replace(/^#\/?/, '');
+  // „?…“ в края на адреса е за настройки на преживяването (напр. #/s/5.2.4?v=b — вариант Б на опита).
+  const h = location.hash.replace(/^#\/?/, '').split('?')[0];
   const [kind, arg] = h.split('/');
   if (kind === 'demo') { location.replace('#/'); demo.start(route); return; }
   window.scrollTo(0, 0);
