@@ -1,4 +1,4 @@
-/* БУМ — общ код за всички страници. */
+/* БУМ – общ код за всички страници. */
 (function () {
   'use strict';
   var Art = window.BUMArt;
@@ -12,7 +12,7 @@
   }
   applyTheme(getTheme());
 
-  /* Страницата за дарения на „Образование без раници“ — сменя се само тук. */
+  /* Страницата за дарения на „Образование без раници“ – сменя се само тук. */
   var DONATE_URL = 'https://obr.education/stani-daritel/';
 
   /* ---------- данни ---------- */
@@ -61,7 +61,7 @@
     if (p.bornLabel) return p.bornLabel;
     if (p.bornApprox && !p.died) return p.sex === 'f' ? 'съвременничка' : 'съвременник';
     var b = p.born ? (p.bornApprox ? 'ок. ' : '') + p.born : '?';
-    if (p.died) return b + ' – ' + (p.diedApprox ? 'ок. ' : '') + p.died;
+    if (p.died) return b + (p.bornApprox || p.diedApprox ? ' – ' : '–') + (p.diedApprox ? 'ок. ' : '') + p.died;
     return 'р. ' + b;
   }
   function initials(n) { return n.split(/\s+/).map(function (w) { return w.charAt(0); }).slice(0, 2).join(''); }
@@ -140,12 +140,37 @@
     img.src = c.s; node.appendChild(img);
   }
 
+  /* ---------- автор и лиценз на снимката (от Уикимедия) ---------- */
+  function fileUrl(c) { return 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(c.f.replace(/ /g, '_')); }
+  function creditHtml(c) {
+    var nw = '<i class="sr"> (отваря се в нов раздел)</i>';
+    if (!c.f) return 'Снимка: <a href="https://' + c.l + '.wikipedia.org/wiki/' + encodeURIComponent(c.a.replace(/ /g, '_')) + '" target="_blank" rel="noopener">Уикипедия' + nw + '</a>.';
+    var parts = ['Снимка: ' + (c.au ? esc(c.au) : 'автор – виж файла')];
+    if (c.lic) parts.push(c.licu ? '<a href="' + esc(c.licu) + '" target="_blank" rel="noopener">' + esc(c.lic) + nw + '</a>' : esc(c.lic));
+    parts.push('<a href="' + fileUrl(c) + '" target="_blank" rel="noopener">Уикимедия Общомедия' + nw + '</a>');
+    return parts.join(' · ') + '.';
+  }
+  /* Взима автора и лиценза на файла. Пази ги в кеша заедно със снимката. */
+  function loadMeta(id, done) {
+    var c = cache[id]; if (!c || !c.f || c.m || c.mp) return; c.mp = 1;
+    var host = c.l === 'commons' ? 'commons.wikimedia.org' : c.l + '.wikipedia.org';
+    fetch('https://' + host + '/w/api.php?action=query&format=json&origin=*&prop=imageinfo&iiprop=extmetadata&iiextmetadatafilter=Artist%7CLicenseShortName%7CLicenseUrl&titles=' + encodeURIComponent('File:' + c.f))
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (j) {
+        var pg = j.query && j.query.pages, k = pg && Object.keys(pg)[0], ii = k && pg[k].imageinfo && pg[k].imageinfo[0], md = (ii && ii.extmetadata) || {};
+        var txt = function (h) { var d = document.createElement('div'); d.innerHTML = h || ''; return (d.textContent || '').replace(/\s+/g, ' ').trim(); };
+        c.au = txt(md.Artist && md.Artist.value).slice(0, 120); c.lic = txt(md.LicenseShortName && md.LicenseShortName.value); c.licu = (md.LicenseUrl && md.LicenseUrl.value) || '';
+        if (c.licu && !/^https?:\/\//.test(c.licu)) c.licu = 'https:' + c.licu;
+        c.m = 1; delete c.mp; saveCache(); if (done) done();
+      }).catch(function () { delete c.mp; });
+  }
+
   /* ---------- шапка и долна част ---------- */
   function chrome(active) {
     var top = document.getElementById('top');
     if (top) {
       top.className = 'top';
-      top.innerHTML = '<a class="skip" href="#main-content">Към съдържанието</a><div class="wrap"><a class="brand" href="index.html" aria-label="БУМ — начало">' + logo() +
+      top.innerHTML = '<a class="skip" href="#main-content">Към съдържанието</a><div class="wrap"><a class="brand" href="index.html" aria-label="БУМ – начало">' + logo() +
         '<span><b>БУМ</b><small>Български успехи<br>с математика</small></span></a>' +
         '<nav class="nav" aria-label="Секции"><a href="deset.html"' + (active === 'ten' ? ' aria-current="page"' : '') + '>10 БУМа</a>' +
         '<a href="sto.html"' + (active === 'sto' ? ' aria-current="page"' : '') + '>СтоБУМ</a>' +
@@ -162,11 +187,11 @@
     var f = document.getElementById('foot');
     if (f) {
       f.className = 'foot';
-      f.innerHTML = '<div class="obr-band"><div class="wrap"><p>БУМ е проект на „Образование без раници“ — сдружението, което превежда Кан Академия на български и помага на учители и ученици да учат умно с технологии.</p>' +
-        '<a class="obr-link" href="' + DONATE_URL + '" target="_blank" rel="noopener" aria-label="Образование без раници — дари">' +
+      f.innerHTML = '<div class="obr-band"><div class="wrap"><p>БУМ е проект на „Образование без раници“ – сдружението, което превежда Кан Академия на български и помага на учители и ученици да учат умно с технологии.</p>' +
+        '<a class="obr-link" href="' + DONATE_URL + '" target="_blank" rel="noopener" aria-label="Образование без раници – дари">' +
         '<img class="light" src="media/obr-logo.svg" alt="Образование без раници" width="189" height="44"><img class="dark" src="media/obr-logo-light.svg" alt="" width="189" height="44"><span class="give">Дари ♥</span></a></div></div>' +
-        '<div class="wrap meta"><span><b>БУМ</b> — Български успехи с математика · истории за хора, които променят света с числа</span>' +
-        '<span><a href="za-proekta.html">За проекта</a> · <a href="admin.html">Админ</a> · Снимки: Уикипедия / Уикимедия Общомедия, свободни лицензи · <a href="../">Още проекти</a> · <button type="button" class="ck" onclick="window.d4Consent&&d4Consent.reset()">Бисквитки</button></span></div>';
+        '<div class="wrap meta"><span><b>БУМ</b> – Български успехи с математика · истории за хора, които променят света с числа</span>' +
+        '<span><a href="za-proekta.html">За проекта</a> · Снимки: Уикимедия Общомедия, свободни лицензи – авторът и лицензът са под снимката във всяка история · <a href="../">Още проекти</a> · <button type="button" class="ck" onclick="window.d4Consent&&d4Consent.reset()">Бисквитки</button></span></div>';
     }
   }
   /* Блок с 1–2 урока от Кан Академия (data/ka.js). */
@@ -236,9 +261,9 @@
     function faces(list) { return list.map(function (p) { return '<span data-pid="' + (p.avatar ? '' : p.id) + '">' + (p.avatar ? Art.avatar(p.avatar) : Art.svg(p)) + '</span>'; }).join(''); }
     var secs = document.getElementById('sections');
     secs.innerHTML =
-      '<a class="sec" href="deset.html"><span class="big" aria-hidden="true">10</span><h3>10 БУМа</h3><p>Десетте най-известни и най-важни приноса на българи чрез математика и науки — от първия електронен компютър до кристалите в лазерите.</p><div class="faces">' + faces(TEN.slice(0, 6)) + '</div></a>' +
-      '<a class="sec" href="sto.html"><span class="big" aria-hidden="true">100</span><h3>СтоБУМ</h3><p>Сто истории на успеха — не всички прочути, но всички истински. Жени и мъже от различни векове и области.</p><div class="faces">' + faces(withPhotos(STO, 6)) + '</div></a>' +
-      '<a class="sec" href="kilo.html"><span class="big" aria-hidden="true">1000</span><h3>КилоБУМ</h3><p>Истории, които събираме чрез интервюта — с хора около нас, които правят нещо важно с математика. Засега: примерни статии.</p><div class="faces">' + faces(KILO) + '</div></a>';
+      '<a class="sec" href="deset.html"><span class="big" aria-hidden="true">10</span><h3>10 БУМа</h3><p>Десетте най-известни приноса на българи в математиката и науките – от компютъра на Атанасов до кристалите в лазерите.</p><div class="faces">' + faces(TEN.slice(0, 6)) + '</div></a>' +
+      '<a class="sec" href="sto.html"><span class="big" aria-hidden="true">100</span><h3>СтоБУМ</h3><p>Сто истории на успеха – не всички прочути, но всички истински. Жени и мъже от различни векове и области.</p><div class="faces">' + faces(withPhotos(STO, 6)) + '</div></a>' +
+      '<a class="sec" href="kilo.html"><span class="big" aria-hidden="true">1000</span><h3>КилоБУМ</h3><p>Истории, които събираме чрез интервюта – с хора около нас, които правят нещо важно с математика. Засега: примерни статии.</p><div class="faces">' + faces(KILO) + '</div></a>';
     secs.querySelectorAll('[data-pid=""]').forEach(function (n) { n.removeAttribute('data-pid'); });
     loadPhotos(secs);
 
@@ -331,7 +356,7 @@
     chrome(p ? p.sec : '');
     var main = document.getElementById('main');
     if (!p) { main.innerHTML = '<div class="wrap page-head"><h1>Няма такава история</h1><p><a href="index.html">Към началото</a></p></div>'; return; }
-    document.title = p.name + ' — ' + p.title + ' · БУМ';
+    document.title = p.name + ' – ' + p.title + ' · БУМ';
     var md = document.querySelector('meta[name=description]'); if (md) md.setAttribute('content', p.lede);
     var S = SECTIONS[p.sec];
 
@@ -344,9 +369,10 @@
     var head = '<div class="head">' + (p.fictional ? '<span class="fict">Измислен' + (p.sex === 'f' ? 'а' : '') + ' човек · примерна статия</span>' : '') +
       '<div class="tags">' + p.fields.map(function (k) { return '<span class="field-tag f-' + k + '">' + FIELDS[k] + '</span>'; }).join(' ') + '</div>' + '<div class="name">' + esc(p.name) + ' <span>' + esc(years(p)) + (p.age ? ' · ' + p.age + ' г.' : '') + (p.place ? ' · ' + esc(p.place) : '') + '</span></div>' +
       '<h1>' + esc(p.title) + '</h1><p class="lede">' + esc(p.lede) + '</p>' +
-      (p.tags && p.tags.length ? '<div class="tags">' + p.tags.map(function (t) { return '<span>' + esc(t) + '</span>'; }).join('') + '</div>' : '') + '</div>';
+      (p.tags && p.tags.length ? '<div class="tags">' + p.tags.map(function (t) { return '<span>' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
+      '<button class="btn ghost share" type="button" id="share">↗ Сподели</button><span class="share-msg" id="share-msg" aria-live="polite"></span></div>';
     var body = '';
-    if (p.fictional) body += '<div class="notice" style="margin-top:28px"><span class="fict">!</span><p><b>Това е примерна статия.</b> ' + esc(p.name) + ' не съществува — човекът, историята, интервюто и видеото са измислени, за да покажат как ще изглеждат истинските истории в КилоБУМ, които ще събираме чрез интервюта. Линковете водят към истински статии по темата.</p></div>';
+    if (p.fictional) body += '<div class="notice" style="margin-top:28px"><span class="fict">!</span><p><b>Това е примерна статия.</b> ' + esc(p.name) + ' не съществува – човекът, историята, интервюто и видеото са измислени, за да покажат как ще изглеждат истинските истории в КилоБУМ, които ще събираме чрез интервюта. Линковете водят към истински статии по темата.</p></div>';
     body += '<div class="body">' + p.story.map(function (s) { return '<p>' + esc(s) + '</p>'; }).join('') + '</div>';
     if (p.num) body += '<div class="bignum"><b>' + esc(p.num.n) + '</b><span><small>БУМ число</small>' + esc(p.num.t) + '</span></div>';
     if (p.sec === 'kilo') {
@@ -365,6 +391,13 @@
     body += '<div class="pager"><a href="' + url(prev) + '"><small>← Предишна</small><b>' + esc(prev.name) + '</b></a><a class="next" href="' + url(next) + '"><small>Следваща →</small><b>' + esc(next.name) + '</b></a></div>';
     ar.innerHTML = head + body;
     main.appendChild(ar);
+    /* Споделяне: страницата i/<id>.html носи заглавието и картинката на историята за социалните мрежи. */
+    document.getElementById('share').onclick = function () {
+      var u = new URL('i/' + p.id + '.html', location.href).href, msg = document.getElementById('share-msg');
+      if (navigator.share) { navigator.share({ title: p.name + ' – ' + p.title, url: u }).catch(function () {}); return; }
+      var done = function () { msg.textContent = 'Връзката е копирана.'; };
+      if (navigator.clipboard) navigator.clipboard.writeText(u).then(done, function () { msg.textContent = u; }); else msg.textContent = u;
+    };
     var slot = document.getElementById('ka-slot'); slot.parentNode.replaceChild(kaBlock(p.id), slot);
 
     var more = el('section', 'more wrap', '<h2>Още БУМ истории</h2>'), ul = el('div', 'strip');
@@ -372,10 +405,11 @@
     more.appendChild(ul); main.appendChild(more);
 
     function credit() {
-      var c = cache[p.id], n = document.getElementById('credit');
-      if (c && c.s && c.l === 'commons' && n) n.innerHTML = 'Снимка: <a href="https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(c.f.replace(/ /g, '_')) + '" target="_blank" rel="noopener">Уикимедия Общомедия / ' + esc(c.f) + '<i class="sr"> (отваря се в нов раздел)</i></a>. Графиката е рисувана за БУМ.';
-      else if (c && c.s && n) n.innerHTML = 'Снимка: <a href="https://' + c.l + '.wikipedia.org/wiki/' + encodeURIComponent((c.f ? 'File:' + c.f : c.a).replace(/ /g, '_')) + '" target="_blank" rel="noopener">Уикипедия' + (c.f ? ' / ' + esc(c.f) : '') + '</a> (свободен лиценз). Графиката е рисувана за БУМ.';
-      else if (n && p.avatar) n.textContent = 'Портретът е рисунка, а не снимка — човекът е измислен.';
+      var n = document.getElementById('credit'); if (!n) return;
+      if (p.avatar) { n.textContent = 'Портретът е рисунка, а не снимка – човекът е измислен.'; return; }
+      var c = cache[p.id]; if (!c || !c.s) { n.textContent = ''; return; }
+      n.innerHTML = creditHtml(c) + ' Графиката е рисувана за БУМ.';
+      if (!c.m) loadMeta(p.id, credit);
     }
     document.addEventListener('bum-photos', credit);
     loadPhotos(document); credit();
@@ -391,7 +425,7 @@
       lives: { t: 'Живее (живял/а) основно', get: function (p) { return [p.lives]; }, label: function (v) { return LIVES[v]; }, order: 'fixed', fixed: ['bg', 'both', 'abroad'] },
       city: { t: 'Град на раждане', get: function (p) { return [p.city]; }, label: function (v) { return v; }, order: 'count' },
       sec: { t: 'Раздел', get: function (p) { return [p.sec]; }, label: function (v) { return SECTIONS[v].name; }, order: 'fixed', fixed: ['ten', 'sto', 'kilo'] },
-      none: { t: '— (само общо)', get: function () { return ['all']; }, label: function () { return 'Брой'; }, order: 'fixed', fixed: ['all'] }
+      none: { t: '– (само общо)', get: function () { return ['all']; }, label: function () { return 'Брой'; }, order: 'fixed', fixed: ['all'] }
     };
     var rowSel = document.getElementById('rows'), colSel = document.getElementById('cols');
     Object.keys(DIMS).forEach(function (k) {
@@ -438,7 +472,7 @@
         h += '<tr><th scope="row">' + esc(R.label(r)) + '</th>';
         cols.forEach(function (c) {
           var L = cells[r + '\u0001' + c] || [], n = L.length, pc = max ? Math.round(n / max * 70) : 0;
-          h += n ? '<td><button type="button" data-r="' + esc(r) + '" data-c="' + esc(c) + '" style="--h:' + pc + '%">' + n + '</button></td>' : '<td class="z">·</td>';
+          h += n ? '<td><button type="button" data-r="' + esc(r) + '" data-c="' + esc(c) + '" style="--h:' + pc + '%">' + n + '</button></td>' : '<td class="z" aria-hidden="true">·</td>';
         });
         if (showTotalCol) h += '<td class="tot"><button type="button" data-r="' + esc(r) + '" data-c="*">' + rowP[r].length + '</button></td>';
         h += '</tr>';
@@ -474,7 +508,7 @@
       var fl = {}; P.forEach(function (p) { p.fields.forEach(function (k) { fl[k] = 1; }); });
       document.getElementById('cards').innerHTML = [
         [P.length, 'истории'], [Math.round(bg / n * 100) + '%', 'живеят основно в България'],
-        [cs.length ? roman(Math.min.apply(null, cs)) + '–' + roman(Math.max.apply(null, cs)) : '—', 'век на раждане'], [Object.keys(cities).length, 'града на раждане'], [Object.keys(fl).length, 'сфери'],
+        [cs.length ? roman(Math.min.apply(null, cs)) + '–' + roman(Math.max.apply(null, cs)) : '–', 'век на раждане'], [Object.keys(cities).length, 'града на раждане'], [Object.keys(fl).length, 'сфери'],
         [Math.round(f / n * 100) + '%', 'жени (' + f + ')']
       ].map(function (x) { return '<div><b>' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join('');
     }
@@ -495,6 +529,7 @@
   /* Връзки, избрани на ръка: [id, id, защо са свързани]. Останалите връзки свързват
      хората от една и съща основна сфера по реда на раждане. */
   var LINKS = [
+    ['john-atanasoff', 'blagovest-sendov', 'Сендов кани Атанасов в България (1970)'],
     ['ivan-stranski', 'lyubomir-krastanov', 'механизмът Странски–Кръстанов'],
     ['ivan-stranski', 'rostislav-kaishev', 'теорията за растежа на кристалите'],
     ['blagovest-sendov', 'rumen-tsanev', 'общ математически модел на гените'],
@@ -561,7 +596,7 @@
     var fieldsUsed = Object.keys(FIELDS).filter(function (f) { return nodes.some(function (n) { return n.p.field === f; }); });
     var W = 1000, H = 720, d3 = window.d3;
     var centers = {}; fieldsUsed.forEach(function (f, i) { var a = i / fieldsUsed.length * 2 * Math.PI - Math.PI / 2; centers[f] = [W / 2 + 270 * Math.cos(a), H / 2 + 200 * Math.sin(a)]; });
-    var svg = d3.select(box).append('svg').attr('viewBox', '0 0 ' + W + ' ' + H).attr('role', 'img').attr('aria-label', 'Мисловна карта на 110 истории');
+    var svg = d3.select(box).append('svg').attr('viewBox', '0 0 ' + W + ' ' + H).attr('role', 'img').attr('aria-label', 'Мисловна карта на ' + nodes.length + ' истории');
     var g = svg.append('g');
     var zoom = d3.zoom().scaleExtent([0.3, 6]).on('zoom', function (e) { g.attr('transform', e.transform); g.classed('zoomed', e.transform.k > 1.6); });
     svg.call(zoom);
@@ -645,6 +680,9 @@
         '<h2>' + esc(p.name) + '</h2><div class="yrs">' + esc(years(p)) + (p.city !== 'неизвестно' ? ' · ' + esc(p.city) : '') + ' · ' + SECTIONS[p.sec].name + '</div>' +
         '<p><b>' + esc(p.title) + '</b></p><p>' + esc(p.lede) + '</p><a class="btn" href="' + url(p) + '">Прочети историята →</a>' +
         (nb.length ? '<h3>Свързани</h3><ul class="m-rel">' + nb.map(function (l) { var o = l.source === d ? l.target : l.source; return '<li><button type="button" data-id="' + o.id + '">' + esc(o.p.name) + '</button> <span>' + esc(l.why) + '</span></li>'; }).join('') + '</ul>' : '');
+      var cr = el('p', 'm-credit'); b.appendChild(cr);
+      var setCr = function () { var c = cache[p.id]; cr.innerHTML = c && c.s ? creditHtml(c) : ''; if (c && c.s && !c.m) loadMeta(p.id, setCr); };
+      document.addEventListener('bum-photos', setCr); setCr();
       panel.appendChild(b); panel.hidden = false;
       b.querySelectorAll('button[data-id]').forEach(function (x) { x.onclick = function () { show(byId[x.dataset.id], true); }; });
       loadPhotos(panel);
@@ -670,14 +708,11 @@
         .then(function (key) { return c.decrypt({ name: 'AES-GCM', iv: b64(E.iv) }, key, b64(E.ct)); })
         .then(function (buf) {
           out.innerHTML = new TextDecoder().decode(buf); out.hidden = false; form.hidden = true; err.hidden = true;
-          try { sessionStorage.setItem('bum-admin', pass); } catch (e) {}
           return true;
         })
         .catch(function () { err.textContent = 'Грешна парола.'; err.hidden = false; return false; });
     }
     form.onsubmit = function (e) { e.preventDefault(); open(pw.value); };
-    var saved = null; try { saved = sessionStorage.getItem('bum-admin'); } catch (e) {}
-    if (saved) open(saved);
   }
 
   window.BUM = { TEN: TEN, STO: STO, KILO: KILO, FIELDS: FIELDS };
@@ -693,5 +728,5 @@
   else if (page === 'map') pageMap();
   else if (page === 'admin') pageAdmin();
   var skip = document.querySelector('.skip'); if (skip && mainEl) skip.setAttribute('href', '#' + mainEl.id);
-  else if (page === 'about') { chrome('about'); document.querySelector('.ab-body').appendChild(kaBlock('@about', '10, 100, 1000 — степените на десет')); }
+  else if (page === 'about') { chrome('about'); document.querySelector('.ab-body').appendChild(kaBlock('@about', '10, 100, 1000 – степените на десет')); }
 })();
