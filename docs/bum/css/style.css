@@ -449,3 +449,25 @@ table.pivot { border-collapse: collapse; width: 100%; font-size: 15px; }
 .article .share { margin-top: 6px; padding: 9px 16px; font-size: 14px; }
 .share-msg { font-size: 13px; color: var(--muted); min-height: 1em; word-break: break-all; }
 .lic-check { font-style: italic; }
+/* филтрите: пренасят се на няколко реда; на телефон лентата не е закрепена (N1, N2) */
+.chips { flex-wrap: wrap; overflow: visible; }
+@media (max-width: 860px) { .tools { position: static; top: auto; } }
+
+/* картата: точки, зона за докосване, надписи в горен слой (N6, N17) */
+.m-hit { fill: transparent; }
+.m-node .m-dotc { stroke: var(--paper); stroke-width: 2; }
+.m-node.ten .m-dotc { stroke-width: 3; }
+.m-node.sel .m-dotc { stroke: var(--orange); stroke-width: 5; }
+.m-node.near .m-dotc { stroke: var(--orange); stroke-width: 2.5; }
+.m-node:focus { outline: none; }
+.m-node:focus-visible .m-dotc { stroke: var(--teal); stroke-width: 5; }
+.m-labels .m-label { display: none; }
+.m-labels .m-label.ten, .zoomed .m-labels .m-label, .m-labels .m-label.sel, .m-labels .m-label.near { display: block; }
+.m-labels .m-label.ten { font-size: 14px; }
+.m-labels .m-label.off { display: none; }
+@media (max-width: 600px) { .m-map svg { max-height: none; } }
+.m-node .m-hit { stroke: none !important; }
+.ph-table { width: 100%; border-collapse: collapse; background: var(--paper); border: 1px solid var(--line); font-size: 14px; margin-bottom: 14px; }
+.ph-table th { background: var(--navy); color: #fff; text-align: left; padding: 8px 10px; }
+.ph-table td { padding: 7px 10px; border-top: 1px solid var(--line); }
+.tools { position: static; top: auto; }

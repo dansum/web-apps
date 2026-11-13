@@ -35,10 +35,10 @@ window.BUM_TEN = [
     ],
     num: { n: '1824', t: 'годината, в която излиза „Рибният буквар“ – с раздел по аритметика' },
     links: [
-      { t: 'Уикипедия', u: 'https://bg.wikipedia.org/wiki/Петър_Берон' },
+      { t: 'Уикипедия', u: 'https://bg.wikipedia.org/wiki/Петър_Берон_(просветител)' },
       { t: 'Рибен буквар', u: 'https://bg.wikipedia.org/wiki/Рибен_буквар' }
     ],
-    wiki: { bg: 'Петър Берон', en: 'Petar Beron' }
+    wiki: { bg: 'Петър Берон (просветител)', en: 'Petar Beron' }
   },
   {
     id: 'georgi-nadjakov', name: 'Георги Наджаков', sex: 'm', born: 1896, died: 1981,
@@ -73,10 +73,10 @@ window.BUM_TEN = [
     ],
     num: { n: '1938', t: 'годината на модела Странски–Кръстанов за растеж на тънки слоеве' },
     links: [
-      { t: 'Уикипедия', u: 'https://bg.wikipedia.org/wiki/Иван_Странски' },
+      { t: 'Уикипедия', u: 'https://bg.wikipedia.org/wiki/Иван_Странски_(физикохимик)' },
       { t: 'Растеж на Странски–Кръстанов (англ.)', u: 'https://en.wikipedia.org/wiki/Stranski–Krastanov_growth' }
     ],
-    wiki: { bg: 'Иван Странски', en: 'Iwan N. Stranski' }
+    wiki: { bg: 'Иван Странски (физикохимик)', en: 'Iwan N. Stranski' }
   },
   {
     id: 'stamen-grigorov', name: 'Стамен Григоров', sex: 'm', born: 1878, died: 1945,

@@ -256,8 +256,8 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     wiki: { bg: 'Ростислав Каишев' }
   },
   {
-    id: 'rumen-tsanev', name: 'Румен Цанев', sex: 'm', born: 1922, died: 2008,
-    place: 'България', field: 'bio', motif: 'dna',
+    id: 'rumen-tsanev', name: 'Румен Цанев', sex: 'm', born: 1922, died: 2007,
+    place: 'София', field: 'bio', motif: 'dna',
     tags: ['молекулярна биология', 'гени', 'математически модел'],
     title: 'Молекулярният биолог, който покани математиката в клетката',
     lede: 'Един от основателите на молекулярната биология в България, който с математика Благовест Сендов създава модел на това как гените се включват и изключват.',
@@ -383,7 +383,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     wiki: { bg: 'Мария Цонева' }
   },
   {
-    id: 'pavlina-dolashka', name: 'Павлина Долашка', sex: 'f', born: 1960, bornApprox: true, died: null,
+    id: 'pavlina-dolashka', name: 'Павлина Долашка', sex: 'f', born: 1954, died: null,
     place: 'България', field: 'chem', motif: 'molecule',
     tags: ['биохимия', 'охлюви', 'изобретения'],
     title: 'Синята кръв на охлювите и търсенето на нови лекарства',

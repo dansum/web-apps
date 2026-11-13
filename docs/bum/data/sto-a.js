@@ -194,7 +194,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
       { t: 'IEEE Computer Society', u: 'https://computer.org/profiles/lubomir-iliev' },
       { t: 'Techinsider (рус.): за „Витоша“', u: 'https://www.techinsider.ru/gadgets/728893-akademik-kirill-boyanov-pervyy-bolgarskiy-kompyuter-my-proektirovali-bez-pomoshchi-sssr/' }
     ],
-    wiki: { bg: 'Любомир Илиев' },
+    wiki: { bg: 'Любомир Илиев (математик)' },
     tags: ['първи компютър', 'информатика', 'БАН']
   },
   {
@@ -373,8 +373,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     id: 'virginia-kiryakova',
     name: 'Вирджиния Кирякова',
     sex: 'f',
-    born: 1955,
-    bornApprox: true,
+    born: 1952,
     died: null,
     place: 'България',
     field: 'math',
@@ -388,8 +387,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     ],
     num: { n: '½', t: 'редът на „полупроизводната“ – най-простият пример за производна от нецял ред' },
     links: [
-      { t: 'Уикипедия (англ.)', u: 'https://en.wikipedia.org/wiki/Virginia_Kiryakova' },
-      { t: 'Уикипедия (англ., копие)', u: 'https://www.mdwiki.org/wiki/Virginia_Kiryakova' }
+      { t: 'Уикипедия (англ.)', u: 'https://en.wikipedia.org/wiki/Virginia_Kiryakova' }
     ],
     wiki: { en: 'Virginia Kiryakova' },
     tags: ['дробно смятане', 'анализ']
@@ -398,8 +396,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     id: 'darinka-dentcheva',
     name: 'Даринка Денчева',
     sex: 'f',
-    born: 1960,
-    bornApprox: true,
+    born: 1958,
     died: null,
     place: 'България',
     field: 'math',

@@ -55,7 +55,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     sex: "m",
     born: 1925,
     died: 1998,
-    place: "България",
+    place: "София",
     field: "cs",
     motif: "circuit",
     title: "Инженерът, с когото България седна пред персонален компютър",
@@ -93,8 +93,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     num: { n: "2022", t: "годината, в която в София е създаден институтът INSAIT" },
     links: [
       { t: "Уикипедия (англ.)", u: "https://en.wikipedia.org/wiki/Martin_Vechev" },
-      { t: "INSAIT", u: "https://insait.ai/prof-martin-vechev/" },
-      { t: "Science|Business (англ.)", u: "https://sciencebusiness.net/news/ict/bulgarias-swiss-inspired-research-institute-can-be-world-class" }
+      { t: "INSAIT", u: "https://insait.ai/prof-martin-vechev/" }
     ],
     wiki: { en: "Martin Vechev" },
     tags: ["изкуствен интелект", "надеждност", "INSAIT"]
@@ -118,8 +117,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     num: { n: "2003", t: "годината, в която става първият носител на наградата „Джон Атанасов“" },
     links: [
       { t: "Уикипедия (англ.)", u: "https://en.wikipedia.org/wiki/Preslav_Nakov" },
-      { t: "Президент на България", u: "https://m.president.bg/en/cat38/16/Preslav-Nakov.html" },
-      { t: "MBZUAI (англ.)", u: "https://mbzuai.ac.ae/news/making-llm-accuracy-a-matter-of-fact/" }
+      { t: "Президент на България", u: "https://m.president.bg/en/cat38/16/Preslav-Nakov.html" }
     ],
     wiki: { en: "Preslav Nakov" },
     tags: ["фалшиви новини", "езикови модели", "проверка на факти"]
@@ -373,9 +371,8 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     name: "Галя Ангелова",
     sex: "f",
     born: 1955,
-    bornApprox: true,
     died: null,
-    place: "България",
+    place: "Лом",
     field: "cs",
     motif: "book",
     title: "Как да научиш компютъра да чете на български",

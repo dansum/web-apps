@@ -13,7 +13,7 @@ const FIELDS = { math: 'Математика', cs: 'Информатика', phy
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const years = p => p.bornLabel ? p.bornLabel : (p.bornApprox && !p.died) ? (p.sex === 'f' ? 'съвременничка' : 'съвременник') : p.died ? (p.bornApprox ? 'ок. ' : '') + p.born + (p.bornApprox || p.diedApprox ? ' – ' : '–') + (p.diedApprox ? 'ок. ' : '') + p.died : 'р. ' + p.born;
 const initials = n => n.split(/\s+/).map(w => w[0]).slice(0, 2).join('');
-const font = f => 'file://' + path.join(ROOT, 'fonts', f);
+const font = f => 'data:font/woff2;base64,' + fs.readFileSync(path.join(ROOT, 'fonts', f)).toString('base64');
 (async () => {
   const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1200, height: 630 } });
   await pg.setContent('<html><body></body></html>');
@@ -64,6 +64,11 @@ const font = f => 'file://' + path.join(ROOT, 'fonts', f);
 `);
   }
   await b.close();
-  console.log('готово:', people.length);
+  /* Карта на сайта за търсачките: основните страници и всички истории. */
+  const pages = ['', 'deset.html', 'sto.html', 'kilo.html', 'karta.html', 'statistika.html', 'za-proekta.html'];
+  const urls = pages.map(u => BASE + u).concat(people.map(p => BASE + 'story.html?id=' + encodeURIComponent(p.id)));
+  fs.writeFileSync(path.join(ROOT, 'sitemap.xml'), '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    urls.map(u => '  <url><loc>' + u.replace(/&/g, '&amp;') + '</loc></url>').join('\n') + '\n</urlset>\n');
+  console.log('готово:', people.length, '· sitemap:', urls.length);
 })();
 function window_svg() { return ''; }

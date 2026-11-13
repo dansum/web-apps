@@ -92,7 +92,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     wiki: {}
   },
   {
-    id: 'svetlin-nakov', name: 'Светлин Наков', sex: 'm', born: 1980, bornApprox: true, died: null,
+    id: 'svetlin-nakov', name: 'Светлин Наков', sex: 'm', born: 1980, died: null,
     place: 'България', field: 'edu', motif: 'binary',
     tags: ['програмиране', 'СофтУни', 'безплатни книги'],
     title: 'Как десетки хиляди българи се научиха да програмират',
@@ -111,8 +111,8 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     wiki: { bg: 'Светлин Наков' }
   },
   {
-    id: 'nurgyul-salimova', name: 'Нургюл Салимова', sex: 'f', born: 2003, bornApprox: true, died: null,
-    place: 'България', field: 'games', motif: 'chess',
+    id: 'nurgyul-salimova', name: 'Нургюл Салимова', sex: 'f', born: 2003, died: null,
+    place: 'Крепча', field: 'games', motif: 'chess',
     tags: ['шах', 'Световна купа', 'турнир на претендентките'],
     title: 'Сама в Баку – до финала на Световната купа',
     lede: 'Шахматистката, която на 20 години стига до финала на Световната купа за жени през 2023 г. и се класира за турнира на претендентките.',
