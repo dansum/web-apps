@@ -13,7 +13,7 @@
   applyTheme(getTheme());
 
   /* Страницата за дарения на „Образование без раници“ — сменя се само тук. */
-  var DONATE_URL = 'https://www.globalgiving.org/donate/33386/education-without-backpacks/';
+  var DONATE_URL = 'https://obr.education/stani-daritel/';
 
   /* ---------- данни ---------- */
   var FIELDS = {
