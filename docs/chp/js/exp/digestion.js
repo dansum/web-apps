@@ -8,6 +8,7 @@ import { curveOf, flowDots, organMat, glowOf, hitTube } from './anatomy.js';
 import { buildKid, buildStomach, buildIntestines, buildLiver, buildEsophagus } from './organs4.js';
 
 const KX = -1.6;
+const PANC = [0.3, 1.97, -0.05];
 
 export function mount(container, { onComplete }) {
   const STEPS = ['Опознай', 'Какво става с храната', 'Храните и кръвта', 'Здравословни навици'];
@@ -36,13 +37,23 @@ export function mount(container, { onComplete }) {
   intest.userData.large.userData.pickId = 'large';
   for (const k of ['small', 'large']) { const h = hitTube(intest.userData[k].userData.curve, k === 'small' ? 0.06 : 0.08); h.userData.pickId = k; intest.add(h); }
   organs.mouth = K.mouth; K.mouth.userData.pickId = 'mouth'; addHitBox(K.mouth, 0.2);
+  // задстомашна жлеза: продълговата, зад и под стомаха (не е в мащаб)
+  { const g = new THREE.Group();
+    const pm = organMat(0xf3c27a, { roughness: 0.6 });
+    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.035, 0.26, 4, 10), pm);
+    body.rotation.z = Math.PI / 2 - 0.18;
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.055, 12, 10), pm);
+    head.position.set(-0.15, -0.03, 0);
+    g.add(body, head);
+    add('pancreas', g, PANC);
+    addHitBox(g, 0.12); }
   organs.small = intest.userData.small; organs.large = intest.userData.large;
   const glows = {};
-  for (const id of ['mouth', 'esophagus', 'stomach', 'liver', 'small', 'large']) glows[id] = glowOf(organs[id]);
+  for (const id of ['mouth', 'esophagus', 'stomach', 'liver', 'pancreas', 'small', 'large']) glows[id] = glowOf(organs[id]);
   const anchor = (parent, pos) => { const a = new THREE.Object3D(); a.position.set(...pos); parent.add(a); return a; };
   const at = {
     mouth: anchor(K.head, [0, -0.2, 0.6]), esophagus: anchor(kid, [0.05, 2.62, -0.04]), stomach: anchor(organs.stomach, [0.05, 0.1, 0]),
-    liver: anchor(organs.liver, [-0.05, 0.1, 0.05]), small: anchor(intest, [0, 0.0, 0.1]), large: anchor(intest, [-0.35, 0.05, 0.05]),
+    liver: anchor(organs.liver, [-0.05, 0.1, 0.05]), pancreas: anchor(organs.pancreas, [0.02, 0, 0.04]), small: anchor(intest, [0, 0.0, 0.1]), large: anchor(intest, [-0.35, 0.05, 0.05]),
   };
   ctx.pt = (id) => at[id]; // за автоматичните тестове: точка върху органа
   // хапката
@@ -54,6 +65,7 @@ export function mount(container, { onComplete }) {
   const trip = { curve: null, k: 1 };
   let last = new THREE.Vector3(0, 3.75, 0.7);
   function go(id) {
+    if (!WAY[id]) return; // храната не минава през задстомашната жлеза
     const pts = [last.toArray(), ...WAY[id]];
     trip.curve = curveOf(pts); trip.k = 0;
     last = new THREE.Vector3(...WAY[id][WAY[id].length - 1]);
@@ -121,6 +133,7 @@ export function mount(container, { onComplete }) {
         it('esophagus', 'Хранопровод', '⬇', 'Мускулеста тръба, по която хапката слиза до стомаха.'),
         it('stomach', 'Стомах', '🥣', 'Стомахът разбърква храната със <b>стомашен сок</b> и я смила.'),
         it('liver', 'Черен дроб', '🟤', 'Черният дроб отделя <b>жлъчка</b>, която помага за смилането на мазнините.'),
+        it('pancreas', 'Задстомашна жлеза', '🟠', 'Лежи зад стомаха. Отделя <b>сок</b> в тънкото черво. Той помага да се смелят белтъците, въглехидратите и мазнините.'),
         it('small', 'Тънко черво', '〰', 'В тънкото черво смилането завършва и хранителните вещества <b>преминават в кръвта</b>.'),
         it('large', 'Дебело черво', '🌀', 'В дебелото черво се поема <b>водата</b>, а остатъците се изхвърлят.'),
       ],
@@ -150,12 +163,19 @@ export function mount(container, { onComplete }) {
       { id: 'esophagus', q: 'Кликни органа, по който хапката <b>слиза</b> към стомаха.', ok: 'Хранопроводът пренася хапката.' },
       { id: 'stomach', q: 'Кликни органа, който <b>смила</b> храната със стомашен сок.', ok: 'Стомахът смила храната.' },
       { id: 'liver', q: 'Кликни органа, който отделя <b>жлъчка</b> за смилането на мазнините.', ok: 'Черният дроб отделя жлъчка.' },
+      { id: 'pancreas', q: 'Кликни жлезата <b>зад стомаха</b>, която отделя сок в тънкото черво.', ok: 'Задстомашната жлеза! Храната не минава през нея, но сокът ѝ помага за смилането.' },
       { id: 'small', q: 'Кликни органа, в който хранителните вещества <b>минават в кръвта</b>.', ok: 'Тънкото черво! Хранителните вещества минават в кръвта.' },
       { id: 'large', q: 'Кликни органа, в който се поема <b>водата</b>.', ok: 'Дебелото черво поема водата.' },
     ];
     function tasks() {
       let k = 0;
-      const ask = () => { ctx.answer = TASKS[k].id; shell.task(`<p>${TASKS[k].q}</p>`); };
+      const ask = () => {
+        ctx.answer = TASKS[k].id;
+        // Задстомашната жлеза е скрита зад стомаха: за тази задача стомахът се скрива за малко.
+        const hide = TASKS[k].id === 'pancreas';
+        organs.stomach.visible = !hide;
+        shell.task(`<p>${TASKS[k].q}</p>${hide ? '<p class="small">Стомахът е скрит за малко, за да видиш какво има зад него.</p>' : ''}`);
+      };
       shell.setControls('');
       ask();
       ctx.click = (id) => {
@@ -172,6 +192,7 @@ export function mount(container, { onComplete }) {
         k++;
         if (k < TASKS.length) { ask(); return; }
         ctx.click = null; ctx.answer = null;
+        organs.stomach.visible = true;
         if (id === 'large') { vessel.visible = true; nutri.visible = true; }
         ctx.scores[0] = stepScore(mistakes, 3);
         shell.task('<p>Хранителните вещества (жълтите точки) вече са в кръвта.</p>');
@@ -256,6 +277,7 @@ export function mount(container, { onComplete }) {
     ctx.scores.length = 0;
     ctx.ratio = null;
     ctx.answer = null;
+    organs.stomach.visible = true;
     step1();
   }
   step1();
