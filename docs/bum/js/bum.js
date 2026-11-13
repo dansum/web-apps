@@ -12,6 +12,9 @@
   }
   applyTheme(getTheme());
 
+  /* Страницата за дарения на „Образование без раници“ — сменя се само тук. */
+  var DONATE_URL = 'https://www.globalgiving.org/donate/33386/education-without-backpacks/';
+
   /* ---------- данни ---------- */
   var FIELDS = {
     math: 'Математика', cs: 'Информатика', physics: 'Физика', astro: 'Космос и астрономия', chem: 'Химия',
@@ -125,9 +128,26 @@
     var f = document.getElementById('foot');
     if (f) {
       f.className = 'foot';
-      f.innerHTML = '<div class="wrap"><span><b>БУМ</b> — Български Успехи с Математика · истории за хора, които променят света с числа</span>' +
+      f.innerHTML = '<div class="obr-band"><div class="wrap"><p>БУМ е проект на „Образование без раници“ — сдружението, което превежда Кан Академия на български и помага на учители и ученици да учат умно с технологии.</p>' +
+        '<a class="obr-link" href="' + DONATE_URL + '" target="_blank" rel="noopener" aria-label="Образование без раници — дари">' +
+        '<img class="light" src="media/obr-logo.svg" alt="Образование без раници"><img class="dark" src="media/obr-logo-light.svg" alt="Образование без раници"><span class="give">Дари ♥</span></a></div></div>' +
+        '<div class="wrap meta"><span><b>БУМ</b> — Български Успехи с Математика · истории за хора, които променят света с числа</span>' +
         '<span>Снимки: Уикипедия / Уикимедия Общомедия, свободни лицензи · <a href="../">Още проекти</a> · <button type="button" class="ck" onclick="window.d4Consent&&d4Consent.reset()">Бисквитки</button></span></div>';
     }
+  }
+  /* Блок с 1–2 урока от Кан Академия (data/ka.js). */
+  function kaBlock(key, title) {
+    var list = (window.BUM_KA || {})[key];
+    if (!list || !list.length) return el('div');
+    var d = el('aside', 'ka');
+    d.setAttribute('aria-label', 'Уроци в Кан Академия');
+    d.innerHTML = '<img class="logo" src="media/khan-academy.svg" alt="Кан Академия">' +
+      '<div><h2>' + esc(title || 'Научи математиката зад историята') + '</h2><p>Безплатни уроци с видео и упражнения в българската Кан Академия.</p><ul>' +
+      list.map(function (x) {
+        return '<li><a href="' + esc(x.u) + '" target="_blank" rel="noopener"><img src="media/khan-academy.svg" alt="">' +
+          '<div>' + esc(x.t) + '<span>Кан Академия · ' + esc(x.c) + '</span></div><b>Учи →</b></a></li>';
+      }).join('') + '</ul></div>';
+    return d;
   }
   function logo() {
     var pts = [], n = 12; for (var i = 0; i < n * 2; i++) { var a = i / (n * 2) * Math.PI * 2 - Math.PI / 2, r = i % 2 ? 11 : 20; pts.push((21 + r * Math.cos(a)).toFixed(1) + ',' + (21 + r * Math.sin(a)).toFixed(1)); }
@@ -182,6 +202,7 @@
 
     var real = TEN.concat(STO), women = real.filter(function (p) { return p.sex === 'f'; }).length;
     var cs = real.map(century).filter(Boolean), minC = Math.min.apply(null, cs), maxC = Math.max.apply(null, cs);
+    document.querySelector('main').appendChild(kaBlock('@home', 'Математиката зад откритията'));
     document.getElementById('stats').innerHTML = '<div><b>' + real.length + '</b><span>истински истории</span></div><div><b>' + women + '</b><span>жени</span></div><div><b>' + roman(minC) + '–' + roman(maxC) + '</b><span>век</span></div>';
   }
 
@@ -197,6 +218,7 @@
       g.appendChild(a);
     });
     loadPhotos(g);
+    g.parentNode.appendChild(kaBlock('@ten', 'Научи математиката зад десетте БУМа'));
   }
 
   /* ---------- СтоБУМ и КилоБУМ: снимки отгоре + списък с филтри ---------- */
@@ -258,6 +280,7 @@
       loadPhotos(list);
     }
     render();
+    list.parentNode.appendChild(kaBlock('@' + sec, sec === 'kilo' ? 'Научи се да работиш с данни като героите на КилоБУМ' : 'Математика от сто истории'));
   }
 
   /* ---------- СТАТИЯ ---------- */
@@ -293,13 +316,14 @@
       var host = ''; try { host = new URL(l.u).hostname.replace(/^www\./, ''); } catch (e) {}
       return '<a href="' + esc(l.u) + '" target="_blank" rel="noopener">' + esc(l.t) + ' <span>' + esc(host) + ' ↗</span></a>';
     }).join('') + '</nav>';
-    body += '<p class="credit" id="credit"></p>';
+    body += '<div id="ka-slot"></div><p class="credit" id="credit"></p>';
 
     var list = p.sec === 'ten' ? TEN : p.sec === 'sto' ? STO : KILO, i = list.indexOf(p);
     var prev = list[(i - 1 + list.length) % list.length], next = list[(i + 1) % list.length];
     body += '<div class="pager"><a href="' + url(prev) + '"><small>← Предишна</small><b>' + esc(prev.name) + '</b></a><a class="next" href="' + url(next) + '"><small>Следваща →</small><b>' + esc(next.name) + '</b></a></div>';
     ar.innerHTML = head + body;
     main.appendChild(ar);
+    var slot = document.getElementById('ka-slot'); slot.parentNode.replaceChild(kaBlock(p.id), slot);
 
     var more = el('section', 'more wrap', '<h2>Още БУМ истории</h2>'), ul = el('div', 'strip');
     shuffle(TEN.concat(STO).filter(function (x) { return x !== p; })).slice(0, 5).forEach(function (x) { ul.appendChild(stripCard(x)); });

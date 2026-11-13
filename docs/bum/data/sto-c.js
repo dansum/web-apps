@@ -253,7 +253,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     wiki: { bg: 'Ростислав Каишев' }
   },
   {
-    id: 'rumen-tsanev', name: 'Румен Цанев', sex: 'm', born: 1922, bornApprox: true, died: 2016,
+    id: 'rumen-tsanev', name: 'Румен Цанев', sex: 'm', born: 1922, died: 2008,
     place: 'България', field: 'bio', motif: 'dna',
     tags: ['молекулярна биология', 'гени', 'математически модел'],
     title: 'Молекулярният биолог, който покани математиката в клетката',

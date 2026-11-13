@@ -7,19 +7,21 @@
 
   /* Цветове по област: фон (два тона за градиент) и два акцента. */
   var PAL = {
-    math:    ['#14123a', '#2b1d6b', '#ffcf5c', '#8fd3ff'],
-    cs:      ['#081c2c', '#0d3b4f', '#5cf2c9', '#ffb35c'],
-    physics: ['#0f1530', '#1f2f6b', '#7fe0ff', '#ff7aa8'],
-    astro:   ['#05071a', '#1a1745', '#ffe28a', '#9aa8ff'],
-    chem:    ['#1f0f2e', '#45215e', '#ff9ef5', '#9effd8'],
-    bio:     ['#0c2318', '#1d4a33', '#c6f57a', '#ffd166'],
-    med:     ['#2a0d14', '#5a1a2a', '#ff8a8a', '#ffe0a3'],
-    eng:     ['#1d1a14', '#47392a', '#ffb347', '#a8d8ff'],
-    econ:    ['#0d1f26', '#18414d', '#7cf0a5', '#ffd27a'],
-    games:   ['#151515', '#353028', '#f5e6c8', '#ff6f59'],
-    edu:     ['#26140a', '#5b331a', '#ffd38a', '#9fe3ff'],
-    earth:   ['#0f1d14', '#2f4a28', '#e6d38a', '#7fd4ff']
+    /* Фон в тъмносиньо на ОбР, акцентите — цветовете от логото на ОбР */
+    math:    ['#0A2A66', '#2a0f4a', '#faaf42', '#d88ad7'],
+    cs:      ['#0A2A66', '#063a3a', '#14BF96', '#faaf42'],
+    physics: ['#0A2A66', '#0a3d66', '#28AAE1', '#faaf42'],
+    astro:   ['#071c47', '#0A2A66', '#faaf42', '#9fc4ff'],
+    chem:    ['#0A2A66', '#3a0f3a', '#f07ab5', '#14BF96'],
+    bio:     ['#0A2A66', '#0f3d2a', '#8cc640', '#faaf42'],
+    med:     ['#0A2A66', '#3d1530', '#f15b25', '#ffd8a8'],
+    eng:     ['#0A2A66', '#2e2a3a', '#FA961E', '#28AAE1'],
+    econ:    ['#0A2A66', '#123d3a', '#3CB44B', '#faaf42'],
+    games:   ['#0A2A66', '#1b1f3a', '#f2ecdf', '#FA961E'],
+    edu:     ['#0A2A66', '#3a2a14', '#faaf42', '#28AAE1'],
+    earth:   ['#0A2A66', '#24331a', '#8cc640', '#28AAE1']
   };
+
 
   function hash(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
   function rng(seed) { var a = seed >>> 0; return function () { a = (a + 0x6D2B79F5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
@@ -379,7 +381,7 @@
       '<circle cx="178" cy="142" r="4" fill="#1b1b1b"/><circle cx="222" cy="142" r="4" fill="#1b1b1b"/>' +
       '<path d="M182 182 Q200 194 218 182" fill="none" stroke="#7a3b2e" stroke-width="4" stroke-linecap="round"/>' +
       glasses +
-      '<text x="200" y="384" text-anchor="middle" font-family="Manrope,system-ui,sans-serif" font-weight="800" font-size="16" letter-spacing="2" fill="#fff" opacity=".85">ИЛЮСТРАЦИЯ</text>' +
+      '<text x="200" y="384" text-anchor="middle" font-family="Lato,system-ui,sans-serif" font-weight="800" font-size="16" letter-spacing="2" fill="#fff" opacity=".85">ИЛЮСТРАЦИЯ</text>' +
       '</svg>';
   }
 
