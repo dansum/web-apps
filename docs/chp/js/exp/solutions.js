@@ -1,7 +1,7 @@
 // 5.2.5 „Водата и водните разтвори“ — везна с чаша вода и сол, чаши за разтворимост, сиропи, лед и езеро в разрез.
 // Стъпки: опознай → наситен разтвор и маса на разтвора (опит) → разтворимост и протокол → свойствата на водата.
 import { labelSprite, mat, addHitBox, THREE } from '../kit.js';
-import { scaffold, explore, choice, nextBtn, finishBtn, labRoom, glass, view, lcd, stepScore } from './labkit.js';
+import { scaffold, explore, choice, predict, compare, nextBtn, finishBtn, labRoom, glass, view, lcd, stepScore } from './labkit.js';
 import { sortTask, fillTask } from './labtasks.js';
 
 const SAFE = '<p class="warn">⚠ В кабинета <b>не опитваме</b> веществата на вкус и не ги пипаме с ръце.</p>';
@@ -202,22 +202,33 @@ export function mount(container, { onComplete }) {
     view(ctx, [BX - 0.3, 0.7, 0.1], 1.6, { halfH: 1.1, elev: 0.35 });
     shell.task(`<p>Везната показва <b>100 g</b>: толкова е водата. Ще слагаме сол по <b>5 g</b> (една лъжичка) и ще разбъркваме.</p>${SAFE}`);
     let mistakes = 0;
-    choice(ctx, {
+    predict(ctx, {
       q: 'Разтваряме 20 g сол в 100 g вода. Каква ще бъде масата на разтвора?',
       options: [
-        { t: '120 g', ok: true, why: 'Да проверим! Слагай сол с лъжичката.' },
-        { t: '100 g', ok: false, why: 'Солта не изчезва, макар да не се вижда. Къде отива нейната маса?' },
-        { t: '80 g', ok: false, why: 'Добавяме вещество. Може ли масата да намалее?' },
+        { t: '120 g', ok: true },
+        { t: '100 g', ok: false },
+        { t: '80 g', ok: false },
       ],
-      hint: 'Масата на разтвора = масата на водата + масата на разтвореното вещество.',
-      onRight: (m) => { mistakes = m; add(); },
+      note: 'Запомни прогнозата си. Сега провери: слагай сол с лъжичката!',
+      onPick: () => { mistakes = ctx.predMiss; add(); },
     });
     function add() {
-      const c = shell.setControls('<div class="row"><button class="btn primary sp">🥄 Добави 5 g сол и разбъркай</button></div>');
+      const c = shell.controls;
+      c.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary sp">🥄 Добави 5 g сол и разбъркай</button></div>');
       const b = c.querySelector('.sp');
+      const row = b.parentElement;
       b.addEventListener('click', () => {
         spoon();
-        if (M.salt === 20) ctx.say(main, `✔ ${100 + M.salt} g: масата на разтвора е сбор от масите на водата и солта.`, 'good wide', 1.3);
+        if (M.salt === 20) {
+          const p = ctx.prediction;
+          ctx.say(main, `${p.ok ? '✔ ' : `Прогнозата ти: <b>${p.t}</b>.<br>Везната показва: `}${100 + M.salt} g. Масата на разтвора е сбор от масите на водата и солта.`, p.ok ? 'good wide' : 'wide', 1.3);
+          const cc = compare(ctx, {
+            result: 'Везната показа 120 g.',
+            why: 'Солта не изчезва, макар да не се вижда. 100 g вода + 20 g сол = 120 g разтвор.',
+          });
+          row.insertAdjacentHTML('afterbegin', '<p class="small" style="flex-basis:100%;margin:0">Продължи да слагаш сол и гледай дъното на чашата.</p>');
+          cc.appendChild(row);
+        }
         if (M.salt > SOL) {
           b.disabled = true;
           setTimeout(() => {
@@ -321,19 +332,23 @@ export function mount(container, { onComplete }) {
     view(ctx, [-5.5, 0.6, -0.9], 1.3, { halfH: 1.0, elev: 0.3 });
     shell.task('<p>Пускаме кубче лед в чаша с вода.</p>');
     let mistakes = 0;
-    choice(ctx, {
+    predict(ctx, {
       q: 'Какво ще направи ледът?',
       options: [
-        { t: 'Ще плава на повърхността.', ok: true, why: 'Да проверим!' },
-        { t: 'Ще потъне на дъното.', ok: false, why: 'Виждал ли си лед в чаша с вода или по реката през зимата? Къде е той?' },
-        { t: 'Веднага ще се стопи.', ok: false, why: 'Ледът се топи бавно. Въпросът е къде ще е, докато се топи.' },
+        { t: 'Ще плава на повърхността.', ok: true },
+        { t: 'Ще потъне на дъното.', ok: false },
+        { t: 'Веднага ще се стопи.', ok: false },
       ],
-      hint: 'Ледът е по-лек от същото количество вода.',
-      onRight: (m) => {
-        mistakes = m;
+      onPick: () => {
+        mistakes = ctx.predMiss;
         I.drop = true; I.v = 0;
         setTimeout(() => {
-          ctx.say(iceGlass, 'Ледът плава: кубче лед е по-леко от кубче вода със същия размер. При повечето вещества твърдото парче потъва в своята течност. При водата е обратното. Това е <b>аномалия на водата</b>.', 'wide', 1.2);
+          const p = ctx.prediction;
+          ctx.say(iceGlass, `${p.ok ? '' : `Прогнозата ти: <b>${p.t.toLowerCase().replace(/\.$/, '')}</b>.<br>`}Ледът плава: кубче лед е по-леко от кубче вода със същия размер. При повечето вещества твърдото парче потъва в своята течност. При водата е обратното. Това е <b>аномалия на водата</b>.`, 'wide', 1.2);
+          compare(ctx, {
+            result: 'Кубчето лед плава на повърхността.',
+            why: 'Ледът е по-лек от същото количество вода. Затова не потъва.',
+          });
           nextBtn(ctx, 'Към езерото →', lakeQ);
         }, 2200);
       },
