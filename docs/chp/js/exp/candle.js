@@ -2,7 +2,7 @@
 // Стъпки: опознай → свещ под стъкленица (опит, „Припомни от 3. клас“) → кой газ е в съда (приложи)
 // → газирана вода на студено и на топло (разтворимост на газовете) → предскажи и пренеси.
 import { labelSprite, mat, addHitBox, THREE, esc } from '../kit.js';
-import { scaffold, explore, choice, nextBtn, finishBtn, labRoom, glass, view, bar, stepScore } from './labkit.js';
+import { scaffold, explore, choice, predict, compare, nextBtn, finishBtn, labRoom, glass, view, bar, stepScore } from './labkit.js';
 
 const SAFE = '<p class="warn">⚠ Опитите с огън се правят <b>само с възрастен</b>.</p>';
 
@@ -388,16 +388,15 @@ export function mount(container, { onComplete }) {
     view(ctx, [-2.65, 1.1, 0], 2.7, { halfH: 1.7 });
     shell.task(`<p class="small"><b>🔁 Припомни от 3. клас</b></p><p>Свещ, покрита с буркан, скоро угасва. Сега ще сравним <b>три стъкленици</b> с различен обем.</p>${SAFE}`);
     shell.score('');
-    choice(ctx, {
+    predict(ctx, {
       q: 'Ако ги похлупим, коя свещ ще гори най-дълго?',
       options: [
-        { t: 'Свещта под голямата стъкленица', ok: true, why: 'Да проверим! Кликни всяка стъкленица, за да я похлупиш.' },
-        { t: 'Свещта под малката стъкленица', ok: false, why: 'Помисли: под коя стъкленица има най-много въздух, а значи и кислород?' },
-        { t: 'И трите ще горят еднакво дълго', ok: false, why: 'Свещите са еднакви, но въздухът под стъклениците не е еднакъв.' },
-        { t: 'Ще горят, докато се стопят докрай', ok: false, why: 'Похлупената свещ не получава нов въздух. Какво ѝ трябва, за да гори?' },
+        { t: 'Свещта под голямата стъкленица', ok: true },
+        { t: 'Свещта под малката стъкленица', ok: false },
+        { t: 'И трите ще горят еднакво дълго', ok: false },
+        { t: 'Ще горят, докато се стопят докрай', ok: false },
       ],
-      hint: 'Свещта гори, докато има кислород, а той е част от въздуха.',
-      onRight: (m) => runMain(m),
+      onPick: () => setTimeout(() => runMain(ctx.predMiss), 900),
     });
   }
   function runMain(m0) {
@@ -410,8 +409,14 @@ export function mount(container, { onComplete }) {
       if (!main.every((r) => r.out)) return;
       ctx.click = null;
       onAllOut = null;
-      shell.msg('Първа угасна свещта под малката стъкленица, последна — под голямата.', 'good');
-      setTimeout(() => {
+      const p = ctx.prediction;
+      ctx.say(main[2].g, `${p.ok ? '' : `Прогнозата ти: <b>${p.t.toLowerCase()}</b>.<br>`}Тук свещта угасна последна.`, p.ok ? 'good' : 'wide', 2.2);
+      compare(ctx, {
+        result: 'Първа угасна свещта под малката стъкленица, последна — под голямата.',
+        why: 'Похлупената свещ не получава нов въздух. Под голямата стъкленица има най-много въздух.',
+      });
+      nextBtn(ctx, 'Защо? →', () => {
+        ctx.clearTip();
         choice(ctx, {
           q: 'Защо свещта под голямата стъкленица гори най-дълго?',
           options: [
@@ -429,7 +434,7 @@ export function mount(container, { onComplete }) {
             nextBtn(ctx, 'Напред →', step3);
           },
         });
-      }, 900);
+      });
     };
   }
 
@@ -527,16 +532,15 @@ export function mount(container, { onComplete }) {
     shell.task(`<p>В газираната вода е разтворен газ — <b>въглероден диоксид</b>.</p>
       <p>Две еднакви затворени бутилки газирана вода стоят в купи. Едната купа е със <b>студена</b> вода, другата — с <b>топла</b>.</p>`);
     let mistakes = 0;
-    choice(ctx, {
+    predict(ctx, {
       q: 'Ако отворим бутилките, от коя ще излизат повече мехурчета?',
       options: [
-        { t: 'От бутилката в топлата вода', ok: true, why: 'Да проверим! Кликни всяка бутилка, за да я отвориш.' },
-        { t: 'От бутилката в студената вода', ok: false, why: 'Помисли: кога газираната напитка „изветрява“ по-бързо — студена или топла?' },
-        { t: 'От двете еднакво', ok: false, why: 'Бутилките са еднакви, но водата около тях е с различна температура.' },
-        { t: 'От никоя', ok: false, why: 'Когато отворим газирана вода, от нея винаги излизат мехурчета. Въпросът е откъде повече.' },
+        { t: 'От бутилката в топлата вода', ok: true },
+        { t: 'От бутилката в студената вода', ok: false },
+        { t: 'От двете еднакво', ok: false },
+        { t: 'От никоя', ok: false },
       ],
-      hint: 'Студената газирана напитка запазва газа си по-дълго.',
-      onRight: (m) => { mistakes = m; openStep(); },
+      onPick: () => { mistakes = ctx.predMiss; setTimeout(openStep, 900); },
     });
     function openStep() {
       shell.task('<p><b>Отвори двете бутилки:</b> кликни всяка от тях или натисни бутона. Наблюдавай мехурчетата.</p>');
@@ -548,8 +552,13 @@ export function mount(container, { onComplete }) {
         ctx.click = null;
         shell.setControls('');
         setTimeout(() => {
-          shell.msg('От бутилката в топлата вода излизат много повече мехурчета.', 'good');
-          why();
+          const p = ctx.prediction;
+          if (!p.ok) ctx.say(bottles[1].g, `Прогнозата ти: <b>${p.t.toLowerCase()}</b>.<br>Виж: повече мехурчета има в топлата вода.`, 'wide', 1.2);
+          compare(ctx, {
+            result: 'От бутилката в топлата вода излизат много повече мехурчета.',
+            why: 'В топла вода газът се разтваря по-малко и излиза навън.',
+          });
+          nextBtn(ctx, 'Още въпроси →', () => { ctx.clearTip(); why(); });
         }, 4000);
       };
       c.querySelector('.open-all').addEventListener('click', () => { bottles.forEach(openBottle); check(); });
@@ -603,27 +612,31 @@ export function mount(container, { onComplete }) {
     view(ctx, [-2.6, 1.1, 0], 2.0, { halfH: 1.6 });
     shell.task(`<p>Две еднакви стъкленици. Под едната гори <b>една</b> свещ, под другата — <b>две</b>.</p>${SAFE}`);
     let mistakes = 0;
-    choice(ctx, {
+    predict(ctx, {
       q: 'Ако похлупим и двете едновременно, къде пламъците ще угаснат по-рано?',
       options: [
-        { t: 'Под стъкленицата с двете свещи', ok: true, why: 'Да видим дали си прав!' },
-        { t: 'Под стъкленицата с една свещ', ok: false, why: 'Помисли: две свещи изразходват кислорода по-бързо или по-бавно от една?' },
-        { t: 'Едновременно', ok: false, why: 'Въздухът е еднакъв, но свещите не са еднакъв брой.' },
+        { t: 'Под стъкленицата с двете свещи', ok: true },
+        { t: 'Под стъкленицата с една свещ', ok: false },
+        { t: 'Едновременно', ok: false },
       ],
-      hint: 'Всеки пламък изразходва кислород.',
-      onRight: (m) => {
-        mistakes = m;
+      onPick: () => {
+        mistakes = ctx.predMiss;
         pair.forEach(cover);
-        shell.setControls('');
         onAllOut = () => {
           if (!pair.every((r) => r.out)) return;
           onAllOut = null;
-          ctx.say(pair[1].g, 'Двете свещи изразходват кислорода по-бързо и угасват по-рано.', 'good', 1.45);
-          setTimeout(transfer, 700);
+          const p = ctx.prediction;
+          ctx.say(pair[1].g, `${p.ok ? '' : `Прогнозата ти: <b>${p.t.toLowerCase()}</b>.<br>`}Двете свещи изразходват кислорода по-бързо и угасват по-рано.`, p.ok ? 'good' : 'wide', 1.45);
+          compare(ctx, {
+            result: 'Под стъкленицата с двете свещи пламъците угаснаха по-рано.',
+            why: 'Въздухът под двете стъкленици е еднакъв. Всеки пламък изразходва кислород, а два пламъка — по-бързо.',
+          });
+          nextBtn(ctx, 'Още една задача →', transfer);
         };
       },
     });
     function transfer() {
+      ctx.clearTip();
       shell.task('<p>Пренеси към живота.</p><p class="warn">⚠ Никога не гаси горящо олио с вода! Извикай възрастен. При пожар звъни на 112.</p>');
       choice(ctx, {
         q: 'Олиото в тигана се запали. Възрастният го покрива плътно с капак. Защо пламъкът угасва?',
