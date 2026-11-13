@@ -1,7 +1,7 @@
 // 5.1.6 „Сезони, фази на Луната, затъмнения“ — Слънцето, Земята с наклонена ос и Луната (не в мащаб).
 // Стъпки: опознай → сезоните: премести Земята по орбитата → фазите на Луната → затъмненията.
 import { labelSprite, addHitBox, THREE } from '../kit.js';
-import { scaffold, explore, choice, nextBtn, finishBtn, view, stepScore } from './labkit.js';
+import { predict, compare, scaffold, explore, choice, nextBtn, finishBtn, view, stepScore } from './labkit.js';
 import { orderTask } from './labtasks.js';
 import { earthTex, cloudsTex, rockyTex, canvasTex, glowTex, latLon } from './solar.js';
 
@@ -224,15 +224,15 @@ export function mount(container, { onComplete }) {
     shell.task('<p>Земята обикаля около Слънцето, а оста ѝ е наклонена. През лятото в България е топло, а през зимата — студено.</p><p class="small"><b>Полукълбо</b> е половината от Земята. <b>Екваторът</b> е въображаема линия около средата на Земята. Той я дели на Северно и Южно полукълбо. България е в Северното.</p>');
     let mistakes = 0;
     let readout = null;
-    choice(ctx, {
+    // Решение 21: отворена прогноза — детето мести Земята с каквото е избрало, после сравнение.
+    predict(ctx, {
       q: 'Как мислиш, защо на Земята се сменят сезоните?',
       options: [
-        { t: 'Земната ос е наклонена и през годината Слънцето огрява полукълбата различно.', ok: true, why: 'Да проверим! Ще местиш Земята по орбитата.' },
-        { t: 'Земята ту се приближава, ту се отдалечава от Слънцето.', ok: false, why: 'Разстоянието се мени съвсем малко. А и когато в България е зима, в Австралия е лято — по едно и също време!' },
-        { t: 'Слънцето свети по-силно през лятото.', ok: false, why: 'Слънцето свети почти еднакво през цялата година. Какво друго се мени?' },
+        { t: 'Земната ос е наклонена и през годината Слънцето огрява полукълбата различно.', ok: true },
+        { t: 'Земята ту се приближава, ту се отдалечава от Слънцето.', ok: false },
+        { t: 'Слънцето свети по-силно през лятото.', ok: false },
       ],
-      hint: 'Виж оста на Земята: накъде е наклонена?',
-      onRight: (m) => { mistakes = m; move('june'); },
+      onPick: () => { mistakes = ctx.predMiss || 0; nextBtn(ctx, 'Провери с опита →', () => move('june')); },
     });
     function move(which) {
       const T = which === 'june' ? { d: 172, lo: 162, hi: 182, name: '21 юни', season: 'лято' } : { d: 355, lo: 345, hi: 365, name: '21 декември', season: 'зима' };
@@ -261,6 +261,10 @@ export function mount(container, { onComplete }) {
             ctx.say(sunG, `21 декември: Северното полукълбо е <b>наклонено обратно</b>. Лъчите падат полегато (Слънцето е само на ${Math.round(s.alt)}° над хоризонта) и денят е кратък (≈ ${Math.round(s.hours)} ч). В България е <b>зима</b>, а в Австралия — лято.`, 'wide', 1.7);
             ctx.answer = null;
             ctx.scores[0] = stepScore(mistakes, 3);
+            compare(ctx, {
+              result: 'На 21 юни Северното полукълбо е наклонено към Слънцето, а на 21 декември — обратно. Лъчите падат различно и денят е с различна дължина.',
+              why: 'Земната ос е наклонена. Разстоянието до Слънцето се мени съвсем малко. Когато в България е зима, в Австралия е лято — по едно и също време.',
+            });
             nextBtn(ctx, 'Напред →', () => { readout.remove(); readout = null; step3(); });
           }
           return;
@@ -332,58 +336,61 @@ export function mount(container, { onComplete }) {
     view(ctx, [0.6, 0, 0], 5.6, { halfH: 3.5, elev: 0.7 });
     shell.task('<p>Понякога Слънцето, Луната и Земята застават <b>на една права линия</b>.</p>');
     let mistakes = 0;
-    const animTo = (phi, done) => {
-      const from = SB.phi; let k = 0;
-      const stop = stage.tick((dt) => {
-        k = Math.min(1, k + dt * 0.6);
-        SB.phi = from + (phi - from) * k; placeB();
-        if (k >= 1) { stop(); done(); }
-      });
+    // Решение 25: детето само мести Луната по орбитата (Слънцето и Земята стоят). „Провери“ показва
+    // в сцената какво се вижда: сянката на Луната пада или не пада върху Земята; Луната е в сянката на Земята или е осветена.
+    moonOrbit.rotation.x = 0;
+    const shadowOfMoon = () => {
+      // сянката на Луната сочи от Слънцето (то е вдясно) наляво; до Земята стига само когато Луната е на линията
+      umbra.position.set(moonB.position.x - (MR - ER2) / 2, 0, moonB.position.z);
+      umbra.visible = true;
+      spot.visible = angD(SB.phi, 0) <= 10;
     };
-    choice(ctx, {
-      q: 'Луната застава точно между Слънцето и Земята. Какво ще видят хората, върху които пада сянката на Луната?',
-      options: [
-        { t: 'Слънчево затъмнение: Луната закрива Слънцето.', ok: true, why: 'Да проверим!' },
-        { t: 'Лунно затъмнение', ok: false, why: 'При лунното затъмнение Луната е в сянката на Земята. Сега кое тяло хвърля сянка?' },
-        { t: 'Пълнолуние', ok: false, why: 'При пълнолуние Луната е зад Земята, а не между Земята и Слънцето.' },
-      ],
-      hint: 'Луната е отпред и закрива нещо.',
-      onRight: (m) => {
-        mistakes = m;
-        animTo(0, () => {
-          umbra.visible = spot.visible = true;
-          ctx.say(spot, '<b>Слънчево затъмнение.</b> Сянката на Луната пада върху малка част от Земята. Там денем за няколко минути става тъмно. <b>Никога не гледай Слънцето с очи без специални очила!</b>', 'wide', 0.5);
-          nextBtn(ctx, 'Още едно затъмнение →', lunar);
-        });
-      },
-    });
-    function lunar() {
-      ctx.clearTip();
-      umbra.visible = spot.visible = false;
-      shell.task('<p>Сега Луната ще мине зад Земята, точно на линията Слънце – Земя – Луна.</p>');
-      choice(ctx, {
-        q: 'При лунно затъмнение Луната попада в сянката на…',
-        options: [
-          { t: '…Земята', ok: true, why: 'Да проверим!' },
-          { t: '…Слънцето', ok: false, why: 'Слънцето свети. Може ли тяло, което свети, да хвърля сянка?' },
-          { t: '…облаците', ok: false, why: 'Облаците са близо до Земята. Чия огромна сянка стига до Луната?' },
-        ],
-        hint: 'Земята е между Слънцето и Луната.',
-        mistakes,
-        onRight: (m) => {
-          mistakes = m;
-          earthShadow.visible = true;
-          animTo(180, () => {
-            const stop = stage.tick((dt) => { SB.red = Math.min(1, SB.red + dt * 0.7); if (SB.red >= 1) stop(); });
-            ctx.say(moonB, '<b>Лунно затъмнение.</b> Луната е в сянката на Земята. Малко светлина се пречупва през въздуха около Земята и Луната става тъмночервена.', 'wide', 0.5);
-            nextBtn(ctx, 'Последен въпрос →', why);
-          });
-        },
+    const hideAll = () => { umbra.visible = spot.visible = earthShadow.visible = false; SB.red = 0; };
+    function place(T) {
+      ctx.answer = T.phi;
+      hideAll(); ctx.clearTip();
+      shell.task(`<p><b>${T.task}</b></p><p class="small">Светлината идва от Слънцето — отдясно. Мести само Луната.</p>
+        <label class="small">Луната по орбитата <input class="slider ep" type="range" min="0" max="359" step="1" value="${SB.phi}"></label>`);
+      const sl = container.querySelector('.ep');
+      sl.addEventListener('input', () => { SB.phi = +sl.value; placeB(); hideAll(); ctx.clearTip(); shell.msg(''); });
+      const c = shell.setControls('<div class="row"><button class="btn primary chk">Провери</button></div>');
+      c.querySelector('.chk').addEventListener('click', () => {
+        const atSun = angD(SB.phi, 0) <= 10, atBack = angD(SB.phi, 180) <= 10;
+        if (T.kind === 'solar') shadowOfMoon(); else earthShadow.visible = true;
+        if (atBack) SB.red = 1;
+        const ok = T.kind === 'solar' ? atSun : atBack;
+        if (ok) {
+          c.querySelector('.chk').disabled = true; sl.disabled = true;
+          ctx.say(T.kind === 'solar' ? spot : moonB, T.good, 'good wide', 0.5);
+          shell.msg('Вярно!', 'good');
+          T.next();
+          return;
+        }
+        mistakes++;
+        let what;
+        if (T.kind === 'solar') what = atBack ? 'Луната е в сянката на Земята и почервеня. Това е <b>лунно</b> затъмнение, а търсим слънчево.' : 'Сянката на Луната <b>не пада върху Земята</b>. От Земята Слънцето се вижда цяло.';
+        else what = atSun ? 'Сянката на Луната пада върху Земята. Това е <b>слънчево</b> затъмнение, а търсим лунно.' : 'Луната е <b>извън сянката на Земята</b>. Слънцето я осветява и тя свети както винаги.';
+        ctx.say(atSun && T.kind !== 'solar' ? spot : moonB, what, 'bad wide', 0.5);
+        if (atSun && T.kind !== 'solar') shadowOfMoon();
+        shell.msg(`Не е тук. Виж сцената.${mistakes >= 2 ? ' ' + T.hint : ''}`, 'bad');
       });
     }
+    place({
+      kind: 'solar', phi: 0,
+      task: 'Нареди Луната така, че да има слънчево затъмнение. Натисни „Провери“.',
+      hint: 'Подсказка: Луната трябва да е точно между Слънцето и Земята.',
+      good: '<b>Слънчево затъмнение.</b> Луната закрива Слънцето. Сянката ѝ пада върху малка част от Земята. Там денем за няколко минути става тъмно. <b>Никога не гледай Слънцето с очи без специални очила!</b>',
+      next: () => nextBtn(ctx, 'Още едно затъмнение →', () => place({
+        kind: 'lunar', phi: 180,
+        task: 'Сега нареди Луната така, че да има лунно затъмнение. Натисни „Провери“.',
+        hint: 'Подсказка: Земята трябва да е точно между Слънцето и Луната.',
+        good: '<b>Лунно затъмнение.</b> Луната е в сянката на Земята. Малко светлина се пречупва през въздуха около Земята и Луната става тъмночервена.',
+        next: () => { ctx.answer = null; nextBtn(ctx, 'Последен въпрос →', why); },
+      })),
+    });
     function why() {
       ctx.clearTip();
-      SB.red = 0; earthShadow.visible = false;
+      hideAll();
       moonOrbit.rotation.x = 0.2;
       SB.phi = 20; placeB();
       shell.task('<p>Новолуние и пълнолуние има всеки месец, а затъмненията са рядкост.</p><p class="small">Наклонът на лунната орбита в сцената е преувеличен. Истинският е около 5°.</p>');

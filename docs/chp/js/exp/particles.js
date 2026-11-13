@@ -2,6 +2,7 @@
 // Стъпки: опознай трите състояния → температура и движение → дифузия: студена и гореща вода → примери и предсказание.
 import { createStage, labelSprite, mat, cornerMenu, THREE, esc } from '../kit.js';
 import { createShell, stepScore } from './shell.js';
+import { compare } from './labkit.js';
 
 const STYLE = `
 .pt-list{margin:6px 0 0;padding-left:20px}.pt-list li{margin:2px 0}.pt-list li.done{color:#0d7a3a}
@@ -740,7 +741,9 @@ function build(container, { onComplete }, restart) {
     go.addEventListener('click', () => {
       go.remove();
       container.querySelectorAll('.pred .choice').forEach((b) => { b.disabled = true; });
-      if (pred !== 'hot') mistakes++;
+      // Отворена прогноза: опитът тръгва при всеки избор; грешната прогноза е 1 грешка.
+      const pick = { t: container.querySelector('.pred .choice.on').textContent, ok: pred === 'hot' };
+      if (!pick.ok) mistakes++;
       shell.msg('Гледай часовниците над чашите. Те показват времето в модела, а тук всичко е ускорено. В истинска чаша без разбъркване смесването трае много часове.', '');
       for (const s of Object.values(sides)) {
         s.drop.visible = true;
@@ -763,7 +766,8 @@ function build(container, { onComplete }, restart) {
           return;
         }
         raceDone = null;
-        shell.msg(pred === 'hot' ? 'Предсказа правилно! 🎉' : 'Предсказанието не позна — но опитът показа истината.', pred === 'hot' ? 'good' : 'bad');
+        container.querySelector('.pred .choice[data-v="hot"]').classList.add('right');
+        shell.msg(pick.ok ? 'Прогнозата ти се потвърди! Сега помисли защо.' : `Прогнозата ти беше: „${esc(pick.t)}“. Виж часовниците: в горещата вода стана по-бързо. Сега помисли защо.`, pick.ok ? 'good' : '');
         choiceBox(c, 'Защо в горещата вода стана по-бързо?', [
           'В горещата чаша има повече вода.',
           'Частиците на горещата вода се движат по-бързо и разнасят мастилото.',
@@ -773,7 +777,11 @@ function build(container, { onComplete }, restart) {
           2: 'Никой не е бъркал — смесването стана само.',
         }, () => {
           clearTip();
-          shell.msg('Вярно! Смесването на вещества само, без разбъркване, заради движението на частиците им се нарича дифузия. При по-висока температура тя е по-бърза. В истинска чаша с гореща вода има и течения. Те също разнасят мастилото.', 'good');
+          compare({ shell }, {
+            pick,
+            result: 'В горещата вода мастилото оцвети цялата вода по-бързо.',
+            why: 'Частиците на горещата вода се движат по-бързо. Смесването на вещества само, без разбъркване, заради движението на частиците им се нарича дифузия. При по-висока температура тя е по-бърза. В истинска чаша с гореща вода има и течения. Те също разнасят мастилото.',
+          });
           scores.push(stepScore(mistakes, 2));
           nextBtn(c, 'Напред →', step4);
         }, () => { mistakes++; });
@@ -911,11 +919,10 @@ function build(container, { onComplete }, restart) {
       }));
       go.addEventListener('click', () => {
         go.remove();
-        container.querySelectorAll('.pred2 .choice').forEach((b) => {
-          b.disabled = true;
-          if (b.dataset.v === 'gas') b.classList.add('right'); else if (b.classList.contains('on')) b.classList.add('wrong');
-        });
-        if (pred !== 'gas') mistakes++;
+        container.querySelectorAll('.pred2 .choice').forEach((b) => { b.disabled = true; });
+        // Отворена прогноза: опитът тръгва при всеки избор; грешната прогноза е 1 грешка.
+        const pick = { t: container.querySelector('.pred2 .choice.on').textContent, ok: pred === 'gas' };
+        if (!pick.ok) mistakes++;
         try { shell.stageEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) { /* няма значение */ }
         animate(0.5, (k) => { pc.position.set(0.2 * k, 0.3 + Math.sin(k * Math.PI) * 0.2 - 0.26 * k, 0); pc.rotation.z = -1.5 * k; });
         gasD.mesh.visible = true;
@@ -929,10 +936,15 @@ function build(container, { onComplete }, restart) {
         shell.msg('Гледай… И тук времето в модела е ускорено.', '');
         race2.onGas = () => later(1.5, () => {
           say(airBox, 'В газа частиците са <b>далеч</b> една от друга и се движат <b>бързо</b>. Затова дифузията в газовете е най-бърза.', 'wide good', 3.4);
-          shell.msg(pred === 'gas' ? 'Предсказа правилно! 🎉' : 'Предсказанието не позна — във въздуха стана много по-бързо.', pred === 'gas' ? 'good' : 'bad');
+          container.querySelector('.pred2 .choice[data-v="gas"]').classList.add('right');
+          const c3 = compare({ shell }, {
+            pick,
+            result: 'Във въздуха парфюмът се смеси много по-бързо, отколкото мастилото във водата.',
+            why: 'В газа частиците са далеч една от друга и се движат бързо. В течността са близо една до друга. Затова дифузията в газовете е най-бърза.',
+          });
           scores.push(stepScore(mistakes, 3));
-          const c3 = shell.setControls('<button class="btn primary">Виж резултата</button>');
-          c3.querySelector('button').addEventListener('click', () => {
+          c3.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary fin">Виж резултата</button></div>');
+          c3.querySelector('.fin').addEventListener('click', () => {
             clearTip();
             clearPins();
             const ratio = scores.reduce((a, b) => a + b, 0) / scores.length;

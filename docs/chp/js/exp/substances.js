@@ -1,7 +1,7 @@
 // 5.2.1 „Вещества и смеси“ — лабораторна маса с проби и стъклена кутия-модел с движещи се частици.
 // Стъпки: опознай → вещество или смес по модела (опит) → еднородни и нееднородни смеси, състояния → свойства и приложение.
 import { labelSprite, mat, addHitBox, THREE } from '../kit.js';
-import { scaffold, explore, choice, nextBtn, finishBtn, labRoom, glass, view, stepScore } from './labkit.js';
+import { scaffold, explore, choice, predict, compare, nextBtn, finishBtn, labRoom, glass, view, stepScore } from './labkit.js';
 import { sortTask } from './labtasks.js';
 
 const BOX = { x: 3.6, s: 1.7, y: 0.95 }; // кутията-модел (центърът е на y = BOX.y)
@@ -186,17 +186,18 @@ export function mount(container, { onComplete }) {
     view(ctx, [BOX.x - 0.6, 1.0, -0.3], 2.0, { halfH: 1.4, elev: 0.3 });
     shell.task('<p><b>Чистото вещество</b> е изградено от еднакви частици. <b>Сместа</b> е съставена от две или повече вещества.</p>');
     let mistakes = 0;
-    choice(ctx, {
+    predict(ctx, {
       q: 'Разтваряме сол във вода. Какво ще получим: чисто вещество или смес?',
       options: [
-        { t: 'Смес', ok: true, why: 'Да проверим с модела! Сложи частиците в кутията.' },
-        { t: 'Чисто вещество', ok: false, why: 'Солта не изчезва — водата става солена. Колко вещества има тогава в чашата?' },
-        { t: 'Нито едното, нито другото', ok: false, why: 'Всичко около нас е или чисто вещество, или смес. Колко вещества смесихме?' },
+        { t: 'Смес', ok: true },
+        { t: 'Чисто вещество', ok: false },
+        { t: 'Нито едното, нито другото', ok: false },
       ],
-      hint: 'Брой веществата: вода и сол.',
-      onRight: (m) => { mistakes = m; build(); },
+      note: 'Запомни прогнозата си. Сега провери с модела!',
+      onPick: () => { mistakes = ctx.predMiss; setTimeout(build, 900); },
     });
     function build() {
+      shell.msg('');
       const c = shell.setControls('<div class="row"><button class="btn primary addw">🔵 Добави вода</button><button class="btn adds" disabled>⚪ Добави сол</button></div>');
       c.querySelector('.addw').addEventListener('click', () => {
         c.querySelector('.addw').disabled = true; c.querySelector('.adds').disabled = false;
@@ -206,7 +207,12 @@ export function mount(container, { onComplete }) {
       c.querySelector('.adds').addEventListener('click', () => {
         c.querySelector('.adds').disabled = true;
         setModel('salty', 'смес: вода + сол');
-        ctx.say(boxG, 'Сега частиците са от <b>два вида</b>: това е <b>смес</b>. Солената вода изглежда еднаква навсякъде, но е смес. Тук солта е показана опростено.', 'wide', 1.4);
+        const p = ctx.prediction;
+        ctx.say(boxG, `${p.ok ? '' : `Прогнозата ти: <b>${p.t.toLowerCase()}</b>.<br>`}Сега частиците са от <b>два вида</b>: това е <b>смес</b>. Солената вода изглежда еднаква навсякъде, но е смес. Тук солта е показана опростено.`, 'wide', 1.4);
+        compare(ctx, {
+          result: 'В кутията има частици от два вида: вода и сол.',
+          why: 'Солта не изчезва във водата — водата става солена. Две вещества заедно са смес.',
+        });
         nextBtn(ctx, 'Разпознай моделите →', sortModels);
       }, { once: true });
     }

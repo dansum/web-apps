@@ -245,6 +245,12 @@ main { max-width: 1180px; margin: 0 auto; padding: 16px; min-height: 70vh; }
 .choice.on { border-color: var(--blue); background: #eef7f4; }
 .choice.right { border-color: var(--green); background: #e9f8ef; }
 .choice.wrong { border-color: var(--red); background: #fdeceb; }
+.cmp { display: grid; gap: 6px; padding: 10px 12px; border-radius: 8px; border: 2px solid var(--line); background: #fff; }
+.cmp p { margin: 0; }
+.cmp.ok { border-color: var(--green); background: #e9f8ef; }
+.cmp.miss { border-color: #e0b44c; background: #fff8e6; }
+.cmp-l { font-weight: 700; }
+.cmp-learn { color: #6b5a1e; font-size: .95em; }
 .choice .mark { color: var(--blue); font-size: 1.1rem; }
 .pool { display: flex; flex-wrap: wrap; gap: 8px; min-height: 44px; padding: 8px; border: 2px dashed var(--line); border-radius: 8px; }
 .chip { padding: 6px 10px; border-radius: 999px; background: #eef7f4; border: 2px solid #bfe9dc; cursor: grab; user-select: none; font-weight: 700; }

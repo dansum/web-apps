@@ -2,7 +2,7 @@
 // чаша със стърготини над спиртна лампа, стая с радиатор и рафт с примери за преходите.
 // Стъпки: опознай → кой прът провежда топлината (опит) → конвекция в чаша и в стая → преходите около нас.
 import { labelSprite, mat, addHitBox, THREE } from '../kit.js';
-import { scaffold, explore, choice, nextBtn, finishBtn, labRoom, glass, view, stepScore } from './labkit.js';
+import { scaffold, explore, choice, predict, compare, nextBtn, finishBtn, labRoom, glass, view, stepScore } from './labkit.js';
 import { sortTask, orderTask } from './labtasks.js';
 
 const SAFE = '<p class="warn">⚠ Гореща вода и спиртна лампа — <b>само с възрастен</b>.</p>';
@@ -429,15 +429,14 @@ export function mount(container, { onComplete }) {
     view(ctx, [TANK_X + 2.1, 0.5, 0.2], 3.3, { halfH: 1.4, elev: 0.55 });
     shell.task(`<p>Единият край на всяка пръчка ще бъде в <b>гореща вода</b>. Топлината тръгва по пръчката. Където стигне, восъкът се топи и кабарчето пада.</p>${SAFE}`);
     let mistakes = 0;
-    choice(ctx, {
+    predict(ctx, {
       q: 'От коя пръчка първо ще падне кабарче?',
       options: [
-        { t: 'От медната', ok: true, why: 'Да проверим! Налей горещата вода.' },
-        { t: 'От дървената', ok: false, why: 'Дървената лъжица в горещата супа остава ли студена в края?' },
-        { t: 'От всички едновременно', ok: false, why: 'Пръчките са от различни материали. Дали провеждат топлината еднакво?' },
+        { t: 'От медната', ok: true },
+        { t: 'От дървената', ok: false },
+        { t: 'От всички едновременно', ok: false },
       ],
-      hint: 'Металите провеждат топлината по-добре от дървото.',
-      onRight: (m) => { mistakes = m; pourBtn(); },
+      onPick: () => { mistakes = ctx.predMiss; pourBtn(); },
     });
     function pourBtn() {
       const c = shell.controls;
@@ -458,8 +457,13 @@ export function mount(container, { onComplete }) {
             stop(); H.run = false;
             tags.forEach((b) => b.remove());
             rods.forEach((r) => { r.tag.visible = true; });
-            ctx.say(rodsAt, 'Първо паднаха кабарчетата от медта, после от алуминия и най-накрая от стоманата. От дървото не падна нито едно.', 'good wide', 0.9);
-            order();
+            const p = ctx.prediction;
+            ctx.say(rodsAt, `${p.ok ? '' : `Прогнозата ти: <b>${p.t.toLowerCase()}</b>.<br>`}Първо паднаха кабарчетата от медта, после от алуминия и най-накрая от стоманата. От дървото не падна нито едно.`, p.ok ? 'good wide' : 'wide', 0.9);
+            compare(ctx, {
+              result: 'Първо падна кабарче от медната пръчка. От дървената не падна нито едно.',
+              why: 'Металите провеждат топлината добре, а медта — най-добре от тях. Дървото е лош проводник на топлина.',
+            });
+            nextBtn(ctx, 'Подреди →', order);
           }
         });
       }, { once: true });
@@ -489,15 +493,14 @@ export function mount(container, { onComplete }) {
     view(ctx, [BK.x, 1.15, 0], 1.4, { halfH: 1.05, elev: 0.3 });
     shell.task(`<p>Стърготините лежат на дъното. Спиртната лампа е под <b>левия край</b> на чашата.</p>${SAFE}`);
     let mistakes = 0;
-    choice(ctx, {
+    predict(ctx, {
       q: 'Къде водата ще тръгне нагоре, когато запалим лампата?',
       options: [
-        { t: 'Над пламъка', ok: true, why: 'Да проверим! Запали лампата и гледай стърготините.' },
-        { t: 'В десния край, далеч от пламъка', ok: false, why: 'Коя вода става по-лека: топлата или студената?' },
-        { t: 'Водата няма да се движи', ok: false, why: 'Нагрятата вода се разширява. Какво прави тогава?' },
+        { t: 'Над пламъка', ok: true },
+        { t: 'В десния край, далеч от пламъка', ok: false },
+        { t: 'Водата няма да се движи', ok: false },
       ],
-      hint: 'Топлата вода е по-рядка: при същия обем е по-лека. Затова се издига.',
-      onRight: (m) => { mistakes = m; light(); },
+      onPick: () => { mistakes = ctx.predMiss; light(); },
     });
     function light() {
       const c = shell.controls;
@@ -506,9 +509,14 @@ export function mount(container, { onComplete }) {
         c.querySelector('.fire').disabled = true;
         flame.visible = true;
         setTimeout(() => {
-          ctx.say(bkG, 'Над пламъка водата се затопля и <b>се издига</b>. Горе изстива и <b>слиза</b> от другата страна. Водата се движи в кръг и пренася топлината. Това е <b>конвекция</b>.', 'wide', 2.2);
+          const p = ctx.prediction;
+          ctx.say(bkG, `${p.ok ? '' : `Прогнозата ти: <b>${p.t.toLowerCase()}</b>.<br>`}Над пламъка водата се затопля и <b>се издига</b>. Горе изстива и <b>слиза</b> от другата страна. Водата се движи в кръг и пренася топлината. Това е <b>конвекция</b>.`, 'wide', 2.2);
           shell.task('<p>Сега <b>премести лампата в средата</b> и виж как се движат стърготините.</p>');
-          const cc = shell.setControls('<div class="row"><button class="btn mid">⬌ Лампата в средата</button></div>');
+          const cc = compare(ctx, {
+            result: 'Стърготините тръгнаха нагоре над пламъка и слязоха от другата страна.',
+            why: 'Топлата вода е по-рядка: при същия обем е по-лека. Затова се издига, а по-студената слиза.',
+          });
+          cc.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn mid">⬌ Лампата в средата</button></div>');
           cc.querySelector('.mid').addEventListener('click', () => {
             cc.querySelector('.mid').disabled = true;
             placeLamp(0);

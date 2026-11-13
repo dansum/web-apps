@@ -2,7 +2,7 @@
 // сравнение на планетите, космонавтиката, нощното небе с Голямата и Малката мечка и Полярната звезда.
 // Стъпки: опознай → притеглянето държи планетите → земна група и газови гиганти, космонавтика → звездите.
 import { labelSprite, addHitBox, THREE } from '../kit.js';
-import { scaffold, explore, choice, nextBtn, finishBtn, view, makeArrow, stepScore } from './labkit.js';
+import { scaffold, explore, choice, predict, compare, nextBtn, finishBtn, view, makeArrow, stepScore } from './labkit.js';
 import { sortTask, orderTask } from './labtasks.js';
 import { earthTex, cloudsTex, rockyTex, bandsTex, ringTex, canvasTex, glowTex } from './solar.js';
 
@@ -243,15 +243,14 @@ export function mount(container, { onComplete }) {
     ctx.say(earth.g, '<b>Оранжевата</b> стрелка: Слънцето притегля Земята. <b>Синята</b>: накъде се движи Земята в този миг.', 'wide', 0.6);
     shell.task('<p>Земята се движи бързо, а Слънцето непрекъснато я притегля към себе си. Затова Земята обикаля в кръг.</p>');
     let mistakes = 0;
-    choice(ctx, {
+    predict(ctx, {
       q: 'Какво ще стане със Земята, ако Слънцето изведнъж спре да я притегля?',
       options: [
-        { t: 'Ще продължи по права линия и ще отлети далеч от Слънцето.', ok: true, why: 'Да проверим! Изключи притеглянето.' },
-        { t: 'Ще падне върху Слънцето.', ok: false, why: 'Падането към Слънцето се дължи точно на притеглянето. Ако го няма?' },
-        { t: 'Ще продължи да обикаля по същата орбита.', ok: false, why: 'Какво я кара да завива, ако нищо не я дърпа към Слънцето?' },
+        { t: 'Ще продължи по права линия и ще отлети далеч от Слънцето.', ok: true },
+        { t: 'Ще падне върху Слънцето.', ok: false },
+        { t: 'Ще продължи да обикаля по същата орбита.', ok: false },
       ],
-      hint: 'Гледай синята стрелка: натам се движи Земята.',
-      onRight: (m) => { mistakes = m; off(); },
+      onPick: () => { mistakes = ctx.predMiss; off(); },
     });
     function off() {
       const c = shell.controls;
@@ -264,8 +263,13 @@ export function mount(container, { onComplete }) {
         G.free = { p0, v, t: 0 };
         trail.visible = true;
         setTimeout(() => {
-          ctx.say(earth.g, 'Без притегляне Земята продължава <b>по права линия</b> и се отдалечава от Слънцето.', 'wide', 0.6);
-          const cc = shell.setControls('<div class="row"><button class="btn back">↺ Върни притеглянето</button></div>');
+          const p = ctx.prediction;
+          ctx.say(earth.g, `${p.ok ? '' : `Прогнозата ти: <b>${p.t.toLowerCase().replace(/\.$/, '')}</b>.<br>`}Без притегляне Земята продължава <b>по права линия</b> и се отдалечава от Слънцето.`, 'wide', 0.6);
+          const cc = compare(ctx, {
+            result: 'Земята полетя по права линия натам, накъдето сочеше синята стрелка, и се отдалечи от Слънцето.',
+            why: 'Притеглянето на Слънцето я кара да завива. Без него нищо не я дърпа встрани от правия път.',
+          });
+          cc.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn back">↺ Върни притеглянето</button></div>');
           cc.querySelector('.back').addEventListener('click', () => {
             ctx.clearTip();
             G.free = null; trail.visible = false;

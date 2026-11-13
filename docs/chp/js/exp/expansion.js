@@ -1,7 +1,7 @@
 // 5.1.3 „Температура, топлина, разширение“ — релси с процеп, термометър, топче и халка, жици.
 // Стъпки: опознай → релсите при жега и студ (опит) → топче, халка и термометър (приложи) → предскажи.
 import { labelSprite, mat, addHitBox, THREE } from '../kit.js';
-import { scaffold, explore, choice, nextBtn, finishBtn, labRoom, view, fmt, stepScore } from './labkit.js';
+import { scaffold, explore, choice, predict, compare, nextBtn, finishBtn, labRoom, view, fmt, stepScore } from './labkit.js';
 
 const T0 = 10;          // температура, при която процепът е „нормален“
 const GAP0 = 0.12;      // процеп при T0 (в сцената)
@@ -265,15 +265,14 @@ export function mount(container, { onComplete }) {
       return sl;
     };
     shell.task('<p>Днес е <b>+10 °C</b>. Виж червените кръгчета: там са процепите между релсите.</p>');
-    choice(ctx, {
+    predict(ctx, {
       q: 'Какво ще стане с процепите в горещ летен ден?',
       options: [
-        { t: 'Ще се смалят', ok: true, why: 'Да проверим! Нагрей с плъзгача.' },
-        { t: 'Ще се увеличат', ok: false, why: 'При затопляне металът се разширява или се свива?' },
-        { t: 'Няма да се променят', ok: false, why: 'Металните релси реагират на топлината. Как?' },
+        { t: 'Ще се смалят', ok: true },
+        { t: 'Ще се увеличат', ok: false },
+        { t: 'Няма да се променят', ok: false },
       ],
-      hint: 'Телата се разширяват при нагряване.',
-      onRight: (m) => { mistakes = m; heat(); },
+      onPick: () => { mistakes = ctx.predMiss; setTimeout(heat, 900); },
     });
     function heat() {
       const sl = slider('<p><b>Нагрей до +35 °C или повече</b> и гледай процепите.</p>');
@@ -281,8 +280,12 @@ export function mount(container, { onComplete }) {
       const on = () => {
         if (S.T >= 35) {
           sl.removeEventListener('input', on);
-          shell.msg('Релсите се удължиха и процепите почти изчезнаха.', 'good');
-          nextBtn(ctx, 'Сега студ →', cold);
+          ctx.say(gapMarks[0], ctx.prediction.ok ? 'Процепът се смали.' : `Прогнозата ти: <b>${ctx.prediction.t.toLowerCase()}</b>.<br>Виж: процепът се смали.`, ctx.prediction.ok ? 'good' : 'wide', 0.35);
+          compare(ctx, {
+            result: 'Релсите се удължиха и процепите почти изчезнаха.',
+            why: 'При затопляне металът се разширява. Релсите стават по-дълги и запълват процепите.',
+          });
+          nextBtn(ctx, 'Сега студ →', () => { ctx.clearTip(); cold(); });
         }
       };
       sl.addEventListener('input', on);
@@ -459,23 +462,27 @@ export function mount(container, { onComplete }) {
     view(ctx, [5.05, 2.2, -1.5], 1.6, { halfH: 1.4, elev: 0.15 });
     shell.task('<p>Между стълбовете има метални жици. Сега е зима (−10 °C).</p>');
     let mistakes = 0;
-    choice(ctx, {
+    predict(ctx, {
       q: 'Кога жиците провисват повече?',
       options: [
-        { t: 'През лятото', ok: true, why: 'Да проверим! Ще стане лято.' },
-        { t: 'През зимата', ok: false, why: 'През зимата металът се свива и се опъва. Кога се удължава?' },
-        { t: 'Еднакво през цялата година', ok: false, why: 'Металните жици реагират на температурата.' },
+        { t: 'През лятото', ok: true },
+        { t: 'През зимата', ok: false },
+        { t: 'Еднакво през цялата година', ok: false },
       ],
-      hint: 'Когато е топло, жицата се удължава.',
-      onRight: (m) => {
-        mistakes = m;
+      onPick: () => {
+        mistakes = ctx.predMiss;
+        ctx.say(wiresAt, 'Зима, −10 °C: жиците са опънати.', 'tag', 1.2);
         let T = -10;
         const stop = stage.tick((dt) => {
           T = Math.min(35, T + dt * 22);
           setT(Math.round(T));
           if (T >= 35) {
             stop();
-            ctx.say(wiresAt, 'При +35 °C жиците са по-дълги и провисват повече.', 'good', 1.2);
+            ctx.say(wiresAt, 'Лято, +35 °C: жиците са по-дълги и провисват повече.', 'good', 1.2);
+            compare(ctx, {
+              result: 'През лятото жиците провиснаха повече, отколкото през зимата.',
+              why: 'В топлото металът се разширява и жицата се удължава. В студа се свива и се опъва.',
+            });
             nextBtn(ctx, 'Още една задача →', jar);
           }
         });

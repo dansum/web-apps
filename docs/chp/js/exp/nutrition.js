@@ -2,7 +2,7 @@
 // Стъпки: опознай → самостойно хранене: какво влиза в листа и какво излиза → несамостойно хранене: пътят на храната до клетките
 // → сравни и предскажи.
 import { labelSprite, mat, addHitBox, THREE } from '../kit.js';
-import { scaffold, explore, choice, nextBtn, finishBtn, labRoom, view, stepScore } from './labkit.js';
+import { scaffold, predict, compare, explore, choice, nextBtn, finishBtn, labRoom, view, stepScore } from './labkit.js';
 import { sortTask, orderTask } from './labtasks.js';
 import { curveOf, flowDots, glassMat, organMat } from './anatomy.js';
 
@@ -124,7 +124,7 @@ export function mount(container, { onComplete }) {
       bolus.scale.setScalar(1 - R.trip * 0.6);
       gutM.emissiveIntensity = R.trip > 0.45 && R.trip < 0.9 ? 0.5 : 0;
       stomach.material.emissiveIntensity = R.trip > 0.3 && R.trip < 0.5 ? 0.5 : 0;
-      if (R.trip > 0.5) nutri.visible = true;
+      if (R.trip > 0.5 && R.food) nutri.visible = true;
     }
     if (nutri.visible) { nutri.userData.update(dt); cells.children.forEach((c, i) => { c.material.emissiveIntensity = 0.3 + Math.sin(t * 3 + i) * 0.2; }); }
   });
@@ -158,15 +158,15 @@ export function mount(container, { onComplete }) {
     view(ctx, [PX - 0.3, 1.8, 0], 2.4, { halfH: 2.1, elev: 0.25 });
     shell.task('<p>Растението расте: стъблото и листата му стават все повече. Откъде взема веществата?</p>');
     let mistakes = 0;
-    choice(ctx, {
+    // Решение 21: отворена прогноза — опитът тръгва с каквото детето е избрало, после сравнение.
+    predict(ctx, {
       q: 'От какво растението изгражда веществата, от които расте?',
       options: [
-        { t: 'Изгражда ги в листата от вода и въглероден диоксид с помощта на светлината. От почвата взема и минерални соли.', ok: true, why: 'Да проверим! Дай на листа каквото му трябва.' },
-        { t: 'Яде готова храна от почвата.', ok: false, why: 'От почвата корените поемат вода и минерални соли. Има ли там готова храна за растението?' },
-        { t: 'Взема ги от въздуха нощем.', ok: false, why: 'Какво е нужно на зеления лист, за да работи? Свети ли нощем?' },
+        { t: 'Изгражда ги в листата от вода и въглероден диоксид с помощта на светлината. От почвата взема и минерални соли.', ok: true },
+        { t: 'Яде готова храна от почвата.', ok: false },
+        { t: 'Взема ги от въздуха нощем.', ok: false },
       ],
-      hint: 'Помисли какво поемат корените и какво листата.',
-      onRight: (m) => { mistakes = m; supply(); },
+      onPick: () => { mistakes = ctx.predMiss || 0; nextBtn(ctx, 'Провери с опита →', supply); },
     });
     function supply() {
       shell.task('<p>Дай на листа всичко, което му трябва за <b>фотосинтеза</b>. Внимавай: едно от нещата не е нужно.</p>');
@@ -192,20 +192,27 @@ export function mount(container, { onComplete }) {
           setTimeout(() => {
             P.make = true;
             ctx.say(leafAt, 'Листът изгражда <b>органични вещества</b> (оранжево): те отиват към стъблото и корените. Навън излиза <b>кислород</b> (бяло).', 'wide', 0.5);
-            choice(ctx, {
-              q: 'Какво отделя растението при фотосинтезата?',
-              options: [
-                { t: 'Кислород', ok: true, why: 'Вярно! Кислородът, който дишаме, идва от фотосинтезата.' },
-                { t: 'Въглероден диоксид', ok: false, why: 'Въглеродният диоксид влезе в листа. Какво излезе навън?' },
-                { t: 'Минерални соли', ok: false, why: 'Солите идват от почвата. Виж белите точки, които излизат от листа.' },
-              ],
-              hint: 'Белите точки.',
-              mistakes,
-              onRight: (m) => { ctx.scores[0] = stepScore(m, 3); nextBtn(ctx, 'Напред →', step3); },
+            compare(ctx, {
+              result: 'Листът започна да прави органични вещества едва когато получи вода, въглероден диоксид и светлина. Готовата храна от почвата не му трябваше.',
+              why: 'Растението се храни самостойно: прави си храната в листата чрез фотосинтеза. От почвата взема само вода и минерални соли.',
             });
+            nextBtn(ctx, 'Напред →', ask);
           }, 1200);
         }
       }));
+      function ask() {
+        choice(ctx, {
+          q: 'Какво отделя растението при фотосинтезата?',
+          options: [
+            { t: 'Кислород', ok: true, why: 'Вярно! Кислородът, който дишаме, идва от фотосинтезата.' },
+            { t: 'Въглероден диоксид', ok: false, why: 'Въглеродният диоксид влезе в листа. Какво излезе навън?' },
+            { t: 'Минерални соли', ok: false, why: 'Солите идват от почвата. Виж белите точки, които излизат от листа.' },
+          ],
+          hint: 'Белите точки.',
+          mistakes,
+          onRight: (m) => { ctx.scores[0] = stepScore(m, 3); nextBtn(ctx, 'Напред →', step3); },
+        });
+      }
     }
   }
 
@@ -214,11 +221,46 @@ export function mount(container, { onComplete }) {
     shell.step(2);
     ctx.clearTip();
     view(ctx, [RX + 0.3, 1.0, 0], 2.1, { halfH: 1.3, elev: 0.2 });
-    shell.task('<p>Заекът се храни <b>несамостойно</b>: яде готова храна. Проследи какво става с нея.</p>');
-    const c = shell.setControls('<div class="row"><button class="btn primary feed">🌿 Нахрани заека</button></div>');
-    c.querySelector('.feed').addEventListener('click', () => {
-      c.querySelector('.feed').disabled = true;
-      R.trip = 0;
+    shell.task('<p>Заекът се храни <b>несамостойно</b>: яде готова храна. <b>Избери какво да му дадеш</b> и виж какво става.</p>');
+    // Решение 24: три действия с различни последствия в сцената. Само с храната продължаваме нататък.
+    R.trip = -1; R.food = false; nutri.visible = false; bolus.visible = false;
+    const pale = (on) => cells.children.forEach((x) => { x.material.color.set(on ? 0xb0a8ac : 0xf8bbd0); x.material.emissiveIntensity = 0; });
+    pale(false);
+    const c = shell.setControls(`<div class="choices">
+      <button class="choice feed" data-a="food">🥕 Дай морков</button>
+      <button class="choice feed-w" data-a="water">💧 Дай само вода</button>
+      <button class="choice feed-n" data-a="none">🚫 Не давай храна</button></div><p class="small fd-res"></p>`);
+    const res = c.querySelector('.fd-res');
+    let busy = false;
+    c.querySelectorAll('.choice').forEach((b) => b.addEventListener('click', () => {
+      if (busy || b.disabled) return;
+      const a = b.dataset.a;
+      c.querySelectorAll('.choice').forEach((x) => x.classList.remove('on'));
+      b.classList.add('on');
+      if (a === 'food') return feed(b);
+      busy = true;
+      ctx.clearTip(); nutri.visible = false; R.food = false;
+      if (a === 'water') {
+        bolus.material.color.set(0x4fc3f7); R.trip = 0;
+        setTimeout(() => {
+          pale(true);
+          ctx.say(cellsAt, '💧 Водата е нужна на тялото, но не е храна. В нея няма органични вещества. До клетките не стигат хранителни вещества (няма оранжеви точки).', 'wide bad', 0.3);
+          res.innerHTML = '<b>Само вода:</b> в стомаха няма храна за смилане. Ако заекът дълго пие само вода, той отслабва.';
+          busy = false;
+        }, 4600);
+      } else {
+        R.trip = -1; bolus.visible = false; pale(true);
+        ctx.say(stomach, '🚫 Стомахът и червата са празни. В кръвта не идват хранителни вещества.', 'wide bad', 0.3);
+        res.innerHTML = '<b>Без храна:</b> клетките не получават вещества за енергия и растеж. Ако това трае дълго, заекът отслабва.';
+        setTimeout(() => { busy = false; }, 1200);
+      }
+    }));
+    function feed(b) {
+      busy = true;
+      c.querySelectorAll('.choice').forEach((x) => { x.disabled = true; });
+      ctx.clearTip(); pale(false); res.textContent = '';
+      bolus.material.color.set(0xff8a3d);
+      R.food = true; R.trip = 0;
       setTimeout(() => ctx.say(stomach, 'Храната се смила в стомаха и в червата.', 'tag', 0.3), 1800);
       setTimeout(() => {
         ctx.say(cellsAt, 'Хранителните вещества минават от червата в <b>кръвта</b>. Кръвта ги носи до всички <b>клетки</b> в тялото.', 'wide', 0.3);
@@ -246,7 +288,7 @@ export function mount(container, { onComplete }) {
           },
         });
       }, 4800);
-    }, { once: true });
+    }
   }
 
   // ---------- 4. Сравни и предскажи ----------
@@ -269,20 +311,28 @@ export function mount(container, { onComplete }) {
         P.light = false; P.make = false;
         view(ctx, [PX - 0.3, 1.8, 0], 2.4, { halfH: 2.1, elev: 0.25 });
         shell.task('<p>Предскажи.</p>');
-        choice(ctx, {
+        predict(ctx, {
           q: 'Растението остава две седмици в пълна тъмнина. Какво ще стане?',
           options: [
-            { t: 'Ще пожълтее и ще отслабне: без светлина не може да си прави храна.', ok: true, why: 'Вярно! Без храна организмите не могат да растат и да живеят.' },
-            { t: 'Ще расте по-бързо, защото ще си почива.', ok: false, why: 'Какво е нужно на листата, за да правят храна?' },
-            { t: 'Нищо няма да се промени, щом има вода.', ok: false, why: 'Водата е само едно от нещата. Какво още е нужно?' },
+            { t: 'Ще пожълтее и ще отслабне: без светлина не може да си прави храна.', ok: true },
+            { t: 'Ще расте по-бързо, защото ще си почива.', ok: false },
+            { t: 'Нищо няма да се промени, щом има вода.', ok: false },
           ],
-          hint: 'Спомни си трите неща за фотосинтезата.',
-          mistakes: m,
-          onRight: (m2) => {
-            leaves.forEach((l) => l.material.color.set(0xc0ca33));
-            setTimeout(() => leaves.forEach((l) => l.material.color.set(0x43a047)), 2500);
-            ctx.scores[2] = stepScore(m2, 3);
-            finishBtn(ctx, onComplete, restart);
+          onPick: () => {
+            nextBtn(ctx, '🌑 Две седмици в тъмнина', () => {
+              // В сцената листата пожълтяват — така детето вижда резултата, каквато и да е прогнозата.
+              leaves.forEach((l) => l.material.color.set(0xc0ca33));
+              ctx.say(leafAt, 'Без светлина листата не правят храна. Растението пожълтя и отслабна.', 'wide', 0.5);
+              setTimeout(() => {
+                compare(ctx, {
+                  result: 'Растението пожълтя и отслабна.',
+                  why: 'Без светлина няма фотосинтеза. Растението не може да си прави храна, а без храна не може да расте и да живее.',
+                });
+                leaves.forEach((l) => l.material.color.set(0x43a047));
+                ctx.scores[2] = stepScore(m + (ctx.predMiss || 0), 3);
+                finishBtn(ctx, onComplete, restart);
+              }, 2500);
+            });
           },
         });
       },

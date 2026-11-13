@@ -1,7 +1,8 @@
 // 5.3.4 „Отделяне“ — растение с найлонова торбичка, есенно дърво и схема на бозайник с бъбреци, бели дробове и кожа (не в мащаб).
-// Стъпки: опознай → какво отделят растенията (опит с торбичката, листопад) → отделяне при бозайника → ако отделянето спре.
+// Стъпки: опознай → какво отделят растенията (опит с торбичката, листопад) → отделяне при бозайника →
+// ако отделянето спре (прогноза и три действия с различни последствия в схемата: много вода, жега, спрени бъбреци).
 import { labelSprite, mat, addHitBox, THREE } from '../kit.js';
-import { scaffold, explore, choice, nextBtn, finishBtn, labRoom, view, stepScore } from './labkit.js';
+import { scaffold, explore, choice, predict, compare, nextBtn, finishBtn, labRoom, view, stepScore } from './labkit.js';
 import { sortTask, orderTask } from './labtasks.js';
 import { curveOf, flowDots, glassMat, organMat } from './anatomy.js';
 
@@ -82,7 +83,7 @@ export function mount(container, { onComplete }) {
   const kidAt = anchor([-0.2, 1.3, 0.25]); const lungAt = anchor([0.75, 1.3, 0.2]); const skinAt = anchor([0.0, 1.7, 0.2]); const vesAt = anchor([0.5, 0.8, 0.3]);
   kidAt.userData.pickId = 'kidney'; lungAt.userData.pickId = 'lungs'; skinAt.userData.pickId = 'skin'; vesAt.userData.pickId = 'vessel';
   for (const [o, s] of [[kidAt, 0.3], [lungAt, 0.35], [skinAt, 0.3], [vesAt, 0.25]]) o.add(new THREE.Mesh(new THREE.SphereGeometry(s, 8, 6), new THREE.MeshBasicMaterial({ visible: false })));
-  const B = { stop: false, dirty: 0 };
+  const B = { stop: false, dirty: 0, mode: '' }; // mode: '' | 'water' (пие много вода) | 'heat' (горещ ден)
 
   stage.tick((dt, t) => {
     T.wet += (T.wetT - T.wet) * Math.min(1, dt * 0.7);
@@ -96,23 +97,25 @@ export function mount(container, { onComplete }) {
       else if (!A.on) { l.position.copy(u.home); l.rotation.z = Math.sin(t + u.delay) * 0.2; }
     }
     waste.userData.update(dt);
-    urine.visible = !B.stop; if (urine.visible) urine.userData.update(dt);
+    urine.visible = !B.stop; if (urine.visible) urine.userData.update(dt, B.mode === 'water' ? 2.6 : 1);
+    if (B.mode === 'water') urine.material.color.setHex(0xfff59d); else urine.material.color.setHex(0xfbc02d);
     if (co2.visible) co2.userData.update(dt);
     B.dirty += ((B.stop ? 1 : 0) - B.dirty) * Math.min(1, dt * 0.5);
     waste.material.color.setRGB(0.99, 0.85 - B.dirty * 0.35, 0.21 - B.dirty * 0.1);
     waste2.visible = B.dirty > 0.25; if (waste2.visible) waste2.userData.update(dt);
     cells.children.forEach((c, i) => c.material.color.setRGB(0.97 - B.dirty * 0.3, 0.73 - B.dirty * 0.25, 0.82 - B.dirty * 0.4 + Math.sin(t * 3 + i) * 0.02));
     kidneys.forEach((k) => { k.material.emissiveIntensity = B.stop ? 0 : 0.15 + Math.sin(t * 3) * 0.1; });
-    bladder.scale.setScalar(1 + ((t * 0.08) % 0.4));
+    bladder.scale.setScalar(1 + ((t * (B.mode === 'water' ? 0.2 : 0.08)) % 0.4));
     const br = Math.sin(t * 2.4); lungs.forEach((l) => l.scale.set(1.2 + br * 0.07, 0.9 + br * 0.05, 0.7));
-    sweat.forEach((d) => { const k = (d.userData.k + t * 0.15) % 1; d.position.y = 1.68 + k * 0.05; d.material.opacity = 1; d.scale.setScalar(0.5 + k); });
+    const sw = B.mode === 'heat' ? 1.9 : 1;
+    sweat.forEach((d) => { const k = (d.userData.k + t * 0.15 * sw) % 1; d.position.y = 1.68 + k * 0.05 * sw; d.material.opacity = 1; d.scale.setScalar((0.5 + k) * sw); });
   });
 
   // ---------- 1. Опознай ----------
   function step1() {
     shell.step(0);
     ctx.clearTip();
-    T.wet = 0; T.wetT = 0; A.on = false; A.t = 0; B.stop = false; B.dirty = 0; co2.visible = false;
+    T.wet = 0; T.wetT = 0; A.on = false; A.t = 0; B.stop = false; B.dirty = 0; B.mode = ''; co2.visible = false;
     view(ctx, [-1.0, 1.1, -0.2], 5.8, { halfH: 2.1 });
     explore(ctx, {
       title: 'Разгледай',
@@ -135,15 +138,14 @@ export function mount(container, { onComplete }) {
     view(ctx, [-4.4, 1.3, 0.2], 1.3, { halfH: 1.3, elev: 0.2 });
     shell.task('<p>Сложихме прозрачна найлонова торбичка върху клонка и я завързахме. Растението стои на слънце.</p>');
     let mistakes = 0;
-    choice(ctx, {
+    predict(ctx, {
       q: 'Какво ще се появи в торбичката след няколко часа?',
       options: [
-        { t: 'Капки вода: листата отделят водна пара.', ok: true, why: 'Да проверим!' },
-        { t: 'Нищо: растенията не отделят нищо.', ok: false, why: 'Растенията дишат и правят фотосинтеза. Отделят ли нещо през листата?' },
-        { t: 'Пръст от саксията.', ok: false, why: 'Торбичката е около листата, а не около пръстта. Какво може да излезе от листата?' },
+        { t: 'Капки вода: листата отделят водна пара.', ok: true },
+        { t: 'Нищо: растенията не отделят нищо.', ok: false },
+        { t: 'Пръст от саксията.', ok: false },
       ],
-      hint: 'Помисли какво излиза през устицата.',
-      onRight: (m) => { mistakes = m; wait(); },
+      onPick: () => { mistakes = ctx.predMiss; wait(); },
     });
     function wait() {
       const c = shell.controls;
@@ -152,8 +154,13 @@ export function mount(container, { onComplete }) {
         c.querySelector('.sun').disabled = true;
         T.wetT = 1;
         setTimeout(() => {
-          ctx.say(bagAt, 'Водата се изпарява от листата. Това се нарича <b>транспирация</b>. Парата се охлади по найлона и стана на <b>капки вода</b>. Тази вода не е образувана в клетките — корените са я поели от почвата. Тя не е вредна. Тук я броим към отделянето, защото растението я изхвърля навън.', 'wide', 0.6);
-          const cc = shell.setControls('<div class="row"><button class="btn primary fall">🍂 Дойде есента</button></div>');
+          const p = ctx.prediction;
+          ctx.say(bagAt, `${p.ok ? '' : `Прогнозата ти: <b>${p.t.toLowerCase().replace(/\.$/, '')}</b>.<br>Виж: в торбичката има <b>капки вода</b>.<br>`}Водата се изпарява от листата. Това се нарича <b>транспирация</b>. Парата се охлади по найлона и стана на <b>капки вода</b>. Тази вода не е образувана в клетките — корените са я поели от почвата. Тя не е вредна. Тук я броим към отделянето, защото растението я изхвърля навън.`, 'wide', 0.6);
+          const cc = compare(ctx, {
+            result: 'По найлона на торбичката се събраха капки вода.',
+            why: 'През устицата на листата излиза водна пара. По хладния найлон тя става на капки.',
+          });
+          cc.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary fall">🍂 Дойде есента</button></div>');
           cc.querySelector('.fall').addEventListener('click', () => {
             cc.querySelector('.fall').disabled = true;
             ctx.clearTip();
@@ -215,43 +222,66 @@ export function mount(container, { onComplete }) {
     view(ctx, [AX + 0.2, 1.1, 0.1], 2.3, { halfH: 1.3, elev: 0.2 });
     shell.task('<p>Представи си, че бъбреците спрат да работят.</p>');
     let mistakes = 0;
-    choice(ctx, {
+    predict(ctx, {
       q: 'Какво ще се случи в организма?',
       options: [
-        { t: 'Ненужните вещества ще се натрупват в кръвта и ще вредят на клетките.', ok: true, why: 'Да проверим в схемата!' },
-        { t: 'Нищо: кръвта сама ще се изчисти.', ok: false, why: 'Кой орган пречиства кръвта от ненужните вещества?' },
-        { t: 'Всичко ще излезе с потта.', ok: false, why: 'С потта излиза само малка част. Кой орган пречиства кръвта?' },
+        { t: 'Ненужните вещества ще се натрупват в кръвта и ще вредят на клетките.', ok: true },
+        { t: 'Нищо: кръвта сама ще се изчисти.', ok: false },
+        { t: 'Всичко ще излезе с потта.', ok: false },
       ],
-      hint: 'Бъбреците пречистват кръвта.',
-      onRight: (m) => {
-        mistakes = m;
-        const c = shell.controls;
-        c.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary stop">⏸ Спри бъбреците (в модела)</button></div>');
-        c.querySelector('.stop').addEventListener('click', () => {
-          c.querySelector('.stop').disabled = true;
-          B.stop = true;
-          setTimeout(() => {
-            ctx.say(vesAt, 'Жълтите точки в кръвта стават все повече, а клетките страдат. Затова отделянето е жизнено важно.', 'wide', 0.5);
-            const cc = shell.setControls('<div class="row"><button class="btn back">▶ Пусни ги отново</button></div>');
-            cc.querySelector('.back').addEventListener('click', () => {
-              B.stop = false;
-              ctx.clearTip();
-              choice(ctx, {
-                q: 'Защо отделянето е важно за всички организми?',
-                options: [
-                  { t: 'Така организмът се освобождава от вредните вещества и клетките остават здрави.', ok: true, why: 'Вярно! Хранене, дишане и отделяне са свързани: кръвта носи и полезното, и ненужното.' },
-                  { t: 'Само за да има място за нова храна.', ok: false, why: 'Отделянето чисти кръвта от вредни вещества. Какво ще стане, ако останат?' },
-                  { t: 'Важно е само за растенията.', ok: false, why: 'Видя бъбреците, белите дробове и кожата на бозайника.' },
-                ],
-                hint: 'Спомни си какво стана с клетките в модела.',
-                mistakes,
-                onRight: (m2) => { ctx.scores[2] = stepScore(m2, 3); finishBtn(ctx, onComplete, restart); },
-              });
-            }, { once: true });
-          }, 3500);
-        }, { once: true });
-      },
+      note: 'Запомни прогнозата си. Сега опитай в модела!',
+      onPick: () => { mistakes = ctx.predMiss; setTimeout(actions, 900); },
     });
+    // Три действия с различни последствия в схемата. Спрените бъбреци са задължителни.
+    const ACT = {
+      water: { b: '💧 Пие много вода', at: () => kidAt, say: 'Бъбреците образуват <b>повече урина</b>. Тя е <b>по-светла</b>. Кръвта остава чиста.' },
+      heat: { b: '☀ Горещ ден', at: () => skinAt, say: 'Кожата отделя <b>повече пот</b> — вода и соли. Така тялото се охлажда. Затова в жега пием повече вода.' },
+      stop: { b: '⏸ Спри бъбреците', at: () => vesAt, say: 'Жълтите точки в кръвта стават все повече, а клетките страдат. Затова отделянето е жизнено важно.' },
+    };
+    const tried = new Set();
+    function actions() {
+      shell.msg('');
+      shell.task('<p>Избери какво да се случи с животното в модела и гледай схемата. <b>Опитай и трите.</b></p>');
+      row(shell.setControls(''));
+    }
+    function row(c) {
+      c.querySelectorAll('.acts').forEach((e) => e.remove());
+      c.insertAdjacentHTML('beforeend', `<div class="row acts">${Object.keys(ACT).map((k) => `<button class="btn${k === 'stop' ? ' primary' : ''} act-${k}"${tried.has(k) ? ' disabled' : ''}>${ACT[k].b}</button>`).join('')}</div>`);
+      c.querySelectorAll('.acts button').forEach((b) => b.addEventListener('click', () => run(b.className.match(/act-(\w+)/)[1]), { once: true }));
+    }
+    function run(k) {
+      ctx.clearTip();
+      tried.add(k);
+      shell.controls.querySelectorAll('.acts button').forEach((b) => { b.disabled = true; });
+      B.stop = k === 'stop'; B.mode = k === 'stop' ? '' : k;
+      setTimeout(() => {
+        ctx.say(ACT[k].at(), ACT[k].say, 'wide', 0.5);
+        let c = shell.controls;
+        if (k === 'stop') {
+          c = compare(ctx, {
+            result: 'Без бъбреците жълтите точки в кръвта стават все повече, а клетките страдат.',
+            why: 'Бъбреците пречистват кръвта. Потта изнася само малка част от ненужните вещества.',
+          });
+        }
+        if (tried.size < 3) row(c);
+        else { c.querySelectorAll('.acts').forEach((e) => e.remove()); nextBtn(ctx, '▶ Пусни бъбреците отново', last); }
+      }, 3500);
+    }
+    function last() {
+      B.stop = false; B.mode = '';
+      ctx.clearTip();
+      choice(ctx, {
+        q: 'Защо отделянето е важно за всички организми?',
+        options: [
+          { t: 'Така организмът се освобождава от вредните вещества и клетките остават здрави.', ok: true, why: 'Вярно! Хранене, дишане и отделяне са свързани: кръвта носи и полезното, и ненужното.' },
+          { t: 'Само за да има място за нова храна.', ok: false, why: 'Отделянето чисти кръвта от вредни вещества. Какво ще стане, ако останат?' },
+          { t: 'Важно е само за растенията.', ok: false, why: 'Видя бъбреците, белите дробове и кожата на бозайника.' },
+        ],
+        hint: 'Спомни си какво стана с клетките в модела.',
+        mistakes,
+        onRight: (m2) => { ctx.scores[2] = stepScore(m2, 3); finishBtn(ctx, onComplete, restart); },
+      });
+    }
   }
 
   function restart() {
