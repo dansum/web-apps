@@ -4,7 +4,6 @@
 
    Допълнителни полета спрямо SCHEMA.md:
    fictional  – true за измислен човек (сайтът показва ясен знак)
-   age        – години към момента на интервюто
    avatar     – параметри за нарисуван портрет (вместо снимка), или photo: 'media/…jpg' за истински човек
    work       – { motif, caption } картинка от работата (или img: 'media/…')
    video      – { src, poster, caption } кратко вертикално видео (9:16)
@@ -13,7 +12,7 @@
 window.BUM_KILO = [
   {
     id: 'ralitsa-mincheva', fictional: true,
-    name: 'Ралица Минчева', sex: 'f', born: 1992, died: null, age: 34,
+    name: 'Ралица Минчева', sex: 'f', born: 1992, died: null,
     place: 'Смолян', field: 'bio', motif: 'chart',
     tags: ['пчели', 'сензори', 'модели'],
     avatar: { bg: '#1d4a33', bg2: '#0c2318', skin: '#e9b48f', hair: '#5a2d16', shirt: '#ffd166', long: true },
@@ -39,7 +38,7 @@ window.BUM_KILO = [
   },
   {
     id: 'todor-peev', fictional: true,
-    name: 'Тодор Пеев', sex: 'm', born: 1965, died: null, age: 61,
+    name: 'Тодор Пеев', sex: 'm', born: 1965, died: null,
     place: 'село Горно Ябълково (измислено)', field: 'edu', motif: 'polynomial',
     tags: ['учител', 'олимпиади', 'геометрия'],
     avatar: { bg: '#5b331a', bg2: '#26140a', skin: '#d9a07a', hair: '#9a9a9a', shirt: '#9fe3ff', bald: true, glasses: true, beard: '#bdbdbd' },
@@ -66,7 +65,7 @@ window.BUM_KILO = [
   },
   {
     id: 'niya-koleva', fictional: true,
-    name: 'Ния Колева', sex: 'f', born: 2007, died: null, age: 19,
+    name: 'Ния Колева', sex: 'f', born: 2007, died: null,
     place: 'Варна', field: 'cs', motif: 'graph',
     tags: ['графи', 'градски транспорт', 'приложение'],
     avatar: { bg: '#0d3b4f', bg2: '#081c2c', skin: '#f0c4a0', hair: '#1c1c1c', shirt: '#5cf2c9', long: true, glasses: true },

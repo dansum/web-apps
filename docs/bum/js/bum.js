@@ -56,6 +56,15 @@
   var esc = Art.esc;
   function shuffle(a, r) { a = a.slice(); r = r || Math.random; for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
   function roman(n) { var v = [[10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']], s = ''; v.forEach(function (x) { while (n >= x[0]) { s += x[1]; n -= x[0]; } }); return s; }
+  /* Търсене: по отделни думи, без значение от реда, на кирилица или на латиница. */
+  var LAT = { а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ж: 'zh', з: 'z', и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'sht', ъ: 'a', ь: 'y', ю: 'yu', я: 'ya' };
+  function lat(t) { return t.replace(/[а-я]/g, function (c) { return LAT[c] || c; }); }
+  function norm(t) { return String(t || '').toLowerCase().replace(/ѝ/g, 'и').trim(); }
+  function haystack(p) {
+    if (!p._hay) { var h = norm([p.name, p.title, p.lede, (p.tags || []).join(' '), p.place || '', p.city || '', (p.fields || [p.field]).map(function (k) { return FIELDS[k]; }).join(' ')].join(' ')); p._hay = h + ' ' + lat(h); }
+    return p._hay;
+  }
+  function textMatch(p, q) { var h = haystack(p); return q.split(/\s+/).every(function (w) { return !w || h.indexOf(w) >= 0 || h.indexOf(lat(w)) >= 0; }); }
   function century(p) { return p.born ? Math.floor((p.born - 1) / 100) + 1 : 0; }
   function years(p) {
     if (p.bornLabel) return p.bornLabel;
@@ -102,7 +111,8 @@
       var q = 'https://' + lang + '.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&prop=pageimages%7Cpageprops&ppprop=wikibase_item&piprop=thumbnail%7Cname&pithumbsize=480&titles=' +
         encodeURIComponent(ch.map(function (p) { return p.wiki[lang]; }).join('|'));
       return fetch(q).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (j) {
-        var qu = j.query || {}, map = {};
+        if (j.error || !j.query) throw new Error('api');
+        var qu = j.query, map = {};
         (qu.normalized || []).forEach(function (n) { map[n.from] = n.to; });
         var red = {}; (qu.redirects || []).forEach(function (n) { red[n.from] = n.to; });
         var pages = {}; Object.keys(qu.pages || {}).forEach(function (k) { var pg = qu.pages[k]; pages[pg.title] = pg; });
@@ -126,7 +136,8 @@
       return fetch('https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&origin=*&props=claims&ids=' + ch.join('|'))
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(function (j) {
-          var ents = j.entities || {};
+          if (j.error || !j.entities) throw new Error('api');
+          var ents = j.entities;
           people.forEach(function (p) {
             var q = p.wikidata || qid[p.id], e = q && ents[q]; if (!e) return;
             (answered[p.id] = answered[p.id] || {}).wd = 1;
@@ -178,6 +189,13 @@
     return parts.join(' · ') + '.';
   }
   /* Взима автора и лиценза на файла. Пази ги в кеша заедно със снимката. */
+  /* Авторът от Общомедия често е суров текст („Unknown author“, няколко езика, повторения). */
+  function cleanAuthor(t) {
+    t = String(t || '').split(/\n+/).map(function (x) { return x.replace(/\s+/g, ' ').trim(); }).filter(Boolean)[0] || '';
+    if (!t || /unknown|anonym|nieznany|неизвестен/i.test(t)) return 'неизвестен автор';
+    t = t.replace(/\s*\(.*?\)\s*/g, ' ').trim();
+    return t.length > 60 ? t.slice(0, 58).replace(/\s+\S*$/, '') + '…' : t;
+  }
   function loadMeta(id, done) {
     var c = cache[id]; if (!c || !c.f || c.m || c.mp) return; c.mp = 1;
     var host = c.l === 'commons' ? 'commons.wikimedia.org' : c.l + '.wikipedia.org';
@@ -185,8 +203,9 @@
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(function (j) {
         var pg = j.query && j.query.pages, k = pg && Object.keys(pg)[0], ii = k && pg[k].imageinfo && pg[k].imageinfo[0], md = (ii && ii.extmetadata) || {};
-        var txt = function (h) { var d = document.createElement('div'); d.innerHTML = h || ''; return (d.textContent || '').replace(/\s+/g, ' ').trim(); };
-        c.au = txt(md.Artist && md.Artist.value).slice(0, 120); c.lic = txt(md.LicenseShortName && md.LicenseShortName.value); c.licu = (md.LicenseUrl && md.LicenseUrl.value) || '';
+        /* DOMParser не изпълнява и не зарежда нищо от HTML-а, който връща API-то. */
+        var txt = function (h) { return (new DOMParser().parseFromString(h || '', 'text/html').body.textContent || '').replace(/\s+/g, ' ').trim(); };
+        c.au = cleanAuthor(md.Artist && md.Artist.value ? (new DOMParser().parseFromString(md.Artist.value, 'text/html').body.innerText || txt(md.Artist.value)) : ''); c.lic = txt(md.LicenseShortName && md.LicenseShortName.value); c.licu = (md.LicenseUrl && md.LicenseUrl.value) || '';
         if (c.licu && !/^https?:\/\//.test(c.licu)) c.licu = 'https:' + c.licu;
         c.m = 1; delete c.mp; saveCache(); if (done) done();
       }).catch(function () { delete c.mp; });
@@ -263,19 +282,19 @@
     for (var i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
     var idx = h % pool.length;
     var box = document.getElementById('day');
+    var live = el('p', 'sr'); live.setAttribute('aria-live', 'polite'); box.parentNode.insertBefore(live, box.nextSibling);
     function show(p, isDay, focus) {
       box.innerHTML = '';
       box.setAttribute('aria-label', isDay ? 'БУМ на деня' : 'Случаен БУМ');
       var a = artBlock(p); a.appendChild(el('div', 'stamp', isDay ? 'БУМ на деня' : 'Случаен БУМ'));
       box.appendChild(a);
       var b = el('div', 'body');
-      b.setAttribute('aria-live', 'polite');
       b.innerHTML = '<div>' + fieldTag(p) + ' <span class="eyebrow" style="color:var(--muted)">· ' + SECTIONS[p.sec].name + '</span></div>' +
         '<h2>' + esc(p.title) + '</h2><div class="who">' + esc(p.name) + ' <span>' + esc(years(p)) + (p.place ? ' · ' + esc(p.place) : '') + '</span></div>' +
         '<p class="lede">' + esc(p.lede) + '</p><div class="acts"><a class="btn" href="' + url(p) + '">Прочети историята →</a><button class="btn ghost" type="button" id="again">🎲 Друг БУМ</button></div>';
       box.appendChild(b);
       document.getElementById('again').onclick = function () { var j; do { j = Math.floor(Math.random() * pool.length); } while (pool[j] === p && pool.length > 1); show(pool[j], false, true); };
-      if (focus) document.getElementById('again').focus();
+      if (focus) { document.getElementById('again').focus(); live.textContent = 'Случаен БУМ: ' + p.name + ' – ' + p.title; }
       loadPhotos(box);
     }
     show(pool[idx], true);
@@ -341,12 +360,12 @@
     chips('f-field', [{ v: '', t: 'Всички области' }].concat(fieldsUsed.map(function (k) { return { v: k, t: FIELDS[k], cls: 'fdot f-' + k }; })), 'field');
 
     var q = document.getElementById('q'), sort = document.getElementById('sort');
-    q.oninput = function () { st.q = q.value.trim().toLowerCase(); render(); };
+    q.oninput = function () { st.q = norm(q.value); render(); };
     sort.onchange = function () { st.sort = sort.value; if (st.sort === 'random') rnd = shuffle(data); render(); };
     var rnd = shuffle(data);
 
     function match(p, skip) {
-      if (st.q && (p.name + ' ' + p.title + ' ' + (p.tags || []).join(' ') + ' ' + (p.place || '') + ' ' + FIELDS[p.field]).toLowerCase().indexOf(st.q) < 0) return false;
+      if (st.q && !textMatch(p, st.q)) return false;
       if (skip !== 'sex' && st.sex && p.sex !== st.sex) return false;
       if (skip !== 'cent' && st.cent && String(century(p)) !== st.cent) return false;
       if (skip !== 'field' && st.field && p.fields.indexOf(st.field) < 0) return false;
@@ -370,7 +389,10 @@
       list.innerHTML = '';
       arr.forEach(function (p) { list.appendChild(listItem(p)); });
       cnt.textContent = arr.length === data.length ? 'Всички ' + arr.length + ' истории' : arr.length + ' от ' + data.length + ' истории';
-      if (!arr.length) list.innerHTML = '<li class="empty">Няма истории с тези филтри. Опитай с по-малко.</li>';
+      if (!arr.length) {
+        var other = st.q ? ALL.filter(function (p) { return p.sec !== sec && textMatch(p, st.q); }).slice(0, 5) : [];
+        list.innerHTML = '<li class="empty">Няма истории с тези филтри. Опитай с по-малко.' + (other.length ? '<br>В другите раздели: ' + other.map(function (p) { return '<a href="' + url(p) + '">' + esc(p.name) + '</a> (' + SECTIONS[p.sec].name + ')'; }).join(', ') : '') + '</li>';
+      }
       loadPhotos(list);
     }
     render();
@@ -384,6 +406,9 @@
     var main = document.getElementById('main');
     if (!p) { main.innerHTML = '<div class="wrap page-head"><h1>Няма такава история</h1><p><a href="index.html">Към началото</a></p></div>'; return; }
     document.title = p.name + ' – ' + p.title + ' · БУМ';
+    var canon = 'https://dansum.github.io/web-apps/bum/story.html?id=' + encodeURIComponent(p.id);
+    [['link[rel=canonical]', 'href'], ['meta[property="og:url"]', 'content']].forEach(function (x) { var n = document.querySelector(x[0]); if (n) n.setAttribute(x[1], canon); });
+    [['meta[property="og:title"]', document.title], ['meta[property="og:description"]', p.lede], ['meta[property="og:image"]', 'https://dansum.github.io/web-apps/bum/media/og/' + p.id + '.jpg']].forEach(function (x) { var n = document.querySelector(x[0]); if (n) n.setAttribute('content', x[1]); });
     var md = document.querySelector('meta[name=description]'); if (md) md.setAttribute('content', p.lede);
     var S = SECTIONS[p.sec];
 
@@ -394,7 +419,7 @@
 
     var ar = el('article', 'article');
     var head = '<div class="head">' + (p.fictional ? '<span class="fict">Измислен' + (p.sex === 'f' ? 'а' : '') + ' човек · примерна статия</span>' : '') +
-      '<div class="tags">' + p.fields.map(function (k) { return '<span class="field-tag f-' + k + '">' + FIELDS[k] + '</span>'; }).join(' ') + '</div>' + '<div class="name">' + esc(p.name) + ' <span>' + esc(years(p)) + (p.age ? ' · ' + p.age + ' г.' : '') + (p.place ? ' · ' + esc(p.place) : '') + '</span></div>' +
+      '<div class="tags">' + p.fields.map(function (k) { return '<span class="field-tag f-' + k + '">' + FIELDS[k] + '</span>'; }).join(' ') + '</div>' + '<div class="name">' + esc(p.name) + ' <span>' + esc(years(p)) + (p.sec === 'kilo' && p.born && !p.died ? ' · ' + (new Date().getFullYear() - p.born) + ' г.' : '') + (p.place ? ' · ' + esc(p.place) : '') + '</span></div>' +
       '<h1>' + esc(p.title) + '</h1><p class="lede">' + esc(p.lede) + '</p>' +
       (p.tags && p.tags.length ? '<div class="tags">' + p.tags.map(function (t) { return '<span>' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
       '<button class="btn ghost share" type="button" id="share">↗ Сподели</button><span class="share-msg" id="share-msg" aria-live="polite"></span></div>';
@@ -403,7 +428,7 @@
     body += '<div class="body">' + p.story.map(function (s) { return '<p>' + esc(s) + '</p>'; }).join('') + '</div>';
     if (p.num) body += '<div class="bignum"><b>' + esc(p.num.n) + '</b><span><small>БУМ число</small>' + esc(p.num.t) + '</span></div>';
     if (p.sec === 'kilo') {
-      body += '<div class="kilo-media"><div><div class="vid"><span class="fict vtag">примерно видео</span><video controls playsinline preload="none" poster="' + esc(p.video.poster) + '" src="' + esc(p.video.src) + '"></video></div><div class="vcap">' + esc(p.video.caption) + '</div></div>' +
+      body += '<div class="kilo-media"><div><div class="vid"><video aria-label="Примерно видео за измислен човек"  controls playsinline preload="none" poster="' + esc(p.video.poster) + '" src="' + esc(p.video.src) + '"></video></div><div class="vcap">' + esc(p.video.caption) + '</div></div>' +
         '<figure class="figure"><div class="art">' + Art.svg({ id: p.id + '-work', field: p.field, motif: p.work.motif }) + '</div><figcaption><b>От работата ' + (p.sex === 'f' ? 'ѝ' : 'му') + '</b>' + esc(p.work.caption) + '</figcaption></figure></div>';
       body += '<section class="qa"><h2>Интервю</h2><dl>' + p.interview.map(function (x) { return '<div><dt>' + esc(x.q) + '</dt><dd>' + esc(x.a) + '</dd></div>'; }).join('') + '</dl></section>';
     }
@@ -621,9 +646,11 @@
     var css = getComputedStyle(document.documentElement);
     function col(f) { return (css.getPropertyValue('--f-' + f) || '#888').trim(); }
     var fieldsUsed = Object.keys(FIELDS).filter(function (f) { return nodes.some(function (n) { return n.p.field === f; }); });
-    var W = 1000, H = 720, d3 = window.d3;
-    var centers = {}; fieldsUsed.forEach(function (f, i) { var a = i / fieldsUsed.length * 2 * Math.PI - Math.PI / 2; centers[f] = [W / 2 + 270 * Math.cos(a), H / 2 + 200 * Math.sin(a)]; });
-    var svg = d3.select(box).append('svg').attr('viewBox', '0 0 ' + W + ' ' + H).attr('role', 'img').attr('aria-label', 'Мисловна карта на ' + nodes.length + ' истории');
+    /* На тесен екран картата е изправена (по-висока), за да са точките по-големи. */
+    var narrow = box.clientWidth < 600, W = narrow ? 600 : 1000, H = narrow ? 900 : 720, d3 = window.d3;
+    var centers = {}; fieldsUsed.forEach(function (f, i) { var a = i / fieldsUsed.length * 2 * Math.PI - Math.PI / 2; centers[f] = [W / 2 + (narrow ? 190 : 270) * Math.cos(a), H / 2 + (narrow ? 300 : 200) * Math.sin(a)]; });
+    var svg = d3.select(box).append('svg').attr('viewBox', '0 0 ' + W + ' ' + H).attr('role', 'group')
+      .attr('aria-label', 'Мисловна карта на ' + nodes.length + ' истории. Натиснете Tab, за да влезете, и стрелките, за да минавате от човек на човек.');
     var g = svg.append('g');
     var zoom = d3.zoom().scaleExtent([0.3, 6]).on('zoom', function (e) { g.attr('transform', e.transform); g.classed('zoomed', e.transform.k > 1.6); });
     svg.call(zoom);
@@ -636,11 +663,18 @@
       (animate ? svg.transition().duration(600) : svg).call(zoom.transform, t);
     }
     var link = g.append('g').attr('class', 'm-links').selectAll('line').data(links).join('line').attr('class', function (d) { return 'm-link ' + d.k; });
-    var node = g.append('g').selectAll('g').data(nodes).join('g').attr('class', function (d) { return 'm-node ' + d.p.sec; }).attr('tabindex', 0).attr('role', 'button')
-      .attr('aria-label', function (d) { return d.p.name + ', ' + FIELDS[d.p.field]; });
-    node.append('circle').attr('r', function (d) { return d.r; }).attr('fill', function (d) { return col(d.p.field); });
-    node.append('text').attr('class', 'm-label').attr('dy', function (d) { return d.r + 13; }).attr('text-anchor', 'middle').text(function (d) { return d.p.name; });
+    var node = g.append('g').selectAll('g').data(nodes).join('g').attr('class', function (d) { return 'm-node ' + d.p.sec; }).attr('tabindex', -1).attr('role', 'button')
+      .attr('aria-label', function (d) { return d.p.name + ', ' + FIELDS[d.p.field] + ', ' + years(d.p); });
+    node.append('circle').attr('class', 'm-hit').attr('r', function (d) { return d.r + (narrow ? 12 : 6); });
+    node.append('circle').attr('class', 'm-dotc').attr('r', function (d) { return d.r; }).attr('fill', function (d) { return col(d.p.field); });
     node.append('title').text(function (d) { return d.p.name + ' · ' + years(d.p) + ' · ' + FIELDS[d.p.field]; });
+    /* Надписите са в отделен слой над всички точки, за да не ги закриват чужди точки. */
+    var label = g.append('g').attr('class', 'm-labels').attr('aria-hidden', 'true').selectAll('text').data(nodes).join('text')
+      .attr('class', function (d) { return 'm-label ' + d.p.sec; }).attr('text-anchor', 'middle').text(function (d) { return d.p.name; });
+    /* Една спирка за Tab: стрелките минават от човек на човек (по реда на раждане), Enter отваря картата му. */
+    var order = nodes.slice().sort(function (a, b) { return a.p.born - b.p.born; }), cur = order[0];
+    function rove(d, focus) { cur = d; node.attr('tabindex', function (x) { return x === d ? 0 : -1; }); if (focus) node.filter(function (x) { return x === d; }).node().focus(); }
+    rove(cur, false);
     var sim = d3.forceSimulation(nodes)
       .force('link', d3.forceLink(links).id(function (d) { return d.id; }).distance(function (l) { return l.k === 'hand' ? 70 : 40; }).strength(function (l) { return l.k === 'hand' ? 0.25 : 0.35; }))
       .force('charge', d3.forceManyBody().strength(function (d) { return d.r > 10 ? -180 : -45; }).distanceMax(260))
@@ -650,6 +684,7 @@
       .on('tick', function () {
         link.attr('x1', function (d) { return d.source.x; }).attr('y1', function (d) { return d.source.y; }).attr('x2', function (d) { return d.target.x; }).attr('y2', function (d) { return d.target.y; });
         node.attr('transform', function (d) { return 'translate(' + d.x + ',' + d.y + ')'; });
+        label.attr('x', function (d) { return d.x; }).attr('y', function (d) { return d.y + d.r + 13; });
       })
       .on('end', function () { if (!fitted) { fitted = true; fit(true); } });
     var fitted = false;
@@ -690,6 +725,7 @@
     function apply() {
       var n = 0;
       node.classed('off', function (d) { var o = !ok(d.p); if (!o) n++; return o; });
+      label.classed('off', function (d) { return !ok(d.p); });
       link.classed('off', function (d) { return !ok(d.source.p) || !ok(d.target.p); });
       leg.querySelectorAll('.chip').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === st.field)); });
       document.getElementById('m-count').textContent = n === nodes.length ? 'Всички ' + n + ' истории' : n + ' от ' + nodes.length + ' истории отговарят на филтрите';
@@ -697,8 +733,10 @@
     /* ---------- избор на точка ---------- */
     function show(d, scroll) {
       node.classed('sel', function (x) { return x === d; });
+      label.classed('sel', function (x) { return x === d; });
       var nb = links.filter(function (l) { return l.source === d || l.target === d; });
       node.classed('near', function (x) { return nb.some(function (l) { return l.source === x || l.target === x; }) && x !== d; });
+      label.classed('near', function (x) { return nb.some(function (l) { return l.source === x || l.target === x; }) && x !== d; });
       link.classed('hi', function (l) { return l.source === d || l.target === d; });
       var p = d.p; panel.innerHTML = '';
       var a = artBlock(p); a.classList.add('m-art'); panel.appendChild(a);
@@ -715,7 +753,15 @@
       loadPhotos(panel);
       if (scroll && window.innerWidth < 900) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-    node.on('click', function (e, d) { show(d, true); }).on('keydown', function (e, d) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); show(d, true); } });
+    node.on('click', function (e, d) { rove(d, false); show(d, true); }).on('keydown', function (e, d) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); show(d, true); return; }
+      var step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key], vis = order.filter(function (x) { return ok(x.p); });
+      if (e.key === 'Home') step = -1e6; if (e.key === 'End') step = 1e6;
+      if (!step || !vis.length) return;
+      e.preventDefault();
+      var i = vis.indexOf(d); i = Math.max(0, Math.min(vis.length - 1, (i < 0 ? 0 : i) + step));
+      rove(vis[i], true); show(vis[i], false);
+    });
     apply();
     var start = byId[new URLSearchParams(location.search).get('id')] || byId['john-atanasoff'];
     setTimeout(function () { show(start); }, 50);
@@ -742,6 +788,26 @@
     form.onsubmit = function (e) { e.preventDefault(); open(pw.value); };
   }
 
+  /* ---------- СНИМКИ: служебен списък кои хора са без снимка (изчислява се в браузъра) ---------- */
+  function pagePhotos() {
+    chrome('photos');
+    var people = TEN.concat(STO), out = document.getElementById('ph-out'), hold = el('div'); hold.hidden = true;
+    people.forEach(function (p) { var n = el('span'); n.setAttribute('data-pid', p.id); hold.appendChild(n); });
+    document.body.appendChild(hold);
+    var done = false;
+    function report() {
+      var miss = people.filter(function (p) { return !(cache[p.id] && cache[p.id].s); }), has = people.length - miss.length;
+      var why = function (p) { return p.noPhoto ? 'снимката е изключена (паметник, плоча или група)' : !hasSource(p) ? 'няма статия в Уикипедия и запис в Уикидата' : cache[p.id] ? 'статията и Уикидата са без снимка' : 'не отговори – опитайте пак'; };
+      out.innerHTML = '<p class="count">Със снимка: <b>' + has + '</b> · без снимка: <b>' + miss.length + '</b> от ' + people.length + '</p>' +
+        '<table class="ph-table"><thead><tr><th>№</th><th>Човек</th><th>id</th><th>Раздел</th><th>Защо няма</th></tr></thead><tbody>' +
+        miss.map(function (p, i) { return '<tr><td>' + (i + 1) + '</td><td><a href="' + url(p) + '">' + esc(p.name) + '</a></td><td><code>' + esc(p.id) + '</code></td><td>' + SECTIONS[p.sec].name + '</td><td>' + why(p) + '</td></tr>'; }).join('') +
+        '</tbody></table><p class="pv-note">За да добавите снимка, запишете в данните на човека <code>photoFile</code> (файл от Уикимедия Общомедия) или <code>photoUrl</code> и <code>photoSource</code> (снимка от друг сайт – под нея ще пише, че лицензът се проверява).</p>';
+    }
+    document.addEventListener('bum-photos', function () { done = true; report(); });
+    loadPhotos(hold); report();
+    setTimeout(function () { if (!done) report(); }, 8000);
+  }
+
   window.BUM = { TEN: TEN, STO: STO, KILO: KILO, FIELDS: FIELDS };
   var mainEl = document.querySelector('main'); if (mainEl && !mainEl.id) mainEl.id = 'main-content';
   if (mainEl) mainEl.setAttribute('tabindex', '-1');
@@ -754,6 +820,7 @@
   else if (page === 'stats') pageStats();
   else if (page === 'map') pageMap();
   else if (page === 'admin') pageAdmin();
-  var skip = document.querySelector('.skip'); if (skip && mainEl) skip.setAttribute('href', '#' + mainEl.id);
   else if (page === 'about') { chrome('about'); document.querySelector('.ab-body').appendChild(kaBlock('@about', '10, 100, 1000 – степените на десет')); }
+  else if (page === 'photos') pagePhotos();
+  var skip = document.querySelector('.skip'); if (skip && mainEl) skip.setAttribute('href', '#' + mainEl.id);
 })();
