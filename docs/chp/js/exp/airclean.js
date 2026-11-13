@@ -2,14 +2,16 @@
 // Стъпки: опознай → опит с лепливи картончета и протокол → източници и замърсители → направи въздуха по-чист.
 import { labelSprite, mat, addHitBox, THREE } from '../kit.js';
 import { scaffold, explore, choice, nextBtn, finishBtn, view, bar, stepScore } from './labkit.js';
-import { sortTask } from './labtasks.js';
+import { sortTask, fillTask } from './labtasks.js';
 
 const SAFE = '<p class="warn">⚠ Картончетата се поставят <b>с възрастен</b>, далеч от платното на пътя. След опита измий ръцете.</p>';
+// dots — колко прахови частици се виждат с лупата след седмица (условни числа за модела).
 const SPOTS = [
-  { id: 'card-road', name: 'до пътя', pos: [0.6, 0, 1.75], dirt: 0.9, dots: 28, word: 'много' },
-  { id: 'card-park', name: 'в парка', pos: [-0.6, 0, -2.6], dirt: 0.18, dots: 4, word: 'малко' },
-  { id: 'card-yard', name: 'в училищния двор', pos: [4.3, 0, 0.3], dirt: 0.45, dots: 11, word: 'средно' },
+  { id: 'card-road', name: 'до пътя', pos: [0.6, 0, 1.75], dirt: 0.9, dots: 28 },
+  { id: 'card-park', name: 'в парка', pos: [-0.6, 0, -2.6], dirt: 0.18, dots: 4 },
+  { id: 'card-yard', name: 'в училищния двор', pos: [4.3, 0, 0.3], dirt: 0.45, dots: 11 },
 ];
+const WORDS = ['много', 'средно', 'малко'];
 const MEASURES = [
   { id: 'filter', t: '🏭 Филтри на комина на завода', d: 20, ok: true, why: 'Филтрите задържат праха и част от вредните газове.' },
   { id: 'bike', t: '🚲 Пеша, с велосипед и с градски транспорт вместо с кола', d: 20, ok: true, why: 'По-малко коли — по-малко изгорели газове.' },
@@ -251,45 +253,66 @@ export function mount(container, { onComplete }) {
         if (!c || c.placed) return;
         c.placed = true; setCards(true);
         ctx.say(c.g, `картонче ${c.name}`, 'tag', 1.2);
-        if (cards.every((x) => x.placed)) {
-          ctx.click = null;
-          const cc = shell.setControls('<div class="row"><button class="btn primary wait">⏳ Изчакай една седмица</button></div>');
-          cc.querySelector('.wait').addEventListener('click', () => {
-            cc.querySelector('.wait').disabled = true;
-            ctx.clearTip();
-            week = 1;
-            let d = 0;
-            const tg = stage.bubble(cards[0].g, '', { cls: 'tag', lift: 1.4 });
-            const stop = stage.tick((dt) => {
-              d = Math.min(7, d + dt * 1.6);
-              tg.set(`ден ${Math.max(1, Math.ceil(d))} от 7`);
-              if (d >= 7) { stop(); tg.remove(); protocol(); }
-            });
-          }, { once: true });
-        }
+        if (!cards.every((x) => x.placed)) return;
+        ctx.click = null;
+        waitWeek();
       };
     }
+    function waitWeek() {
+      const cc = shell.setControls('<div class="row"><button class="btn primary wait">⏳ Изчакай една седмица</button></div>');
+      cc.querySelector('.wait').addEventListener('click', () => {
+        cc.querySelector('.wait').disabled = true;
+        ctx.clearTip();
+        week = 1;
+        let d = 0;
+        const first = cards.find((x) => x.placed);
+        const tg = stage.bubble(first.g, '', { cls: 'tag', lift: 1.4 });
+        const stop = stage.tick((dt) => {
+          d = Math.min(7, d + dt * 1.6);
+          tg.set(`ден ${Math.max(1, Math.ceil(d))} от 7`);
+          if (d >= 7) { stop(); tg.remove(); protocol(); }
+        });
+      }, { once: true });
+    }
     function protocol() {
-      cards.forEach((c) => { c.d = c.dirt; });
+      const placed = cards.filter((x) => x.placed);
+      placed.forEach((c) => { c.d = c.dirt; });
+      // Думата за всяко картонче е според сравнението на трите: най-много, средно, най-малко прах.
+      const rank = placed.slice().sort((a, b) => b.dots - a.dots);
+      rank.forEach((c, i) => { c.word = WORDS[i]; });
       shell.msg('');
-      const tags = cards.map((c) => stage.bubble(c.g, `🔍 ${'•'.repeat(Math.min(c.dots, 18))}${c.dots > 18 ? '…' : ''}`, { cls: 'tag', lift: 1.25 }));
+      const tags = placed.map((c) => stage.bubble(c.g, `🔍 ${'•'.repeat(Math.min(c.dots, 14))}${c.dots > 14 ? '…' : ''} ${c.dots}`, { cls: 'tag', lift: 1.25 }));
       ctx.tags2 = tags;
-      shell.task(`<p><b>Протокол</b></p>
+      const table = (obs) => `<p><b>Протокол</b></p>
         <table class="small" style="border-collapse:collapse;width:100%">
           <tr><td style="padding:2px 4px;vertical-align:top"><b>Цел</b></td><td>Да сравним колко прах има във въздуха на три места.</td></tr>
           <tr><td style="padding:2px 4px;vertical-align:top"><b>Пособия</b></td><td>3 картончета, вазелин, лупа.</td></tr>
           <tr><td style="padding:2px 4px;vertical-align:top"><b>Ход</b></td><td>Намазваме картончетата, оставяме ги 7 дни, гледаме ги с лупа.</td></tr>
-          <tr><td style="padding:2px 4px;vertical-align:top"><b>Наблюдения</b></td><td>${cards.map((c) => `${c.name}: <b>${c.word}</b> прахови частици`).join('<br>')}</td></tr>
-        </table>`);
+          <tr><td style="padding:2px 4px;vertical-align:top"><b>Наблюдения</b></td><td>${obs}</td></tr>
+        </table>`;
+      shell.task(table('<i>попълни отдолу</i>'));
+      fillTask(ctx, {
+        lead: '<b>Попълни реда „Наблюдения“.</b> Числото до лупата показва колко прахови частици има на картончето. Сравни трите.',
+        rows: placed.map((c) => ({ label: c.name, options: WORDS, answer: WORDS.indexOf(c.word), why: 'Най-много частици — „много“, най-малко — „малко“.' })),
+        hint: 'Подреди числата до лупите от най-голямото към най-малкото.',
+        mistakes,
+        onDone: (m) => {
+          shell.task(table(placed.map((c) => `${c.name}: <b>${c.word}</b> прахови частици`).join('<br>')));
+          conclude(m);
+        },
+      });
+    }
+    function conclude(m0) {
+      const options = [
+        { t: 'Най-много прах има до пътя, а най-малко — в парка. Край пътя въздухът е най-прашен.', ok: true, why: 'Вярно! Изводът отговаря на целта и се опира на наблюденията.' },
+        { t: 'Прахът идва само от вулкана.', ok: false, why: 'Тогава картончетата щяха да са еднакво мръсни. Така ли е?' },
+        { t: 'В парка въздухът е най-мръсен.', ok: false, why: 'Погледни реда „Наблюдения“ в протокола.' },
+      ];
       choice(ctx, {
         q: 'Довърши протокола. Какъв е изводът?',
-        options: [
-          { t: 'Най-много прах има до пътя, а най-малко — в парка. Край пътя въздухът е най-прашен.', ok: true, why: 'Вярно! Изводът отговаря на целта и се опира на наблюденията.' },
-          { t: 'Прахът идва само от вулкана.', ok: false, why: 'Тогава картончетата щяха да са еднакво мръсни. Така ли е?' },
-          { t: 'В парка въздухът е най-мръсен.', ok: false, why: 'Погледни реда „Наблюдения“ в протокола.' },
-        ],
+        options,
         hint: 'Сравни картончетата: кое е най-тъмно?',
-        mistakes,
+        mistakes: m0,
         onRight: (m) => { ctx.scores[0] = stepScore(m, 3); nextBtn(ctx, 'Напред →', step3); },
       });
     }

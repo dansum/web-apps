@@ -2,7 +2,7 @@
 // Стъпки: опознай → наситен разтвор и маса на разтвора (опит) → разтворимост и протокол → свойствата на водата.
 import { labelSprite, mat, addHitBox, THREE } from '../kit.js';
 import { scaffold, explore, choice, nextBtn, finishBtn, labRoom, glass, view, lcd, stepScore } from './labkit.js';
-import { sortTask } from './labtasks.js';
+import { sortTask, fillTask } from './labtasks.js';
 
 const SAFE = '<p class="warn">⚠ В кабинета <b>не опитваме</b> веществата на вкус и не ги пипаме с ръце.</p>';
 const SOL = 36;          // около 36 g сол се разтварят в 100 g вода при 20 °C
@@ -259,13 +259,31 @@ export function mount(container, { onComplete }) {
     };
     function proto() {
       ctx.clearTip();
-      shell.task(`<p><b>Протокол от наблюдението</b></p>
+      // Детето само попълва колоната „Какво видяхме“: избор за всяка чаша и число за солта.
+      const OPT = ['всичко', 'малка част', 'почти нищо'];
+      const OBS = ['разтвори се напълно', 'малка част се разтвори', 'почти нищо не се разтвори, утаи се'];
+      const KIND = { sol: 0, little: 1, none: 2 };
+      const table = (filled) => `<p><b>Протокол от наблюдението</b></p>
         <table class="small" style="border-collapse:collapse;width:100%">
         <tr><td style="padding:2px 4px"><b>Вещество</b></td><td><b>Какво видяхме</b></td></tr>
-        ${tests.map((T) => `<tr><td style="padding:2px 4px">${T.name}</td><td>${T.note}</td></tr>`).join('')}
-        <tr><td style="padding:2px 4px">сол</td><td>36 g се разтвориха в 100 g вода (опитът с везната)</td></tr>
-        </table>`);
+        ${tests.map((T) => `<tr><td style="padding:2px 4px">${T.name}</td><td>${filled ? OBS[KIND[T.kind]] : '…'}</td></tr>`).join('')}
+        <tr><td style="padding:2px 4px">сол</td><td>${filled ? `${SOL} g се разтвориха в 100 g вода (опитът с везната)` : '…'}</td></tr>
+        </table>`;
+      shell.task(table(false));
+      ctx.click = (id) => { const T = tests.find((x) => x.id === id); if (T) ctx.say(T.b, `${T.name}: ${T.note}`, 'tag', 1.25); };
+      fillTask(ctx, {
+        lead: '<b>Попълни протокола.</b> Колко от всяко вещество се разтвори? Можеш пак да кликнеш чаша в сцената.',
+        rows: [
+          ...tests.map((T) => ({ label: T.name, options: OPT, answer: KIND[T.kind], why: 'Кликни пак чашата в сцената и виж какво е останало на дъното.' })),
+          { label: 'сол: колко грама се разтвориха в 100 g вода?', number: true, answer: SOL, unit: 'g', why: 'Спомни си опита с везната: колко сол се разтвори, преди да остане сол на дъното?' },
+        ],
+        hint: 'Разтвореното вещество не се вижда и не се утаява.',
+        onDone: (m0) => { ctx.click = null; ctx.clearTip(); shell.task(table(true)); classify(m0); },
+      });
+    }
+    function classify(m0) {
       sortTask(ctx, {
+        mistakes: m0,
         lead: 'Класифицирай веществата по разтворимостта им във вода.',
         bins: ['Разтворимо', 'Малко разтворимо', 'Практически неразтворимо'],
         items: [
