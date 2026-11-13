@@ -2,7 +2,7 @@
 // Стъпки: опознай → бъбреците пречистват кръвта: колко вода пием (симулация) → пътят на урината и другите отделителни органи
 // → навици, които пазят отделителната система.
 import { labelSprite, mat, addHitBox, THREE } from '../kit.js';
-import { scaffold, explore, choice, nextBtn, finishBtn, view, stepScore } from './labkit.js';
+import { scaffold, explore, choice, predict, compare, nextBtn, finishBtn, view, stepScore } from './labkit.js';
 import { sortTask, orderTask } from './labtasks.js';
 import { curveOf, flowDots, organMat, glowOf, tube } from './anatomy.js';
 import { buildKid, buildLungs } from './organs4.js';
@@ -124,20 +124,32 @@ export function mount(container, { onComplete }) {
   // ---------- 2. Бъбреците и водата ----------
   function step2() {
     shell.step(1);
-    S.cups = 2; S.hot = true;
+    S.cups = 6; S.hot = false; // обикновен ден: урината е светла
     view(ctx, [KX + 0.6, 1.9, 0], 1.4, { halfH: 1.1, elev: 0.1 });
     ctx.say(at.kidneys, 'Кръвта носи ненужни вещества (жълто) към бъбреците. Бъбреците ги изхвърлят с урината.', 'wide', 0.4);
-    shell.task('<p>Горещ летен ден. Боби тича, поти се и е изпил само <b>2 чаши</b> вода.</p>');
+    shell.task('<p>Сега Боби пие достатъчно вода и урината му е светла.</p><p>Идва горещ летен ден. Боби тича, поти се и изпива само <b>2 чаши</b> вода.</p>');
     let mistakes = 0;
-    choice(ctx, {
+    predict(ctx, {
       q: 'Каква ще бъде урината му?',
       options: [
-        { t: 'Малко и по-тъмна.', ok: true, why: 'Вярно! Тялото пести водата. Сега му помогни.' },
-        { t: 'Много и светла.', ok: false, why: 'Боби губи вода с потта и пие малко. Откъде ще дойде много урина?' },
-        { t: 'Няма да се промени.', ok: false, why: 'Водата, която пием и губим, влияе на урината. Как?' },
+        { t: 'Малко и по-тъмна.', ok: true },
+        { t: 'Много и светла.', ok: false },
+        { t: 'Няма да се промени.', ok: false },
       ],
-      hint: 'Помисли колко вода е останала в тялото.',
-      onRight: (m) => { mistakes = m; drink(); },
+      onPick: () => {
+        mistakes = ctx.predMiss;
+        S.hot = true; S.cups = 2;
+        ctx.clearTip();
+        setTimeout(() => {
+          const p = ctx.prediction;
+          ctx.say(at.bladder, `${p.ok ? '' : `Прогнозата ти: <b>${p.t.toLowerCase().replace(/\.$/, '')}</b>.<br>`}Виж мехура: урината е по-тъмна и се събира по-бавно.`, 'wide', 0.3);
+          compare(ctx, {
+            result: 'Урината стана по-малко и по-тъмна.',
+            why: 'Боби губи вода с потта и пие малко. Тялото пести водата, затова урината е малко и тъмна.',
+          });
+          nextBtn(ctx, 'Помогни на Боби →', drink);
+        }, 2200);
+      },
     });
     function drink() {
       ctx.clearTip();
