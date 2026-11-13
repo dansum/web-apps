@@ -19,14 +19,32 @@
   var FIELDS = {
     math: 'Математика', cs: 'Информатика', physics: 'Физика', astro: 'Космос и астрономия', chem: 'Химия',
     bio: 'Биология', med: 'Медицина', eng: 'Инженерство', econ: 'Икономика', games: 'Шах и игри',
-    edu: 'Образование', earth: 'Науки за Земята'
+    edu: 'Образование', earth: 'Науки за Земята', business: 'Бизнес'
   };
   var SECTIONS = {
     ten: { name: '10 БУМа', href: 'deset.html' },
     sto: { name: 'СтоБУМ', href: 'sto.html' },
     kilo: { name: 'КилоБУМ', href: 'kilo.html' }
   };
-  function tag(list, sec) { return (list || []).map(function (p, i) { p.sec = sec; p.rank = i + 1; if (!FIELDS[p.field]) p.field = 'math'; return p; }); }
+  var LIVES = { bg: 'В България', abroad: 'В чужбина', both: 'И двете' };
+  var COUNTRIES = ['САЩ', 'Русия', 'Австрия', 'Молдова', 'Германия', 'Франция', 'Швейцария', 'Румъния', 'Турция', 'Гърция', 'Сърбия', 'Северна Македония'];
+  /* Град на раждане, изведен от полето place: „Студен извор, Трънско“ → „Студен извор“; „Виена, Австрия“ → „Виена (Австрия)“. */
+  function cityOf(place) {
+    if (!place || /^(България|Първо българско царство)$/.test(place)) return 'неизвестно';
+    var parts = place.split(/,\s*/), last = parts[parts.length - 1], c = parts[0].replace(/^(село|гр\.)\s+/, '');
+    return parts.length > 1 && COUNTRIES.indexOf(last) >= 0 ? c + ' (' + last + ')' : c;
+  }
+  function tag(list, sec) {
+    var F = window.BUM_FACETS || {};
+    return (list || []).map(function (p, i) {
+      p.sec = sec; p.rank = i + 1; if (!FIELDS[p.field]) p.field = 'math';
+      var f = F[p.id] || {};
+      p.fields = (f.s && f.s.length ? f.s : [p.field]).filter(function (k) { return FIELDS[k]; });
+      if (p.fields.indexOf(p.field) < 0) p.fields.unshift(p.field);
+      p.lives = f.lv || 'bg'; p.city = cityOf(p.place);
+      return p;
+    });
+  }
   var TEN = tag(window.BUM_TEN, 'ten');
   var STO = tag(window.BUM_STO, 'sto').sort(function (a, b) { return (a.born || 0) - (b.born || 0); });
   var KILO = tag(window.BUM_KILO, 'kilo');
@@ -118,7 +136,8 @@
         '<span><b>БУМ</b><small>Български Успехи<br>с Математика</small></span></a>' +
         '<nav class="nav" aria-label="Секции"><a href="deset.html"' + (active === 'ten' ? ' aria-current="page"' : '') + '>10 БУМа</a>' +
         '<a href="sto.html"' + (active === 'sto' ? ' aria-current="page"' : '') + '>СтоБУМ</a>' +
-        '<a href="kilo.html"' + (active === 'kilo' ? ' aria-current="page"' : '') + '>КилоБУМ</a></nav>' +
+        '<a href="kilo.html"' + (active === 'kilo' ? ' aria-current="page"' : '') + '>КилоБУМ</a>' +
+        '<a href="statistika.html" class="nav-stats"' + (active === 'stats' ? ' aria-current="page"' : '') + ' aria-label="Статистика"><span aria-hidden="true">📊</span><span class="lbl"> Статистика</span></a></nav>' +
         '<button class="theme" id="theme" type="button"></button></div>';
       applyTheme(getTheme());
       document.getElementById('theme').addEventListener('click', function () {
@@ -203,7 +222,7 @@
     var real = TEN.concat(STO), women = real.filter(function (p) { return p.sex === 'f'; }).length;
     var cs = real.map(century).filter(Boolean), minC = Math.min.apply(null, cs), maxC = Math.max.apply(null, cs);
     document.querySelector('main').appendChild(kaBlock('@home', 'Математиката зад откритията'));
-    document.getElementById('stats').innerHTML = '<div><b>' + real.length + '</b><span>истински истории</span></div><div><b>' + women + '</b><span>жени</span></div><div><b>' + roman(minC) + '–' + roman(maxC) + '</b><span>век</span></div>';
+    document.getElementById('stats').innerHTML = '<div><b>' + real.length + '</b><span>истински истории</span></div><div><b>' + women + '</b><span>жени</span></div><div><b>' + roman(minC) + '–' + roman(maxC) + '</b><span>век</span></div>' + '<a class="stats-more" href="statistika.html">Всички числа и осева таблица →</a>';
   }
 
   /* ---------- 10 БУМа ---------- */
@@ -231,7 +250,7 @@
     var sh = document.getElementById('shuffle'); if (sh) sh.onclick = deal;
 
     var st = { q: '', sex: '', cent: '', field: '', sort: 'born' };
-    var fieldsUsed = Object.keys(FIELDS).filter(function (k) { return data.some(function (p) { return p.field === k; }); });
+    var fieldsUsed = Object.keys(FIELDS).filter(function (k) { return data.some(function (p) { return p.fields.indexOf(k) >= 0; }); });
     var cents = []; data.forEach(function (p) { var c = century(p); if (c && cents.indexOf(c) < 0) cents.push(c); }); cents.sort(function (a, b) { return a - b; });
 
     function chips(id, items, key) {
@@ -255,20 +274,20 @@
       if (st.q && (p.name + ' ' + p.title + ' ' + (p.tags || []).join(' ') + ' ' + (p.place || '') + ' ' + FIELDS[p.field]).toLowerCase().indexOf(st.q) < 0) return false;
       if (skip !== 'sex' && st.sex && p.sex !== st.sex) return false;
       if (skip !== 'cent' && st.cent && String(century(p)) !== st.cent) return false;
-      if (skip !== 'field' && st.field && p.field !== st.field) return false;
+      if (skip !== 'field' && st.field && p.fields.indexOf(st.field) < 0) return false;
       return true;
     }
     function counts(id, key, fn) {
       document.querySelectorAll('#' + id + ' .chip').forEach(function (b) {
         var v = b.dataset.v; b.setAttribute('aria-pressed', String(st[key] === v));
-        b.querySelector('.n').textContent = data.filter(function (p) { return match(p, key) && (!v || fn(p) === v); }).length;
+        b.querySelector('.n').textContent = data.filter(function (p) { var x = fn(p); return match(p, key) && (!v || (Array.isArray(x) ? x.indexOf(v) >= 0 : x === v)); }).length;
       });
     }
     var list = document.getElementById('list'), cnt = document.getElementById('count');
     function render() {
       counts('f-sex', 'sex', function (p) { return p.sex; });
       counts('f-cent', 'cent', function (p) { return String(century(p)); });
-      counts('f-field', 'field', function (p) { return p.field; });
+      counts('f-field', 'field', function (p) { return p.fields; });
       var arr = (st.sort === 'random' ? rnd : data).filter(function (p) { return match(p); });
       if (st.sort === 'born-desc') arr = arr.slice().sort(function (a, b) { return b.born - a.born; });
       if (st.sort === 'name') arr = arr.slice().sort(function (a, b) { return a.name.localeCompare(b.name, 'bg'); });
@@ -300,7 +319,7 @@
 
     var ar = el('article', 'article');
     var head = '<div class="head">' + (p.fictional ? '<span class="fict">Измислен' + (p.sex === 'f' ? 'а' : '') + ' човек · примерна статия</span>' : '') +
-      fieldTag(p) + '<div class="name">' + esc(p.name) + ' <span>' + esc(years(p)) + (p.age ? ' · ' + p.age + ' г.' : '') + (p.place ? ' · ' + esc(p.place) : '') + '</span></div>' +
+      '<div class="tags">' + p.fields.map(function (k) { return '<span class="field-tag f-' + k + '">' + FIELDS[k] + '</span>'; }).join(' ') + '</div>' + '<div class="name">' + esc(p.name) + ' <span>' + esc(years(p)) + (p.age ? ' · ' + p.age + ' г.' : '') + (p.place ? ' · ' + esc(p.place) : '') + '</span></div>' +
       '<h1>' + esc(p.title) + '</h1><p class="lede">' + esc(p.lede) + '</p>' +
       (p.tags && p.tags.length ? '<div class="tags">' + p.tags.map(function (t) { return '<span>' + esc(t) + '</span>'; }).join('') + '</div>' : '') + '</div>';
     var body = '';
@@ -338,6 +357,115 @@
     loadPhotos(document); credit();
   }
 
+  /* ---------- СТАТИСТИКА: осева таблица ---------- */
+  function pageStats() {
+    chrome('stats');
+    var DIMS = {
+      cent: { t: 'Век на раждане', get: function (p) { var c = century(p); return c ? [String(c)] : ['?']; }, label: function (v) { return v === '?' ? 'неизвестен' : roman(+v) + ' век'; }, order: 'num' },
+      field: { t: 'Сфера', get: function (p) { return p.fields; }, label: function (v) { return FIELDS[v]; }, order: 'count' },
+      sex: { t: 'Пол', get: function (p) { return [p.sex]; }, label: function (v) { return v === 'f' ? 'Жени' : 'Мъже'; }, order: 'fixed', fixed: ['f', 'm'] },
+      lives: { t: 'Живее (живял/а) основно', get: function (p) { return [p.lives]; }, label: function (v) { return LIVES[v]; }, order: 'fixed', fixed: ['bg', 'both', 'abroad'] },
+      city: { t: 'Град на раждане', get: function (p) { return [p.city]; }, label: function (v) { return v; }, order: 'count' },
+      sec: { t: 'Раздел', get: function (p) { return [p.sec]; }, label: function (v) { return SECTIONS[v].name; }, order: 'fixed', fixed: ['ten', 'sto', 'kilo'] },
+      none: { t: '— (само общо)', get: function () { return ['all']; }, label: function () { return 'Брой'; }, order: 'fixed', fixed: ['all'] }
+    };
+    var rowSel = document.getElementById('rows'), colSel = document.getElementById('cols');
+    Object.keys(DIMS).forEach(function (k) {
+      if (k !== 'none') rowSel.add(new Option(DIMS[k].t, k));
+      colSel.add(new Option(DIMS[k].t, k));
+    });
+    rowSel.value = 'cent'; colSel.value = 'sex';
+    var inc = { ten: true, sto: true, kilo: false };
+    ['ten', 'sto', 'kilo'].forEach(function (k) {
+      var c = document.getElementById('inc-' + k); c.checked = inc[k];
+      c.onchange = function () { inc[k] = c.checked; render(); };
+    });
+    rowSel.onchange = colSel.onchange = render;
+    document.getElementById('swap').onclick = function () {
+      if (colSel.value === 'none') return; var r = rowSel.value; rowSel.value = colSel.value; colSel.value = r; render();
+    };
+    var cur = null;
+    function people() { return ALL.filter(function (p) { return inc[p.sec]; }); }
+    function sortVals(dim, vals, cnt) {
+      var D = DIMS[dim];
+      if (D.order === 'fixed') return D.fixed.filter(function (v) { return vals.indexOf(v) >= 0; });
+      if (D.order === 'num') return vals.sort(function (a, b) { return (a === '?') - (b === '?') || +a - +b; });
+      return vals.sort(function (a, b) { return (a === 'неизвестно') - (b === 'неизвестно') || cnt[b] - cnt[a] || a.localeCompare(b, 'bg'); });
+    }
+    function render() {
+      var P = people(), R = DIMS[rowSel.value], Cd = DIMS[colSel.value];
+      var cells = {}, rowsSet = {}, colsSet = {}, rowP = {}, colP = {};
+      P.forEach(function (p) {
+        R.get(p).forEach(function (r) {
+          rowsSet[r] = 1; (rowP[r] = rowP[r] || []).indexOf(p) < 0 && rowP[r].push(p);
+          Cd.get(p).forEach(function (c) {
+            colsSet[c] = 1; (colP[c] = colP[c] || []).indexOf(p) < 0 && colP[c].push(p);
+            var k = r + '\u0001' + c; (cells[k] = cells[k] || []).push(p);
+          });
+        });
+      });
+      var rc = {}, cc = {}; Object.keys(rowP).forEach(function (k) { rc[k] = rowP[k].length; }); Object.keys(colP).forEach(function (k) { cc[k] = colP[k].length; });
+      var rows = sortVals(rowSel.value, Object.keys(rowsSet), rc), cols = sortVals(colSel.value, Object.keys(colsSet), cc);
+      var max = 0; Object.keys(cells).forEach(function (k) { max = Math.max(max, cells[k].length); });
+      var showTotalCol = colSel.value !== 'none';
+      var h = '<table class="pivot"><thead><tr><th scope="col" class="corner">' + esc(R.t) + (showTotalCol ? ' \\ ' + esc(Cd.t) : '') + '</th>' +
+        cols.map(function (c) { return '<th scope="col">' + esc(Cd.label(c)) + '</th>'; }).join('') + (showTotalCol ? '<th scope="col" class="tot">Общо*</th>' : '') + '</tr></thead><tbody>';
+      rows.forEach(function (r) {
+        h += '<tr><th scope="row">' + esc(R.label(r)) + '</th>';
+        cols.forEach(function (c) {
+          var L = cells[r + '\u0001' + c] || [], n = L.length, pc = max ? Math.round(n / max * 70) : 0;
+          h += n ? '<td><button type="button" data-r="' + esc(r) + '" data-c="' + esc(c) + '" style="--h:' + pc + '%">' + n + '</button></td>' : '<td class="z">·</td>';
+        });
+        if (showTotalCol) h += '<td class="tot"><button type="button" data-r="' + esc(r) + '" data-c="*">' + rowP[r].length + '</button></td>';
+        h += '</tr>';
+      });
+      h += '</tbody><tfoot><tr><th scope="row">Общо*</th>' + cols.map(function (c) { return '<td><button type="button" data-r="*" data-c="' + esc(c) + '">' + colP[c].length + '</button></td>'; }).join('') +
+        (showTotalCol ? '<td class="tot"><button type="button" data-r="*" data-c="*">' + P.length + '</button></td>' : '') + '</tr></tfoot></table>';
+      var box = document.getElementById('pivot'); box.innerHTML = P.length ? h : '<p class="empty">Избери поне един раздел.</p>';
+      box.querySelectorAll('button[data-r]').forEach(function (b) {
+        b.onclick = function () {
+          var r = b.dataset.r, c = b.dataset.c, L;
+          if (r === '*' && c === '*') L = P; else if (r === '*') L = colP[c]; else if (c === '*') L = rowP[r]; else L = cells[r + '\u0001' + c];
+          var title = (r === '*' ? '' : R.label(r)) + (r !== '*' && c !== '*' && colSel.value !== 'none' ? ' · ' : '') + (c === '*' || colSel.value === 'none' ? '' : Cd.label(c));
+          showList(title || 'Всички', L);
+          box.querySelectorAll('button.on').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on');
+        };
+      });
+      var multi = rowSel.value === 'field' || colSel.value === 'field';
+      document.getElementById('multi').hidden = !multi;
+      cur = { rows: rows, cols: cols, cells: cells, rowP: rowP, colP: colP, R: R, C: Cd, P: P, tc: showTotalCol };
+      cards(P);
+      document.getElementById('cell').innerHTML = '';
+    }
+    function showList(title, L) {
+      var d = document.getElementById('cell');
+      L = L.slice().sort(function (a, b) { return (a.born || 0) - (b.born || 0); });
+      d.innerHTML = '<h2>' + esc(title) + ' <span>· ' + L.length + '</span></h2>';
+      var ul = el('ul', 'list'); L.forEach(function (p) { ul.appendChild(listItem(p)); }); d.appendChild(ul);
+      loadPhotos(d); d.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function cards(P) {
+      var n = P.length || 1, f = P.filter(function (p) { return p.sex === 'f'; }).length, bg = P.filter(function (p) { return p.lives === 'bg'; }).length;
+      var cs = P.map(century).filter(Boolean), cities = {}; P.forEach(function (p) { if (p.city !== 'неизвестно') cities[p.city] = 1; });
+      var fl = {}; P.forEach(function (p) { p.fields.forEach(function (k) { fl[k] = 1; }); });
+      document.getElementById('cards').innerHTML = [
+        [P.length, 'истории'], [Math.round(f / n * 100) + '%', 'жени (' + f + ')'], [Math.round(bg / n * 100) + '%', 'живеят основно в България'],
+        [cs.length ? roman(Math.min.apply(null, cs)) + '–' + roman(Math.max.apply(null, cs)) : '—', 'век на раждане'], [Object.keys(cities).length, 'града на раждане'], [Object.keys(fl).length, 'сфери']
+      ].map(function (x) { return '<div><b>' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join('');
+    }
+    document.getElementById('csv').onclick = function () {
+      if (!cur) return;
+      var q = function (s) { return '"' + String(s).replace(/"/g, '""') + '"'; };
+      var lines = [[cur.R.t].concat(cur.cols.map(function (c) { return cur.C.label(c); }), cur.tc ? ['Общо'] : []).map(q).join(',')];
+      cur.rows.forEach(function (r) { lines.push([q(cur.R.label(r))].concat(cur.cols.map(function (c) { return (cur.cells[r + '\u0001' + c] || []).length; }), cur.tc ? [cur.rowP[r].length] : []).join(',')); });
+      lines.push([q('Общо')].concat(cur.cols.map(function (c) { return cur.colP[c].length; }), cur.tc ? [cur.P.length] : []).join(','));
+      var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8' }));
+      a.download = 'bum-statistika.csv'; document.body.appendChild(a); a.click(); a.remove();
+    };
+    render();
+    document.querySelector('main').appendChild(kaBlock('@stats', 'Научи се да четеш таблици и данни'));
+  }
+
   window.BUM = { TEN: TEN, STO: STO, KILO: KILO, FIELDS: FIELDS };
   var page = document.body.getAttribute('data-page');
   if (page === 'home') pageHome();
@@ -345,4 +473,5 @@
   else if (page === 'sto') pageList('sto');
   else if (page === 'kilo') pageList('kilo');
   else if (page === 'story') pageStory();
+  else if (page === 'stats') pageStats();
 })();

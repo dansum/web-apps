@@ -1405,5 +1405,17 @@ window.BUM_KA = {
    "c": "6. клас",
    "u": "https://bg.khanacademy.org/math/6-klas/x8f4872fe3845cd98:proportsii/x8f4872fe3845cd98:razchitane-danni-diagrami-grafiki"
   }
+ ],
+ "@stats": [
+  {
+   "t": "Анализ на диаграми – зависимост на две категорни променливи",
+   "c": "12. клас (профил)",
+   "u": "https://bg.khanacademy.org/math/12-klas-profil-modul-3/xb61bd9e6d5c1f4a1:empirichni-razpredeleniya/xb61bd9e6d5c1f4a1:zavisimost-na-dve-kategorni-promenlivi"
+  },
+  {
+   "t": "Организиране и представяне на данни",
+   "c": "6. клас",
+   "u": "https://bg.khanacademy.org/math/6-klas/x8f4872fe3845cd98:elementi-ot-veroyatnosti-i-statistika/x8f4872fe3845cd98:organizirane-i-predstavyane-na-danni"
+  }
  ]
 };

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Статистика — БУМ</title>
+<meta name="description" content="БУМ в числа: осева таблица на историите по век, сфера, пол, живот в България и град на раждане.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+
+<link rel="preload" href="fonts/lato-bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css">
+<script>try{var t=localStorage.getItem('bum-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body data-page="stats">
+<header id="top"></header>
+<main class="wrap">
+  <div class="page-head">
+    <span class="eyebrow">Статистика</span>
+    <h1>БУМ в числа</h1>
+    <p>Колко са жените? От кои векове са хората? Колко живеят в България и колко по света? Избери какво да е по редове и по колони — и натисни число, за да видиш хората зад него.</p>
+  </div>
+  <div class="cards" id="cards"></div>
+  <div class="pv-tools">
+    <label>Редове<select class="sel" id="rows"></select></label>
+    <button class="btn ghost" type="button" id="swap" title="Размени редове и колони">⇄</button>
+    <label>Колони<select class="sel" id="cols"></select></label>
+    <div><span class="sr">Раздели</span><div class="checks">
+      <label><input type="checkbox" id="inc-ten"> 10 БУМа</label>
+      <label><input type="checkbox" id="inc-sto"> СтоБУМ</label>
+      <label><input type="checkbox" id="inc-kilo"> КилоБУМ (примерни, измислени)</label>
+    </div></div>
+    <button class="btn ghost" type="button" id="csv">⬇ CSV</button>
+  </div>
+  <div class="pivot-wrap" id="pivot"></div>
+  <p class="pv-note">* „Общо“ брои всеки човек веднъж. <span id="multi" hidden>Една история може да е в няколко сфери (например информатика и бизнес) и се брои във всяка от тях — затова сборът на клетките в реда или колоната може да е по-голям от „Общо“.</span> „Живее основно“: за починалите — къде са живели и работили през по-голямата част от живота си. Градът на раждане е „неизвестно“, когато точното място не е потвърдено.</p>
+  <section id="cell" aria-live="polite"></section>
+</main>
+<footer id="foot"></footer>
+<script src="data/ten.js"></script>
+<script src="data/sto-a.js"></script>
+<script src="data/sto-b.js"></script>
+<script src="data/sto-c.js"></script>
+<script src="data/sto-d.js"></script>
+<script src="data/sto-e.js"></script>
+<script src="data/kilo.js"></script>
+<script src="data/ka.js"></script>
+<script src="data/facets.js"></script>
+<script src="js/art.js"></script>
+<script src="js/bum.js"></script>
+<script src="../consent.js" defer></script>
+</body>
+</html>
