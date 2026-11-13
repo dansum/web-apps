@@ -523,7 +523,7 @@ function drawStats(course) {
   el.hidden = false;
 }
 store.onChange(() => {
-  const h = location.hash.replace(/^#\/?/, '').split('/');
+  const h = location.hash.replace(/^#\/?/, '').split('?')[0].split('/');
   drawStats(courseOfRoute(h[0], h[1]));
 });
 
@@ -532,7 +532,8 @@ function route() {
   voice.stop();
   for (const fn of cleanup) { try { fn(); } catch (e) { console.warn(e); } }
   cleanup = [];
-  const h = location.hash.replace(/^#\/?/, '');
+  // „?…“ в края на адреса е за настройки на преживяването (напр. #/s/5.2.4?v=b — вариант Б на опита).
+  const h = location.hash.replace(/^#\/?/, '').split('?')[0];
   const [kind, arg] = h.split('/');
   if (kind === 'demo') { location.replace('#/'); demo.start(route); return; }
   window.scrollTo(0, 0);
