@@ -182,7 +182,9 @@ export function mount(container, { onComplete }) {
       const S = LK.st;
       S.shown += (S.fert - S.shown) * Math.min(1, dt * 0.6);
       LK.algae.material.opacity = Math.min(0.92, S.shown * 0.9);
-      const ok = 1 - Math.max(0, S.shown - 0.55) / 0.45;
+      // fresh: новопуснати риби — живи в началото, после се задушават (решение 24).
+      if (S.fresh) S.fresh = Math.max(0, S.fresh - dt * 0.45);
+      const ok = Math.max(1 - Math.max(0, S.shown - 0.55) / 0.45, S.fresh || 0);
       LK.fish.forEach((f) => {
         const a = t * 0.4 * Math.max(0.05, ok) + f.userData.k;
         const r = 0.45 + f.userData.k * 0.08;
@@ -212,7 +214,7 @@ export function mount(container, { onComplete }) {
     LAYERS.forEach((_, i) => { layerMeshes[i].visible = false; });
     F.level = 0; F.run = false; muddyTop.visible = false;
     PL.stage = 5; glowRing.visible = false;
-    L.fert = 0; L.shown = 0; L.rain = false;
+    L.fert = 0; L.shown = 0; L.rain = false; L.fresh = 0;
     L1.strip.visible = false; L2.g.visible = false; tagNo.visible = false; tagYes.visible = false; plant.visible = true;
     (ctx.bubbles2 || []).forEach((b) => b.remove()); ctx.bubbles2 = null;
     view(ctx, [-0.5, 0.8, -0.2], 6.8, { halfH: 2 });
@@ -365,24 +367,60 @@ export function mount(container, { onComplete }) {
           setTimeout(() => {
             L.rain = false;
             ctx.say(lakeAt, 'Водораслите покриха езерото. Когато загиват, разграждането им изразходва кислорода във водата и рибите се задушават.', 'wide', 0.6);
-            const cc = shell.setControls('<div class="row"><button class="btn fix">🌳 Торове умерено + ивица дървета до брега</button></div>');
-            cc.querySelector('.fix').addEventListener('click', () => {
-              cc.querySelector('.fix').disabled = true;
-              L.fert = 0.15; L1.strip.visible = true;
-              ctx.say(lakeAt, '✔ Ивица дървета и храсти задържа торовете. Езерото постепенно се възстановява.', 'good wide', 0.6);
-              setTimeout(twoLakes, 2200);
-            }, { once: true });
+            measures();
           }, 4500);
         }, { once: true });
       },
     });
+    // Решение 24: три действия с различни последствия, всяко се вижда в сцената.
+    function measures() {
+      const MS = [
+        { id: 'fish', t: '🐟 Пусни нови риби в езерото', ok: false },
+        { id: 'clean', t: '🧹 Изгребай водораслите веднъж', ok: false },
+        { id: 'fix', t: '🌳 Торове умерено + ивица дървета до брега', ok: true },
+      ];
+      const cc = shell.setControls(`<p><b>Как да помогнем на езерото? Опитай и виж какво става.</b></p><div class="choices">${shuffle(MS.map((_, i) => i)).map((i) => `<button class="choice fix-m ${MS[i].id === 'fix' ? 'fix' : ''}" data-m="${MS[i].id}">${MS[i].t}</button>`).join('')}</div>`);
+      let busy = false;
+      cc.querySelectorAll('.fix-m').forEach((b) => b.addEventListener('click', () => {
+        if (busy || b.disabled) return;
+        const m = b.dataset.m;
+        if (m === 'fix') {
+          busy = true;
+          cc.querySelectorAll('.fix-m').forEach((x) => { x.disabled = true; });
+          b.classList.add('right');
+          L.fert = 0.15; L1.strip.visible = true;
+          ctx.say(lakeAt, '✔ Ивица дървета и храсти задържа торовете. Езерото постепенно се възстановява.', 'good wide', 0.6);
+          shell.msg('Тази мярка спира причината — торовете.', 'good');
+          setTimeout(twoLakes, 2200);
+          return;
+        }
+        mistakes++;
+        b.disabled = true; b.classList.add('wrong');
+        busy = true;
+        if (m === 'fish') {
+          L.fresh = 1;
+          ctx.say(lakeAt, 'Новите риби плуват… но във водата пак няма достатъчно кислород. И те се задушават.', 'wide bad', 0.6);
+          shell.msg('Водораслите и торовете останаха. Причината не е махната.', 'bad');
+          setTimeout(() => { busy = false; }, 2500);
+        } else {
+          L.fert = 0; L.shown = 0;
+          ctx.say(lakeAt, 'Водата за малко е бистра…', 'wide', 0.6);
+          setTimeout(() => {
+            L.rain = true; L.fert = 1;
+            ctx.say(lakeAt, 'Дойде нов дъжд. Торовете пак стигнаха до езерото и водораслите отново плъзнаха.', 'wide bad', 0.6);
+            shell.msg('Торовете на полето останаха. Причината не е махната.', 'bad');
+            setTimeout(() => { L.rain = false; busy = false; }, 3000);
+          }, 1800);
+        }
+      }));
+    }
     // Решение 30: двете езера едно до друго след един и същ дъжд — „Без мярка“ и „С мярка“.
     function twoLakes() {
       ctx.clearTip();
       plant.visible = false;
       L1.strip.visible = false; L2.strip.visible = true; L2.g.visible = true;
-      Object.assign(L1.st, { fert: 0, shown: 0, rain: false });
-      Object.assign(L2.st, { fert: 0, shown: 0, rain: false });
+      Object.assign(L1.st, { fert: 0, shown: 0, rain: false, fresh: 0 });
+      Object.assign(L2.st, { fert: 0, shown: 0, rain: false, fresh: 0 });
       tagNo.visible = true; tagYes.visible = true;
       view(ctx, [1.2, 0.3, -1.6], 4.7, { halfH: 1.2, elev: 0.7 });
       shell.task('<p><b>Сравни двете езера.</b> Полетата до тях са наторени. Вляво няма мярка. Вдясно торовете са умерено и до брега има ивица дървета.</p>');

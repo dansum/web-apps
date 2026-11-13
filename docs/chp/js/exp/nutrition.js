@@ -124,7 +124,7 @@ export function mount(container, { onComplete }) {
       bolus.scale.setScalar(1 - R.trip * 0.6);
       gutM.emissiveIntensity = R.trip > 0.45 && R.trip < 0.9 ? 0.5 : 0;
       stomach.material.emissiveIntensity = R.trip > 0.3 && R.trip < 0.5 ? 0.5 : 0;
-      if (R.trip > 0.5) nutri.visible = true;
+      if (R.trip > 0.5 && R.food) nutri.visible = true;
     }
     if (nutri.visible) { nutri.userData.update(dt); cells.children.forEach((c, i) => { c.material.emissiveIntensity = 0.3 + Math.sin(t * 3 + i) * 0.2; }); }
   });
@@ -214,11 +214,46 @@ export function mount(container, { onComplete }) {
     shell.step(2);
     ctx.clearTip();
     view(ctx, [RX + 0.3, 1.0, 0], 2.1, { halfH: 1.3, elev: 0.2 });
-    shell.task('<p>Заекът се храни <b>несамостойно</b>: яде готова храна. Проследи какво става с нея.</p>');
-    const c = shell.setControls('<div class="row"><button class="btn primary feed">🌿 Нахрани заека</button></div>');
-    c.querySelector('.feed').addEventListener('click', () => {
-      c.querySelector('.feed').disabled = true;
-      R.trip = 0;
+    shell.task('<p>Заекът се храни <b>несамостойно</b>: яде готова храна. <b>Избери какво да му дадеш</b> и виж какво става.</p>');
+    // Решение 24: три действия с различни последствия в сцената. Само с храната продължаваме нататък.
+    R.trip = -1; R.food = false; nutri.visible = false; bolus.visible = false;
+    const pale = (on) => cells.children.forEach((x) => { x.material.color.set(on ? 0xb0a8ac : 0xf8bbd0); x.material.emissiveIntensity = 0; });
+    pale(false);
+    const c = shell.setControls(`<div class="choices">
+      <button class="choice feed" data-a="food">🥕 Дай морков</button>
+      <button class="choice feed-w" data-a="water">💧 Дай само вода</button>
+      <button class="choice feed-n" data-a="none">🚫 Не давай храна</button></div><p class="small fd-res"></p>`);
+    const res = c.querySelector('.fd-res');
+    let busy = false;
+    c.querySelectorAll('.choice').forEach((b) => b.addEventListener('click', () => {
+      if (busy || b.disabled) return;
+      const a = b.dataset.a;
+      c.querySelectorAll('.choice').forEach((x) => x.classList.remove('on'));
+      b.classList.add('on');
+      if (a === 'food') return feed(b);
+      busy = true;
+      ctx.clearTip(); nutri.visible = false; R.food = false;
+      if (a === 'water') {
+        bolus.material.color.set(0x4fc3f7); R.trip = 0;
+        setTimeout(() => {
+          pale(true);
+          ctx.say(cellsAt, '💧 Водата е нужна на тялото, но не е храна. В нея няма органични вещества. До клетките не стигат хранителни вещества (няма оранжеви точки).', 'wide bad', 0.3);
+          res.innerHTML = '<b>Само вода:</b> в стомаха няма храна за смилане. Ако заекът дълго пие само вода, той отслабва.';
+          busy = false;
+        }, 4600);
+      } else {
+        R.trip = -1; bolus.visible = false; pale(true);
+        ctx.say(stomach, '🚫 Стомахът и червата са празни. В кръвта не идват хранителни вещества.', 'wide bad', 0.3);
+        res.innerHTML = '<b>Без храна:</b> клетките не получават вещества за енергия и растеж. Ако това трае дълго, заекът отслабва.';
+        setTimeout(() => { busy = false; }, 1200);
+      }
+    }));
+    function feed(b) {
+      busy = true;
+      c.querySelectorAll('.choice').forEach((x) => { x.disabled = true; });
+      ctx.clearTip(); pale(false); res.textContent = '';
+      bolus.material.color.set(0xff8a3d);
+      R.food = true; R.trip = 0;
       setTimeout(() => ctx.say(stomach, 'Храната се смила в стомаха и в червата.', 'tag', 0.3), 1800);
       setTimeout(() => {
         ctx.say(cellsAt, 'Хранителните вещества минават от червата в <b>кръвта</b>. Кръвта ги носи до всички <b>клетки</b> в тялото.', 'wide', 0.3);
@@ -246,7 +281,7 @@ export function mount(container, { onComplete }) {
           },
         });
       }, 4800);
-    }, { once: true });
+    }
   }
 
   // ---------- 4. Сравни и предскажи ----------

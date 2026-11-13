@@ -1,5 +1,6 @@
 // Изиграва 5.2.6 „Опазване чистотата на водата“ (js/exp/water.js) докрай с две умишлени грешки.
-// Очакван резултат: (0.5 + 1 + 1) / 3 — грешките са в предсказанието на стъпка 2 и в реда на слоевете във филтъра.
+// Очакван резултат: (0.5 + 1 + 0.75) / 3 — грешките са в предсказанието на стъпка 2 и в реда на слоевете във филтъра,
+// а на стъпка 4 — една мярка, която не маха причината (изгребваме водораслите, а новият дъжд ги връща).
 // Употреба: NODE_PATH=$(npm root -g) node tools/test-water.mjs http://localhost:8765/chp/ <папка> [ширина]
 import { open } from './xp-lib.mjs';
 import { sortAll, orderAll } from './xp5.mjs';
@@ -26,6 +27,10 @@ await wait(800); await t.shot('3b');
 await sortAll(t); await t.next();
 // 4. Езерото
 await t.choose(0); await t.btn('.rain'); await wait(5000); await t.shot('4a');
+// Мярка, която не помага: водораслите се връщат след новия дъжд.
+await page.click('.xp-controls .fix-m[data-m="clean"]'); await wait(2600); await t.shot('4m');
+console.log('грешна мярка:', await t.msg(), '|', await page.textContent('.bubble'));
+await wait(2600);
 await t.btn('.fix'); await wait(2800); await t.shot('4b');
 // Двете езера след един и същ дъжд (решение 30)
 await t.btn('.rain2'); await wait(5000); await t.shot('4c');
@@ -35,4 +40,4 @@ if (!b2.some((x) => /задушават/.test(x)) || !b2.some((x) => /живи/.
 await t.choose(0); await t.next();
 await sortAll(t); await t.next();
 await t.shot('5');
-await t.done((0.5 + 1 + 1) / 3);
+await t.done((0.5 + 1 + 0.75) / 3);
