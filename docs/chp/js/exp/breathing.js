@@ -2,6 +2,7 @@
 // Стъпки: опознай → пътят на въздуха → как дишаме (диафрагма) → газообмен, дим и превенция.
 import { createStage, labelSprite, addHitBox, cornerMenu, THREE, esc, shuffle } from '../kit.js';
 import { createShell, stepScore } from './shell.js';
+import { compare } from './labkit.js';
 import { injectStyle, organMat, glassMat, curveOf, tube, hitTube, glowOf, choicesHTML } from './anatomy.js';
 
 const PARTS = [
@@ -1053,7 +1054,18 @@ export function mount(container, { onComplete }) {
       });
       const predOk = pred === 'less' ? 1 : 0;
       setAir('smoke');
-      const cc = shell.setControls(`<div class="breathing-airs">${Object.entries(AIRS).map(([k, a]) => `<button class="btn ${k === 'smoke' ? 'on' : ''}" data-a="${k}">${a.label}</button>`).join('')}</div>`);
+      shell.setControls(`<div class="br-airs-wrap"><div class="breathing-airs">${Object.entries(AIRS).map(([k, a]) => `<button class="btn ${k === 'smoke' ? 'on' : ''}" data-a="${k}">${a.label}</button>`).join('')}</div></div>`);
+      const cc = shell.controls.querySelector('.br-airs-wrap');
+      // Отворена прогноза: опитът тръгва при всеки избор; след малко панелът сравнява прогнозата с резултата.
+      setTimeout(() => {
+        if (!alive || !cc.isConnected) return;
+        compare({ shell }, {
+          pick: { t: pr.find((p) => p.v === pred).t, ok: !!predOk },
+          result: 'Кислородът, който минава в кръвта, намаля. Алвеолата потъмня.',
+          why: 'Катранът от дима полепва по алвеолите. Угарният газ пречи на кръвта да носи кислород.',
+        });
+        shell.controls.appendChild(cc);
+      }, 4500);
       const tried = new Set(['smoke']);
       const notes = {
         smoke: '<b>Тютюнев дим.</b> В него има катран — тъмно лепкаво вещество. То полепва по стените на алвеолите. В дима има и угарен газ. Той пречи на кръвта да носи кислород. Затова кислородът в кръвта е по-малко.',
@@ -1068,7 +1080,7 @@ export function mount(container, { onComplete }) {
         sayMicro('note', [0, 4.1, 0.6], notes[k], 'wide');
       };
       setTimeout(() => { if (alive && gx.air === 'smoke') showNote('smoke'); }, 2500);
-      shell.msg(`${predOk ? 'Позна! ' : ''}Гледай алвеолата и уреда горе вдясно. Моделът показва бързо това, което при пушача става за години.`, predOk ? 'good' : 'bad');
+      shell.msg('');
       cc.querySelectorAll('[data-a]').forEach((bt) => bt.addEventListener('click', () => {
         cc.querySelectorAll('[data-a]').forEach((x) => x.classList.toggle('on', x === bt));
         setAir(bt.dataset.a);
@@ -1084,7 +1096,7 @@ export function mount(container, { onComplete }) {
           nx.addEventListener('click', () => rules(qScore, predOk));
         }
       }));
-      shell.task(`<p class="small">Ти предположи: <b>${esc(pr.find((p) => p.v === pred).t)}</b> ${predOk ? '✔' : '✘'}</p>
+      shell.task(`<p>Гледай алвеолата и уреда горе вдясно. Моделът показва бързо това, което при пушача става за години.</p>
         <p>Пробвай и трите вида въздух. Следи цвета на алвеолата и червените клетки.</p>
         <p class="breathing-note" hidden></p>`);
     });
