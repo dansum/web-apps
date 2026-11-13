@@ -2,7 +2,7 @@
 // фенерче с процеп, огледало на въртяща се поставка и мишени зад преграда, слънчев панел с перка.
 // Стъпки: опознай → лъчите и сянката (опит) → отражение: насочи лъча с огледало → светлината пренася енергия.
 import { labelSprite, mat, addHitBox, THREE } from '../kit.js';
-import { scaffold, explore, choice, nextBtn, finishBtn, labRoom, view, fmt, stepScore } from './labkit.js';
+import { scaffold, explore, choice, predict, compare, nextBtn, finishBtn, labRoom, view, fmt, stepScore } from './labkit.js';
 
 const Y = 1.0;            // височина на лъчите
 const CUBE = { x: -1.8, h: 0.3 };
@@ -351,23 +351,27 @@ export function mount(container, { onComplete }) {
     view(ctx, [-2.2, 0.9, 0], 3.8, { halfH: 1.4, elev: 0.75 });
     shell.task('<p class="small"><b>🔁 Припомни от 4. клас</b></p><p>Фенерчето ще светне към куба. Зад куба е белият екран.</p>');
     let mistakes = 0;
-    choice(ctx, {
+    predict(ctx, {
       q: 'Какво ще се види на екрана точно зад куба?',
       options: [
-        { t: 'Тъмно петно с формата на куба — сянка', ok: true, why: 'Да проверим! Включи фенерчето.' },
-        { t: 'Светло петно с формата на куба', ok: false, why: 'Кубът е непрозрачен. Минава ли светлината през него?' },
-        { t: 'Нищо особено: светлината ще заобиколи куба', ok: false, why: 'Може ли светлината да завие около куба? Как се движи тя?' },
+        { t: 'Тъмно петно с формата на куба — сянка', ok: true },
+        { t: 'Светло петно с формата на куба', ok: false },
+        { t: 'Нищо особено: светлината ще заобиколи куба', ok: false },
       ],
-      hint: 'Светлината се движи по права линия и не минава през непрозрачни тела.',
-      onRight: (m) => { mistakes = m; turnOn(); },
+      onPick: () => { mistakes = ctx.predMiss; turnOn(); },
     });
     function turnOn() {
       const c = shell.controls;
-      c.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary on">🔦 Включи фенерчето</button></div>');
-      c.querySelector('.on').addEventListener('click', () => {
+      c.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary lampon">🔦 Включи фенерчето</button></div>');
+      c.querySelector('.lampon').addEventListener('click', () => {
         L.on = true; layoutA();
-        ctx.say(shadowAt, 'Зад куба има <b>сянка</b>: там светлината не стига.', 'wide', 0.9);
-        const cc = shell.setControls('<div class="row"><button class="btn primary rays">✏ Начертай лъчите</button></div>');
+        const p = ctx.prediction;
+        ctx.say(shadowAt, `${p.ok ? '' : `Прогнозата ти: <b>${p.t.toLowerCase()}</b>.<br>`}Зад куба има <b>сянка</b>: там светлината не стига.`, 'wide', 0.9);
+        const cc = compare(ctx, {
+          result: 'Зад куба на екрана се появи тъмно петно — сянка.',
+          why: 'Светлината се движи по права линия. През непрозрачния куб тя не минава и не го заобикаля.',
+        });
+        cc.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary rays">✏ Начертай лъчите</button></div>');
         cc.querySelector('.rays').addEventListener('click', () => {
           L.rays = true; layoutA();
           ctx.say(lamp, 'Пътя на светлината чертаем с <b>лъчи</b>: прави линии със стрелка от източника. Лъчите, които удрят куба, спират. Двата <b>оранжеви</b> лъча минават покрай ръбовете на куба и очертават сянката.', 'wide', 0.6);
@@ -472,16 +476,15 @@ export function mount(container, { onComplete }) {
     ctx.say(panelAt, 'Светлината пада върху <b>слънчевия панел</b>. Той превръща енергията ѝ в електрическа и перката се върти.', 'wide', 0.5);
     shell.task('<p>Светлината <b>пренася енергия</b>: панелът задвижва перката.</p>');
     let mistakes = 0;
-    choice(ctx, {
+    predict(ctx, {
       q: 'Какво ще стане с перката, ако поставим куба между фенерчето и панела?',
       options: [
-        { t: 'Ще спре: панелът ще е в сянка', ok: true, why: 'Да проверим! Ще преместим куба.' },
-        { t: 'Ще се върти по-бързо', ok: false, why: 'Ще стига ли до панела повече светлина, когато кубът е отпред?' },
-        { t: 'Нищо няма да се промени', ok: false, why: 'Светлината не минава през непрозрачния куб. Какво ще стигне до панела?' },
+        { t: 'Ще спре: панелът ще е в сянка', ok: true },
+        { t: 'Ще се върти по-бързо', ok: false },
+        { t: 'Нищо няма да се промени', ok: false },
       ],
-      hint: 'В сянката не стига светлина, значи не стига и енергия.',
-      onRight: (m) => {
-        mistakes = m;
+      onPick: () => {
+        mistakes = ctx.predMiss;
         ctx.clearTip();
         const from = cube.position.clone(); const to = new THREE.Vector3(-1.6, Y, -1.6);
         let k = 0;
@@ -492,7 +495,11 @@ export function mount(container, { onComplete }) {
             stop();
             E.blockT = 1;
             setTimeout(() => {
-              ctx.say(panelAt, 'Панелът е в сянката на куба. Светлина не стига до него и перката спира.', 'good wide', 0.5);
+              ctx.say(panelAt, `${ctx.prediction.ok ? '' : `Прогнозата ти: <b>${ctx.prediction.t.toLowerCase()}</b>.<br>`}Панелът е в сянката на куба. Светлина не стига до него и перката спира.`, ctx.prediction.ok ? 'good wide' : 'wide', 0.5);
+              compare(ctx, {
+                result: 'Перката спря.',
+                why: 'Кубът спира светлината и панелът е в сянка. Без светлина панелът не получава енергия.',
+              });
               nextBtn(ctx, 'Още една задача →', transfer);
             }, 1800);
           }
