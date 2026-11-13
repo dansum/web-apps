@@ -104,7 +104,7 @@ function monSource(course, item) {
   return `<details class="monbox"><summary>📘 По учебната програма на МОН: <b>${esc(course.source.pdf)}</b>, стр. ${esc(pages)}</summary>
     ${item.mon.topic ? `<p><b>Тема:</b> ${esc(item.mon.topic)}</p>` : ''}
     ${item.mon.competences?.length ? `<p><b>Очаквани резултати:</b></p><ul>${item.mon.competences.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}
-    <p class="small">${esc(course.source.title)}. Текстът е извлечен автоматично от PDF файла и предстои дословна сверка.</p></details>`;
+    <p class="small">${esc(course.source.title)}.${course.source.verified ? '' : ' Текстът е извлечен автоматично от PDF файла и предстои дословна сверка.'}</p></details>`;
 }
 function crumbs(parts) {
   return `<nav class="crumbs">${parts.map(([href, t]) => href ? `<a href="${href}">${esc(t)}</a>` : `<span>${esc(t)}</span>`).join(' › ')}</nav>`;
