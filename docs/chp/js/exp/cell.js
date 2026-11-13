@@ -289,13 +289,48 @@ const PART_NOTES = {
   nuc: 'В ядрото е наследственото вещество. То управлява живота на клетката.',
 };
 
+// ---------- рисунка на клетка от зелен лист (стъпка 4) ----------
+const DRAW_NAMES = { ...PART_NAMES, chl: 'Хлоропласт' };
+const DRAW_NOTES = { ...PART_NOTES, chl: 'Зелени телца. В тях на светлина протича фотосинтезата.' };
+const DRAW_TIPS = {
+  wall: 'Стената е дебелата външна обвивка.',
+  memb: 'Мембраната е тънката линия точно до стената, от вътрешната ѝ страна.',
+  cyto: 'Цитоплазмата е светлата среда, в която са другите части.',
+  nuc: 'Ядрото е едно, кръгло и по-голямо от зелените телца.',
+  chl: 'Хлоропластите са многото малки зелени телца.',
+};
+// Номерата сочат: [част, номер, x и y на номера, x и y на края на линията].
+const DRAW_PINS = [
+  ['wall', 1, 280, 28, 243, 46],
+  ['memb', 2, 280, 70, 228, 78],
+  ['nuc', 3, 280, 112, 199, 112],
+  ['chl', 4, 280, 154, 214, 152],
+  ['cyto', 5, 20, 150, 120, 150],
+];
+function cellDrawing() {
+  const chl = [[80, 62], [125, 56], [168, 60], [72, 104], [110, 98], [150, 82], [205, 152], [88, 140], [160, 140]];
+  return `<svg class="cell-drawing" viewBox="0 0 300 190" role="img" aria-label="Рисунка на растителна клетка с номера"
+    style="width:100%;max-width:340px;display:block;margin:4px auto 8px;background:#fff;border-radius:8px">
+    <rect x="40" y="26" width="204" height="146" rx="8" fill="#d7ecbd" stroke="#4f8a2b" stroke-width="8"/>
+    <rect x="52" y="38" width="176" height="122" rx="4" fill="#f1f9e6" stroke="#2e7d32" stroke-width="1.5"/>
+    ${chl.map(([x, y], i) => `<ellipse cx="${x}" cy="${y}" rx="11" ry="6" transform="rotate(${(i * 37) % 90 - 45} ${x} ${y})" fill="#43a047" stroke="#2e7d32"/>`).join('')}
+    <circle cx="182" cy="112" r="17" fill="#c3a1df" stroke="#6a3d9a" stroke-width="2"/>
+    ${DRAW_PINS.map(([k, n, x, y, tx, ty]) => `<g class="num" data-k="${k}" data-n="${n}" style="cursor:pointer">
+      <line x1="${x}" y1="${y}" x2="${tx}" y2="${ty}" stroke="#333" stroke-width="1.5"/>
+      <circle cx="${tx}" cy="${ty}" r="2.5" fill="#333"/>
+      <circle cx="${x}" cy="${y}" r="20" fill="transparent"/>
+      <circle class="dot" cx="${x}" cy="${y}" r="13" fill="#2f7de1"/>
+      <text x="${x}" y="${y + 5}" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">${n}</text></g>`).join('')}
+  </svg>`;
+}
+
 // ---------- организми за сортиране ----------
 const ORGS = [
   { id: 'amoeba', label: 'Амеба', uni: true, note: 'Едноклетъчна. Движи се, като променя формата си.' },
   { id: 'paramecium', label: 'Чехълче', uni: true, note: 'Едноклетъчно. Плува с хиляди ресни.' },
   { id: 'bacterium', label: 'Бактерия', uni: true, note: 'Едноклетъчна и много малка — вижда се само с микроскоп.' },
   { id: 'yeast', label: 'Дрожди', uni: true, note: 'Едноклетъчни гъби. Правят тестото да втасва.' },
-  { id: 'leaf', label: 'Лист', uni: false, note: 'Част от растение. Изграден е от милиони клетки.' },
+  { id: 'moss', label: 'Мъх', uni: false, note: 'Малко растение без цветове. Изграден е от много клетки.' },
   { id: 'mushroom', label: 'Печурка', uni: false, note: 'Многоклетъчна гъба.' },
   { id: 'ant', label: 'Мравка', uni: false, note: 'Многоклетъчно животно — дори малкото му тяло е изградено от много клетки.' },
   { id: 'onion', label: 'Лук', uni: false, note: 'Многоклетъчно растение. Ти видя клетките на кожицата му.' },
@@ -351,16 +386,20 @@ function orgModel(id) {
       g.add(a, b);
       break;
     }
-    case 'leaf': {
-      const s = new THREE.Shape();
-      s.moveTo(0, -0.5); s.quadraticCurveTo(0.45, 0, 0, 0.55); s.quadraticCurveTo(-0.45, 0, 0, -0.5);
-      const m = new THREE.Mesh(new THREE.ShapeGeometry(s, 12), mat(0x43a047, { side: THREE.DoubleSide }));
-      m.rotation.x = -Math.PI / 2.4;
-      m.position.y = 0.3;
-      const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.3, 4), mat(0x2e7d32));
-      stem.position.set(0, 0.12, 0.55);
-      stem.rotation.x = 1.2;
-      g.add(m, stem);
+    case 'moss': {
+      // Туфа мъх: ниски зелени стъбълца с листенца.
+      const cushion = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), mat(0x558b2f));
+      cushion.scale.y = 0.45;
+      g.add(cushion);
+      const leafMat = mat(0x7cb342);
+      for (let i = 0; i < 14; i++) {
+        const a = i * 2.4;
+        const r = 0.08 + (i % 4) * 0.08;
+        const st = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.32, 5), leafMat);
+        st.position.set(Math.cos(a) * r, 0.24, Math.sin(a) * r);
+        st.rotation.set(Math.sin(a) * 0.3, 0, Math.cos(a) * 0.3);
+        g.add(st);
+      }
       break;
     }
     case 'mushroom': {
@@ -405,7 +444,7 @@ function orgModel(id) {
 
 // ---------- преживяване ----------
 export function mount(container, { onComplete }) {
-  const STEPS = ['Подготви микроскопа', 'Фокусирай', 'Части на клетката', 'Едноклетъчни и многоклетъчни'];
+  const STEPS = ['Подготви микроскопа', 'Фокусирай', 'Части на клетката', 'Запиши наблюдението', 'Едноклетъчни и многоклетъчни'];
   const shell = createShell(container, { steps: STEPS });
   const scaleNote = document.createElement('div');
   scaleNote.textContent = '⚠ Клетките са силно уголемени. Частите не са в мащаб.';
@@ -443,8 +482,8 @@ export function mount(container, { onComplete }) {
 
   const SLIDES = [
     { id: 'onion', label: 'Лукова кожица', color: 0xe0c070, pos: [2.3, 0.02, 1.2] },
-    { id: 'cheek', label: 'Бузна лигавица', color: 0xe07aa0, pos: [2.3, 0.02, 0.4] },
-    { id: 'pond', label: 'Капка от локва', color: 0x7cb342, pos: [2.3, 0.02, -0.4] },
+    { id: 'cheek', label: 'Бузна лигавица', color: 0xe07aa0, pos: [2.3, 0.02, 0.4], note: 'Бузната лигавица е меката влажна обвивка от вътрешната страна на бузата. Клетките ѝ са животински.' },
+    { id: 'pond', label: 'Капка от локва', color: 0x7cb342, pos: [2.3, 0.02, -0.4], note: 'В капка вода от локва живеят едноклетъчни организми. Ще ги видиш в последната задача.' },
   ];
   const slides = {};
   for (const s of SLIDES) {
@@ -466,7 +505,7 @@ export function mount(container, { onComplete }) {
   const animal = buildAnimalCell(clip);
   animal.position.set(2.4, 0, 0);
   cellWorld.add(plant, animal);
-  for (const [cell, title] of [[plant, 'Растителна клетка (лук)'], [animal, 'Животинска клетка (буза)']]) {
+  for (const [cell, title] of [[plant, 'Растителна клетка (лук)'], [animal, 'Животинска клетка (от бузата)']]) {
     const l = labelSprite(title, { size: 0.3 });
     l.position.set(0, 1.35, 0);
     cell.add(l);
@@ -612,7 +651,9 @@ export function mount(container, { onComplete }) {
       } else {
         mistakes++;
         const name = PARTS[id] ? PARTS[id].label : id.startsWith('slide:') ? 'друг препарат' : 'това';
+        const sl = id.startsWith('slide:') ? SLIDES.find((x) => 'slide:' + x.id === id) : null;
         shell.msg(`Това е ${name}. Опитай пак.`, 'bad');
+        if (sl && sl.note) say(hit.root, `<b>${esc(sl.label)}</b><br>${esc(sl.note)}`, 'bad', 0.4);
         if (PARTS[id]) say(hit.root, `<b>${esc(PARTS[id].label)}</b>: ${esc(PARTS[id].note)}`, 'bad', 0.4);
         draw();
       }
@@ -805,15 +846,71 @@ export function mount(container, { onComplete }) {
       c.querySelector('button').addEventListener('click', () => {
         for (const t of todo) t.tag.remove();
         for (const p of pins) p.parent.remove(p);
-        step4();
+        stepDraw();
       });
     }));
   }
 
-  // ---------- 4. Едноклетъчни и многоклетъчни ----------
+  // ---------- 4. Запиши наблюдението (рисунка с означения) ----------
+  function stepDraw() {
+    shell.step(3);
+    clearTip();
+    clickHandler = null;
+    hoverHandler = null;
+    let mistakes = 0;
+    let held = null;
+    const done = new Set();
+    const keys = Object.keys(DRAW_NAMES).sort(() => Math.random() - 0.5);
+    shell.task(`<p><b>Запиши наблюдението по план.</b></p>
+      <ol class="small" style="margin:4px 0 6px;padding-left:20px">
+        <li>Какво гледаш: клетка от зелен лист, увеличена 400 пъти.</li>
+        <li>Рисунка: готова е отдолу.</li>
+        <li>Означения: <b>избери име, после кликни номера</b> на рисунката.</li></ol>
+      ${cellDrawing()}
+      <p class="small legend" style="margin:0 0 6px"></p>
+      <div class="xp-chips">${keys.map((k) => `<span class="chip" data-k="${k}">${esc(DRAW_NAMES[k])}</span>`).join('')}</div>`);
+    shell.setControls('');
+    const upd = () => shell.score(`Означени: ${done.size} от ${keys.length} · грешки: ${mistakes}`);
+    upd();
+    container.querySelectorAll('.xp-chips .chip').forEach((ch) => ch.addEventListener('click', () => {
+      container.querySelectorAll('.xp-chips .chip').forEach((x) => x.classList.remove('held'));
+      held = ch.dataset.k;
+      ch.classList.add('held');
+    }));
+    container.querySelectorAll('.cell-drawing .num').forEach((g) => g.addEventListener('click', () => {
+      const k = g.dataset.k;
+      if (done.has(k)) return;
+      if (!held) { shell.msg('Първо избери име отдолу.', 'bad'); return; }
+      if (held === k) {
+        done.add(k);
+        g.classList.add('ok');
+        g.querySelector('circle.dot').setAttribute('fill', '#2fb36b');
+        const chip = container.querySelector(`.xp-chips .chip[data-k="${k}"]`);
+        chip.classList.remove('held');
+        chip.classList.add('used');
+        held = null;
+        container.querySelector('.xp-task .legend').textContent = DRAW_PINS.filter((p) => done.has(p[0]))
+          .map((p) => `${p[1]} — ${DRAW_NAMES[p[0]]}`).join(' · ');
+        shell.msg(`✔ ${g.dataset.n} — ${DRAW_NAMES[k]}. ${DRAW_NOTES[k]}`, 'good');
+      } else {
+        mistakes++;
+        const tip = DRAW_TIPS[held] || 'Виж накъде сочи линията.';
+        shell.msg(`Номер ${g.dataset.n} не е „${DRAW_NAMES[held]}“. ${mistakes >= 2 ? tip : 'Виж накъде сочи линията.'}`, 'bad');
+      }
+      upd();
+      if (done.size === keys.length) {
+        scores.push(stepScore(mistakes, 3));
+        shell.msg('Наблюдението е записано: рисунка с всички означения.', 'good');
+        const c = shell.setControls('<button class="btn primary">Напред →</button>');
+        c.querySelector('button').addEventListener('click', step4);
+      }
+    }));
+  }
+
+  // ---------- 5. Едноклетъчни и многоклетъчни ----------
   let stopDrag = null;
   function step4() {
-    shell.step(3);
+    shell.step(4);
     clearTip();
     cellWorld.visible = false;
     scaleNote.hidden = true;
@@ -899,6 +996,7 @@ export function mount(container, { onComplete }) {
     let mistakes = 0;
     let placed = 0;
     shell.task(`<p>Някои организми са изградени само от <b>една клетка</b>, а други — от <b>много клетки</b>.</p>
+      <p>В <b>капка вода от локва</b> под микроскопа виждаме едноклетъчни организми. До тях са и многоклетъчни.</p>
       <p><b>Провлачи всеки организъм</b> в правилния кръг. Кликни върху него, за да прочетеш за него.</p>`);
     shell.setControls('');
     const upd = () => shell.score(`Подредени: ${placed} от ${ORGS.length} · грешки: ${mistakes}`);
