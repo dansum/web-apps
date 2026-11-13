@@ -119,7 +119,7 @@ export function mount(container, { onComplete }) {
     const hit = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 6), new THREE.MeshBasicMaterial({ visible: false }));
     orbitAt.add(hit);
   }
-  for (const [d, t] of [[172, '21 юни'], [266, '23 септември'], [355, '21 декември'], [80, '21 март']]) {
+  for (const [d, t] of [[172, '21 юни'], [266, '23 септември'], [355, '21 декември'], [79, '20 март']]) {
     const th = 2 * Math.PI * (d - 172) / 365;
     const l = lbl(t, 0.26); l.position.set(Math.cos(th) * (ORB + 1.3), -0.3, -Math.sin(th) * (ORB + 1.3)); rigA.add(l); stage.steadyLabel(l, 14);
   }
