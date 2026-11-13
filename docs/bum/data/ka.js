@@ -1429,5 +1429,17 @@ window.BUM_KA = {
    "c": "9. клас",
    "u": "https://bg.khanacademy.org/math/9-klas/xee41df55c1c831f0:veroyatnosti-kombinatorika/xee41df55c1c831f0:uvod-v-teoriyata-na-mnozhestvata"
   }
+ ],
+ "@about": [
+  {
+   "t": "Степени с основа 10",
+   "c": "6. клас",
+   "u": "https://bg.khanacademy.org/math/6-klas/x8f4872fe3845cd98:stepenuvane/x8f4872fe3845cd98:stepeni-s-osnova-10"
+  },
+  {
+   "t": "Стандартен запис на число",
+   "c": "6. клас",
+   "u": "https://bg.khanacademy.org/math/6-klas/x8f4872fe3845cd98:standarten-zapis-chislo/x8f4872fe3845cd98:standarten-zapis-na-chislo"
+  }
  ]
 };

@@ -152,7 +152,7 @@
         '<a class="obr-link" href="' + DONATE_URL + '" target="_blank" rel="noopener" aria-label="Образование без раници — дари">' +
         '<img class="light" src="media/obr-logo.svg" alt="Образование без раници"><img class="dark" src="media/obr-logo-light.svg" alt="Образование без раници"><span class="give">Дари ♥</span></a></div></div>' +
         '<div class="wrap meta"><span><b>БУМ</b> — Български успехи с математика · истории за хора, които променят света с числа</span>' +
-        '<span>Снимки: Уикипедия / Уикимедия Общомедия, свободни лицензи · <a href="../">Още проекти</a> · <button type="button" class="ck" onclick="window.d4Consent&&d4Consent.reset()">Бисквитки</button></span></div>';
+        '<span><a href="za-proekta.html">За проекта</a> · Снимки: Уикипедия / Уикимедия Общомедия, свободни лицензи · <a href="../">Още проекти</a> · <button type="button" class="ck" onclick="window.d4Consent&&d4Consent.reset()">Бисквитки</button></span></div>';
     }
   }
   /* Блок с 1–2 урока от Кан Академия (data/ka.js). */
@@ -223,7 +223,7 @@
     var real = TEN.concat(STO), women = real.filter(function (p) { return p.sex === 'f'; }).length;
     var cs = real.map(century).filter(Boolean), minC = Math.min.apply(null, cs), maxC = Math.max.apply(null, cs);
     document.querySelector('main').appendChild(kaBlock('@home', 'Математиката зад откритията'));
-    document.getElementById('stats').innerHTML = '<div><b>' + real.length + '</b><span>истински истории</span></div><div><b>' + women + '</b><span>жени</span></div><div><b>' + roman(minC) + '–' + roman(maxC) + '</b><span>век</span></div>' + '<a class="stats-more" href="statistika.html">Всички числа и осева таблица →</a> <a class="stats-more" href="karta.html">Мисловна карта на всички истории →</a>';
+    document.getElementById('stats').innerHTML = '<div><b>' + real.length + '</b><span>истински истории</span></div><div><b>' + women + '</b><span>жени</span></div><div><b>' + roman(minC) + '–' + roman(maxC) + '</b><span>век</span></div>' + '<a class="stats-more" href="statistika.html">Всички числа и осева таблица →</a> <a class="stats-more" href="karta.html">Мисловна карта на всички истории →</a> <a class="stats-more" href="za-proekta.html">За проекта →</a>';
   }
 
   /* ---------- 10 БУМа ---------- */
@@ -643,4 +643,5 @@
   else if (page === 'story') pageStory();
   else if (page === 'stats') pageStats();
   else if (page === 'map') pageMap();
+  else if (page === 'about') { chrome('about'); document.querySelector('.ab-body').appendChild(kaBlock('@about', '10, 100, 1000 — степените на десет')); }
 })();
