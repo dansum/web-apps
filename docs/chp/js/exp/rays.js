@@ -349,7 +349,7 @@ export function mount(container, { onComplete }) {
     shell.step(1);
     setupA();
     view(ctx, [-2.2, 0.9, 0], 3.8, { halfH: 1.4, elev: 0.75 });
-    shell.task('<p>Фенерчето ще светне към куба. Зад куба е белият екран.</p>');
+    shell.task('<p class="small"><b>🔁 Припомни от 4. клас</b></p><p>Фенерчето ще светне към куба. Зад куба е белият екран.</p>');
     let mistakes = 0;
     choice(ctx, {
       q: 'Какво ще се види на екрана точно зад куба?',
@@ -379,7 +379,7 @@ export function mount(container, { onComplete }) {
       star.visible = true; layoutA();
       shell.msg('');
       ctx.answer = -4.0;
-      shell.task(`<p>На екрана има <b>звезда в рамка</b>. Премести фенерчето така, че сянката на куба да <b>скрие цялата звезда</b>, но да <b>не излиза от рамката</b>.</p>
+      shell.task(`<p class="small"><b>Ново:</b> от какво зависи размерът на сянката?</p><p>На екрана има <b>звезда в рамка</b>. Премести фенерчето така, че сянката на куба да <b>скрие цялата звезда</b>, но да <b>не излиза от рамката</b>.</p>
         <label class="small">Разстояние от фенерчето до куба: <b class="lv"></b>
         <input class="slider ls" type="range" min="-5.8" max="-2.6" step="0.1" value="${L.x}"></label>`);
       const sl = container.querySelector('.ls'); const lv = container.querySelector('.lv');
