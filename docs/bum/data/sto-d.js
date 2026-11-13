@@ -1,6 +1,6 @@
 window.BUM_STO = (window.BUM_STO || []).concat([
   {
-    id: "kolyu-ficheto",
+    id: "kolyu-ficheto", noPhoto: true,
     name: "Колю Фичето",
     sex: "m",
     born: 1800,
