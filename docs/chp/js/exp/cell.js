@@ -4,15 +4,16 @@ import { createStage, labelSprite, mat, zoneRing, addHitBox, cornerMenu, THREE, 
 import { createShell, stepScore } from './shell.js';
 
 // ---------- микроскоп ----------
+// Петте най-важни части (решение 29) — всички са задължителни във въвеждането.
+// Тубусът и стативът са в модела, но не са в менюто.
 const PARTS = {
   eyepiece: { label: 'Окуляр', note: 'През него гледаш. Увеличава 10 пъти (10×).' },
-  tube: { label: 'Тубус', note: 'Тръба, която свързва окуляра с обективите.' },
-  revolver: { label: 'Револвер с обективи', note: 'Въртиш го, за да смениш обектива: 10× или 40×.' },
+  revolver: { label: 'Обектив (на револвера)', note: 'Обективите са на въртящ се револвер. Въртиш го, за да смениш обектива: 10× или 40×.' },
   stage: { label: 'Предметна масичка', note: 'Тук се поставя препаратът, захванат с щипките.' },
   knob: { label: 'Винт', note: 'Въртиш го, за да стане образът ясен (фокусиране).' },
   light: { label: 'Осветител', note: 'Свети отдолу през препарата.' },
-  arm: { label: 'Статив', note: 'За него хващаш микроскопа, когато го пренасяш.' },
 };
+const NPARTS = Object.keys(PARTS).length;
 
 function part(id, mesh) {
   mesh.userData.pickId = id;
@@ -560,7 +561,7 @@ export function mount(container, { onComplete }) {
   // Меню в ъгъла: части на микроскопа (стъпка 1) и организми (стъпка 4).
   let menuHandler = null;
   const menu = cornerMenu(stage, { title: 'Части на микроскопа', items: [], onSelect: (id) => menuHandler && menuHandler(id) });
-  const PART_ICONS = { eyepiece: '👁', tube: '🔭', revolver: '🔄', stage: '🔲', knob: '⚙', light: '💡', arm: '✋' };
+  const PART_ICONS = { eyepiece: '👁', revolver: '🔄', stage: '🔲', knob: '⚙', light: '💡' };
 
   function step1() {
     shell.step(0);
@@ -573,11 +574,11 @@ export function mount(container, { onComplete }) {
     menu.show(true);
     const seen = new Set();
     shell.task(`<p>Преди да работиш с микроскопа, <b>опознай частите му</b>.</p>
-      <p>Избери част от менюто в ъгъла или кликни върху нея в сцената. Разгледай поне 5 части.</p>`);
+      <p>Избери част от менюто в ъгъла или кликни върху нея в сцената. Разгледай <b>всичките ${NPARTS} части</b> — те са най-важните.</p>`);
     const c = shell.setControls('<div class="row"><button class="btn all">🔭 Целият микроскоп</button><button class="btn primary nx" disabled>Към задачите →</button></div>');
     c.querySelector('.all').addEventListener('click', () => { stage.stopFollow(); stage.flyTo([3.2, 3.6, 5.2], [0, 1.3, 0]); });
     const nx = c.querySelector('.nx');
-    const upd = () => shell.score(`Разгледани части: ${seen.size} от ${Object.keys(PARTS).length}`);
+    const upd = () => shell.score(`Разгледани части: ${seen.size} от ${NPARTS}`);
     upd();
     const show = (id) => {
       const a = partAnchor(id);
@@ -588,7 +589,7 @@ export function mount(container, { onComplete }) {
       menu.mark(id);
       menu.setActive(id);
       upd();
-      if (seen.size >= 5) { nx.disabled = false; shell.msg('Браво! Сега провери какво запомни.', 'good'); }
+      if (seen.size >= NPARTS) { nx.disabled = false; shell.msg('Браво! Сега провери какво запомни.', 'good'); }
     };
     menuHandler = show;
     hoverHandler = (r) => {
@@ -650,9 +651,9 @@ export function mount(container, { onComplete }) {
         draw();
       } else {
         mistakes++;
-        const name = PARTS[id] ? PARTS[id].label : id.startsWith('slide:') ? 'друг препарат' : 'това';
+        const name = PARTS[id] ? PARTS[id].label : id.startsWith('slide:') ? 'друг препарат' : null;
         const sl = id.startsWith('slide:') ? SLIDES.find((x) => 'slide:' + x.id === id) : null;
-        shell.msg(`Това е ${name}. Опитай пак.`, 'bad');
+        shell.msg(name ? `Това е ${name}. Опитай пак.` : 'Не е тази част. Опитай пак.', 'bad');
         if (sl && sl.note) say(hit.root, `<b>${esc(sl.label)}</b><br>${esc(sl.note)}`, 'bad', 0.4);
         if (PARTS[id]) say(hit.root, `<b>${esc(PARTS[id].label)}</b>: ${esc(PARTS[id].note)}`, 'bad', 0.4);
         draw();
