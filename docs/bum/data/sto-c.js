@@ -2,7 +2,7 @@
    Формат: виж SCHEMA.md. */
 window.BUM_STO = (window.BUM_STO || []).concat([
   {
-    id: 'ioan-ekzarh', name: 'Йоан Екзарх', sex: 'm', born: 860, bornApprox: true, died: 930, diedApprox: true,
+    id: 'ioan-ekzarh', noPhoto: true, name: 'Йоан Екзарх', sex: 'm', born: 860, bornApprox: true, died: 930, diedApprox: true,
     place: 'Първо българско царство', field: 'bio', motif: 'book',
     tags: ['Преслав', 'природознание', 'средновековие'],
     title: 'Енциклопедия на природата от времето на цар Симеон',
@@ -38,7 +38,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     wiki: { bg: 'Никола Пиколо' }
   },
   {
-    id: 'ivan-seliminski', name: 'Иван Селимински', sex: 'm', born: 1799, died: 1866,
+    id: 'ivan-seliminski', noPhoto: true, name: 'Иван Селимински', sex: 'm', born: 1799, died: 1866,
     place: 'Сливен', field: 'med', motif: 'heart',
     tags: ['медицина', 'Възраждане', 'Сливен'],
     title: 'От тайното „Братство“ до лекарската диплома на 45',

@@ -61,7 +61,7 @@ window.BUM_KILO = [
     ],
     links: [
       { t: 'Седемте моста на Кьонигсберг (по темата)', u: 'https://bg.wikipedia.org/wiki/Седемте_моста_на_Кьонигсберг' },
-      { t: 'Международна олимпиада по математика', u: 'https://bg.wikipedia.org/wiki/Международна_олимпиада_по_математика' }
+      { t: 'Международна олимпиада по математика (англ.)', u: 'https://en.wikipedia.org/wiki/International_Mathematical_Olympiad' }
     ]
   },
   {

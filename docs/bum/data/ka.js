@@ -1,6 +1,7 @@
 /* БУМ — уроци от българската Кан Академия за всяка страница.
    Адресите са взети от индекса на bg.khanacademy.org (септември 2026), не са сглобени на ръка.
-   Ключ: id на човек или @home/@ten/@sto/@kilo за страниците-списъци. */
+   Ключ: id на човек или @home/@ten/@sto/@kilo за страниците-списъци.
+   В едно заглавие е поправена правописна грешка, която има в самата Кан Академия (7. клас, НВО). */
 window.BUM_KA = {
  "john-atanasoff": [
   {
@@ -736,7 +737,7 @@ window.BUM_KA = {
  ],
  "nikola-pikolo": [
   {
-   "t": "Интердисциплинарни задачи с математика и биология, здравеопазване, химия и опазваване на околната среда",
+   "t": "Интердисциплинарни задачи с математика и биология, здравеопазване, химия и опазване на околната среда",
    "c": "7. клас (НВО)",
    "u": "https://bg.khanacademy.org/math/7-klas-nvo/x912058447d68de3d:interdistsiplinarni-zadachi/x912058447d68de3d:interdiciplinarni-zadachi-matematika-biologia-himia"
   },
@@ -748,7 +749,7 @@ window.BUM_KA = {
  ],
  "ivan-seliminski": [
   {
-   "t": "Интердисциплинарни задачи с математика и биология, здравеопазване, химия и опазваване на околната среда",
+   "t": "Интердисциплинарни задачи с математика и биология, здравеопазване, химия и опазване на околната среда",
    "c": "7. клас (НВО)",
    "u": "https://bg.khanacademy.org/math/7-klas-nvo/x912058447d68de3d:interdistsiplinarni-zadachi/x912058447d68de3d:interdiciplinarni-zadachi-matematika-biologia-himia"
   },
@@ -796,7 +797,7 @@ window.BUM_KA = {
  ],
  "paraskev-stoyanov": [
   {
-   "t": "Интердисциплинарни задачи с математика и биология, здравеопазване, химия и опазваване на околната среда",
+   "t": "Интердисциплинарни задачи с математика и биология, здравеопазване, химия и опазване на околната среда",
    "c": "7. клас (НВО)",
    "u": "https://bg.khanacademy.org/math/7-klas-nvo/x912058447d68de3d:interdistsiplinarni-zadachi/x912058447d68de3d:interdiciplinarni-zadachi-matematika-biologia-himia"
   },
@@ -904,7 +905,7 @@ window.BUM_KA = {
  ],
  "carl-djerassi": [
   {
-   "t": "Интердисциплинарни задачи с математика и биология, здравеопазване, химия и опазваване на околната среда",
+   "t": "Интердисциплинарни задачи с математика и биология, здравеопазване, химия и опазване на околната среда",
    "c": "7. клас (НВО)",
    "u": "https://bg.khanacademy.org/math/7-klas-nvo/x912058447d68de3d:interdistsiplinarni-zadachi/x912058447d68de3d:interdiciplinarni-zadachi-matematika-biologia-himia"
   },
@@ -916,7 +917,7 @@ window.BUM_KA = {
  ],
  "anastasia-golovina": [
   {
-   "t": "Интердисциплинарни задачи с математика и биология, здравеопазване, химия и опазваване на околната среда",
+   "t": "Интердисциплинарни задачи с математика и биология, здравеопазване, химия и опазване на околната среда",
    "c": "7. клас (НВО)",
    "u": "https://bg.khanacademy.org/math/7-klas-nvo/x912058447d68de3d:interdistsiplinarni-zadachi/x912058447d68de3d:interdiciplinarni-zadachi-matematika-biologia-himia"
   },
@@ -928,7 +929,7 @@ window.BUM_KA = {
  ],
  "tota-venkova": [
   {
-   "t": "Интердисциплинарни задачи с математика и биология, здравеопазване, химия и опазваване на околната среда",
+   "t": "Интердисциплинарни задачи с математика и биология, здравеопазване, химия и опазване на околната среда",
    "c": "7. клас (НВО)",
    "u": "https://bg.khanacademy.org/math/7-klas-nvo/x912058447d68de3d:interdistsiplinarni-zadachi/x912058447d68de3d:interdiciplinarni-zadachi-matematika-biologia-himia"
   },
@@ -1365,7 +1366,7 @@ window.BUM_KA = {
    "u": "https://bg.khanacademy.org/math/7-klas-nvo/x912058447d68de3d:interdistsiplinarni-zadachi/x912058447d68de3d:interdistsiplinarni-zadachi-matematika-fizika-astronomiya"
   },
   {
-   "t": "Интердисциплинарни задачи с математика и биология, здравеопазване, химия и опазваване на околната среда",
+   "t": "Интердисциплинарни задачи с математика и биология, здравеопазване, химия и опазване на околната среда",
    "c": "7. клас (НВО)",
    "u": "https://bg.khanacademy.org/math/7-klas-nvo/x912058447d68de3d:interdistsiplinarni-zadachi/x912058447d68de3d:interdiciplinarni-zadachi-matematika-biologia-himia"
   }

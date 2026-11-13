@@ -90,7 +90,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     num: { n: '1915', t: 'годината, в която създава първия български самолет' },
     links: [
       { t: 'Уикипедия', u: 'https://bg.wikipedia.org/wiki/%D0%90%D1%81%D0%B5%D0%BD_%D0%99%D0%BE%D1%80%D0%B4%D0%B0%D0%BD%D0%BE%D0%B2' },
-      { t: 'Уикипедия (англ.)', u: 'https://en.wikipedia.org/wiki/Asen_Yordanov' }
+      { t: 'Уикипедия (англ.)', u: 'https://en.wikipedia.org/wiki/Assen_Jordanoff' }
     ],
     wiki: { bg: 'Асен Йорданов', en: 'Assen Jordanoff' },
     tags: ['авиация', 'самолети']
@@ -145,7 +145,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     tags: ['кристали', 'атмосфера', 'нанотехнологии']
   },
   {
-    id: 'emil-dzhakov',
+    id: 'emil-dzhakov', noPhoto: true,
     name: 'Емил Джаков',
     sex: 'm',
     born: 1908,
@@ -169,7 +169,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     tags: ['електроника', 'лазери']
   },
   {
-    id: 'hristo-hristov-fizik',
+    id: 'hristo-hristov-fizik', noPhoto: true,
     name: 'Христо Христов',
     sex: 'm',
     born: 1915,

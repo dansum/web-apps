@@ -44,7 +44,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
     links: [
       { t: 'Уикипедия', u: 'https://bg.wikipedia.org/wiki/%D0%95%D0%BC%D0%B0%D0%BD%D1%83%D0%B8%D0%BB_%D0%98%D0%B2%D0%B0%D0%BD%D0%BE%D0%B2' },
       { t: 'ФМИ, СУ', u: 'https://www.fmi.uni-sofia.bg/bg/prof-emanuil-ivanov' },
-      { t: 'ММИБ (ИМИ–БАН)', u: 'http://mmib.math.bas.bg/?page_id=556' }
+      { t: 'ММИБ (ИМИ–БАН)', u: 'https://mmib.math.bas.bg/?page_id=556' }
     ],
     wiki: { bg: 'Емануил Иванов' },
     tags: ['Софийски университет', 'история на математиката']
@@ -95,7 +95,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
       { t: 'Годишник на СУ: Попов и балистиката', u: 'https://annual.uni-sofia.bg/index.php/fmi/article/view/125' },
       { t: 'СМБ', u: 'https://www.math.bas.bg/smb/2004_2007_PK/2005/pdf/003-004.pdf' }
     ],
-    wiki: { bg: 'Кирил Попов (математик)', en: 'Kiril Popov (mathematician)' },
+    wiki: { en: 'Kiril Popov (mathematician)' },
     tags: ['балистика', 'диференциални уравнения', 'небесна механика']
   },
   {
@@ -314,7 +314,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
       { t: 'Архив на Тринити колидж, Кеймбридж', u: 'https://archives.trin.cam.ac.uk/index.php/drensky-vesselin-stoyanov-b-1950-bulgarian-mathematician' },
       { t: 'Уикипедия (англ.): PI-пръстени', u: 'https://en.wikipedia.org/wiki/Polynomial_identity_ring' }
     ],
-    wiki: { bg: 'Веселин Дренски' },
+    wiki: {},
     tags: ['алгебра', 'матрици', 'тъждества']
   },
   {
