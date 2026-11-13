@@ -1,5 +1,6 @@
-// Изиграва 5.1.4 „Топлопроводност и конвекция“ (js/exp/heat.js) докрай с една умишлена грешка.
-// Очакван резултат: (0.75 + 1 + 1) / 3 — грешката е в предсказанието на стъпка 2.
+// Изиграва 5.1.4 „Топлопроводност и конвекция“ (js/exp/heat.js) докрай с четири умишлени грешки.
+// Очакван резултат: (0.75 + 1 + 0.25) / 3 — една грешка в предсказанието на стъпка 2
+// и три в стъпка 4: топене, кипене и тенджерата (конвекция).
 // Употреба: NODE_PATH=$(npm root -g) node tools/test-heat.mjs http://localhost:8765/chp/ <папка> [ширина]
 import { open } from './xp-lib.mjs';
 import { sortAll, orderAll } from './xp5.mjs';
@@ -24,6 +25,15 @@ await t.choose(0); await t.next();
 // 4. Преходите
 await wait(500); await t.shot('4');
 await sortAll(t);
+// Топене и кипене: опитът в чашата с термометъра
+await wait(800); await t.btn('.heat'); await wait(4000); await t.shot('4m');
+await page.waitForSelector('.xp-controls .choice', { timeout: 30000 }); await t.shot('4n');
+await t.choose(1); console.log('грешка топене:', await t.msg());
+await t.choose(0); await t.next();
+await t.choose(2); console.log('грешка кипене:', await t.msg());
+await t.choose(0); await t.next();
 await t.choose(0); await t.shot('4b'); await t.next();
+await t.choose(1); console.log('грешка тенджера:', await t.msg());
+await t.choose(0); await t.shot('4c'); await t.next();
 await t.shot('5');
-await t.done((0.75 + 1 + 1) / 3);
+await t.done((0.75 + 1 + 0.25) / 3);
