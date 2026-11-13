@@ -194,7 +194,7 @@ window.BUM_STO = (window.BUM_STO || []).concat([
       { t: 'IEEE Computer Society', u: 'https://computer.org/profiles/lubomir-iliev' },
       { t: 'Techinsider (рус.): за „Витоша“', u: 'https://www.techinsider.ru/gadgets/728893-akademik-kirill-boyanov-pervyy-bolgarskiy-kompyuter-my-proektirovali-bez-pomoshchi-sssr/' }
     ],
-    wiki: { bg: 'Любомир Илиев' },
+    wiki: { bg: 'Любомир Илиев (математик)' },
     tags: ['първи компютър', 'информатика', 'БАН']
   },
   {
