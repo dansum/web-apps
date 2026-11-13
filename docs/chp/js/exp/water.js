@@ -1,6 +1,6 @@
 // 5.2.6 „Опазване чистотата на водата“ — домашен филтър, макет на пречиствателна станция, езеро до наторено поле, чешма.
 // Стъпки: опознай → филтър за мътна вода (опит) → пречиствателната станция и замърсителите → торовете и езерото.
-import { labelSprite, mat, addHitBox, THREE } from '../kit.js';
+import { labelSprite, mat, addHitBox, shuffle, THREE } from '../kit.js';
 import { scaffold, explore, choice, nextBtn, finishBtn, labRoom, glass, view, stepScore } from './labkit.js';
 import { sortTask, orderTask } from './labtasks.js';
 
@@ -220,30 +220,61 @@ export function mount(container, { onComplete }) {
       hint: 'Микробите са толкова малки, че минават през пясъка.',
       onRight: (m) => { mistakes = m; build(); },
     });
+    // Детето само избира реда на слоевете. Грешният ред дава по-лош резултат и се подрежда отново.
+    let wrongBuilds = 0;
     function build() {
-      orderTask(ctx, {
-        q: 'Напълни филтъра: избери слоевете отгоре надолу. Водата минава първо през най-едрите частици.',
-        items: LAYERS.map((L) => L.t),
-        hint: 'Най-отгоре е най-едрото — чакълът. Най-отдолу е памукът, който задържа въглена и пясъка.',
-        mistakes,
-        onPick: (i) => { layerMeshes[i].visible = true; },
-        onDone: (m) => {
-          mistakes = m;
-          const c = shell.controls;
-          c.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary pour">🫗 Налей мътната вода</button></div>');
-          c.querySelector('.pour').addEventListener('click', () => {
-            c.querySelector('.pour').disabled = true;
-            muddyTop.visible = true; F.run = true;
-            setTimeout(() => {
-              F.run = false; muddyTop.visible = false;
-              clean.material.color.set(0xd6e6ee);
-              ctx.say(filt, 'Водата е <b>по-бистра</b>: чакълът и пясъкът задържаха частиците, а <b>активният въглен</b> (въглен с много мънички пори) — част от цвета и мириса. Но в нея може да има <b>микроби</b> — не я пий!', 'wide', 2.0);
-              ctx.scores[0] = stepScore(mistakes, 3);
-              nextBtn(ctx, 'Напред →', step3);
-            }, 4500);
-          }, { once: true });
-        },
-      });
+      const order = [];
+      LAYERS.forEach((_, i) => { layerMeshes[i].visible = false; });
+      F.level = 0; F.run = false; muddyTop.visible = false;
+      clean.material.color.set(0xc8b88a);
+      const c = shell.setControls(`<p><b>Напълни филтъра: избери слоевете отгоре надолу. Водата минава първо през най-горния слой.</b></p><ol class="small ord-done"></ol>
+        <div class="choices">${shuffle(LAYERS.map((_, i) => i)).map((i) => `<button class="choice ord" data-i="${i}">${LAYERS[i].t}</button>`).join('')}</div>`);
+      const done = c.querySelector('.ord-done');
+      c.querySelectorAll('.ord').forEach((btn) => btn.addEventListener('click', () => {
+        if (btn.disabled) return;
+        const i = +btn.dataset.i;
+        btn.disabled = true; btn.style.display = 'none';
+        layerMeshes[i].position.y = 2.25 - order.length * 0.2;
+        layerMeshes[i].visible = true;
+        order.push(i);
+        done.insertAdjacentHTML('beforeend', `<li>${LAYERS[i].t}</li>`);
+        if (order.length === LAYERS.length) pourBtn(order);
+      }));
+    }
+    function pourBtn(order) {
+      const c = shell.controls;
+      c.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary pour">🫗 Налей мътната вода</button></div>');
+      c.querySelector('.pour').addEventListener('click', () => {
+        c.querySelector('.pour').disabled = true;
+        const cottonLast = order[order.length - 1] === 4;
+        const grains = order.indexOf(0) < order.indexOf(1) && order.indexOf(1) < order.indexOf(2);
+        muddyTop.visible = true; F.run = true;
+        if (cottonLast && grains) {
+          setTimeout(() => {
+            F.run = false; muddyTop.visible = false;
+            clean.material.color.set(0xd6e6ee);
+            ctx.say(filt, 'Водата е <b>по-бистра</b>: чакълът и пясъкът задържаха частиците, а <b>активният въглен</b> (въглен с много мънички пори) — част от цвета и мириса. Но в нея може да има <b>микроби</b> — не я пий!', 'wide', 2.0);
+            shell.msg('Вярно подредено!', 'good');
+            ctx.scores[0] = stepScore(mistakes, 3);
+            nextBtn(ctx, 'Напред →', step3);
+          }, 4500);
+          return;
+        }
+        mistakes++; wrongBuilds++;
+        const hint = wrongBuilds >= 2 ? ' Подсказка: най-отгоре е чакълът, най-отдолу — памукът.' : '';
+        const why = !cottonLast
+          ? 'Памукът не е най-отдолу. Пясъкът и въгленът се отмиха през гърлото в чашата. Водата е <b>мътна</b>.'
+          : 'По-ситен слой е над по-едър. Калта бързо запуши ситния пясък и водата <b>едва минава</b>.';
+        if (!cottonLast) clean.material.color.set(0x7a5f3c);
+        setTimeout(() => {
+          F.run = false;
+          if (!cottonLast) muddyTop.visible = false;
+          ctx.say(filt, why, 'wide bad', 2.0);
+          shell.msg('Този ред не става. Подреди слоевете отново.' + hint, 'bad');
+          c.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn again-build">🔄 Подреди отново</button></div>');
+          c.querySelector('.again-build').addEventListener('click', () => { ctx.clearTip(); build(); }, { once: true });
+        }, cottonLast ? 1500 : 4500);
+      }, { once: true });
     }
   }
 
