@@ -138,7 +138,8 @@
         '<a href="sto.html"' + (active === 'sto' ? ' aria-current="page"' : '') + '>СтоБУМ</a>' +
         '<a href="kilo.html"' + (active === 'kilo' ? ' aria-current="page"' : '') + '>КилоБУМ</a>' +
         '<a href="karta.html" class="nav-stats"' + (active === 'map' ? ' aria-current="page"' : '') + ' aria-label="Карта"><span aria-hidden="true">🕸</span><span class="lbl"> Карта</span></a>' +
-        '<a href="statistika.html" class="nav-stats"' + (active === 'stats' ? ' aria-current="page"' : '') + ' aria-label="Статистика"><span aria-hidden="true">📊</span><span class="lbl"> Статистика</span></a></nav>' +
+        '<a href="statistika.html" class="nav-stats"' + (active === 'stats' ? ' aria-current="page"' : '') + ' aria-label="Статистика"><span aria-hidden="true">📊</span><span class="lbl"> Статистика</span></a>' +
+        '<a href="za-proekta.html" class="nav-stats"' + (active === 'about' ? ' aria-current="page"' : '') + ' aria-label="За проекта"><span aria-hidden="true">ℹ️</span><span class="lbl"> За проекта</span></a></nav>' +
         '<button class="theme" id="theme" type="button"></button></div>';
       applyTheme(getTheme());
       document.getElementById('theme').addEventListener('click', function () {
@@ -152,7 +153,7 @@
         '<a class="obr-link" href="' + DONATE_URL + '" target="_blank" rel="noopener" aria-label="Образование без раници — дари">' +
         '<img class="light" src="media/obr-logo.svg" alt="Образование без раници"><img class="dark" src="media/obr-logo-light.svg" alt="Образование без раници"><span class="give">Дари ♥</span></a></div></div>' +
         '<div class="wrap meta"><span><b>БУМ</b> — Български успехи с математика · истории за хора, които променят света с числа</span>' +
-        '<span><a href="za-proekta.html">За проекта</a> · Снимки: Уикипедия / Уикимедия Общомедия, свободни лицензи · <a href="../">Още проекти</a> · <button type="button" class="ck" onclick="window.d4Consent&&d4Consent.reset()">Бисквитки</button></span></div>';
+        '<span><a href="za-proekta.html">За проекта</a> · <a href="admin.html">Админ</a> · Снимки: Уикипедия / Уикимедия Общомедия, свободни лицензи · <a href="../">Още проекти</a> · <button type="button" class="ck" onclick="window.d4Consent&&d4Consent.reset()">Бисквитки</button></span></div>';
     }
   }
   /* Блок с 1–2 урока от Кан Академия (data/ka.js). */
@@ -634,6 +635,29 @@
     document.querySelector('main').appendChild(kaBlock('@karta', 'Филтрите са множества: научи се да ги пресичаш'));
   }
 
+  /* ---------- АДМИН: съдържанието е шифровано (tools/encrypt_admin.py) ---------- */
+  function pageAdmin() {
+    chrome('admin');
+    var form = document.getElementById('lock'), pw = document.getElementById('pw'), err = document.getElementById('err'), out = document.getElementById('admin');
+    function b64(s) { var b = atob(s), a = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; }
+    function open(pass) {
+      var E = window.BUM_ADMIN, c = window.crypto && window.crypto.subtle;
+      if (!E || !c) { err.textContent = 'Този браузър не може да отвори страницата.'; err.hidden = false; return Promise.resolve(false); }
+      return c.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey'])
+        .then(function (k) { return c.deriveKey({ name: 'PBKDF2', salt: b64(E.salt), iterations: E.iter, hash: 'SHA-256' }, k, { name: 'AES-GCM', length: 256 }, false, ['decrypt']); })
+        .then(function (key) { return c.decrypt({ name: 'AES-GCM', iv: b64(E.iv) }, key, b64(E.ct)); })
+        .then(function (buf) {
+          out.innerHTML = new TextDecoder().decode(buf); out.hidden = false; form.hidden = true; err.hidden = true;
+          try { sessionStorage.setItem('bum-admin', pass); } catch (e) {}
+          return true;
+        })
+        .catch(function () { err.textContent = 'Грешна парола.'; err.hidden = false; return false; });
+    }
+    form.onsubmit = function (e) { e.preventDefault(); open(pw.value); };
+    var saved = null; try { saved = sessionStorage.getItem('bum-admin'); } catch (e) {}
+    if (saved) open(saved);
+  }
+
   window.BUM = { TEN: TEN, STO: STO, KILO: KILO, FIELDS: FIELDS };
   var page = document.body.getAttribute('data-page');
   if (page === 'home') pageHome();
@@ -643,5 +667,6 @@
   else if (page === 'story') pageStory();
   else if (page === 'stats') pageStats();
   else if (page === 'map') pageMap();
+  else if (page === 'admin') pageAdmin();
   else if (page === 'about') { chrome('about'); document.querySelector('.ab-body').appendChild(kaBlock('@about', '10, 100, 1000 — степените на десет')); }
 })();

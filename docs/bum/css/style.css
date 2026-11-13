@@ -404,3 +404,26 @@ table.pivot { border-collapse: collapse; width: 100%; font-size: 15px; }
 .ab-card.give b, .ab-card.give span { color: #fff; }
 .ab-card.give:hover { background: var(--go-d); }
 @media (max-width: 720px) { .ab-steps, .ab-cta-grid, .ab-nums { grid-template-columns: 1fr; } .ab-text p { font-size: 18px; } }
+
+/* ---------- лента „За проекта“ на началната страница ---------- */
+.intro { display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; margin: 22px 0 0; padding: 14px 18px; border-radius: 16px; background: var(--navy); color: #fff; text-decoration: none; }
+.intro b { color: var(--teal); }
+.intro-go { flex: none; background: var(--orange); color: #1b1200; font-weight: 900; padding: 8px 14px; border-radius: 10px; white-space: nowrap; }
+.intro:hover .intro-go { filter: brightness(1.08); }
+@media (max-width: 1080px) { .nav-stats .lbl { display: none; } }
+
+/* ---------- АДМИН ---------- */
+.ad-lock { max-width: 420px; padding: 22px; border-radius: 18px; background: var(--paper); border: 1px solid var(--line); margin-bottom: 40px; }
+.ad-lock label { font-weight: 800; color: var(--head); display: block; margin-bottom: 8px; }
+.ad-lock .row { display: flex; gap: 8px; }
+.ad-err { color: #C9461A; font-weight: 700; margin: 10px 0 0; }
+.ad-doc { max-width: 900px; padding-bottom: 50px; font-size: 16px; }
+.ad-doc h1 { font-size: 34px; margin-bottom: 12px; }
+.ad-doc h2 { font-size: 24px; margin: 34px 0 12px; }
+.ad-doc h3 { font-size: 18px; margin: 18px 0 8px; }
+.ad-doc .ad-lead { font-size: 18px; }
+.ad-doc table { width: 100%; border-collapse: collapse; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; font-size: 14.5px; display: block; overflow-x: auto; }
+.ad-doc th { background: var(--navy); color: #fff; text-align: left; padding: 9px 10px; font-weight: 700; }
+.ad-doc td { padding: 9px 10px; border-top: 1px solid var(--line); vertical-align: top; }
+.ad-doc li { margin-bottom: 6px; }
+.ad-doc blockquote { margin: 0; padding: 14px 18px; border-left: 4px solid var(--teal); background: var(--paper); border-radius: 0 12px 12px 0; font-style: italic; }
