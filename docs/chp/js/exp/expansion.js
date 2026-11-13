@@ -338,7 +338,7 @@ export function mount(container, { onComplete }) {
     view(ctx, [BX + 0.3, 1.2, 0.2], 1.7, { halfH: 1.5 });
     let mistakes = 0;
     shell.task(`<p>Студеното топче минава през халката. А нагрятото?</p><p><b>Нагрей топчето</b>, после го <b>пусни</b> към халката.</p>${SAFE}`);
-    const c = shell.setControls('<div class="row"><button class="btn hot">🔥 Нагрей</button><button class="btn drop" disabled>⬇ Пусни</button></div>');
+    const c = shell.setControls('<div class="row"><button class="btn hot">🔥 Нагрей</button></div>');
     c.querySelector('.hot').addEventListener('click', () => {
       c.querySelector('.hot').disabled = true;
       lampFlame.visible = true;
@@ -347,13 +347,32 @@ export function mount(container, { onComplete }) {
       setTimeout(() => {
         lampFlame.visible = false;
         B.tx = 0; B.ty = 2.0;
-        c.querySelector('.drop').disabled = false;
-        ctx.say(ball, 'Нагрятото топче се разшири.', 'tag', 0.5);
+        heatQ();
       }, 2600);
     }, { once: true });
-    c.querySelector('.drop').addEventListener('click', () => {
-      c.querySelector('.drop').disabled = true;
+    // Описва нагряването: откъде идва топлината и какво става с топчето.
+    function heatQ() {
+      choice(ctx, {
+        q: 'Топчето беше над пламъка. Какво стана с него?',
+        options: [
+          { t: 'Получи топлина от пламъка и температурата му се повиши.', ok: true, why: 'Вярно! Топлината минава от по-топлото тяло към по-студеното. Това е нагряване.' },
+          { t: 'Даде топлина на пламъка и изстина.', ok: false, why: 'Топлината минава от по-топлото към по-студеното. Кое е по-топло: пламъкът или топчето?' },
+          { t: 'Температурата му остана същата.', ok: false, why: 'Нагрятото топче пари, ако го пипнеш. Какво е станало с температурата му?' },
+        ],
+        hint: 'Пламъкът е по-топъл от топчето.',
+        mistakes,
+        onRight: (m) => {
+          mistakes = m;
+          ctx.shell.controls.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn drop">⬇ Пусни</button></div>');
+          ctx.shell.controls.querySelector('.drop').addEventListener('click', drop, { once: true });
+          ctx.say(ball, 'Нагрятото топче се разшири.', 'tag', 0.5);
+        },
+      });
+    }
+    function drop() {
+      ctx.shell.controls.querySelector('.drop').disabled = true;
       ctx.clearTip();
+      shell.msg('');
       B.ty = 1.3 + Math.sqrt(Math.max(0, B.r * B.r - R_RING * R_RING)) + 0.02; // засяда върху халката
       setTimeout(() => {
         ctx.say(ring, 'Нагрятото топче не минава!', 'bad', 0.6);
@@ -365,6 +384,7 @@ export function mount(container, { onComplete }) {
             { t: 'Да го бутнем по-силно.', ok: false, why: 'Топчето е по-голямо от отвора. Как да стане по-малко?' },
           ],
           hint: 'Телата се свиват при охлаждане.',
+          mistakes,
           onRight: (m) => {
             mistakes = m;
             B.rT = R_COLD;
@@ -373,7 +393,7 @@ export function mount(container, { onComplete }) {
           },
         });
       }, 1200);
-    }, { once: true });
+    }
 
     function thermoTask() {
       ctx.clearTip();
