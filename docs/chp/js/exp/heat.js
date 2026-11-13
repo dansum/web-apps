@@ -444,6 +444,7 @@ export function mount(container, { onComplete }) {
       c.insertAdjacentHTML('beforeend', '<div class="row"><button class="btn primary pour">♨ Налей гореща вода</button></div>');
       c.querySelector('.pour').addEventListener('click', () => {
         c.querySelector('.pour').disabled = true;
+        shell.msg('Моделът е опростен и ускорен. Гледай реда, в който падат кабарчетата.', '');
         H.on = true;
         setTimeout(() => { H.run = true; }, 700);
         rods.forEach((r) => { r.tag.visible = false; });

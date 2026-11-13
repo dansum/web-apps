@@ -52,6 +52,9 @@ const CSS = `
 .breathing-airs .btn.on { outline: 3px solid #1865f2; outline-offset: 1px; }
 .choices.breathing-multi .choice.on::before { content: "☑"; color: #1865f2; }
 .choices.breathing-multi .choice:not(.on)::before { content: "☐"; color: #8a94a3; }
+.choices.breathing-multi .choice { flex-wrap: wrap; }
+.choices.breathing-multi .breathing-rt { flex: 1 1 0; min-width: 0; }
+.choices.breathing-multi .breathing-why { flex-basis: 100%; font-size: .85rem; color: #3b4452; }
 @media (max-width: 520px) { .breathing-hud { font-size: 0.74rem; min-width: 130px; max-width: 160px; padding: 5px 7px; } }
 `;
 
@@ -1091,15 +1094,16 @@ export function mount(container, { onComplete }) {
     clearTip();
     setAir('clean');
     const R = shuffle([
-      { v: 'y1', ok: true, t: 'Дишам през носа, а не през устата.' },
-      { v: 'y2', ok: true, t: 'Не пуша и стоя далеч от тютюнев дим.' },
-      { v: 'y3', ok: true, t: 'Проветрявам стаята често.' },
-      { v: 'y4', ok: true, t: 'Спортувам на открито, сред природата.' },
-      { v: 'n1', ok: false, t: 'Тичам покрай натоварен път с много коли.' },
-      { v: 'n2', ok: false, t: 'Играя в прашна стая със затворени прозорци.' },
+      { v: 'y1', ok: true, t: 'Дишам през носа, а не през устата.', why: 'В носа въздухът се затопля и очиства от праха.' },
+      { v: 'y2', ok: true, t: 'Не пуша и стоя далеч от тютюнев дим.', why: 'Видя как катранът от дима полепва по алвеолата.' },
+      { v: 'y3', ok: true, t: 'Проветрявам стаята често.', why: 'Проветряването сменя застоялия въздух с чист.' },
+      { v: 'y4', ok: true, t: 'Спортувам на открито, сред природата.', why: 'Видя, че с чист въздух алвеолата е здрава.' },
+      { v: 'n1', ok: false, t: 'Тичам покрай натоварен път с много коли.', why: 'Видя как саждите от колите стигат до алвеолите.' },
+      { v: 'n2', ok: false, t: 'Играя в прашна стая със затворени прозорци.', why: 'Ситният прах стига до алвеолите и ги дразни.' },
     ]);
-    shell.task(`<p><b>Избери всички правила, които пазят дихателната система.</b></p>
-      <div class="choices breathing-multi" data-q="r">${R.map((r) => `<button class="choice" data-v="${r.v}">${esc(r.t)}</button>`).join('')}</div>`);
+    shell.task(`<p>Ти видя алвеолата при дим, при мръсен и при чист въздух.</p>
+      <p><b>Избери всички правила, които пазят дихателната система.</b></p>
+      <div class="choices breathing-multi" data-q="r">${R.map((r) => `<button class="choice" data-v="${r.v}"><span class="breathing-rt">${esc(r.t)}</span></button>`).join('')}</div>`);
     shell.msg('');
     const c = shell.setControls('<button class="btn primary">Провери</button>');
     container.querySelectorAll('.breathing-multi .choice').forEach((bt) => bt.addEventListener('click', () => { if (!bt.disabled) bt.classList.toggle('on'); }));
@@ -1113,6 +1117,7 @@ export function mount(container, { onComplete }) {
         if (r.ok) bt.classList.add('right');
         else if (on) bt.classList.add('wrong');
         else bt.insertAdjacentHTML('beforeend', ' <b style="color:#d92916">(вреди)</b>');
+        bt.insertAdjacentHTML('beforeend', `<span class="breathing-why">${esc(r.why)}</span>`);
       });
       const rScore = good / R.length;
       shell.msg(good === R.length ? 'Всички правила са верни! 🎉' : `Верни избори: ${good} от ${R.length}. Зелените правила пазят белите дробове, червените им вредят.`, good === R.length ? 'good' : 'bad');

@@ -618,7 +618,7 @@ export function mount(container, { onComplete }) {
         onAllOut = () => {
           if (!pair.every((r) => r.out)) return;
           onAllOut = null;
-          ctx.say(pair[1].g, 'Двете свещи изразходват кислорода два пъти по-бързо и угасват по-рано.', 'good', 1.45);
+          ctx.say(pair[1].g, 'Двете свещи изразходват кислорода по-бързо и угасват по-рано.', 'good', 1.45);
           setTimeout(transfer, 700);
         };
       },
