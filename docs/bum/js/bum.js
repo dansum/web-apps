@@ -82,7 +82,8 @@
     var d = el('div', 'art' + (cls ? ' ' + cls : ''), Art.svg({ id: p.id, field: p.field, motif: p.motif, art: p.art }));
     var pr = el('div', 'portrait');
     if (p.avatar) pr.innerHTML = Art.avatar(p.avatar);
-    else { pr.innerHTML = '<div class="mono">' + esc(initials(p.name)) + '</div>'; pr.setAttribute('data-pid', p.id); }
+    /* Докато няма снимка: илюстрация на работата на човека (js/emblems.js). */
+    else { pr.innerHTML = '<div class="emb" role="img" aria-label="' + esc(window.BUMEmblem ? BUMEmblem.label(p) : p.name) + '">' + (window.BUMEmblem ? BUMEmblem.svg(p) : esc(initials(p.name))) + '</div>'; pr.setAttribute('data-pid', p.id); }
     d.appendChild(pr);
     return d;
   }
@@ -172,7 +173,7 @@
   function put(node, c) {
     if (node.querySelector('img')) return;
     var img = new Image(); img.alt = ''; img.decoding = 'async'; img.referrerPolicy = 'no-referrer';
-    img.onload = function () { img.className = 'on'; var m = node.querySelector('.mono'); if (m) m.remove(); };
+    img.onload = function () { img.className = 'on'; var m = node.querySelector('.emb, .mono'); if (m) m.remove(); };
     img.onerror = function () { img.remove(); };
     img.src = c.s; node.appendChild(img);
   }
@@ -304,7 +305,7 @@
       var a = shuffle(list), has = a.filter(function (p) { return cache[p.id] && cache[p.id].s; }), maybe = a.filter(function (p) { return !cache[p.id] && hasSource(p); });
       return has.concat(maybe, a).filter(function (p, i, arr) { return arr.indexOf(p) === i; }).slice(0, n);
     }
-    function faces(list) { return list.map(function (p) { return '<span data-pid="' + (p.avatar ? '' : p.id) + '">' + (p.avatar ? Art.avatar(p.avatar) : Art.svg(p)) + '</span>'; }).join(''); }
+    function faces(list) { return list.map(function (p) { return '<span data-pid="' + (p.avatar ? '' : p.id) + '">' + (p.avatar ? Art.avatar(p.avatar) : '<i class="emb-f">' + BUMEmblem.svg(p) + '</i>') + '</span>'; }).join(''); }
     var secs = document.getElementById('sections');
     secs.innerHTML =
       '<a class="sec" href="deset.html"><span class="big" aria-hidden="true">10</span><h3>10 БУМа</h3><p>Десетте най-известни приноса на българи в математиката и науките – от компютъра на Атанасов до кристалите в лазерите.</p><div class="faces">' + faces(TEN.slice(0, 6)) + '</div></a>' +
@@ -459,7 +460,7 @@
     function credit() {
       var n = document.getElementById('credit'); if (!n) return;
       if (p.avatar) { n.textContent = 'Портретът е рисунка, а не снимка – човекът е измислен.'; return; }
-      var c = cache[p.id]; if (!c || !c.s) { n.textContent = ''; return; }
+      var c = cache[p.id]; if (!c || !c.s) { n.textContent = c ? 'Снимката още не е добавена. Илюстрацията показва работата на ' + (p.sex === 'f' ? 'изследователката' : 'изследователя') + ' и е рисувана за БУМ.' : ''; return; }
       n.innerHTML = creditHtml(c) + ' Графиката е рисувана за БУМ.';
       if (!c.m) loadMeta(p.id, credit);
     }
