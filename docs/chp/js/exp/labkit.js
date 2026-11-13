@@ -93,6 +93,41 @@ export function choice(ctx, { q, options, hint, onRight, mistakes = 0 }) {
   return c;
 }
 
+// Отворена прогноза (решение 21, 5. клас): детето може да избере и грешна прогноза.
+// Изборът се заключва, опитът тръгва и после compare() показва прогнозата до резултата.
+// options: [{ t, ok }]; onPick(o, i, c) се вика веднага след избора. Грешната прогноза се брои
+// като 1 грешка в ctx.predMiss (за оценката на стъпката), но съобщението е спокойно.
+export function predict(ctx, { q, options, note = 'Запомни прогнозата си. Сега провери!', onPick }) {
+  const { shell } = ctx;
+  const order = shuffle(options.map((_, i) => i));
+  const c = shell.setControls(`<p><b>${q}</b></p><div class="choices">${order.map((i) => `<button class="choice pred" data-i="${i}">${options[i].t}</button>`).join('')}</div>`);
+  c.querySelectorAll('.choice').forEach((b) => b.addEventListener('click', () => {
+    if (b.disabled) return;
+    const i = +b.dataset.i;
+    c.querySelectorAll('.choice').forEach((x) => { x.disabled = true; });
+    b.classList.add('on');
+    ctx.prediction = { i, t: options[i].t, ok: !!options[i].ok };
+    ctx.predMiss = options[i].ok ? 0 : 1;
+    shell.msg(note, '');
+    onPick(options[i], i, c);
+  }));
+  return c;
+}
+
+// Сравнение „Твоята прогноза / Какво стана / Защо“ след опита. Връща контейнера.
+export function compare(ctx, { result, why, pick = ctx.prediction }) {
+  const ok = pick && pick.ok;
+  const html = `<div class="cmp ${ok ? 'ok' : 'miss'}">
+    <p><span class="cmp-l">Твоята прогноза:</span> ${pick ? pick.t : '—'} ${ok ? '✔' : ''}</p>
+    <p><span class="cmp-l">Какво стана:</span> ${result}</p>
+    <p><span class="cmp-l">Защо:</span> ${why}</p>
+    ${ok ? '' : '<p class="cmp-learn">Добре, че прогнозира — сега знаеш повече, отколкото преди опита.</p>'}
+  </div>`;
+  const c = ctx.shell.setControls(html);
+  ctx.shell.msg(ok ? 'Прогнозата ти се потвърди!' : 'Опитът показа нещо различно от прогнозата ти. Виж защо.', ok ? 'good' : '');
+  return c;
+}
+
 // Добавя бутон под текущите контроли.
 export function nextBtn(ctx, label, fn) {
   const c = ctx.shell.controls;
