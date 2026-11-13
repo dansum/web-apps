@@ -81,22 +81,25 @@
   /* ---------- снимки от Уикипедия ----------
      Браузърът пита API-то на Уикипедия за главната (свободна) снимка на статията.
      Резултатът се пази в localStorage за 7 дни. Ако няма снимка, остават инициалите. */
-  /* Всеки запис в кеша има свое време t; изтича след 7 дни. „Без снимка“ (s: '') се записва само
-     след успешен отговор от Уикипедия, така че една мрежова грешка не скрива снимките за седмица. */
-  var PKEY = 'bum-photos-v2', cache = {}, TTL = 7 * 864e5;
+  /* Снимки. Ред на търсене: ръчен файл (photoFile) → външна снимка (photoUrl) → главната снимка на статията
+     в Уикипедия (bg, после en) → изображението (P18) в Уикидата (wikidata или връзката от статията).
+     Всеки запис в кеша има свое време t и изтича след 7 дни. „Без снимка“ (s: '') се записва само след
+     успешни отговори, така че мрежова грешка не скрива снимките за седмица. */
+  var PKEY = 'bum-photos-v3', cache = {}, TTL = 7 * 864e5;
   try { var raw = JSON.parse(localStorage.getItem(PKEY) || '{}'); Object.keys(raw).forEach(function (k) { if (raw[k] && Date.now() - raw[k].t < TTL) cache[k] = raw[k]; }); } catch (e) {}
   function saveCache() { try { localStorage.setItem(PKEY, JSON.stringify(cache)); } catch (e) {} }
-  /* Ръчно избран файл (поле photoFile) или изключена снимка (noPhoto: true). */
+  function commonsEntry(file) { return { s: 'https://commons.wikimedia.org/wiki/Special:FilePath/' + encodeURIComponent(file) + '?width=480', l: 'commons', f: file, t: Date.now() }; }
   ALL.forEach(function (p) {
-    if (p.photoFile) cache[p.id] = { s: 'https://commons.wikimedia.org/wiki/Special:FilePath/' + encodeURIComponent(p.photoFile) + '?width=480', l: 'commons', f: p.photoFile, t: Date.now() };
+    if (p.photoFile) cache[p.id] = commonsEntry(p.photoFile);
+    else if (p.photoUrl) cache[p.id] = { s: p.photoUrl, l: 'ext', src: p.photoSource || '', t: Date.now(), m: 1 };
     else if (p.noPhoto) cache[p.id] = { s: '', t: Date.now() };
   });
-  var pending = {}, answered = {};
+  var pending = {}, answered = {}, qid = {};
+  function hasSource(p) { return !!(p.wikidata || (p.wiki && (p.wiki.bg || p.wiki.en))); }
   function fetchLang(lang, people) {
-    var titles = people.map(function (p) { return p.wiki[lang]; });
-    var chunks = []; for (var i = 0; i < titles.length; i += 45) chunks.push(people.slice(i, i + 45));
+    var chunks = []; for (var i = 0; i < people.length; i += 45) chunks.push(people.slice(i, i + 45));
     return Promise.all(chunks.map(function (ch) {
-      var q = 'https://' + lang + '.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&prop=pageimages&piprop=thumbnail%7Cname&pithumbsize=480&titles=' +
+      var q = 'https://' + lang + '.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&prop=pageimages%7Cpageprops&ppprop=wikibase_item&piprop=thumbnail%7Cname&pithumbsize=480&titles=' +
         encodeURIComponent(ch.map(function (p) { return p.wiki[lang]; }).join('|'));
       return fetch(q).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (j) {
         var qu = j.query || {}, map = {};
@@ -106,26 +109,49 @@
         ch.forEach(function (p) {
           var t = p.wiki[lang]; t = map[t] || t; t = red[t] || t; var pg = pages[t];
           if (pg && pg.thumbnail) cache[p.id] = { s: pg.thumbnail.source, l: lang, a: pg.title, f: pg.pageimage || '', t: Date.now() };
-          else (answered[p.id] = answered[p.id] || {})[lang] = 1;
+          else {
+            (answered[p.id] = answered[p.id] || {})[lang] = 1;
+            if (pg && pg.pageprops && pg.pageprops.wikibase_item && !qid[p.id]) qid[p.id] = pg.pageprops.wikibase_item;
+          }
         });
       }).catch(function () {});
+    }));
+  }
+  /* Изображение (P18) от Уикидата – за хора без статия или със статия без снимка. */
+  function fetchWikidata(people) {
+    var ids = people.map(function (p) { return p.wikidata || qid[p.id]; }).filter(Boolean);
+    if (!ids.length) return Promise.resolve();
+    var chunks = []; for (var i = 0; i < ids.length; i += 45) chunks.push(ids.slice(i, i + 45));
+    return Promise.all(chunks.map(function (ch) {
+      return fetch('https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&origin=*&props=claims&ids=' + ch.join('|'))
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(function (j) {
+          var ents = j.entities || {};
+          people.forEach(function (p) {
+            var q = p.wikidata || qid[p.id], e = q && ents[q]; if (!e) return;
+            (answered[p.id] = answered[p.id] || {}).wd = 1;
+            var c = e.claims && e.claims.P18, f = c && c[0] && c[0].mainsnak && c[0].mainsnak.datavalue && c[0].mainsnak.datavalue.value;
+            if (f && !cache[p.id]) cache[p.id] = commonsEntry(f);
+          });
+        }).catch(function () {});
     }));
   }
   function loadPhotos(root) {
     var nodes = Array.prototype.slice.call((root || document).querySelectorAll('[data-pid]'));
     var want = [];
-    nodes.forEach(function (n) { var id = n.getAttribute('data-pid'); if (cache[id] && cache[id].s) put(n, cache[id]); else if (BY[id] && !pending[id] && BY[id].wiki && !cache[id]) { want.push(BY[id]); pending[id] = 1; } });
+    nodes.forEach(function (n) { var id = n.getAttribute('data-pid'); if (cache[id] && cache[id].s) put(n, cache[id]); else if (BY[id] && !pending[id] && hasSource(BY[id]) && !cache[id]) { want.push(BY[id]); pending[id] = 1; } });
     if (!want.length) return;
-    var bg = want.filter(function (p) { return p.wiki.bg; });
-    fetchLang('bg', bg).then(function () {
-      var en = want.filter(function (p) { return !cache[p.id] && p.wiki.en; });
-      return fetchLang('en', en);
+    var wk = function (p) { return p.wiki || {}; };
+    fetchLang('bg', want.filter(function (p) { return wk(p).bg; })).then(function () {
+      return fetchLang('en', want.filter(function (p) { return !cache[p.id] && wk(p).en; }));
+    }).then(function () {
+      return fetchWikidata(want.filter(function (p) { return !cache[p.id]; }));
     }).then(function () {
       want.forEach(function (p) {
         pending[p.id] = 0;
-        var a = answered[p.id] || {};
-        /* „Без снимка“ само ако всеки език, който сме питали, е отговорил успешно. */
-        if (!cache[p.id] && (!p.wiki.bg || a.bg) && (!p.wiki.en || a.en)) cache[p.id] = { s: '', t: Date.now() };
+        var a = answered[p.id] || {}, w = wk(p), q = p.wikidata || qid[p.id];
+        /* „Без снимка“ само ако всичко, което сме питали, е отговорило успешно. */
+        if (!cache[p.id] && (!w.bg || a.bg) && (!w.en || a.en) && (!q || a.wd)) cache[p.id] = { s: '', t: Date.now() };
       });
       saveCache();
       document.querySelectorAll('[data-pid]').forEach(function (n) { var c = cache[n.getAttribute('data-pid')]; if (c && c.s) put(n, c); });
@@ -144,6 +170,7 @@
   function fileUrl(c) { return 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(c.f.replace(/ /g, '_')); }
   function creditHtml(c) {
     var nw = '<i class="sr"> (отваря се в нов раздел)</i>';
+    if (c.l === 'ext') return 'Снимка: ' + (c.src ? '<a href="' + esc(c.src) + '" target="_blank" rel="noopener">източник' + nw + '</a>' : 'външен източник') + '. <span class="lic-check">Лицензионните права още се проверяват.</span>';
     if (!c.f) return 'Снимка: <a href="https://' + c.l + '.wikipedia.org/wiki/' + encodeURIComponent(c.a.replace(/ /g, '_')) + '" target="_blank" rel="noopener">Уикипедия' + nw + '</a>.';
     var parts = ['Снимка: ' + (c.au ? esc(c.au) : 'автор – виж файла')];
     if (c.lic) parts.push(c.licu ? '<a href="' + esc(c.licu) + '" target="_blank" rel="noopener">' + esc(c.lic) + nw + '</a>' : esc(c.lic));
@@ -255,7 +282,7 @@
 
     /* За лицата в картите: първо хората със снимка, после тези, за които може да има. */
     function withPhotos(list, n) {
-      var a = shuffle(list), has = a.filter(function (p) { return cache[p.id] && cache[p.id].s; }), maybe = a.filter(function (p) { return !cache[p.id] && p.wiki && (p.wiki.bg || p.wiki.en); });
+      var a = shuffle(list), has = a.filter(function (p) { return cache[p.id] && cache[p.id].s; }), maybe = a.filter(function (p) { return !cache[p.id] && hasSource(p); });
       return has.concat(maybe, a).filter(function (p, i, arr) { return arr.indexOf(p) === i; }).slice(0, n);
     }
     function faces(list) { return list.map(function (p) { return '<span data-pid="' + (p.avatar ? '' : p.id) + '">' + (p.avatar ? Art.avatar(p.avatar) : Art.svg(p)) + '</span>'; }).join(''); }
