@@ -153,14 +153,20 @@ function injectStyle() {
   .mixtures-slot.full { border-style:solid; border-color:#9cbcf7; background:#f0f5ff; }
   .mixtures-slot.right { border-color:#1fab54; background:#e9f8ef; }
   .mixtures-slot.wrong { border-color:#d92916; background:#fdeceb; }
-  .mixtures-text p { margin:6px 0 2px; }
-  .mixtures-blank { display:inline-block; min-width:4.5em; border-bottom:2px solid #1865f2; text-align:center; font-weight:800; color:#1865f2; }
-  .mixtures-blank.right { border-color:#1fab54; color:#0d7a3a; }
-  .mixtures-opts { display:flex; flex-wrap:wrap; gap:5px; margin:3px 0 6px; }
-  .mixtures-opt { font:inherit; font-size:.85rem; padding:3px 10px; border-radius:999px; border:2px solid #c9dcff; background:#eef4ff; cursor:pointer; font-weight:700; }
+  .mixtures-cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:8px; margin-top:6px; }
+  .mixtures-card { border:2px solid #dfe5ee; border-radius:10px; overflow:hidden; background:#fff; }
+  .mixtures-card.done { border-color:#1fab54; }
+  .mixtures-pic { font-size:1.9rem; text-align:center; padding:6px 0 2px; background:#eef5fb; line-height:1.2; }
+  .mixtures-card h4 { margin:0; padding:4px 8px; font-size:.88rem; background:#f4f7fb; }
+  .mixtures-opts { display:grid; gap:5px; padding:6px; }
+  .mixtures-opt { font:inherit; font-size:.85rem; text-align:left; padding:5px 8px; border-radius:8px; border:2px solid #dfe5ee; background:#fff; cursor:pointer; display:flex; gap:6px; align-items:flex-start; }
+  .mixtures-opt::before { content:''; flex:none; width:.9em; height:.9em; margin-top:.15em; border:2px solid #9aa9bb; border-radius:50%; }
   .mixtures-opt.right { background:#e9f8ef; border-color:#1fab54; }
-  .mixtures-opt.wrong { background:#fdeceb; border-color:#d92916; text-decoration:line-through; }
+  .mixtures-opt.right::before { border-color:#1fab54; background:radial-gradient(#1fab54 45%, transparent 50%); }
+  .mixtures-opt.wrong { background:#fdeceb; border-color:#d92916; color:#7a2a20; }
+  .mixtures-opt.wrong::before { border-color:#d92916; }
   .mixtures-opt:disabled { cursor:default; }
+  .mixtures-why { margin:0 6px 6px; font-size:.8rem; color:#7a2a20; }
   `;
   document.head.appendChild(s);
 }
@@ -1664,35 +1670,51 @@ export function mount(container, { onComplete }) {
     usesQuiz(mistakes);
   }
 
-  // Практическо значение: допълни текста.
+  // Практическо значение (решение 22): под всяка картинка детето избира 1 вярно изречение от 3.
+  // Грешните изречения са честите погрешни представи; при грешка под картинката излиза защо.
   const USES = [
-    { pre: 'В солниците край Поморие морската вода стои в плитки басейни. Слънцето я ', post: ' и остава готварска сол.', opts: ['изпарява', 'филтрува', 'утаява'], a: 0,
-      why: 'Солта е разтворена — тя не се утаява и минава през филтър.' },
-    { pre: 'В пречиствателната станция водата престоява в големи басейни, за да се ', post: ' калта на дъното. После минава през пясъчни филтри.', opts: ['изпари', 'утаи', 'пресее'], a: 1,
-      why: 'Калта е по-тежка от водата. Какво прави, когато водата стои спокойно?' },
-    { pre: 'В пункта за отпадъци голям ', post: ' вдига железните части от купчината.', opts: ['филтър', 'магнит', 'сито'], a: 1,
-      why: 'Само едно от тези привлича желязо.' },
-    { pre: 'Баба ', post: ' брашното, за да махне бучките и триците (люспите на зърното).', opts: ['пресява', 'утаява', 'изпарява'], a: 0,
-      why: 'Бучките и триците са по-едри от брашното.' },
+    { pic: '☀️🌊', title: 'Солници край Поморие', a: 0, opts: [
+      { t: 'Слънцето изпарява водата и остава сол.' },
+      { t: 'Солта се утаява на дъното, а водата се отлива.', why: 'Солта е разтворена във водата. Разтвореното вещество не се утаява.' },
+      { t: 'Морската вода минава през филтър и солта остава на него.', why: 'Разтворената сол минава през филтъра заедно с водата.' },
+    ] },
+    { pic: '🏭💧', title: 'Пречиствателна станция', a: 0, opts: [
+      { t: 'Водата стои спокойно в басейни и калта се утаява на дъното.' },
+      { t: 'Калта се разтваря във водата и изчезва.', why: 'Калта не се разтваря. Тя е по-тежка от водата и пада на дъното.' },
+      { t: 'Водата се изпарява и калта остава в басейна.', why: 'Така ще загубим водата, а ние искаме да я пречистим. Какво прави калта, когато водата стои спокойно?' },
+    ] },
+    { pic: '♻️🔩', title: 'Пункт за отпадъци', a: 0, opts: [
+      { t: 'Голям магнит вдига железните части.' },
+      { t: 'Голямо сито отделя железните части.', why: 'Ситото дели телата по големина, а не по това от какво са. Кое привлича желязото?' },
+      { t: 'Железните части се разтварят във вода и се отделят.', why: 'Желязото не се разтваря във вода. Кое привлича желязото?' },
+    ] },
+    { pic: '👵🌾', title: 'Баба меси хляб', a: 0, opts: [
+      { t: 'Баба пресява брашното и маха бучките и триците.' },
+      { t: 'Баба вдига триците с магнит.', why: 'Триците са люспите на зърното. Те не са от желязо и магнитът не ги привлича.' },
+      { t: 'Баба изпарява брашното и маха бучките.', why: 'Брашното е сухо — няма какво да се изпари. Бучките и триците са по-едри от брашното.' },
+    ] },
   ];
   function usesQuiz(prevMistakes) {
     let mistakes = prevMistakes;
     let ok = 0;
     shell.msg('');
-    shell.task(`<p><b>Смесите около нас.</b> Допълни текста с правилната дума.</p>
-      <div class="mixtures-text">${USES.map((u, i) => `<p>${i + 1}. ${esc(u.pre)}<span class="mixtures-blank" data-b="${i}">?</span>${esc(u.post)}</p>
-      <div class="mixtures-opts" data-q="${i}">${u.opts.map((o, k) => `<button class="mixtures-opt" data-k="${k}">${esc(o)}</button>`).join('')}</div>`).join('')}</div>`);
+    // Изреченията са в случаен ред; data-k е индексът в opts (за тестовете).
+    shell.task(`<p><b>Смесите около нас.</b> Под всяка картинка избери изречението, което я описва вярно.</p>
+      <div class="mixtures-cards">${USES.map((u, i) => `<div class="mixtures-card" data-q="${i}"><div class="mixtures-pic" aria-hidden="true">${u.pic}</div><h4>${i + 1}. ${esc(u.title)}</h4>
+      <div class="mixtures-opts" data-q="${i}">${shuffle(u.opts.map((_, k) => k)).map((k) => `<button class="mixtures-opt" data-k="${k}">${esc(u.opts[k].t)}</button>`).join('')}</div><p class="mixtures-why" hidden></p></div>`).join('')}</div>`);
     shell.score(`Грешки: ${mistakes}`);
     container.querySelectorAll('.mixtures-opts').forEach((box) => {
       const q = +box.dataset.q;
+      const card = box.closest('.mixtures-card');
+      const why = card.querySelector('.mixtures-why');
       box.querySelectorAll('.mixtures-opt').forEach((b) => b.addEventListener('click', () => {
+        if (b.disabled) return;
         const u = USES[q];
         if (+b.dataset.k === u.a) {
           b.classList.add('right');
           box.querySelectorAll('.mixtures-opt').forEach((x) => { x.disabled = true; });
-          const bl = container.querySelector(`.mixtures-blank[data-b="${q}"]`);
-          bl.textContent = u.opts[u.a];
-          bl.classList.add('right');
+          card.classList.add('done');
+          why.hidden = true;
           ok++;
           shell.msg('Вярно!', 'good');
           if (ok === USES.length) finishStep4(mistakes);
@@ -1700,7 +1722,9 @@ export function mount(container, { onComplete }) {
           mistakes++;
           b.classList.add('wrong');
           b.disabled = true;
-          shell.msg(u.why, 'bad');
+          why.textContent = u.opts[+b.dataset.k].why;
+          why.hidden = false;
+          shell.msg(u.opts[+b.dataset.k].why, 'bad');
           shell.score(`Грешки: ${mistakes}`);
         }
       }));
