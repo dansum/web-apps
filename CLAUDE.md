@@ -20,6 +20,8 @@
   - `docs/index.html` – началната страница. Текстовете на интерфейса са в `UI`,
     а картите на проектите – в `PROJECTS` (БГ, EN, DE; пълен и кратък текст).
   - `docs/consent.js` – Google Analytics с прозорче за съгласие, общ за всички страници.
+  - `docs/updated.json` – датите „Обновено“ под всяка карта. След промяна в
+    проект пусни `python3 tools/update-dates.py` и добави файла в commit-а.
   - `docs/favicon.svg`, `favicon-32.png`, `apple-touch-icon.png` – иконката „ДЧ“.
   - `docs/<проект>/` – отделните приложения: `bum`, `chp`, `history`, `Varna`,
     `vot`, `chesslearn`, `blackhole`, `shooter`, `forest-fire-sim_202511`,
