@@ -1,4 +1,4 @@
-/* БУМ – уроци от българската Кан Академия за всяка страница.
+/* БУМ — уроци от българската Кан Академия за всяка страница.
    Адресите са взети от индекса на bg.khanacademy.org (септември 2026), не са сглобени на ръка.
    Ключ: id на човек или @home/@ten/@sto/@kilo за страниците-списъци.
    В едно заглавие е поправена правописна грешка, която има в самата Кан Академия (7. клас, НВО). */
@@ -1357,6 +1357,42 @@ window.BUM_KA = {
    "t": "Моделиране с линейни уравнения: задачи от движение",
    "c": "7. клас (НВО)",
    "u": "https://bg.khanacademy.org/math/7-klas-nvo/x912058447d68de3d:modelirane-s-lineini-uravneniya-modul-2-nvo/x912058447d68de3d:modelirane-s-lineini-uravneniya-zadachi-ot-dvizhenie"
+  }
+ ],
+ "vlad-tenev": [
+  {
+   "t": "Задачи с проста лихва и сложна лихва",
+   "c": "10. клас",
+   "u": "https://bg.khanacademy.org/math/10-klas/x3076d29e95acc119:progresii/x3076d29e95acc119:zadachi-s-prosta-slozhna-lihva"
+  },
+  {
+   "t": "Вероятност и статистическа честота",
+   "c": "12. клас",
+   "u": "https://bg.khanacademy.org/math/12-klas-oop-pregovor/xa9c6fe3516de76ef:12-klas-oop/xa9c6fe3516de76ef:veroyatnost-statisticheska-chestota-440"
+  }
+ ],
+ "stefanie-stantcheva": [
+  {
+   "t": "Въведение в линии на тенденцията",
+   "c": "12. клас (профил)",
+   "u": "https://bg.khanacademy.org/math/12-klas-profil-modul-4/x2e854140bd6d705b:lineen-model/x2e854140bd6d705b:linii-tendencii"
+  },
+  {
+   "t": "Решаване на задачи с проценти",
+   "c": "5. клас",
+   "u": "https://bg.khanacademy.org/math/5-klas/x840ca9d7401a4089:protsent-unit/x840ca9d7401a4089:zadachi-s-protsenti"
+  }
+ ],
+ "petko-dinev": [
+  {
+   "t": "Стандартен запис на число",
+   "c": "6. клас",
+   "u": "https://bg.khanacademy.org/math/6-klas/x8f4872fe3845cd98:standarten-zapis-chislo/x8f4872fe3845cd98:standarten-zapis-na-chislo"
+  },
+  {
+   "t": "Въведение във векторите",
+   "c": "8. клас",
+   "u": "https://bg.khanacademy.org/math/8-klas/x5903b96cf58cdc2a:vektori/x5903b96cf58cdc2a:intro-vektori"
   }
  ],
  "@home": [

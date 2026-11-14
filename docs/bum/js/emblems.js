@@ -61,7 +61,8 @@
     'svetozar-georgiev': 'code', 'svetlin-nakov': 'code', 'galia-angelova': 'letters', 'dragomir-radev': 'letters', 'svetlozar-rachev': 'finance',
     'asen-dontchev': 'optimize', 'darinka-dentcheva': 'optimize', 'kristina-toutanova': 'tokens', 'bistra-dilkina': 'animal', 'kalina-boncheva': 'news',
     'preslav-nakov': 'news', 'virginia-vassilevska-williams': 'matrix', 'martin-vechev': 'shield', 'maria-luisa-doseva': 'building', 'victoria-angelova': 'building',
-    'asen-yordanov': 'plane', 'georgi-ivanov': 'rocket', 'aleksandar-aleksandrov': 'rocket', 'kiril-serafimov': 'satellite', 'georgi-nadjakov': 'laser'
+    'asen-yordanov': 'plane', 'georgi-ivanov': 'rocket', 'aleksandar-aleksandrov': 'rocket', 'kiril-serafimov': 'satellite', 'georgi-nadjakov': 'laser',
+    'vlad-tenev': 'finance', 'stefanie-stantcheva': 'econ', 'petko-dinev': 'satellite'
   };
   function key(p) { return BY[p.id] || (I[p.field] ? p.field : 'math'); }
   window.BUMEmblem = {
