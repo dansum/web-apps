@@ -55,3 +55,9 @@ window.BUM_STO = (window.BUM_STO || []).concat([
 ## `ka.js`
 
 `{ '<id>' или '@home' | '@ten' | '@sto' | '@kilo' | '@stats' | '@karta' | '@about': [{ t, c, u }] }` – 1–2 урока; адресите са само от индекса на bg.khanacademy.org.
+
+## ka-topics.js – теми на уроците от Кан Академия
+
+`window.BUM_KA_TOPICS = { topics: [{ k, t }], map: { '<адрес без https://bg.khanacademy.org/math/>': k } }`.
+Страница „Статистика“ показва най-долу всички уроци от `ka.js`, групирани по тези теми, с брой споменавания и хората.
+Нов урок, който не е в `map`, отива в група „Други“ – добави го в `map`, за да влезе в правилната тема.

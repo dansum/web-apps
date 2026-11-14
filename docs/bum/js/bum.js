@@ -576,6 +576,47 @@
     };
     render();
     document.querySelector('main').appendChild(kaBlock('@stats', 'Научи се да четеш таблици и данни'));
+    document.querySelector('main').appendChild(kaTopics());
+  }
+
+  /* Всички уроци от Кан Академия, към които води сайтът: по теми, с брой споменавания и с хората. */
+  var KA_PAGES = { '@home': ['Начало', 'index.html'], '@ten': ['10 БУМа', 'deset.html'], '@sto': ['СтоБУМ', 'sto.html'], '@kilo': ['КилоБУМ', 'kilo.html'],
+    '@stats': ['Статистика', 'statistika.html'], '@karta': ['Карта', 'karta.html'], '@about': ['За проекта', 'za-proekta.html'] };
+  function kaTopics() {
+    var KA = window.BUM_KA || {}, TP = window.BUM_KA_TOPICS || { topics: [], map: {} }, L = {}, n = 0;
+    Object.keys(KA).forEach(function (key) {
+      if (key.charAt(0) !== '@' && !BY[key]) return;
+      KA[key].forEach(function (x) {
+        var l = L[x.u] || (L[x.u] = { t: x.t, c: x.c, u: x.u, who: [], pages: [] });
+        if (key.charAt(0) === '@') { if (KA_PAGES[key]) l.pages.push(KA_PAGES[key]); } else l.who.push(BY[key]);
+      });
+    });
+    var groups = {}, topics = TP.topics.concat([{ k: 'other', t: 'Други' }]);
+    Object.keys(L).forEach(function (u) {
+      var k = TP.map[u.replace('https://bg.khanacademy.org/math/', '')] || 'other';
+      (groups[k] = groups[k] || []).push(L[u]); n++;
+    });
+    function cnt(l) { return l.who.length + l.pages.length; }
+    var sec = el('section', 'kat'); sec.id = 'kan';
+    sec.innerHTML = '<h2><img src="media/khan-academy.svg" alt="" width="30" height="34"> Уроците от Кан Академия по теми</h2>' +
+      '<p>Всички ' + n + ' урока, към които водят историите и страниците на БУМ. Числото показва колко пъти е споменат урокът, а под заглавието са хората, при които стои.</p>';
+    topics.forEach(function (T) {
+      var G = groups[T.k]; if (!G) return;
+      G.sort(function (a, b) { return cnt(b) - cnt(a) || a.t.localeCompare(b.t, 'bg'); });
+      var tot = G.reduce(function (s, l) { return s + cnt(l); }, 0);
+      var d = el('details'); d.open = true;
+      d.innerHTML = '<summary><h3>' + esc(T.t) + '</h3><span>' + G.length + (G.length === 1 ? ' урок' : ' урока') + ' · ' + tot + (tot === 1 ? ' споменаване' : ' споменавания') + '</span></summary><ol>' +
+        G.map(function (l) {
+          var who = l.who.slice().sort(function (a, b) { return (a.born || 0) - (b.born || 0); }).map(function (p) {
+            return '<a href="' + url(p) + '">' + esc(p.name) + '</a>' + (p.sec === 'kilo' ? ' <i>(примерна история)</i>' : '');
+          }).concat(l.pages.map(function (pg) { return '<a class="pg" href="' + pg[1] + '">страница „' + esc(pg[0]) + '“</a>'; }));
+          var c = cnt(l);
+          return '<li><b class="n" title="' + c + (c === 1 ? ' споменаване' : ' споменавания') + '">' + c + '</b><div><a class="les" href="' + esc(l.u) + '" target="_blank" rel="noopener">' + esc(l.t) +
+            '<i class="sr"> (Кан Академия, отваря се в нов раздел)</i></a> <small>' + esc(l.c) + '</small><p>' + who.join(', ') + '</p></div></li>';
+        }).join('') + '</ol>';
+      sec.appendChild(d);
+    });
+    return sec;
   }
 
   /* ---------- МИСЛОВНА КАРТА (d3-force) ---------- */
