@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Решаващ модел</title>
+  <meta name="description" content="Отворени езикови модели взимат решения: избор от списък, команди за количка, избор на модел. Работи с OpenRouter, Hugging Face, Groq, Ollama и други.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-in">
+      <a class="logo" href="https://obr.education/" target="_blank" rel="noopener">
+        <img src="media/obr-logo.svg" alt="Образование без раници" width="172" height="40">
+      </a>
+      <div class="lang" role="group" aria-label="Език">
+        <button type="button" data-lang="bg" aria-pressed="true">БГ</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="intro">
+      <h1 data-t="title">Решаващ модел</h1>
+      <p class="lead" data-t="lead">Даваш задача и списък с отговори. Отворен езиков модел избира един от тях. Решението може да отиде към количка, към друга програма или да остане тук.</p>
+    </section>
+
+    <!-- 1. Модел -->
+    <section class="card" aria-labelledby="h-model">
+      <h2 id="h-model"><span class="num">1</span> <span data-t="hModel">Модел</span></h2>
+
+      <label class="field"><span data-t="provider">Доставчик</span>
+        <select id="provider"></select>
+      </label>
+
+      <label class="field" id="base-wrap" hidden><span data-t="baseUrl">Адрес (до /v1)</span>
+        <input id="base-url" type="url" placeholder="https://…/v1" autocomplete="off" spellcheck="false">
+      </label>
+
+      <div class="field" id="key-wrap">
+        <label for="api-key"><span data-t="apiKey">Ключ (API key)</span></label>
+        <div class="row">
+          <input id="api-key" type="password" autocomplete="off" spellcheck="false">
+          <button type="button" class="btn small" id="key-show" data-t="show">Покажи</button>
+        </div>
+        <label class="check"><input type="checkbox" id="key-remember"> <span data-t="remember">Запомни ключа на това устройство</span></label>
+        <p class="hint"><span data-t="keyHint">Ключът остава в този браузър и отива само до доставчика.</span>
+          <a id="key-link" href="#" target="_blank" rel="noopener" data-t="getKey">Вземи ключ</a></p>
+      </div>
+      <p class="hint" id="local-hint" hidden data-t="localHint">Моделът работи на твоя компютър. За Ollama пусни го с OLLAMA_ORIGINS=* , за да приема заявки от браузъра.</p>
+
+      <div class="field">
+        <label for="model-input"><span data-t="models">Модели</span></label>
+        <div class="row">
+          <input id="model-input" list="model-list" autocomplete="off" spellcheck="false" data-tp="modelPh" placeholder="напр. openai/gpt-oss-20b">
+          <button type="button" class="btn small" id="model-add" data-t="add">Добави</button>
+        </div>
+        <datalist id="model-list"></datalist>
+        <ul class="chips" id="models" aria-live="polite"></ul>
+        <p class="hint"><span data-t="modelsHint">С един модел решава той. С няколко модела те гласуват и печели мнозинството.</span>
+          <button type="button" class="link" id="model-load" data-t="loadModels">Зареди всички модели на доставчика</button>
+          <span id="model-load-status"></span></p>
+      </div>
+
+      <details class="more">
+        <summary data-t="advanced">Още настройки</summary>
+        <div class="grid2">
+          <label class="field"><span data-t="temperature">Температура</span>
+            <input id="temperature" type="number" min="0" max="2" step="0.1" value="0">
+          </label>
+          <label class="field"><span data-t="maxTokens">Най-много токени</span>
+            <input id="max-tokens" type="number" min="16" max="8192" step="16" value="512">
+          </label>
+          <label class="field"><span data-t="retries">Нови опити при лош отговор</span>
+            <input id="retries" type="number" min="0" max="5" step="1" value="2">
+          </label>
+          <label class="field"><span data-t="timeout">Чакай най-много (сек.)</span>
+            <input id="timeout" type="number" min="3" max="300" step="1" value="60">
+          </label>
+        </div>
+        <label class="check"><input type="checkbox" id="json-mode"> <span data-t="jsonMode">Изискай JSON (response_format). Не всички модели го поддържат.</span></label>
+      </details>
+    </section>
+
+    <!-- 2. Задача -->
+    <section class="card" aria-labelledby="h-task">
+      <h2 id="h-task"><span class="num">2</span> <span data-t="hTask">Задача</span></h2>
+
+      <label class="field"><span data-t="preset">Готова задача</span>
+        <select id="preset"></select>
+      </label>
+
+      <label class="field"><span data-t="task">Какво да реши моделът</span>
+        <textarea id="task" rows="3"></textarea>
+      </label>
+
+      <label class="field"><span data-t="options">Възможни отговори (по един на ред: отговор — обяснение)</span>
+        <textarea id="options" rows="5" spellcheck="false"></textarea>
+      </label>
+
+      <label class="field"><span data-t="fallback">Ако моделът не даде ясен отговор, избери</span>
+        <select id="fallback"></select>
+      </label>
+    </section>
+
+    <!-- 3. Вход -->
+    <section class="card" aria-labelledby="h-input">
+      <h2 id="h-input"><span class="num">3</span> <span data-t="hInput">Вход</span></h2>
+      <label class="field"><span data-t="input">Какво вижда или знае моделът сега</span>
+        <textarea id="input" rows="3"></textarea>
+      </label>
+
+      <fieldset class="field seg">
+        <legend data-t="image">Картинка</legend>
+        <label><input type="radio" name="img" value="none" checked> <span data-t="imgNone">Без</span></label>
+        <label><input type="radio" name="img" value="camera"> <span data-t="imgCamera">Камера</span></label>
+        <label><input type="radio" name="img" value="file"> <span data-t="imgFile">Файл</span></label>
+      </fieldset>
+      <div id="img-box" hidden>
+        <video id="cam" playsinline muted hidden></video>
+        <input id="img-file" type="file" accept="image/*" hidden>
+        <img id="img-preview" alt="" hidden>
+        <p class="hint" data-t="imgHint">Картинката работи само с модели, които виждат (vision), напр. Qwen2.5-VL или Gemma 3.</p>
+      </div>
+
+      <div class="go">
+        <button type="button" class="btn primary big" id="run" data-t="run">Реши</button>
+        <div class="loop">
+          <label class="check"><input type="checkbox" id="loop"> <span data-t="loop">Повтаряй на всеки</span></label>
+          <input id="loop-sec" type="number" min="1" max="3600" step="1" value="3" aria-label="секунди">
+          <span data-t="sec">сек.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Резултат -->
+    <section class="card result" id="result" aria-live="polite" hidden>
+      <h2 data-t="hResult">Решение</h2>
+      <div class="choice" id="choice"></div>
+      <p class="reason" id="reason"></p>
+      <p class="meta" id="meta"></p>
+      <div class="table-wrap" id="votes-wrap">
+        <table class="votes">
+          <thead><tr><th data-t="colModel">Модел</th><th data-t="colChoice">Избор</th><th data-t="colTime">Време</th><th data-t="colNote">Бележка</th></tr></thead>
+          <tbody id="votes"></tbody>
+        </table>
+      </div>
+      <details class="more">
+        <summary data-t="raw">Суров отговор</summary>
+        <pre id="raw"></pre>
+      </details>
+    </section>
+
+    <!-- 4. Действие -->
+    <section class="card" aria-labelledby="h-action">
+      <h2 id="h-action"><span class="num">4</span> <span data-t="hAction">Изпрати решението</span></h2>
+      <fieldset class="field seg" aria-labelledby="h-action">
+        <label><input type="radio" name="act" value="none" checked> <span data-t="actNone">Никъде</span></label>
+        <label><input type="radio" name="act" value="http"> <span data-t="actHttp">Уеб адрес</span></label>
+        <label><input type="radio" name="act" value="serial"> <span data-t="actSerial">USB кабел</span></label>
+      </fieldset>
+
+      <div id="act-http" hidden>
+        <label class="field"><span data-t="actUrl">Адрес. {choice} се заменя с решението.</span>
+          <input id="act-url" type="url" spellcheck="false" placeholder="http://192.168.4.1/cmd?d={choice}">
+        </label>
+        <label class="field"><span data-t="actMethod">Метод</span>
+          <select id="act-method"><option>GET</option><option>POST</option></select>
+        </label>
+        <p class="hint" data-t="actHttpHint">Тази страница е на https. Браузърът не пуска заявки към http адреси в домашната мрежа (напр. ESP32). Тогава отвори страницата от свой компютър (python3 -m http.server) или ползвай USB кабел.</p>
+      </div>
+
+      <div id="act-serial" hidden>
+        <div class="row">
+          <button type="button" class="btn" id="serial-connect" data-t="serialConnect">Свържи устройство</button>
+          <label class="field inline"><span data-t="baud">Скорост</span>
+            <select id="baud"><option>9600</option><option selected>115200</option></select>
+          </label>
+        </div>
+        <p class="hint" data-t="serialHint">Работи в Chrome и Edge на компютър. Към устройството отива решението и нов ред, напр. „left\n“. Подходящо за Arduino, ESP32 и micro:bit.</p>
+        <p class="status" id="serial-status"></p>
+      </div>
+      <p class="status" id="act-status"></p>
+    </section>
+
+    <!-- 5. Проверка -->
+    <section class="card" aria-labelledby="h-eval">
+      <h2 id="h-eval"><span class="num">5</span> <span data-t="hEval">Провери моделите с примери</span></h2>
+      <p class="hint" data-t="evalHint">По един пример на ред: вход => верен отговор. Всички модели от стъпка 1 решават всеки пример. Така виждаш кой модел се справя най-добре.</p>
+      <textarea id="eval-cases" rows="5" spellcheck="false"></textarea>
+      <div class="row">
+        <button type="button" class="btn" id="eval-run" data-t="evalRun">Провери</button>
+        <span class="status" id="eval-status"></span>
+      </div>
+      <div class="table-wrap" id="eval-wrap" hidden>
+        <table>
+          <thead><tr><th data-t="colModel">Модел</th><th data-t="colRight">Верни</th><th data-t="colAcc">Точност</th><th data-t="colAvg">Средно време</th></tr></thead>
+          <tbody id="eval-body"></tbody>
+        </table>
+      </div>
+      <ul class="misses" id="eval-misses"></ul>
+    </section>
+
+    <!-- 6. Дневник -->
+    <section class="card" aria-labelledby="h-log">
+      <h2 id="h-log"><span class="num">6</span> <span data-t="hLog">Дневник</span></h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th data-t="colWhen">Час</th><th data-t="colChoice">Избор</th><th data-t="colAgree">Съгласие</th><th data-t="colTime">Време</th><th data-t="colInput">Вход</th></tr></thead>
+          <tbody id="log"></tbody>
+        </table>
+      </div>
+      <p class="hint" id="log-empty" data-t="logEmpty">Още няма решения.</p>
+      <div class="row">
+        <button type="button" class="btn small" id="log-copy" data-t="copyJson">Копирай като JSON</button>
+        <button type="button" class="btn small" id="log-clear" data-t="clear">Изчисти</button>
+        <span class="status" id="log-status"></span>
+      </div>
+    </section>
+
+    <!-- 7. Код -->
+    <section class="card" aria-labelledby="h-code">
+      <h2 id="h-code"><span class="num">7</span> <span data-t="hCode">В твоята програма</span></h2>
+      <p class="hint" data-t="codeHint">Същото решение от JavaScript (браузър или Node 18+, напр. на Raspberry Pi). Свали harness.js и сложи до своя файл. Ключът не е в кода: подай го от променлива.</p>
+      <pre id="code"></pre>
+      <div class="row">
+        <button type="button" class="btn small" id="code-copy" data-t="copy">Копирай</button>
+        <a class="btn small" href="harness.js" download data-t="download">Свали harness.js</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap foot-in">
+      <a href="https://obr.education/" target="_blank" rel="noopener">
+        <img src="media/obr-logo.svg" alt="Образование без раници" width="137" height="32">
+      </a>
+      <a class="donate" id="donate" href="https://obr.education/stani-daritel/" target="_blank" rel="noopener" data-t="donate">Стани дарител</a>
+      <span class="links"><a href="../" data-t="home">Всички приложения</a> · <button type="button" class="link" onclick="d4Consent.reset()" data-t="cookies">Бисквитки</button></span>
+    </div>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+  <script src="consent.js" defer></script>
+</body>
+</html>

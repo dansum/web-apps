@@ -23,7 +23,7 @@
   - `docs/favicon.svg`, `favicon-32.png`, `apple-touch-icon.png` – иконката „ДЧ“.
   - `docs/<проект>/` – отделните приложения: `bum`, `chp`, `history`, `Varna`,
     `vot`, `chesslearn`, `blackhole`, `shooter`, `forest-fire-sim_202511`,
-    `сал_202610`, `ul_serdika`, `walk`, `care-training`. `availability` не е в
+    `сал_202610`, `ul_serdika`, `walk`, `care-training`, `llm-harness`. `availability` не е в
     списъка: в нея има само изходен код, а не готова страница.
 - Изключение: общите правила от този файл не се прилагат за самата начална
   страница „ДЧ“ (`docs/index.html`). Важат за отделните приложения.
