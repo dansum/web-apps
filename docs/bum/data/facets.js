@@ -114,5 +114,8 @@ window.BUM_FACETS = {
   'venka-asenova': { s: ['games'], lv: 'bg' },
   'ralitsa-mincheva': { s: ['bio', 'cs'], lv: 'bg' },
   'todor-peev': { s: ['edu', 'math'], lv: 'bg' },
-  'niya-koleva': { s: ['cs'], lv: 'bg' }
+  'niya-koleva': { s: ['cs'], lv: 'bg' },
+  'vlad-tenev': { s: ['business', 'cs', 'math'], lv: 'abroad' },
+  'stefanie-stantcheva': { s: ['econ'], lv: 'abroad' },
+  'petko-dinev': { s: ['eng', 'astro', 'business'], lv: 'abroad' }
 };
