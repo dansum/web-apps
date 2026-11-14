@@ -478,3 +478,24 @@ table.pivot { border-collapse: collapse; width: 100%; font-size: 15px; }
 .portrait .emb { color: #fff; font: 900 28px/1 var(--sans); }
 .sec .faces span .emb-f { position: absolute; inset: 0; display: grid; place-items: center; background: #0A2A66; }
 .sec .faces span .emb-f svg { position: static; width: 74%; height: 74%; }
+
+/* Статистика: уроците от Кан Академия по теми */
+.kat { margin: 36px 0 60px; }
+.kat > h2 { display: flex; align-items: center; gap: 10px; font-size: 24px; margin: 0 0 6px; }
+.kat > p { color: var(--muted); margin: 0 0 16px; max-width: 70ch; }
+.kat details { border: 1px solid var(--line); border-radius: 16px; background: var(--paper); margin: 0 0 12px; }
+.kat summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 14px 18px; cursor: pointer; list-style: none; }
+.kat summary::-webkit-details-marker { display: none; }
+.kat summary::before { content: '▸'; color: var(--link); transition: transform .15s; }
+.kat details[open] summary::before { transform: rotate(90deg); }
+.kat summary h3 { font-size: 18px; margin: 0; }
+.kat summary span { color: var(--muted); font-size: 14px; }
+.kat ol { list-style: none; margin: 0; padding: 0 18px 10px; }
+.kat li { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-top: 1px solid var(--line); }
+.kat .n { flex: none; min-width: 34px; height: 34px; padding: 0 6px; border-radius: 10px; display: grid; place-items: center; background: color-mix(in srgb, var(--teal) 14%, var(--paper)); color: var(--head); font-size: 15px; }
+.kat .les { font-weight: 700; color: var(--link); }
+.kat small { color: var(--muted); font-size: 13px; }
+.kat li p { margin: 3px 0 0; font-size: 14px; line-height: 1.55; }
+.kat li p a { color: var(--head); }
+.kat li p a.pg { color: var(--muted); }
+.kat li p i { color: var(--muted); font-style: normal; font-size: 13px; }
