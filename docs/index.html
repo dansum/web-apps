@@ -102,6 +102,8 @@
   .meta { display: flex; flex-wrap: wrap; gap: 6px; }
   .meta span { font-size: 12px; border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; color: var(--muted); }
   .open { font-weight: 600; font-size: 14px; color: var(--accent); }
+  .foot { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .upd { font-size: 12px; color: var(--muted); }
   .games { --c: var(--games); }
   .learn { --c: var(--learn); }
   .tools { --c: var(--tools); }
@@ -152,7 +154,7 @@
   /* ---------- Interface text ---------- */
   var UI = {
     bg: {
-      brand: 'ДЧ', langLabel: 'Език', lenLabel: 'Текст', full: 'Пълен', short: 'Кратък',
+      brand: 'ДЧ', updated: 'Обновено', langLabel: 'Език', lenLabel: 'Текст', full: 'Пълен', short: 'Кратък',
       filterLabel: 'Филтър по вид', all: 'Всички', games: 'Игри', learn: 'Учене', tools: 'Инструменти',
       open: 'Отвори →', theme: { auto: 'Тема: автоматична', light: 'Тема: светла', dark: 'Тема: тъмна' },
       lede: {
@@ -162,7 +164,7 @@
       footer: 'ДЧ · проекти на <a href="https://github.com/dansum/web-apps">dansum/web-apps</a> в GitHub · <button type="button" class="ck" onclick="d4Consent.reset()">Бисквитки</button>'
     },
     en: {
-      brand: 'D4', langLabel: 'Language', lenLabel: 'Text', full: 'Full', short: 'Short',
+      brand: 'D4', updated: 'Updated', langLabel: 'Language', lenLabel: 'Text', full: 'Full', short: 'Short',
       filterLabel: 'Filter by type', all: 'All', games: 'Games', learn: 'Learning', tools: 'Tools',
       open: 'Open →', theme: { auto: 'Theme: auto', light: 'Theme: light', dark: 'Theme: dark' },
       lede: {
@@ -172,7 +174,7 @@
       footer: 'D4 · projects from <a href="https://github.com/dansum/web-apps">dansum/web-apps</a> on GitHub · <button type="button" class="ck" onclick="d4Consent.reset()">Cookies</button>'
     },
     de: {
-      brand: 'D4', langLabel: 'Sprache', lenLabel: 'Text', full: 'Lang', short: 'Kurz',
+      brand: 'D4', updated: 'Aktualisiert', langLabel: 'Sprache', lenLabel: 'Text', full: 'Lang', short: 'Kurz',
       filterLabel: 'Nach Art filtern', all: 'Alle', games: 'Spiele', learn: 'Lernen', tools: 'Werkzeuge',
       open: 'Öffnen →', theme: { auto: 'Design: automatisch', light: 'Design: hell', dark: 'Design: dunkel' },
       lede: {
@@ -363,6 +365,17 @@
     return n;
   }
 
+  /* ---------- Last change per project (docs/updated.json, made by tools/update-dates.py) ---------- */
+  var UPDATED = {};
+  function fmtDate(iso) {
+    var x = iso.split('-');
+    if (state.lang === 'en') {
+      var m = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return +x[2] + ' ' + m[+x[1] - 1] + ' ' + x[0];
+    }
+    return x[2] + '.' + x[1] + '.' + x[0];
+  }
+
   function renderCards() {
     var t = UI[state.lang];
     grid.textContent = '';
@@ -382,7 +395,15 @@
       var meta = el('div', 'meta');
       d.meta.forEach(function (m) { meta.appendChild(el('span', null, m)); });
       a.appendChild(meta);
-      a.appendChild(el('span', 'open', t.open));
+      var foot = el('div', 'foot');
+      foot.appendChild(el('span', 'open', t.open));
+      var day = UPDATED[p.href.split('/')[0]];
+      if (day) {
+        var when = el('time', 'upd', t.updated + ' ' + fmtDate(day));
+        when.setAttribute('datetime', day);
+        foot.appendChild(when);
+      }
+      a.appendChild(foot);
       grid.appendChild(a);
     });
   }
@@ -444,6 +465,12 @@
   });
 
   render();
+  if (window.fetch) {
+    fetch('updated.json', { cache: 'no-cache' })
+      .then(function (r) { return r.ok ? r.json() : {}; })
+      .then(function (j) { UPDATED = j || {}; renderCards(); })
+      .catch(function () {});
+  }
 })();
 </script>
 <script src="consent.js" defer></script>
