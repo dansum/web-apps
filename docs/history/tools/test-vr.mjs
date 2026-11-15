@@ -13,6 +13,8 @@ for (const [exp, first, second] of [['tarnovgrad', 'gate', 'royals'], ['shkoli',
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(`${base}vr.html?exp=${exp}`);
+  // Първо се отговаря на прозорчето за съгласие (тук — отказ), както би направило дете.
+  await page.waitForSelector('#d4c button', { timeout: 8000 }).then((b) => b.click()).catch(() => {});
   await page.click('#go');
   await page.waitForFunction(() => !!window.__vr, null, { timeout: 60000 });
   const wait = (ms) => page.waitForTimeout(ms);

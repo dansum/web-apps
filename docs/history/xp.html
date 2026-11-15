@@ -11,6 +11,7 @@
   <main>
     <p class="small">Страница за разработчици: показва едно преживяване без курса. Напредъкът не се записва. Пример: <code>xp.html?exp=vladeteli</code> или <code>xp.html?exp=granici&amp;skill=10.3.6</code></p>
     <div class="ex-area" id="area"></div>
+    <p class="small"><a href="https://obr.education/stani-daritel/" target="_blank" rel="noopener">Подкрепи „Образование без раници“</a></p>
   </main>
   <script type="module">
     const params = new URLSearchParams(location.search);
@@ -22,5 +23,6 @@
     window.__result = null;
     mod.mount(area, { skill: skillId ? { id: skillId } : {}, course: {}, onComplete(r) { window.__result = r; return { levelName: 'преглед', before: 0, after: 0 }; } });
   </script>
+<script src="../consent.js" defer></script>
 </body>
 </html>

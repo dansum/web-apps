@@ -7,24 +7,29 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥽</text></svg>">
   <link rel="stylesheet" href="css/style.css">
   <style>
-    html, body { margin: 0; height: 100%; background: #101820; overflow: hidden; }
-    #vr { position: fixed; inset: 0; background: #101820; }
-    #vr .mid { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: rgba(255,255,255,.55); pointer-events: none; z-index: 2; }
-    #vr .out { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); z-index: 3; width: 38px; height: 38px; border-radius: 99px; border: 0; background: rgba(255,255,255,.85); font-size: 1.1rem; font-weight: 900; color: #0A2A66; cursor: pointer; }
-    #start { position: fixed; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; padding: 16px; background: #f6f6f6; overflow: auto; }
-    #start .card { max-width: 560px; background: #fff; border: 1px solid #e6e6e6; border-radius: 16px; padding: 18px 20px; box-shadow: 0 8px 26px rgba(10,42,102,.14); }
+    :root { --vr-dark: #101820; --vr-line: rgba(255, 255, 255, 0.55); --vr-btn: rgba(255, 255, 255, 0.85); --vr-shadow: rgba(10, 42, 102, 0.14); }
+    html, body { margin: 0; height: 100%; background: var(--vr-dark); overflow: hidden; }
+    #vr { position: fixed; inset: 0; background: var(--vr-dark); }
+    #vr .mid { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--vr-line); pointer-events: none; z-index: 2; }
+    #vr .out { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); z-index: 3; width: 38px; height: 38px; border-radius: 99px; border: 0; background: var(--vr-btn); font-size: 1.1rem; font-weight: 900; color: var(--navy); cursor: pointer; }
+    #start { position: fixed; inset: 0; z-index: 5; display: flex; align-items: flex-start; justify-content: center; padding: 16px 16px 190px; box-sizing: border-box; background: var(--bg, #F7F7F7); overflow: auto; }
+    #start .card { max-width: 560px; background: var(--card, #FFFFFF); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; box-shadow: 0 8px 26px var(--vr-shadow); }
+    #start .logo { height: 44px; display: block; margin-bottom: 10px; }
     #start h1 { font-size: 1.35rem; margin: 0 0 6px; }
     #start ol { padding-left: 1.2em; margin: 8px 0; }
     #start li { margin: 4px 0; }
     #start .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
     #start label { display: flex; gap: 6px; align-items: center; font-weight: 700; }
-    #start .small { color: #667; font-size: .85rem; }
+    #start .links { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; }
+    /* Докато се гледа през очилата, прозорчето за съгласие не стои върху картината; връща се на началния екран. */
+    body.in-vr #d4c { display: none !important; }
   </style>
 </head>
 <body>
   <div id="vr" hidden><div class="mid"></div><button class="out" aria-label="Изход">✕</button></div>
   <div id="start">
     <div class="card">
+      <img class="logo" src="assets/logo-obr.svg" alt="Образование без раници">
       <h1>🥽 <span id="ttl">История в 3D</span> за Google Cardboard</h1>
       <p class="small">Това е разходка за разглеждане. Задачите с точки са в обикновената версия на урока.</p>
       <ol>
@@ -40,7 +45,7 @@
         <label><input type="checkbox" id="snd" checked> Чети обясненията на глас</label>
       </div>
       <p class="small" id="msg"></p>
-      <p><a id="back" href="./">← Към обикновената версия</a></p>
+      <p class="links"><a id="back" href="./">← Към обикновената версия</a> <a href="https://obr.education/stani-daritel/" target="_blank" rel="noopener">Подкрепи „Образование без раници“</a></p>
     </div>
   </div>
   <script type="module">
@@ -77,6 +82,7 @@
       try {
         const cfg = await c.load();
         host.hidden = false; $('#start').hidden = true; $('#start').style.display = 'none';
+        document.body.classList.add('in-vr');
         session = startCardboard(host, cfg, { speak: $('#snd').checked });
         window.__vr = session;
       } catch (e) { $('#msg').textContent = 'Не успях да заредя сцената: ' + e.message; }
@@ -85,10 +91,12 @@
       if (session) { session.stop(); session = null; window.__vr = null; }
       if (lock) { lock.release().catch(() => {}); lock = null; }
       try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* няма значение */ }
+      document.body.classList.remove('in-vr');
       host.hidden = true; $('#start').hidden = false; $('#start').style.display = ''; $('#msg').textContent = '';
     }
     $('#go').addEventListener('click', begin);
     host.querySelector('.out').addEventListener('click', (e) => { e.stopPropagation(); end(); });
   </script>
+<script src="../consent.js" defer></script>
 </body>
 </html>
