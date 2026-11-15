@@ -408,3 +408,6 @@ html.xp-full-open, html.xp-full-open body { overflow: hidden; }
 
 /* Знак „Не е по програмата на МОН“ вътре в балонче или панел (js/exp/shell.js: offMon) */
 .badge.off-mon { display: inline-block; font-size: 0.72rem; padding: 1px 7px; margin-bottom: 3px; }
+
+/* Връзка към версията за Google Cardboard под сцената */
+.vr-link { display: inline-block; margin-left: 6px; font-weight: 800; white-space: nowrap; }

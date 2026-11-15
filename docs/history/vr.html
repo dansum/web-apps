@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>История в 3D · Google Cardboard</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥽</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    html, body { margin: 0; height: 100%; background: #101820; overflow: hidden; }
+    #vr { position: fixed; inset: 0; background: #101820; }
+    #vr .mid { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: rgba(255,255,255,.55); pointer-events: none; z-index: 2; }
+    #vr .out { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); z-index: 3; width: 38px; height: 38px; border-radius: 99px; border: 0; background: rgba(255,255,255,.85); font-size: 1.1rem; font-weight: 900; color: #0A2A66; cursor: pointer; }
+    #start { position: fixed; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; padding: 16px; background: #f6f6f6; overflow: auto; }
+    #start .card { max-width: 560px; background: #fff; border: 1px solid #e6e6e6; border-radius: 16px; padding: 18px 20px; box-shadow: 0 8px 26px rgba(10,42,102,.14); }
+    #start h1 { font-size: 1.35rem; margin: 0 0 6px; }
+    #start ol { padding-left: 1.2em; margin: 8px 0; }
+    #start li { margin: 4px 0; }
+    #start .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+    #start label { display: flex; gap: 6px; align-items: center; font-weight: 700; }
+    #start .small { color: #667; font-size: .85rem; }
+  </style>
+</head>
+<body>
+  <div id="vr" hidden><div class="mid"></div><button class="out" aria-label="Изход">✕</button></div>
+  <div id="start">
+    <div class="card">
+      <h1>🥽 <span id="ttl">История в 3D</span> за Google Cardboard</h1>
+      <p class="small">Това е разходка за разглеждане. Задачите с точки са в обикновената версия на урока.</p>
+      <ol>
+        <li>Натисни <b>Започни</b> и сложи телефона в очилата, легнал настрани.</li>
+        <li><b>Оглеждай се с глава.</b> В средата на погледа има малко кръгче.</li>
+        <li><b>Задръж кръгчето върху жълта табелка</b> с име на място (или натисни бутона на очилата) — отиваш дотам и се показва обяснение.</li>
+        <li><b>Погледни земята и натисни бутона</b> — отиваш на това място.</li>
+      </ol>
+      <p class="small" id="extra"></p>
+      <p class="small">Ако ти се завие свят, свали очилата и си почини. Разглеждай седнал на въртящ се стол или прав, на свободно място.</p>
+      <div class="row">
+        <button class="btn primary" id="go">Започни</button>
+        <label><input type="checkbox" id="snd" checked> Чети обясненията на глас</label>
+      </div>
+      <p class="small" id="msg"></p>
+      <p><a id="back" href="./">← Към обикновената версия</a></p>
+    </div>
+  </div>
+  <script type="module">
+    import { startCardboard } from './js/exp/hist/cardboard.js';
+    const CFG = {
+      tarnovgrad: {
+        title: 'Търновград', skill: '6.2.4', extra: 'В двореца те чакат царят и царицата: под обяснението има табелки с въпроси — задръж погледа върху въпрос, за да чуеш отговора.',
+        async load() {
+          const [w, e] = await Promise.all([import('./js/exp/hist/tarnovo.js'), import('./js/exp/tarnovgrad.js')]);
+          return { build: w.buildTarnovgrad, spots: e.SPOTS, talk: e.TALK, talkAt: 'royals', ground: 'walkY', start: { x: -119, z: 5, yaw: Math.PI / 2 } };
+        },
+      },
+      shkoli: {
+        title: 'Школи и университети', skill: '6.2.8', extra: 'Трите двора са музей на открито: всъщност са в различни страни и векове. Табелката със знак ⚠ е за място извън програмата на МОН.',
+        async load() {
+          const [w, e] = await Promise.all([import('./js/exp/hist/schools.js'), import('./js/exp/shkoli.js')]);
+          return { build: w.buildSchools, spots: e.SPOTS, ground: 'heightAt', start: { x: 0, z: 13, yaw: 0 } };
+        },
+      },
+    };
+    const exp = new URLSearchParams(location.search).get('exp') || 'tarnovgrad';
+    const c = CFG[exp] || CFG.tarnovgrad;
+    const $ = (s) => document.querySelector(s);
+    $('#ttl').textContent = c.title; $('#extra').textContent = c.extra; $('#back').href = `./#/s/${c.skill}`;
+    const host = $('#vr');
+    let session = null, lock = null;
+    async function begin() {
+      $('#msg').textContent = 'Зареждане…';
+      // iPhone иска изрично разрешение за сензорите за движение; трябва да е при натискане на бутон.
+      try { if (typeof DeviceOrientationEvent !== 'undefined' && DeviceOrientationEvent.requestPermission) await DeviceOrientationEvent.requestPermission(); } catch (e) { /* ще се гледа с влачене */ }
+      try { await (document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen).call(document.documentElement); } catch (e) { /* без цял екран */ }
+      try { await screen.orientation.lock('landscape'); } catch (e) { /* завърти телефона на ръка */ }
+      try { lock = await navigator.wakeLock.request('screen'); } catch (e) { /* екранът може да изгасне */ }
+      try {
+        const cfg = await c.load();
+        host.hidden = false; $('#start').hidden = true; $('#start').style.display = 'none';
+        session = startCardboard(host, cfg, { speak: $('#snd').checked });
+        window.__vr = session;
+      } catch (e) { $('#msg').textContent = 'Не успях да заредя сцената: ' + e.message; }
+    }
+    function end() {
+      if (session) { session.stop(); session = null; window.__vr = null; }
+      if (lock) { lock.release().catch(() => {}); lock = null; }
+      try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* няма значение */ }
+      host.hidden = true; $('#start').hidden = false; $('#start').style.display = ''; $('#msg').textContent = '';
+    }
+    $('#go').addEventListener('click', begin);
+    host.querySelector('.out').addEventListener('click', (e) => { e.stopPropagation(); end(); });
+  </script>
+</body>
+</html>

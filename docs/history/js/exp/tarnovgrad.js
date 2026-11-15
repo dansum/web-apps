@@ -5,7 +5,7 @@ import { createShell, stepScore } from './shell.js';
 import { buildTarnovgrad } from './hist/tarnovo.js';
 import { createWalk, createMiniMap } from './hist/walk.js';
 
-const SPOTS = [
+export const SPOTS = [
   { id: 'gate', label: 'Главната порта', icon: '🚪',
     note: 'В крепостта Царевец се влиза от запад, по тесен скален провлак. Пътят минава по подвижен мост и през няколко порти. Така столицата е трудна за превземане.' },
   { id: 'palace', label: 'Царският дворец', icon: '👑',
@@ -26,7 +26,7 @@ const SPOTS = [
     note: 'Цар Иван Асен II построява църквата след победата при Клокотница през 1230 г. Колоната с неговия надпис е вътре в църквата; тук е показана отвън, за да я видиш.' },
 ];
 // Разговор с царя и царицата: 10 готови въпроса. Отговорите са съчинени от нас по исторически извори; годината е 1236.
-const TALK = {
+export const TALK = {
   tsar: { name: 'Цар Иван Асен II', icon: '👑', qs: [
     ['Кой си ти?', 'Аз съм Иван Асен, цар на българите. Син съм на стария цар Асен. Управлявам от 1218 година.'],
     ['Защо Търновград е столица?', 'Тук баща ми Асен и чичо ми Петър вдигат въстанието през 1185 година и България отново става свободна. Хълмът е заобиколен от река Янтра и от високи скали. Той е крепост, направена от самата природа.'],
@@ -69,6 +69,8 @@ const PREDICT = [
 export function mount(container, { onComplete }) {
   const shell = createShell(container, { steps: ['Опознай', 'Защо градът расте?', 'Находка и място', 'Предскажи'] });
   container.querySelector('.scene-hint').textContent = 'Отгоре: върти и приближавай сцената. Разходка: върви със стрелките или бутоните (наляво и надясно са крачка встрани), оглеждай се с влачене, тичай със Shift, докосни улицата, за да отидеш там.';
+  // Връзка към версията за Google Cardboard (отделна страница с две картини и управление с поглед).
+  container.querySelector('.scene-hint').insertAdjacentHTML('beforeend', ' <a class="vr-link" href="vr.html?exp=tarnovgrad">🥽 Версия за Google Cardboard</a>');
   const aspect = (shell.stageEl.clientWidth || 600) / (shell.stageEl.clientHeight || 400);
   const far = aspect < 1.4 ? 1.35 / Math.max(aspect, 0.5) : 1;
   const weak = (navigator.hardwareConcurrency || 4) <= 2;
