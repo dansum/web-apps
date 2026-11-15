@@ -1,4 +1,4 @@
-// Разходка от първо лице в сцена: ходене със стрелките или бутоните (наляво и надясно са крачка встрани), оглеждане с влачене (или Q и E),
+// Разходка от първо лице в сцена: ходене със стрелките или бутоните (наляво и надясно са крачка встрани), оглеждане с влачене (или Q и E), тичане със Shift,
 // докосване на земята води дотам. Има и малка карта с мястото на детето.
 import { THREE } from '../../kit.js';
 
@@ -60,11 +60,15 @@ export function createWalk(stage, { ground, canStand, obstacles = [], terrain = 
   el.addEventListener('pointerdown', pd); el.addEventListener('pointermove', pm);
   el.addEventListener('pointerup', pu); el.addEventListener('pointercancel', pu);
   const KEY = { ArrowUp: 'fwd', KeyW: 'fwd', ArrowDown: 'back', KeyS: 'back', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', KeyQ: 'turnL', KeyE: 'turnR' };
+  let run = false; // със Shift се тича
   const kd = (e) => {
+    if (e.key === 'Shift') { run = true; return; }
     if (!st.active || !KEY[e.code] || /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '')) return;
     keys.add(KEY[e.code]); st.target = null; st.auto = null; e.preventDefault();
   };
-  const ku = (e) => { if (KEY[e.code]) keys.delete(KEY[e.code]); };
+  const ku = (e) => { if (e.key === 'Shift') run = false; if (KEY[e.code]) keys.delete(KEY[e.code]); };
+  const blur = () => { run = false; keys.clear(); }; // пуснат клавиш извън прозореца не остава „натиснат“
+  window.addEventListener('blur', blur);
   window.addEventListener('keydown', kd); window.addEventListener('keyup', ku);
 
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
@@ -135,12 +139,12 @@ export function createWalk(stage, { ground, canStand, obstacles = [], terrain = 
     mark.visible = !!st.target;
     if (st.target) mark.position.set(st.target.x, ground(st.target.x, st.target.z) + 0.12, st.target.z);
     if (f) {
-      const step = speed * dt * f, nx = st.x + dx * step, nz = st.z + dz * step;
+      const step = speed * (run ? 2.3 : 1) * dt * f, nx = st.x + dx * step, nz = st.z + dz * step;
       if (free(nx, nz)) { st.x = nx; st.z = nz; st.stuck = 0; }
       else if (free(nx, st.z)) { st.x = nx; st.stuck += dt * 0.5; }
       else if (free(st.x, nz)) { st.z = nz; st.stuck += dt * 0.5; }
       else st.stuck += dt;
-      st.bob += dt * 11;
+      st.bob += dt * (run ? 17 : 11);
     }
     place();
   });
@@ -154,7 +158,7 @@ export function createWalk(stage, { ground, canStand, obstacles = [], terrain = 
       Object.assign(saved, { min: controls.minDistance, max: controls.maxDistance, polar: controls.maxPolarAngle });
       controls.enabled = false; controls.minDistance = 0.5; controls.maxDistance = 5000; controls.maxPolarAngle = Math.PI;
       stage.stopFollow();
-      st.active = true; padEl.hidden = false; keys.clear(); pad.clear();
+      st.active = true; padEl.hidden = false; keys.clear(); pad.clear(); run = false;
       place();
     },
     disable() {
@@ -186,7 +190,7 @@ export function createWalk(stage, { ground, canStand, obstacles = [], terrain = 
       stop(); padEl.remove(); veil.remove();
       el.removeEventListener('pointerdown', pd); el.removeEventListener('pointermove', pm);
       el.removeEventListener('pointerup', pu); el.removeEventListener('pointercancel', pu);
-      window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku);
+      window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku); window.removeEventListener('blur', blur);
     },
   };
   return api;

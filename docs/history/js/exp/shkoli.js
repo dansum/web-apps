@@ -6,7 +6,7 @@ import { createShell, stepScore, offMon, OFF_MON } from './shell.js';
 import { createRig } from './hist/rig.js';
 import { buildSchools, FACULTIES } from './hist/schools.js';
 
-const SPOTS = [
+export const SPOTS = [
   { id: 'lecture', label: 'Лекцията', icon: '📖',
     note: 'Магистърът чете книгата на глас и я тълкува. Студентите слушат и записват. Преподава се на латински — общия език на учените в Западна Европа.' },
   { id: 'faculties', label: 'Факултетите', icon: '🚪',
@@ -50,7 +50,9 @@ const PREDICT = [
 
 export function mount(container, { onComplete }) {
   const shell = createShell(container, { steps: ['Опознай', 'Какво дава университетът?', 'Школа или университет?', 'Предскажи'] });
-  container.querySelector('.scene-hint').textContent = 'Това е музей на открито: трите средища са събрани на едно място, а всъщност са в различни страни и векове. Отгоре: върти и приближавай. Разходка: стрелки или бутони, оглеждане с влачене.';
+  container.querySelector('.scene-hint').textContent = 'Това е музей на открито: трите средища са събрани на едно място, а всъщност са в различни страни и векове. Отгоре: върти и приближавай. Разходка: стрелки или бутони, оглеждане с влачене, тичане със Shift.';
+  // Връзка към версията за Google Cardboard (отделна страница с две картини и управление с поглед).
+  container.querySelector('.scene-hint').insertAdjacentHTML('beforeend', ' <a class="vr-link" href="vr.html?exp=shkoli">🥽 Версия за Google Cardboard</a>');
   const rig = createRig(shell, { home: [[-22, 3, -14], [0, 88, 116]], build: buildSchools, start: { x: 0, z: 13, yaw: 0 }, shadow: { x: 0, z: -12, half: 110 }, limits: { min: 14, max: 300 } });
   const { places, world } = rig;
   const scores = [];
