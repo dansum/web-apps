@@ -2,71 +2,101 @@
  {
   "id": "q01",
   "badge": "1000 °C",
+  "badge_en": "1000 °C",
   "color": "#d35400",
   "text": "Какво би станало, ако загреем машината до 1000 °C?",
-  "cond": "Цялата машина (изключена) стои в пещ при 1000 °C, докато се прогрее изцяло, после изстива."
+  "text_en": "What would happen if we heated the machine to 1000 °C?",
+  "cond": "Цялата машина (изключена) стои в пещ при 1000 °C, докато се прогрее изцяло, после изстива.",
+  "cond_en": "The whole machine (switched off) sits in a furnace at 1000 °C until it is heated through, then cools down."
  },
  {
   "id": "q02",
   "badge": "Чук 5 кг",
+  "badge_en": "5 kg hammer",
   "color": "#7f8c8d",
   "text": "Какво би станало, ако ударим машината с тежък голям чук?",
-  "cond": "Един силен удар с 5-килограмов ковашки чук (~10 м/с, ~250 J) в най-уязвимата видима част."
+  "text_en": "What would happen if we hit the machine with a big heavy hammer?",
+  "cond": "Един силен удар с 5-килограмов ковашки чук (~10 м/с, ~250 J) в най-уязвимата видима част.",
+  "cond_en": "One hard blow with a 5 kg sledgehammer (~10 m/s, ~250 J) on the most vulnerable visible part."
  },
  {
   "id": "q03",
   "badge": "−196 °C",
+  "badge_en": "−196 °C",
   "color": "#2e86c1",
   "text": "Какво би станало, ако охладим машината до −196 °C с течен азот?",
-  "cond": "Машината (изключена) е охладена изцяло с течен азот, после се затопля до стайна температура."
+  "text_en": "What would happen if we cooled the machine to −196 °C with liquid nitrogen?",
+  "cond": "Машината (изключена) е охладена изцяло с течен азот, после се затопля до стайна температура.",
+  "cond_en": "The machine (switched off) is fully cooled with liquid nitrogen, then warms back up to room temperature."
  },
  {
   "id": "q04",
   "badge": "Под вода",
+  "badge_en": "Under water",
   "color": "#1f618d",
   "text": "Какво би станало, ако потопим машината под вода?",
-  "cond": "Машината е изключена, стои 24 часа изцяло под сладка вода, после се изважда."
+  "text_en": "What would happen if we sank the machine under water?",
+  "cond": "Машината е изключена, стои 24 часа изцяло под сладка вода, после се изважда.",
+  "cond_en": "The machine is switched off, stays fully under fresh water for 24 hours, then is pulled out."
  },
  {
   "id": "q05",
   "badge": "Мълния",
+  "badge_en": "Lightning",
   "color": "#6c3483",
   "text": "Какво би станало, ако мълния удари машината?",
-  "cond": "Машината е на открито; пряк удар на мълния (~30 000 A, десетки микросекунди) в най-високата ѝ точка."
+  "text_en": "What would happen if lightning struck the machine?",
+  "cond": "Машината е на открито; пряк удар на мълния (~30 000 A, десетки микросекунди) в най-високата ѝ точка.",
+  "cond_en": "The machine stands outdoors; a direct lightning strike (~30,000 A, tens of microseconds) hits its highest point."
  },
  {
   "id": "q06",
   "badge": "Падане 10 м",
+  "badge_en": "10 m fall",
   "color": "#922b21",
   "text": "Какво би станало, ако машината падне от 10 метра височина?",
-  "cond": "Машината пада свободно от 10 м върху бетон (скорост при удара ~14 м/с)."
+  "text_en": "What would happen if the machine fell from a height of 10 meters?",
+  "cond": "Машината пада свободно от 10 м върху бетон (скорост при удара ~14 м/с).",
+  "cond_en": "The machine falls freely from 10 m onto concrete (impact speed ~14 m/s)."
  },
  {
   "id": "q07",
   "badge": "×2 скорост",
+  "badge_en": "×2 speed",
   "color": "#c0392b",
   "text": "Какво би станало, ако машината работи два пъти по-бързо?",
-  "cond": "Основното движение (обороти, ход, скорост на движение) е удвоено, без промяна в конструкцията и защитите."
+  "text_en": "What would happen if the machine ran twice as fast?",
+  "cond": "Основното движение (обороти, ход, скорост на движение) е удвоено, без промяна в конструкцията и защитите.",
+  "cond_en": "The main motion (rpm, stroke rate, travel speed) is doubled, with no change to the design or the safety limits."
  },
  {
   "id": "q08",
   "badge": "Без смазка",
+  "badge_en": "No lubricant",
   "color": "#9a7d0a",
   "text": "Какво би станало, ако машината работи без смазка?",
-  "cond": "Всички смазочни масла и греси са премахнати; машината работи с нормално натоварване."
+  "text_en": "What would happen if the machine ran without lubricant?",
+  "cond": "Всички смазочни масла и греси са премахнати; машината работи с нормално натоварване.",
+  "cond_en": "All lubricating oils and greases are removed; the machine runs under normal load."
  },
  {
   "id": "q09",
   "badge": "50 години",
+  "badge_en": "50 years",
   "color": "#6e2c00",
   "text": "Какво би станало, ако оставим машината на открито за 50 години?",
-  "cond": "Машината стои без поддръжка 50 години на открито в умерен климат (като в България)."
+  "text_en": "What would happen if we left the machine outdoors for 50 years?",
+  "cond": "Машината стои без поддръжка 50 години на открито в умерен климат (като в България).",
+  "cond_en": "The machine stands outdoors for 50 years without maintenance in a temperate climate (like Bulgaria)."
  },
  {
   "id": "q10",
   "badge": "Луната",
+  "badge_en": "The Moon",
   "color": "#34495e",
   "text": "Какво би станало, ако пренесем машината на Луната?",
-  "cond": "Вакуум, 1/6 от земната гравитация, температура от −170 до +120 °C, абразивен прах; ако машината е електрическа — има захранване."
+  "text_en": "What would happen if we took the machine to the Moon?",
+  "cond": "Вакуум, 1/6 от земната гравитация, температура от −170 до +120 °C, абразивен прах; ако машината е електрическа — има захранване.",
+  "cond_en": "Vacuum, 1/6 of Earth’s gravity, temperatures from −170 to +120 °C, abrasive dust; electric machines get power."
  }
 ]

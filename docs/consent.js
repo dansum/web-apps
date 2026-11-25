@@ -107,6 +107,8 @@
   }
 
   window.d4Consent = {
+    // Пренаписва отвореното прозорче на текущия език (след смяна на езика на страницата).
+    relang: function () { if (box) { hide(); show(); } },
     reset: function () {
       var was = get();
       try { localStorage.removeItem(KEY); } catch (e) {}
