@@ -2,7 +2,9 @@ import * as THREE from './three.module.min.js';
 import { makeTextures } from './textures.js';
 import { geocode, fetchArea, parse, makeProjection, readCache, writeCache, clearCache, readSnapshot, LOAD_RADIUS, WALK_RADIUS } from './osm.js';
 import { buildWorld, paintTrees, displayStreet } from './world.js';
-import { mountSwitcher, readState, clearState } from './switcher.js';
+import { mountSwitcher, readState, clearState, goStyle } from './switcher.js';
+import { createGamepad } from './gamepad.js';
+const STYLE_ID = 'real';
 import { createLabels } from './labels.js';
 import { createTrams } from './trams.js';
 import { createRain } from './rain.js';
@@ -32,6 +34,8 @@ const I18N = {
     source: { address: 'Адресът е намерен в OpenStreetMap.', street: 'Номер 20 липсва в OpenStreetMap, затова тръгваш от средата на ул. „Сердика“.', fallback: 'Адресът не беше намерен; тръгваш от ул. „Сердика“.' },
     attribution: 'Данни © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">сътрудниците на OpenStreetMap</a>',
     lockHint: 'Щракни, за да оглеждаш с мишката',
+    pad: 'С джойпад: левият стик ходи, десният оглежда, A – скок, X – адреси, Y – дъжд, B – към №20, кръстчето – час и стил, Start – пауза.',
+    padOn: 'Джойпадът е свързан.',
     addresses: 'Адреси на сградите', rainL: 'Дъжд', soundL: 'Звуци', jumpL: 'Скок',
     addrOn: 'Адресите са включени.', addrOff: 'Адресите са изключени.', rainOn: 'Вали.', rainOff: 'Спря да вали.',
     donate: 'Стани дарител', donateUrl: 'https://obr.education/stani-daritel/',
@@ -56,6 +60,8 @@ const I18N = {
     source: { address: 'The address was found in OpenStreetMap.', street: 'No. 20 is not in OpenStreetMap, so you start in the middle of Serdika Street.', fallback: 'The address was not found; you start on Serdika Street.' },
     attribution: 'Data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>',
     lockHint: 'Click to look around with the mouse',
+    pad: 'With a gamepad: the left stick walks, the right one looks around, A jumps, X addresses, Y rain, B back to No. 20, the cross changes time and style, Start pauses.',
+    padOn: 'Gamepad connected.',
     addresses: 'Building addresses', rainL: 'Rain', soundL: 'Sounds', jumpL: 'Jump',
     addrOn: 'Addresses on.', addrOff: 'Addresses off.', rainOn: 'It is raining.', rainOff: 'The rain has stopped.',
     donate: 'Donate', donateUrl: 'https://obr.education/en/donate/',
@@ -73,6 +79,7 @@ function applyLang() {
   $('lede').textContent = t().lede;
   $('keys').innerHTML = t().keys.map(([k, v]) => `<dt><kbd>${k}</kbd></dt><dd>${v}</dd>`).join('');
   $('touch').textContent = t().touch;
+  $('pad').textContent = t().pad;
   $('go').textContent = ready ? (started ? t().resume : t().start) : t().loading;
   $('retry').textContent = t().retry;
   $('attr').innerHTML = t().attribution;
@@ -369,6 +376,30 @@ addEventListener('keydown', () => sound.start());
 $('rain').checked = rain.on;
 $('sound').checked = sound.on;
 
+// ---------------------------------------------------------------- gamepad
+const pad = createGamepad();
+let padState = null;
+addEventListener('gamepadconnected', () => toast(t().padOn));
+function gamepad(dt) {
+  const p = padState = pad.poll();
+  if (!p || !ready) return;
+  if (p.pressed(9)) { if (!started || paused) startWalk(); else pause(); return; }
+  if (!started || paused) { if (p.pressed(0)) startWalk(); return; }
+  if (p.pressed(8)) toggleMap();
+  if (uiOpen()) return;
+  if (p.pressed(0)) jump();
+  if (p.pressed(1)) goHome();
+  if (p.pressed(2)) toggleAddresses();
+  if (p.pressed(3)) toggleRain();
+  if (p.pressed(12) || p.pressed(13)) {
+    hour = THREE.MathUtils.clamp(hour + (p.pressed(12) ? 0.5 : -0.5), +$('hour').min, +$('hour').max);
+    $('hour').value = hour; applyTime(); toast(`${t().hour}: ${$('hour-val').textContent}`);
+  }
+  if (p.pressed(14) || p.pressed(15)) goStyle(STYLE_ID, p.pressed(15) ? 1 : -1, saveState);
+  player.yaw -= p.rx * 2.4 * dt;
+  player.pitch = THREE.MathUtils.clamp(player.pitch - p.ry * 1.8 * dt, -1.35, 1.35);
+}
+
 // ---------------------------------------------------------------- style switch: keep place, view, time and season
 let pendingGo = false;
 function saveState() {
@@ -626,6 +657,7 @@ let toastT = 0;
 function toast(msg) { const el = $('toast'); el.textContent = msg; el.classList.add('show'); toastT = 2.5; }
 function frame() {
   const dt = Math.min(clock.getDelta(), 0.05);
+  gamepad(dt);
   if (world && started && !paused && !uiOpen()) {
     let f = 0, s = 0, moving = 0;
     if (keys.has('KeyW') || keys.has('ArrowUp')) f += 1;
@@ -636,11 +668,11 @@ function frame() {
     if (keys.has('ArrowRight')) player.yaw -= 1.8 * dt;
     if (keys.has('KeyQ')) player.yaw += 1.8 * dt;
     if (keys.has('KeyE')) player.yaw -= 1.8 * dt;
-    f -= touch.jy; s += touch.jx;
+    f -= touch.jy + (padState ? padState.ly : 0); s += touch.jx + (padState ? padState.lx : 0);
     const L = Math.hypot(f, s);
     if (L > 0.05) {
       if (L > 1) { f /= L; s /= L; }
-      const speed = (keys.has('ShiftLeft') || keys.has('ShiftRight') || Math.hypot(touch.jx, touch.jy) > 0.95) ? 4.6 : 1.9;
+      const speed = (keys.has('ShiftLeft') || keys.has('ShiftRight') || Math.hypot(touch.jx, touch.jy) > 0.95 || (padState && padState.run)) ? 4.6 : 1.9;
       const fx = -Math.sin(player.yaw), fz = -Math.cos(player.yaw), rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);
       let nx = player.x + (fx * f + rx * s) * speed * dt, nz = player.z + (fz * f + rz * s) * speed * dt;
       [nx, nz] = resolve(nx, nz);

@@ -35,6 +35,14 @@ export function mountSwitcher(current, lang, getState) {
   }
 }
 
+// moves to the previous (-1) or next (+1) style, keeping the walk's state
+export function goStyle(current, delta, getState) {
+  const i = PAGES.findIndex((p) => p.id === current);
+  const p = PAGES[(i + delta + PAGES.length) % PAGES.length];
+  const st = getState && getState();
+  location.href = `../${p.dir}/` + (st ? '#' + new URLSearchParams(st).toString() : '');
+}
+
 export function readState() {
   const h = location.hash.slice(1);
   if (!h) return null;
