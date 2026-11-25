@@ -27,6 +27,7 @@ const I18N = {
     source: { address: 'Адресът е намерен в OpenStreetMap.', street: 'Номер 20 липсва в OpenStreetMap, затова тръгваш от средата на ул. „Сердика“.', fallback: 'Адресът не беше намерен; тръгваш от ул. „Сердика“.' },
     attribution: 'Данни © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">сътрудниците на OpenStreetMap</a>',
     lockHint: 'Щракни, за да оглеждаш с мишката',
+    donate: 'Стани дарител', donateUrl: 'https://obr.education/stani-daritel/',
     vg: 'Същата разходка, нарисувана като Ван Гог →',
   },
   en: {
@@ -49,6 +50,7 @@ const I18N = {
     source: { address: 'The address was found in OpenStreetMap.', street: 'No. 20 is not in OpenStreetMap, so you start in the middle of Serdika Street.', fallback: 'The address was not found; you start on Serdika Street.' },
     attribution: 'Data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>',
     lockHint: 'Click to look around with the mouse',
+    donate: 'Donate', donateUrl: 'https://obr.education/en/donate/',
     vg: 'The same walk, painted like Van Gogh →',
   },
 };
@@ -78,6 +80,7 @@ function applyLang() {
   $('btn-help').title = $('btn-help').ariaLabel = t().help;
   $('btn-fs').title = $('btn-fs').ariaLabel = t().fullscreen;
   $('lock-hint').textContent = t().lockHint;
+  $('donate').textContent = t().donate; $('donate').href = t().donateUrl;
   $('vg').textContent = t().vg;
   if (world) { $('stats').textContent = t().stats(world.stats); $('source').textContent = t().source[center.source] || ''; }
   document.title = lang === 'bg' ? 'ул. „Сердика“ 20 · 3D разходка' : '20 Serdika St · 3D walk';

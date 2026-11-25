@@ -58,6 +58,9 @@
   .error { margin-top: 16px; background: rgba(240,140,110,.12); border: 1px solid rgba(240,140,110,.5); border-radius: 6px; padding: 12px 14px; font-size: 15px; line-height: 1.45; }
   .error p { margin: 0 0 10px; }
   .meta { margin-top: 18px; font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .obr { margin-top: 18px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .obr img { display: block; height: 32px; width: auto; }
+  .obr #donate { color: var(--paveta); font-weight: 700; font-size: 15px; }
   .lang-switch { display: inline-flex; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
   .lang-switch button { background: none; border: 0; padding: 4px 10px; font-family: var(--cond); font-weight: 700; font-size: 13px; color: var(--muted); cursor: pointer; }
   .lang-switch button[aria-pressed="true"] { background: var(--paveta); color: #1B1606; }
@@ -137,6 +140,10 @@
     <div class="progress" id="progress"><span class="spin" aria-hidden="true"></span><div><div id="status"></div><div class="status-sub" id="status-sub"></div></div></div>
     <div class="error" id="error" hidden><p id="error-msg"></p><button type="button" class="btn ghost" id="retry"></button></div>
     <div class="meta"><div id="stats"></div><div id="source"></div></div>
+    <div class="obr">
+      <a href="https://obr.education/" target="_blank" rel="noopener"><img src="../bum/media/obr-logo-light.svg" alt="Образование без раници" width="137" height="32"></a>
+      <a id="donate" href="https://obr.education/stani-daritel/" target="_blank" rel="noopener"></a>
+    </div>
   </div>
 </section>
 
