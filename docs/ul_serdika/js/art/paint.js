@@ -303,6 +303,20 @@ export function pool() {
   return c;
 }
 
+function sunflower() {
+  const S = 256, c0 = S / 2; const [c, g] = canvas(S);
+  g.clearRect(0, 0, S, S);
+  for (let layer = 0; layer < 2; layer++) for (let k = 0; k < 22; k++) {
+    const a = (k + layer * 0.5) / 22 * Math.PI * 2 + R(-0.06, 0.06), r0 = 40, r1 = R(100, 122) - layer * 14;
+    const mx = c0 + Math.cos(a) * (r0 + r1) / 2, my = c0 + Math.sin(a) * (r0 + r1) / 2;
+    stroke(g, mx, my, r1 - r0, R(15, 20), a, jit(pick(['#f5c518', '#f2a72a', '#ffd862', '#e8952a', '#f7cf4a']), 0.08), { bend: R(-0.15, 0.15) });
+  }
+  g.fillStyle = '#5a3a1a'; g.beginPath(); g.arc(c0, c0, 46, 0, 7); g.fill();
+  for (let k = 0; k < 70; k++) { const a = rnd() * Math.PI * 2, r = Math.sqrt(rnd()) * 42; stroke(g, c0 + Math.cos(a) * r, c0 + Math.sin(a) * r, 10, 7, a + 1.5, jit(pick(['#7a5a2a', '#3a2a1a', '#8a6a2a', '#a8782a', '#4a3a6a']), 0.08)); }
+  g.strokeStyle = OUTLINE; g.lineWidth = 4; g.beginPath(); g.arc(c0, c0, 46, 0, 7); g.stroke();
+  return c;
+}
+
 export function makeTextures(maxAniso = 8) {
   seed = 20250;
   const o = { aniso: maxAniso };
@@ -325,6 +339,7 @@ export function makeTextures(maxAniso = 8) {
     awning: tex(awning(), o),
     halo: tex(halo(), { ...o, repeat: false }),
     pool: tex(pool(), { ...o, repeat: false }),
+    sunflower: tex(sunflower(), { ...o, repeat: false }),
   };
 }
 
@@ -382,21 +397,32 @@ vec3 vgWobble(vec3 p) {
     cos(p.x * 0.05 - p.z * 0.017) * lean + sin(p.y * 0.29 + p.z * 0.12 - p.x * 0.04) * ${num(STYLE.wobble.ripple)} * f);
 }
 `;
-function patchVertex(sh) {
+// Wind: trees and flowers sway a little, more the higher the point (amount in metres per metre of height).
+export const SWAY = { value: 0 };
+function swayGLSL(a) {
+  if (!a) return 'vec3 vgSway(vec3 p) { return vec3(0.0); }';
+  return `uniform float vgTime;
+vec3 vgSway(vec3 p) {
+  float ph = p.x * 0.13 + p.z * 0.11, h = max(p.y - 0.8, 0.0);
+  return vec3(sin(vgTime * 1.1 + ph) * ${num(a)}, 0.0, cos(vgTime * 0.9 + ph * 1.3) * ${num(a * 0.7)}) * h;
+}`;
+}
+function patchVertex(sh, sway = 0) {
+  if (sway) sh.uniforms.vgTime = SWAY;
   sh.vertexShader = sh.vertexShader
-    .replace('#include <common>', '#include <common>\n' + WOBBLE_GLSL)
+    .replace('#include <common>', '#include <common>\n' + WOBBLE_GLSL + swayGLSL(sway))
     .replace('#include <project_vertex>', `
       vec4 mvPosition = vec4( transformed, 1.0 );
       #ifdef USE_INSTANCING
         mvPosition = instanceMatrix * mvPosition;
       #endif
       vec4 vgW = modelMatrix * mvPosition;
-      vgW.xyz += vgWobble( vgW.xyz );
+      vgW.xyz += vgWobble( vgW.xyz ) + vgSway( vgW.xyz );
       mvPosition = viewMatrix * vgW;
       gl_Position = projectionMatrix * mvPosition;`)
     .replace('#include <worldpos_vertex>', `#include <worldpos_vertex>
       #if defined( USE_ENVMAP ) || defined( DISTANCE ) || defined ( USE_SHADOWMAP ) || defined ( USE_TRANSMISSION ) || NUM_SPOT_LIGHT_COORDS > 0
-        worldPosition.xyz += vgWobble( worldPosition.xyz );
+        worldPosition.xyz += vgWobble( worldPosition.xyz ) + vgSway( worldPosition.xyz );
       #endif`);
 }
 const patched = new WeakSet();
@@ -404,17 +430,20 @@ export function paintify(mat) {
   if (!mat || patched.has(mat)) return mat;
   patched.add(mat);
   const prev = mat.onBeforeCompile;
-  mat.onBeforeCompile = (sh, r) => { if (prev) prev(sh, r); patchVertex(sh); };
-  mat.customProgramCacheKey = () => 'vg-wobble-' + STYLE.id;
+  const sway = (mat.userData && mat.userData.sway) || 0;
+  mat.onBeforeCompile = (sh, r) => { if (prev) prev(sh, r); patchVertex(sh, sway); };
+  mat.customProgramCacheKey = () => 'vg-wobble-' + STYLE.id + '-' + sway;
   mat.needsUpdate = true;
   return mat;
 }
 const depthCache = new Map();
 export function depthMaterialFor(mat) {
-  const key = mat.alphaTest > 0 && mat.map ? mat.map.uuid + mat.alphaTest : 'plain';
+  const sway = (mat.userData && mat.userData.sway) || 0;
+  const key = (mat.alphaTest > 0 && mat.map ? mat.map.uuid + mat.alphaTest : 'plain') + '/' + sway;
   if (!depthCache.has(key)) {
     const d = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
-    if (key !== 'plain') { d.map = mat.map; d.alphaTest = mat.alphaTest; }
+    if (mat.alphaTest > 0 && mat.map) { d.map = mat.map; d.alphaTest = mat.alphaTest; }
+    d.userData.sway = sway;
     paintify(d);
     depthCache.set(key, d);
   }

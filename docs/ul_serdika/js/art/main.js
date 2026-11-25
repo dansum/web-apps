@@ -1,10 +1,14 @@
 // The 20 Serdika St walk as a painting: after Van Gogh or after Vladimir Dimitrov – the Master (see style.js).
 // Based on ../main.js (the realistic walk); the data, the OSM code and three.js are shared with it.
 import * as THREE from '../three.module.min.js';
-import { makeTextures, paintify, depthMaterialFor } from './paint.js';
+import { makeTextures, paintify, depthMaterialFor, SWAY } from './paint.js';
 import { makeTexturesMaistora } from './maistora.js';
 import { STYLE } from './style.js';
 import { mountSwitcher, readState, clearState } from '../switcher.js';
+import { createLabels } from '../labels.js';
+import { createTrams } from '../trams.js';
+import { createRain } from '../rain.js';
+import { createSound } from '../sound.js';
 import { geocode, fetchArea, parse, makeProjection, readCache, writeCache, clearCache, LOAD_RADIUS, WALK_RADIUS } from '../osm.js';
 import { buildWorld, paintTrees } from './world.js';
 
@@ -25,7 +29,7 @@ const I18N = {
     kicker: STYLE.text.bg.kicker,
     title: 'ул. „Сердика“ 20',
     lede: STYLE.text.bg.lede,
-    keys: [['W A S D / стрелки', 'ходене'], ['мишка', 'оглеждане (щракни в картината)'], ['Shift', 'по-бързо'], ['M', 'карта'], ['H', 'обратно пред №20'], ['Esc', 'пауза']],
+    keys: [['W A S D / стрелки', 'ходене'], ['мишка', 'оглеждане (щракни в картината)'], ['Shift', 'по-бързо'], ['Интервал', 'скок'], ['N', 'адреси на сградите'], ['R', 'дъжд'], ['M', 'карта'], ['H', 'обратно пред №20'], ['Esc', 'пауза']],
     touch: 'На телефон: левият палец ходи, плъзгането вдясно оглежда.',
     start: 'Тръгни', resume: 'Продължи', loading: 'Зареждам…',
     st: { geo: 'Търся адреса в OpenStreetMap…', data: 'Тегля сградите и улиците наоколо…', build: 'Строя града…', fonts: 'Подготвям надписите…', snap: 'Чета запазените данни…', mirror: (h) => `Сървър: ${h}` },
@@ -41,13 +45,15 @@ const I18N = {
     source: { address: 'Адресът е намерен в OpenStreetMap.', street: 'Номер 20 липсва в OpenStreetMap, затова тръгваш от средата на ул. „Сердика“.', fallback: 'Адресът не беше намерен; тръгваш от ул. „Сердика“.' },
     attribution: 'Данни © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">сътрудниците на OpenStreetMap</a>',
     lockHint: 'Щракни, за да оглеждаш с мишката',
+    addresses: 'Адреси на сградите', rainL: 'Дъжд', soundL: 'Звуци', jumpL: 'Скок',
+    addrOn: 'Адресите са включени.', addrOff: 'Адресите са изключени.', rainOn: 'Вали.', rainOff: 'Спря да вали.',
     donate: 'Стани дарител', donateUrl: 'https://obr.education/stani-daritel/',
   },
   en: {
     kicker: STYLE.text.en.kicker,
     title: '20 Serdika Street',
     lede: STYLE.text.en.lede,
-    keys: [['W A S D / arrows', 'walk'], ['mouse', 'look around (click the picture)'], ['Shift', 'faster'], ['M', 'map'], ['H', 'back to No. 20'], ['Esc', 'pause']],
+    keys: [['W A S D / arrows', 'walk'], ['mouse', 'look around (click the picture)'], ['Shift', 'faster'], ['Space', 'jump'], ['N', 'building addresses'], ['R', 'rain'], ['M', 'map'], ['H', 'back to No. 20'], ['Esc', 'pause']],
     touch: 'On a phone: the left thumb walks, dragging on the right looks around.',
     start: 'Start walking', resume: 'Resume', loading: 'Loading…',
     st: { geo: 'Looking up the address in OpenStreetMap…', data: 'Downloading the buildings and streets around it…', build: 'Building the city…', fonts: 'Preparing the signs…', snap: 'Reading saved data…', mirror: (h) => `Server: ${h}` },
@@ -63,6 +69,8 @@ const I18N = {
     source: { address: 'The address was found in OpenStreetMap.', street: 'No. 20 is not in OpenStreetMap, so you start in the middle of Serdika Street.', fallback: 'The address was not found; you start on Serdika Street.' },
     attribution: 'Data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>',
     lockHint: 'Click to look around with the mouse',
+    addresses: 'Building addresses', rainL: 'Rain', soundL: 'Sounds', jumpL: 'Jump',
+    addrOn: 'Addresses on.', addrOff: 'Addresses off.', rainOn: 'It is raining.', rainOff: 'The rain has stopped.',
     donate: 'Donate', donateUrl: 'https://obr.education/en/donate/',
   },
 };
@@ -84,6 +92,8 @@ function applyLang() {
   $('lbl-hour').textContent = t().hour;
   $('lbl-season').textContent = t().season;
   $('lbl-shadows').textContent = t().shadows;
+  $('lbl-addresses').textContent = t().addresses; $('lbl-rain').textContent = t().rainL; $('lbl-sound').textContent = t().soundL;
+  $('btn-jump').title = $('btn-jump').ariaLabel = t().jumpL;
   $('refresh').textContent = t().refresh;
   [...$('season').options].forEach((o) => { o.textContent = t().seasons[o.value]; });
   $('btn-home').title = $('btn-home').ariaLabel = t().home;
@@ -136,10 +146,10 @@ const skyUniforms = {
   dayA: { value: [new THREE.Color('#3f78c8'), new THREE.Color('#5fa0d8'), new THREE.Color('#a8d0ec'), new THREE.Color('#f4f0d8'), new THREE.Color('#7fb8e0'), new THREE.Color('#4a8ad0')] },
   nightA: { value: [new THREE.Color('#1c2f7a'), new THREE.Color('#2c4c9e'), new THREE.Color('#3f6fb8'), new THREE.Color('#6a9ad0'), new THREE.Color('#d8d890'), new THREE.Color('#24408a')] },
   duskA: { value: [new THREE.Color('#f2b84a'), new THREE.Color('#e8863a'), new THREE.Color('#f6d870'), new THREE.Color('#d86a4a'), new THREE.Color('#8a90c8'), new THREE.Color('#f0c060')] },
-  horizon: { value: new THREE.Color() },
+  horizon: { value: new THREE.Color() }, rain: { value: 0 },
 };
 const SKY_FRAG = `
-uniform float time, night, dusk; uniform vec3 sunDir, moonDir, horizon;
+uniform float time, night, dusk, rain; uniform vec3 sunDir, moonDir, horizon;
 uniform vec3 dayA[6]; uniform vec3 nightA[6]; uniform vec3 duskA[6];
 varying vec3 vP;
 float h1(float n) { return fract(sin(n * 127.1) * 43758.5453); }
@@ -225,6 +235,8 @@ void main() {
     }
   }
   // haze at the horizon, ground colour below it
+  float lg = dot(c, vec3(0.3, 0.59, 0.11));
+  c = mix(c, vec3(lg) * vec3(0.8, 0.86, 1.0) + vec3(0.05), rain * 0.75 * (1.0 - night * 0.6));   // grey rain clouds
   float hz = smoothstep(0.16, -0.02, el);
   c = mix(c, mix(horizon, c, 0.35), hz * 0.8);
   if (el < -0.01) c = horizon * 0.9;
@@ -233,7 +245,7 @@ void main() {
 // The Master's sky: flat bands of turquoise and lime, round outlined clouds, a sun with petal rays,
 // and at night eight-pointed folk stars with a yellow crescent.
 const FOLK_FRAG = `
-uniform float time, night, dusk; uniform vec3 sunDir, moonDir, horizon;
+uniform float time, night, dusk, rain; uniform vec3 sunDir, moonDir, horizon;
 varying vec3 vP;
 float h1(float n) { return fract(sin(n * 127.1) * 43758.5453); }
 float h3(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
@@ -310,6 +322,8 @@ void main() {
       }
     }
   }
+  float lg = dot(c, vec3(0.3, 0.59, 0.11));
+  c = mix(c, vec3(lg) * vec3(0.8, 0.86, 1.0) + vec3(0.04), rain * 0.7 * (1.0 - night * 0.6));
   float hz = smoothstep(0.08, -0.02, el);
   c = mix(c, horizon, hz * 0.7);
   if (el < -0.01) c = horizon * 0.9;
@@ -333,7 +347,7 @@ const rt = new THREE.WebGLRenderTarget(rtSize.x, rtSize.y, { type: THREE.HalfFlo
 const postUniforms = {
   tColor: { value: rt.texture }, tDepth: { value: rt.depthTexture }, res: { value: rtSize.clone() },
   cameraNear: { value: 0.25 }, cameraFar: { value: 7000 }, night: { value: 0 }, brush: { value: STYLE.post.brush },
-  posterize: { value: STYLE.post.posterize }, edgeAmt: { value: STYLE.post.edge }, edgeLo: { value: STYLE.post.edgeLo }, edgeHi: { value: STYLE.post.edgeHi },
+  strokes: { value: STYLE.post.strokes || 0 }, posterize: { value: STYLE.post.posterize }, edgeAmt: { value: STYLE.post.edge }, edgeLo: { value: STYLE.post.edgeLo }, edgeHi: { value: STYLE.post.edgeHi },
   broken: { value: STYLE.post.broken }, edgeColor: { value: new THREE.Color(STYLE.post.edgeColor) }, sat: { value: STYLE.post.sat },
   shadowTint: { value: new THREE.Vector3(...STYLE.post.shadow) }, shadowAmt: { value: STYLE.post.shadowAmt }, warmTint: { value: new THREE.Vector3(...STYLE.post.warm) },
   weave: { value: STYLE.post.weave }, relief: { value: STYLE.post.relief },
@@ -344,7 +358,7 @@ const post = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMater
   fragmentShader: `
     #include <packing>
     uniform sampler2D tColor, tDepth; uniform vec2 res; uniform float cameraNear, cameraFar, night, brush;
-    uniform float posterize, edgeAmt, edgeLo, edgeHi, broken, sat, shadowAmt, weave, relief;
+    uniform float strokes, posterize, edgeAmt, edgeLo, edgeHi, broken, sat, shadowAmt, weave, relief;
     uniform vec3 edgeColor, shadowTint, warmTint;
     varying vec2 vUv;
     float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -383,6 +397,19 @@ const post = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMater
       float edge = smoothstep(edgeLo, edgeHi, de) + 0.55 * smoothstep(0.18, 0.45, le / (0.2 + lum(col)));
       edge *= mix(1.0, smoothstep(0.15, 0.55, noise(gl_FragCoord.xy * vec2(0.09, 0.13))), broken);    // broken, brushy lines
       edge *= 1.0 - smoothstep(160.0, 380.0, d0);                                   // fade with distance
+      // brush strokes: the paint is dragged along the forms (across the colour gradient);
+      // where the picture is flat, the strokes follow a slow swirl
+      vec2 gr = vec2(lR - lL, lU - lD);
+      float ang = mix(noise(gl_FragCoord.xy * 0.004) * 12.566, atan(gr.y, gr.x) + 1.5708, smoothstep(0.015, 0.06, length(gr)));
+      vec2 sd = vec2(cos(ang), sin(ang));
+      float groove = 0.0;
+      if (strokes > 0.0) {
+        vec3 lic = vec3(0.0);
+        for (int k = -3; k <= 3; k++) lic += texture2D(tColor, vUv + sd * float(k) * 1.7 / res).rgb;
+        col = mix(col, lic / 7.0, 0.5 * strokes);
+        vec2 rr = vec2(dot(gl_FragCoord.xy, sd), dot(gl_FragCoord.xy, vec2(-sd.y, sd.x)));
+        groove = noise(vec2(rr.x * 0.06, rr.y * 0.7)) - 0.5;   // the bristles leave grooves along the stroke
+      }
       gl_FragColor = vec4(col, 1.0);
       #include <tonemapping_fragment>
       #include <colorspace_fragment>
@@ -392,6 +419,7 @@ const post = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMater
       c = mix(c, c * shadowTint, (1.0 - l) * (shadowAmt + 0.25 * night)); // tinted shadows
       c = mix(c, c * warmTint, l * l * 0.35);                         // warm light
       if (posterize > 0.0) c = floor(c * posterize + 0.5) / posterize; // flat fields of colour
+      c *= 1.0 + groove * 0.16 * strokes;
       c *= 1.0 + relief * clamp((lL - lR + lU - lD) * 0.9, -0.1, 0.1);  // paint relief, lit from the upper left
       c = mix(c, edgeColor, clamp(edge, 0.0, 1.0) * edgeAmt);           // contour
       vec2 fc = gl_FragCoord.xy;
@@ -497,9 +525,12 @@ function applyTime() {
   hemi.intensity = (0.45 + 0.7 * day + 0.75 * night) * STYLE.light.hemi;
   hemi.color.set('#d8e8ff').lerp(new THREE.Color('#ffd2a0'), dusk * 0.5).lerp(new THREE.Color('#5a78e0'), night);
   hemi.groundColor.set('#c8a878').lerp(new THREE.Color('#3a3a90'), night);
+  base = { sun: sun.intensity, hemi: 0, near: scene.fog.near, far: scene.fog.far, fog: scene.fog.color.clone(), day, night };
+  lastRain = -1;
   // by night a blue moonlight casts the shadows
   moon.intensity = night * 1.3;
   renderer.toneMappingExposure = 1.1 + night * 0.35;
+  base.hemi = hemi.intensity;
   if (world) {
     const lit = Math.max(night, THREE.MathUtils.clamp((0.06 - alt) / 0.1, 0, 1));
     world.lampGlass.emissive.set(lit > 0.15 ? 0xffc850 : 0x000000).multiplyScalar(1.4);
@@ -515,7 +546,7 @@ function applyTime() {
 
 // ---------------------------------------------------------------- state
 let world = null, center = null, ready = false, started = false, paused = true;
-const player = { x: 0, z: 0, yaw: 0, pitch: -0.04, eye: 1.65, bob: 0 };
+const player = { x: 0, z: 0, yaw: 0, pitch: -0.04, eye: 1.65, bob: 0, vy: 0, jy: 0 };
 let home = { x: 0, z: 0, yaw: 0 };
 let textures = null;
 
@@ -590,6 +621,7 @@ function build(data) {
   pools.frustumCulled = false;
   scene.add(pools);
   paintTrees(world.crowns, $('season').value, textures);
+  if (world.flowers) world.flowers.visible = $('season').value !== 'winter';
   applyTime();
   // starting point: across the street from No. 20, looking at it
   home = { x: 0, z: 0, yaw: 0 };
@@ -623,16 +655,54 @@ function build(data) {
     if (lines.length) { const p = lines[0].pts[Math.floor(lines[0].pts.length / 2)]; home = { x: p[0], z: p[1], yaw: 0 }; }
   }
   if (world.insideBuilding(home.x, home.z, 0.2)) { home.x = 0; home.z = 0; }
+  if (trams) scene.remove(trams.group);
+  trams = createTrams(world, { onBell: (p) => sound.bell(Math.hypot(p.x - player.x, p.z - player.z)) });
+  world.group.add(trams.group);
+  $('labels').textContent = '';
+  labels = createLabels(world, $('labels'));
+  $('addresses').checked = labels.on;
   goHome();
   applyState();
   drawStaticMap();
 }
 
+// ---------------------------------------------------------------- rain, sounds, trams, addresses
+function rainSky(k) { skyUniforms.rain.value = k; }
+// the rain is drawn over the painted picture, so the paint filter does not smear the drops away
+const rainScene = new THREE.Scene();
+const rain = createRain(rainScene, { color: STYLE.id === 'maistora' ? 0xffffff : 0xcfe0ff, opacity: 0.6 });
+const sound = createSound();
+let trams = null, labels = null, base = null, lastRain = -1;
+const OVERCAST = new THREE.Color('#8c96a3');
+// the rain dims the sun, brings the fog closer and greys the sky; applyTime() stores the dry values in base
+function weather() {
+  const k = rain.amount;
+  if (!base || Math.abs(k - lastRain) < 0.002) return;
+  lastRain = k;
+  sun.intensity = base.sun * (1 - 0.8 * k);
+  hemi.intensity = base.hemi * (1 - 0.2 * k);
+  scene.fog.near = base.near * (1 - 0.6 * k); scene.fog.far = base.far * (1 - 0.55 * k);
+  scene.fog.color.copy(base.fog).lerp(OVERCAST, 0.6 * k * (1 - base.night * 0.7));
+  rainSky(k);
+}
+function toggleAddresses() { if (!labels) return; labels.set(!labels.on); $('addresses').checked = labels.on; toast(labels.on ? t().addrOn : t().addrOff); }
+function toggleRain() { rain.set(!rain.on); $('rain').checked = rain.on; toast(rain.on ? t().rainOn : t().rainOff); }
+function jump() { if (player.jy === 0 && player.vy === 0) player.vy = 4.2; }
+$('addresses').addEventListener('change', (e) => { if (labels) labels.set(e.target.checked); });
+$('rain').addEventListener('change', (e) => rain.set(e.target.checked));
+$('sound').addEventListener('change', (e) => { sound.start(); sound.set(e.target.checked); });
+$('btn-jump').addEventListener('pointerdown', (e) => { e.preventDefault(); sound.start(); jump(); });
+// browsers start sound only after a click or a key press
+addEventListener('pointerdown', () => sound.start());
+addEventListener('keydown', () => sound.start());
+$('rain').checked = rain.on;
+$('sound').checked = sound.on;
+
 // ---------------------------------------------------------------- style switch: keep place, view, time and season
 let pendingGo = false;
 function saveState() {
   if (!world) return null;
-  return { x: player.x.toFixed(2), z: player.z.toFixed(2), yaw: player.yaw.toFixed(3), pitch: player.pitch.toFixed(3), h: hour, s: $('season').value, go: started ? 1 : 0 };
+  return { x: player.x.toFixed(2), z: player.z.toFixed(2), yaw: player.yaw.toFixed(3), pitch: player.pitch.toFixed(3), h: hour, s: $('season').value, r: rain.on ? 1 : 0, go: started ? 1 : 0 };
 }
 function applyState() {
   const st = readState();
@@ -645,6 +715,7 @@ function applyState() {
   }
   if (Number.isFinite(st.h)) { hour = THREE.MathUtils.clamp(st.h, +$('hour').min, +$('hour').max); $('hour').value = hour; applyTime(); }
   if (st.s && [...$('season').options].some((o) => o.value === st.s)) { $('season').value = st.s; $('season').dispatchEvent(new Event('change')); }
+  if (st.r === '1' || st.r === '0') { rain.set(st.r === '1'); $('rain').checked = rain.on; }
   pendingGo = st.go;
 }
 
@@ -681,6 +752,9 @@ addEventListener('keydown', (e) => {
   if (!started) return;
   if (e.code === 'KeyM') toggleMap();
   if (e.code === 'KeyH') goHome();
+  if (e.code === 'KeyN') toggleAddresses();
+  if (e.code === 'KeyR') toggleRain();
+  if (e.code === 'Space' && !paused) jump();
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
 });
 addEventListener('keyup', (e) => keys.delete(e.code));
@@ -734,6 +808,7 @@ canvas.addEventListener('pointercancel', endTouch);
 function startWalk() {
   if (!ready) return;
   started = true; paused = false;
+  sound.start();
   $('start').hidden = true; $('hud').hidden = false;
   if (canLock) { try { const p = canvas.requestPointerLock(); if (p && p.catch) p.catch(() => {}); } catch { /* needs a click */ } }
   $('lock-hint').hidden = isTouch || canLock === false;
@@ -756,7 +831,7 @@ $('btn-settings').addEventListener('click', () => { $('panel').hidden = !$('pane
 $('btn-help').addEventListener('click', pause);
 $('btn-fs').addEventListener('click', () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen?.().catch(() => {}); });
 $('hour').addEventListener('input', (e) => { hour = parseFloat(e.target.value); applyTime(); });
-$('season').addEventListener('change', (e) => { if (world) paintTrees(world.crowns, e.target.value, textures); });
+$('season').addEventListener('change', (e) => { if (world) { paintTrees(world.crowns, e.target.value, textures); if (world.flowers) world.flowers.visible = e.target.value !== 'winter'; } });
 $('shadows').addEventListener('change', (e) => { renderer.shadowMap.enabled = e.target.checked; scene.traverse((o) => { if (o.material) o.material.needsUpdate = true; }); });
 document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => { $(b.dataset.close).hidden = true; }));
 $('minimap').addEventListener('click', toggleMap);
@@ -881,7 +956,7 @@ function toast(msg) { const el = $('toast'); el.textContent = msg; el.classList.
 function frame() {
   const dt = Math.min(clock.getDelta(), 0.05);
   if (world && started && !paused && !uiOpen()) {
-    let f = 0, s = 0;
+    let f = 0, s = 0, moving = 0;
     if (keys.has('KeyW') || keys.has('ArrowUp')) f += 1;
     if (keys.has('KeyS') || keys.has('ArrowDown')) f -= 1;
     if (keys.has('KeyD')) s += 1;
@@ -901,16 +976,28 @@ function frame() {
       if (!world.insideBuilding(nx, nz)) { player.x = nx; player.z = nz; }
       const r = Math.hypot(player.x, player.z);
       if (r > WALK_RADIUS) { player.x *= WALK_RADIUS / r; player.z *= WALK_RADIUS / r; if (toastT <= 0) toast(t().edge); }
-      player.bob += dt * speed * 4.2;
+      if (player.jy === 0) player.bob += dt * speed * 4.2;
+      moving = speed;
     }
+    // jump: up, then down with gravity
+    if (player.vy !== 0 || player.jy > 0) {
+      player.vy -= 9.81 * dt; player.jy += player.vy * dt;
+      if (player.jy <= 0) { player.jy = 0; player.vy = 0; }
+    }
+    if (trams) [player.x, player.z] = trams.push(player.x, player.z);
     hudTimer -= dt;
     if (hudTimer <= 0) { hudTimer = 0.25; updateHud(); }
+    if (labels) labels.update(player, camera, dt);
+    sound.update(dt, { day: base ? base.day : 1, night: base ? base.night : 0, rain: rain.amount, tram: trams && trams.nearest(player.x, player.z), speed: moving, bob: player.bob });
     drawMiniMap();
     $('compass').style.transform = `rotate(${player.yaw}rad)`;
   }
   if (toastT > 0) { toastT -= dt; if (toastT <= 0) $('toast').classList.remove('show'); }
+  if (trams) trams.update(dt);
+  rain.update(dt, camera.position);
+  weather();
   // camera
-  camera.position.set(player.x, player.eye + Math.sin(player.bob) * 0.035, player.z);
+  camera.position.set(player.x, player.eye + player.jy + Math.sin(player.bob) * 0.035, player.z);
   camera.rotation.set(player.pitch, player.yaw, 0);
   sky.position.copy(camera.position); mountains.position.set(camera.position.x, 0, camera.position.z);
   // shadow camera follows the player, snapped to texels to avoid shimmering
@@ -918,10 +1005,12 @@ function frame() {
   sun.target.position.set(tx, 0, tz);
   sun.position.set(tx + sunDir.x * 300, sunDir.y * 300, tz + sunDir.z * 300);
   skyUniforms.time.value += dt;
+  SWAY.value += dt;
   renderer.setRenderTarget(rt);
   renderer.render(scene, camera);
   renderer.setRenderTarget(null);
   renderer.render(postScene, postCam);
+  if (rain.amount > 0.01) { renderer.autoClear = false; renderer.clearDepth(); renderer.render(rainScene, camera); renderer.autoClear = true; }
   requestAnimationFrame(frame);
 }
 
@@ -940,4 +1029,4 @@ requestAnimationFrame(frame);
 load();
 
 // for automated checks
-window.__serdika = { get world() { return world; }, player, get ready() { return ready; }, goHome, setHour: (h) => { hour = h; applyTime(); } };
+window.__serdika = { get world() { return world; }, get trams() { return trams; }, get labels() { return labels; }, get rain() { return rain; }, player, get ready() { return ready; }, goHome, setHour: (h) => { hour = h; applyTime(); } };
