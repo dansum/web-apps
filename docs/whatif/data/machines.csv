@@ -1,0 +1,51 @@
+﻿machine_id,name_bg,name_en,category,mass_t,power,materials,image
+m01,Струг (универсален),Engine lathe,металообработване,2.5,electric,cast elec steel,images/png/m01.png
+m02,CNC обработващ център,CNC machining center,металообработване,6,electric,cast elec glass paint steel,images/png/m02.png
+m03,Колонна пробивна машина,Pillar drill press,металообработване,0.4,electric,cast paint plastic steel,images/png/m03.png
+m04,Хидравлична преса (250 t),Hydraulic press 250 t,обработка под налягане,25,electric,elec paint steel,images/png/m04.png
+m05,Верижен багер,Crawler excavator,строителна техника,22,diesel,cast glass paint steel,images/png/m05.png
+m06,Булдозер,Bulldozer,строителна техника,20,diesel,glass paint steel,images/png/m06.png
+m07,Електрокар (мотокар),Electric forklift,логистика,4,battery,battery cast paint plastic rubber steel,images/png/m07.png
+m08,Мостов кран,Overhead bridge crane,подемна техника,15,electric,elec paint steel,images/png/m08.png
+m09,Кулокран,Tower crane,подемна техника,30,electric,concrete glass paint steel,images/png/m09.png
+m10,Автобетоновоз,Concrete mixer truck,строителна техника,30,diesel,glass paint rubber steel,images/png/m10.png
+m11,Пътен валяк,Road roller,пътна техника,12,diesel,paint plastic steel,images/png/m11.png
+m12,Челен товарач,Wheel loader,строителна техника,18,diesel,glass paint rubber steel,images/png/m12.png
+m13,Минен самосвал (160 t),Mining haul truck,минна техника,160,diesel,glass paint rubber steel,images/png/m13.png
+m14,Бутален компресор с ресивер,Piston air compressor,пневматика,0.5,electric,cast glass paint steel,images/png/m14.png
+m15,Дизелов генератор (500 kVA),Diesel generator set,енергетика,5,diesel,copper elec paint steel,images/png/m15.png
+m16,Голям асинхронен електродвигател (250 kW),Large induction motor,електрически машини,1.8,electric,cast copper paint steel,images/png/m16.png
+m17,Силов трансформатор (110 kV),Power transformer,енергетика,80,electric,ceramic copper paint steel,images/png/m17.png
+m18,Парен котел (жаротръбен),Fire-tube steam boiler,енергетика,15,gas,ceramic glass paint steel,images/png/m18.png
+m19,Индустриален робот (6 оси),6-axis industrial robot,автоматизация,1.2,electric,alu cast elec paint plastic steel,images/png/m19.png
+m20,Лентов транспортьор,Belt conveyor,логистика,2,electric,cardboard paint rubber steel,images/png/m20.png
+m21,Центробежна помпа,Centrifugal pump,флуиди,0.8,electric,cast steel,images/png/m21.png
+m22,Газова турбина,Industrial gas turbine,енергетика,20,gas,paint steel superalloy,images/png/m22.png
+m23,Вятърна турбина,Wind turbine,енергетика,300,wind,composite concrete paint,images/png/m23.png
+m24,Шприцмашина за пластмаса,Injection molding machine,пластмаси,10,electric,ceramic elec glass paint plastic steel,images/png/m24.png
+m25,MIG/MAG заваръчен апарат с бутилка,MIG welder with gas cylinder,заваряване,0.12,electric,brass copper elec paint plastic rubber steel,images/png/m25.png
+m26,Плоскошлифовъчна машина,Surface grinder,металообработване,3,electric,abrasive cast elec paint steel,images/png/m26.png
+m27,Лентов трион за метал,Metal band saw,металообработване,1,electric,cast elec paint steel,images/png/m27.png
+m28,Форматен циркуляр,Table saw,дървообработване,0.35,electric,cast paint plastic steel wood,images/png/m28.png
+m29,Пневматичен ковашки чук,Pneumatic forging hammer,обработка под налягане,8,electric,cast hot paint steel,images/png/m29.png
+m30,Валцовъчна клетка,Rolling mill stand,металургия,200,electric,cast elec hot steel,images/png/m30.png
+m31,Индукционна тигелна пещ,Induction crucible furnace,металургия,5,electric,ceramic copper elec hot paint rubber steel,images/png/m31.png
+m32,CNC плазмена маса,CNC plasma cutting table,металообработване,3,electric,alu copper elec paint steel,images/png/m32.png
+m33,Индустриален 3D принтер (FDM),Industrial FDM 3D printer,адитивно производство,0.3,electric,alu elec glass plastic steel,images/png/m33.png
+m34,Тъкачен стан,Weaving loom,текстил,3,electric,alu elec paint steel textile,images/png/m34.png
+m35,Офсетова печатна машина,Offset printing press,полиграфия,15,electric,elec paint paper rubber steel,images/png/m35.png
+m36,Сондажна установка (за кладенци),Water-well drilling rig,сондиране,30,diesel,glass paint rubber steel,images/png/m36.png
+m37,Тунелопробивна машина (TBM),Tunnel boring machine,тунелно строителство,1200,electric,elec paint steel,images/png/m37.png
+m38,Опаковъчна машина (флоупак),Flow-wrap packaging machine,хранителна индустрия,1,electric,elec food plastic plastic_clear steel,images/png/m38.png
+m39,Камион-влекач с полуремарке,Semi-trailer truck,транспорт,40,diesel,alu glass paint rubber steel,images/png/m39.png
+m40,Автогрейдер,Motor grader,пътна техника,15,diesel,glass paint rubber steel,images/png/m40.png
+m41,Автокран,Mobile truck crane,подемна техника,48,diesel,glass paint rubber steel,images/png/m41.png
+m42,Ножична работна платформа,Scissor lift,работа на височина,3,battery,battery paint rubber steel,images/png/m42.png
+m43,Челюстна трошачка,Jaw crusher,минна техника,40,electric,cast mnsteel paint rock steel,images/png/m43.png
+m44,Топкова мелница,Ball mill,минна техника,100,electric,concrete paint steel,images/png/m44.png
+m45,Декантерна центрофуга,Decanter centrifuge,сепариране,5,electric,elec paint stainless,images/png/m45.png
+m46,Екструдер за пластмаса,Plastic extruder,пластмаси,6,electric,cast ceramic elec hot paint plastic steel,images/png/m46.png
+m47,Автобетонпомпа,Truck-mounted concrete pump,строителна техника,35,diesel,glass paint rubber steel,images/png/m47.png
+m48,Маневрен дизелов локомотив,Diesel shunting locomotive,железопътен транспорт,80,diesel,glass paint steel,images/png/m48.png
+m49,Химичен реактор с бъркалка,Stirred chemical reactor,химическа индустрия,8,electric,elec glass paint stainless steel,images/png/m49.png
+m50,Асфалтополагаща машина,Asphalt paver,пътна техника,18,diesel,asphalt paint plastic steel,images/png/m50.png
