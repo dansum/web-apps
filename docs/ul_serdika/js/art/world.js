@@ -1,8 +1,9 @@
 // Builds the 3D scene from parsed OSM features, painted in the manner of Van Gogh.
 // Based on ../../ul_serdika/js/world.js (the realistic walk); the differences are marked "VG".
-import * as THREE from '../../ul_serdika/js/three.module.min.js';
+import * as THREE from '../three.module.min.js';
 import { textTexture } from './paint.js';
-import { parseNum, pointInRing } from '../../ul_serdika/js/osm.js';
+import { STYLE } from './style.js';
+import { parseNum, pointInRing } from '../osm.js';
 
 // ---------------------------------------------------------------- small helpers
 function hash(s) { let h = 2166136261; s = String(s); for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
@@ -163,8 +164,7 @@ const DRIVABLE = new Set(['motorway', 'trunk', 'primary', 'secondary', 'tertiary
 const ROAD_W = { motorway: 20, trunk: 18, primary: 14, secondary: 11, tertiary: 9, unclassified: 7, residential: 7, living_street: 6, service: 4.2, road: 7, busway: 7,
   primary_link: 7, secondary_link: 7, tertiary_link: 6, pedestrian: 6, footway: 2.2, path: 1.8, cycleway: 2, steps: 2.4, track: 3, bridleway: 2 };
 const BAY = 3.4; // m, one window bay
-// VG: the plaster colours of Arles, saturated (the Yellow House, pale blues and pinks, lilac shadows)
-const PLASTER = ['#f2cf6a', '#f0d890', '#e9b85a', '#f3e2b0', '#d9a35c', '#c9d9c0', '#a9c4dc', '#e8c0a0', '#f4dca0', '#e3c9e0', '#f6e6b8', '#b8d0e8', '#f0c890', '#d8e4b0', '#f2b880', '#e0d0f0'];
+const PLASTER = STYLE.plaster; // the wall colours of the chosen painter
 const CAR_COLORS = ['#b9bcbf', '#a7abb0', '#dcdcd8', '#1d1f22', '#1d1f22', '#1d1f22', '#5b6066', '#5b6066', '#2c3e66', '#8a1c1c', '#6d7174', '#2f4f3f', '#b8a07a', '#3a6aa0', '#9b9da0'];
 
 // Corrections for well-known buildings nearby, where the OSM outline alone gives the wrong shape or height.
@@ -878,7 +878,7 @@ export function buildWorld(F, ctx) {
     const cy = Math.max(h - cr * 0.85, 2.3 + cr * 0.7);
     trunkMx.push(M4(s.p[0], 0, s.p[1], rr() * 6, 0.55 + h * 0.03, cy, 0.55 + h * 0.03));
     // VG: about one tree in six becomes a flame-like cypress
-    const cypress = conifer || rr() < 0.17;
+    const cypress = conifer || rr() < STYLE.cypressShare;
     const v = cypress ? 3 : Math.floor(rr() * 3);
     if (cypress) crownMx[3].push(M4(s.p[0], 0.6, s.p[1], rr() * 6, 1.5 + rr() * 0.5, Math.max(h, 9) / 4.2, 1.5 + rr() * 0.5));
     else crownMx[v].push(M4(s.p[0], cy, s.p[1], rr() * 6, cr, cr * (1.0 + rr() * 0.3), cr));
@@ -1112,15 +1112,10 @@ export function buildWorld(F, ctx) {
 
 // tree colours by season
 
-// VG: viridian, emerald and yellow-green in summer; chrome yellow, orange and vermilion in autumn;
-// violet-brown in winter. Cypresses stay dark green with blue.
-export function paintTrees(crowns, season) {
-  const pal = {
-    summer: ['#3f8a4a', '#5fa040', '#7ab83f', '#2f7a5a', '#4f9a3a', '#9cc040', '#3a7a6a'],
-    autumn: ['#f2b52e', '#e8862a', '#d0582a', '#f2cf4a', '#b8a030', '#c9702a', '#7a9a3a'],
-    winter: ['#7a5a7a', '#6a5a8a', '#8a6a5a', '#5a5a7a'],
-  }[season];
-  const cyp = ['#1f5a4a', '#2a6a4a', '#1f4a5a', '#2f6a3a'];
+// Tree colours by season. Van Gogh: tinted strokes; the Master: leaves and apples painted into the texture.
+export function paintTrees(crowns, season, T) {
+  const pal = STYLE.trees[season], cyp = STYLE.trees.cypress;
+  if (STYLE.leavesBySeason && T && T.leavesSeason && crowns[0]) { crowns[0].material.map = T.leavesSeason[season]; crowns[0].material.needsUpdate = true; }
   const c = new THREE.Color();
   for (const m of crowns) {
     const p = m.userData.cypress ? cyp : pal;
