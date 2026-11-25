@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Какво би станало, ако…? — 500 опита с машини</title>
+<meta name="description" content="50 индустриални машини и 10 мисловни експеримента: 1000 °C, удар с чук, течен азот, мълния, Луната и още. 500 предсказани резултата с картинки и оценки.">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<style>
+@font-face{font-family:'Lato';src:url('fonts/lato-regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'Lato';src:url('fonts/lato-bold.woff2') format('woff2');font-weight:700;font-display:swap}
+:root{
+  --navy:#0A2A66;--accent:#FA961E;--teal:#14BF96;--green:#3CB44B;--blue:#28AAE1;
+  --text:#333333;--text-2:#666666;--bg:#F7F7F7;--card:#FFFFFF;--line:#E6E6E6;
+  --link:#0B7A60;--btn:#267A34;--orange-text:#C76A00;--on-navy:#FFFFFF;--on-navy-2:#C9D4E8;
+  --s1:#F1F3F6;--s2:#FDD9A8;--s3:#FA961E;--s4:#C76A00;--s5:#7A3E00;
+}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 'Lato',system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{color:var(--navy);line-height:1.15;margin:0;text-wrap:balance}
+a{color:var(--link)}
+.band{padding:clamp(20px,4vw,48px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+/* заглавна лента */
+.top{background:var(--navy);color:var(--on-navy)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.brand img{height:34px;width:auto;display:block}
+.bar nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.home{color:var(--on-navy-2);text-decoration:none;font-size:15px}
+.donate{background:var(--accent);color:var(--navy);font-weight:700;text-decoration:none;padding:8px 16px;border-radius:999px;font-size:15px}
+.top h1{color:var(--on-navy);font-size:clamp(30px,5vw,48px)}
+.lead{max-width:68ch;margin:10px 0 18px;font-size:17px;color:var(--on-navy-2)}
+.ctl{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.ctl button{font:700 15px 'Lato',system-ui,sans-serif;min-height:44px;padding:0 16px;border-radius:22px;border:2px solid var(--on-navy-2);background:transparent;color:var(--on-navy);cursor:pointer}
+.ctl button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--navy)}
+button:focus-visible,select:focus-visible,.cell:focus-visible,.thumb:focus-visible,a:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.mx{background:var(--card);border-radius:12px;padding:12px}
+.scroll{overflow-x:auto}
+.grid{display:grid;grid-template-columns:110px repeat(50,minmax(14px,1fr));gap:2px;min-width:860px}
+.ql{font-weight:700;font-size:13px;color:var(--navy);display:flex;align-items:center;white-space:nowrap}
+.cell{height:26px;border-radius:3px;border:0;padding:0;cursor:pointer}
+.cell.on{outline:3px solid var(--navy);outline-offset:1px}
+.mh{height:28px;font:700 11px 'Lato',system-ui,sans-serif;color:var(--text-2);display:flex;align-items:end;justify-content:center;cursor:pointer;border:0;background:none;padding:0}
+.mh.on{color:var(--navy);text-decoration:underline}
+.legend{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;margin-top:10px;color:var(--text-2)}
+.legend i{display:inline-block;width:22px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:4px;border:1px solid var(--line)}
+.legend .r{margin-left:auto}
+/* избраният опит */
+.det{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:clamp(18px,3vw,40px);align-items:start}
+.pics{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pics figure{margin:0}.pics img{width:100%;border-radius:10px;display:block;background:var(--line);aspect-ratio:16/10}
+.pics figcaption{font-size:13px;color:var(--text-2);margin-top:4px}
+.pics .big{grid-column:1/-1}
+.nav{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-content:start}
+.nav button,.sel select{min-height:44px;font:700 15px 'Lato',system-ui,sans-serif;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--navy);padding:0 12px;cursor:pointer}
+.kick{font-size:14px;color:var(--text-2);margin-bottom:6px}
+.det h2{font-size:clamp(24px,3.2vw,34px);margin-bottom:8px}
+.cond{font-size:14px;color:var(--text-2);border-left:4px solid var(--accent);padding-left:10px;margin:10px 0 14px}
+.res{font-size:16.5px;max-width:70ch}
+.bars{display:grid;gap:9px;margin:16px 0}
+.bar2{display:grid;grid-template-columns:11.5em 1fr 2em;gap:10px;align-items:center;font-size:14px}
+.bar2 b{font-weight:700;color:var(--navy)}
+.track{height:12px;border-radius:6px;background:var(--s1);overflow:hidden}.track span{display:block;height:100%}
+.bar2 em{font-style:normal;text-align:right;font-weight:700}
+.key{font-size:14px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+/* машината */
+.sec{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.sec h2{font-size:clamp(22px,3vw,30px)}
+.sel{font-size:15px;color:var(--text-2);display:flex;gap:8px;align-items:center}
+.strip{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 12px}
+.thumb{flex:none;width:150px;scroll-snap-align:start;border:2px solid transparent;border-radius:10px;background:var(--card);padding:4px;cursor:pointer;color:var(--text);text-align:left;font:13px/1.25 'Lato',system-ui,sans-serif}
+.thumb img{width:100%;border-radius:6px;display:block;aspect-ratio:16/10}
+.thumb.on{border-color:var(--accent)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-top:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;text-align:left;padding:0;color:var(--text);font:inherit}
+.card img{width:100%;display:block;aspect-ratio:16/10}
+.card div{padding:8px 10px 10px;font-size:14px}
+.card b{color:var(--navy)}
+.card .dots{display:flex;gap:4px;margin-top:6px}.card .dots span{flex:1;height:6px;border-radius:3px}
+.card.on{outline:3px solid var(--accent)}
+.note{font-size:15px;color:var(--text-2);max-width:80ch}
+.note h3{font-size:20px;margin-bottom:6px}
+.dl{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.dl a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:999px;background:var(--btn);color:#fff;text-decoration:none;font-weight:700;font-size:15px}
+footer{border-top:1px solid var(--line);display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+footer img{height:30px;width:auto;display:block}
+footer .donate2{color:var(--orange-text);font-weight:700}
+@media(max-width:760px){.det{grid-template-columns:1fr}.bar2{grid-template-columns:9em 1fr 1.6em}}
+@media(max-width:600px){.nav{grid-column:1/-1;grid-template-columns:repeat(4,1fr);gap:6px}.nav button{font-size:14px;padding:0 4px}}
+@media(prefers-reduced-motion:no-preference){.pics img{transition:opacity .25s}}
+</style>
+</head>
+<body>
+<header class="band top"><div class="wrap">
+  <div class="bar">
+    <a class="brand" href="https://obr.education/" target="_blank" rel="noopener"><img src="obr-logo-light.svg" alt="Образование без раници"></a>
+    <nav><a class="home" href="../">← Всички приложения</a>
+      <a class="donate" href="https://obr.education/stani-daritel/" target="_blank" rel="noopener">Стани дарител</a></nav>
+  </div>
+  <h1>Какво би станало, ако…?</h1>
+  <p class="lead">50 машини, 10 мисловни опита, 500 резултата. Всяко квадратче е един опит. Цветът показва оценката. Натисни квадратче.</p>
+  <div class="ctl" id="metric" role="group" aria-label="Критерий за оцветяване"></div>
+  <div class="mx scroll"><div class="grid" id="grid"></div>
+    <div class="legend" id="legend"></div></div>
+</div></header>
+
+<main>
+<section class="band"><div class="wrap det" id="det"></div></section>
+
+<section class="band" style="padding-top:0"><div class="wrap">
+  <div class="sec"><h2 id="mtitle">Машината</h2>
+    <label class="sel">Машина <select id="msel" aria-label="Избор на машина"></select></label></div>
+  <div class="strip" id="strip"></div>
+  <div class="cards" id="cards"></div>
+</div></section>
+
+<section class="band" style="padding-top:0"><div class="wrap note">
+  <h3>Как са направени</h3>
+  <p>Рисунките са схематични и са направени с код. Всяка машина е сглобена от части с истински материал: стомана, чугун, алуминий, гума, стъкло, електроника. Резултатът идва от свойствата на тези материали: при колко градуса се топят, кога стават крехки, как ръждясват.</p>
+  <p>Оценките (1–5) са правила, не измервания. <b>Щети</b>: 1 — почти нищо, 5 — машината е унищожена. <b>Опасност за хора</b>: 1 — безопасно, 5 — смъртоносно. <b>Правдоподобност</b>: колко сигурно е предсказанието. <b>Полезност за обучение</b>: колко неочевидна физика проверява опитът.</p>
+  <p>Данните са свободни за ползване — например за обучение на модели за физически изкуствен интелект.</p>
+  <div class="dl"><a href="data/experiments.csv" download>Данни (CSV)</a><a href="data/experiments.jsonl" download>Данни (JSONL)</a><a href="data/README.md">Описание</a></div>
+</div></section>
+</main>
+
+<footer class="band"><div class="wrap" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:space-between;width:100%">
+  <a href="https://obr.education/" target="_blank" rel="noopener"><img src="obr-logo.svg" alt="Образование без раници"></a>
+  <a class="donate2" href="https://obr.education/stani-daritel/" target="_blank" rel="noopener">Подкрепи „Образование без раници“</a>
+</div></footer>
+
+<script>
+{
+const Q=[["q01","1000 °C","Какво би станало, ако загреем машината до 1000 °C?","Цялата машина (изключена) стои в пещ при 1000 °C, докато се прогрее изцяло, после изстива."],
+["q02","Чук 5 кг","Какво би станало, ако ударим машината с тежък голям чук?","Един силен удар с 5-килограмов ковашки чук (~10 м/с, ~250 J) в най-уязвимата видима част."],
+["q03","−196 °C","Какво би станало, ако охладим машината до −196 °C с течен азот?","Машината (изключена) е охладена изцяло с течен азот, после се затопля до стайна температура."],
+["q04","Под вода","Какво би станало, ако потопим машината под вода?","Машината е изключена, стои 24 часа изцяло под сладка вода, после се изважда."],
+["q05","Мълния","Какво би станало, ако мълния удари машината?","Машината е на открито; пряк удар на мълния (~30 000 A, десетки микросекунди) в най-високата ѝ точка."],
+["q06","Падане 10 м","Какво би станало, ако машината падне от 10 метра височина?","Машината пада свободно от 10 м върху бетон (скорост при удара ~14 м/с)."],
+["q07","×2 скорост","Какво би станало, ако машината работи два пъти по-бързо?","Основното движение (обороти, ход, скорост на движение) е удвоено, без промяна в конструкцията и защитите."],
+["q08","Без смазка","Какво би станало, ако машината работи без смазка?","Всички смазочни масла и греси са премахнати; машината работи с нормално натоварване."],
+["q09","50 години","Какво би станало, ако оставим машината на открито за 50 години?","Машината стои без поддръжка 50 години на открито в умерен климат (като в България)."],
+["q10","Луната","Какво би станало, ако пренесем машината на Луната?","Вакуум, 1/6 от земната гравитация, температура от −170 до +120 °C, абразивен прах; ако машината е електрическа — има захранване."]];
+const MET=[["damage","Щети"],["danger","Опасност за хора"],["plausibility","Правдоподобност"],["educational_value","Полезност за обучение"],["mean","Средна оценка"]];
+const COL=["var(--s1)","var(--s2)","var(--s3)","var(--s4)","var(--s5)"];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $=id=>document.getElementById(id);
+let D=[],by={},M=[],metric="damage",cur="m01-q01";
+try{metric=localStorage.getItem("wi-metric")||metric}catch(e){}
+const val=(r,k)=>k==="mean"?(r.plausibility+r.damage+r.danger+r.educational_value)/4:r[k];
+const col=v=>COL[Math.max(0,Math.min(4,Math.round(v)-1))];
+const img=id=>"img/"+id+".webp";
+
+function drawMetric(){
+  $("metric").innerHTML=MET.map(([k,n])=>`<button data-k="${k}" aria-pressed="${k===metric}">${n}</button>`).join("");
+  $("legend").innerHTML="<span>Оценка:</span>"+[1,2,3,4,5].map(i=>`<span><i style="background:${COL[i-1]}"></i>${i}</span>`).join("")+`<span class="r">ред = опит, колона = машина</span>`;
+}
+function drawGrid(){
+  const mid=cur.split("-")[0];
+  let h=`<div></div>`+M.map((m,i)=>`<button class="mh ${m.id===mid?"on":""}" data-m="${m.id}" title="${esc(m.name)}">${i+1}</button>`).join("");
+  for(const q of Q){
+    h+=`<div class="ql">${esc(q[1])}</div>`;
+    for(const m of M){const r=by[m.id+"-"+q[0]];const v=val(r,metric);
+      h+=`<button class="cell ${r.key===cur?"on":""}" data-e="${r.key}" style="background:${col(v)}" title="${esc(m.name)} — ${esc(q[1])}: ${v.toFixed(metric==="mean"?1:0)}" aria-label="${esc(m.name)}, ${esc(q[1])}"></button>`}
+  }
+  $("grid").innerHTML=h;
+}
+function drawDetail(){
+  const r=by[cur],q=Q.find(x=>x[0]===r.question_id);
+  const bars=MET.slice(0,4).map(([k,n])=>`<div class="bar2"><b>${n}</b><div class="track"><span style="width:${r[k]*20}%;background:${col(r[k])}"></span></div><em>${r[k]}</em></div>`).join("");
+  $("det").innerHTML=`<div class="pics">
+    <figure class="big"><img src="${img(r.id)}" alt="${esc(r.machine_bg)} след опита: ${esc(q[1])}"><figcaption>След: ${esc(q[1])}</figcaption></figure>
+    <figure><img src="${img(r.machine_id)}" alt="${esc(r.machine_bg)} преди"><figcaption>Преди</figcaption></figure>
+    <div class="nav"><button id="prevq">← Опит</button><button id="nextq">Опит →</button><button id="prevm">← Машина</button><button id="nextm">Машина →</button></div>
+  </div>
+  <div><div class="kick">${esc(r.machine_bg)} · ${esc(r.category)} · ${esc(r.id)}</div>
+    <h2>${esc(q[2])}</h2><div class="cond">${esc(q[3])}</div>
+    <p class="res">${esc(r.result)}</p>
+    <div class="bars">${bars}</div>
+    <div class="key"><b>Накратко:</b> ${esc(r.key_effects)}</div></div>`;
+  $("prevq").onclick=()=>step(0,-1);$("nextq").onclick=()=>step(0,1);$("prevm").onclick=()=>step(-1,0);$("nextm").onclick=()=>step(1,0);
+}
+function drawMachine(){
+  const mid=cur.split("-")[0],m=M.find(x=>x.id===mid);
+  $("mtitle").textContent="Всички 10 опита: "+m.name;
+  $("msel").value=mid;
+  $("strip").querySelectorAll(".thumb").forEach(t=>t.classList.toggle("on",t.dataset.m===mid));
+  $("cards").innerHTML=Q.map(q=>{const r=by[mid+"-"+q[0]];
+    return `<button class="card ${r.key===cur?"on":""}" data-e="${r.key}"><img loading="lazy" src="${img(r.id)}" alt="${esc(q[1])}"><div><b>${esc(q[1])}</b> — ${esc(r.key_effects)}<div class="dots">${MET.slice(0,4).map(([k,n])=>`<span title="${n}: ${r[k]}" style="background:${col(r[k])}"></span>`).join("")}</div></div></button>`}).join("");
+}
+function render(scroll){drawMetric();drawGrid();drawDetail();drawMachine();if(scroll)$("det").scrollIntoView({behavior:"smooth",block:"start"})}
+function go(k,scroll){if(!by[k])return;cur=k;try{history.replaceState(null,"","#"+k)}catch(e){}render(scroll)}
+function step(dm,dq){let [mid,qid]=cur.split("-");let mi=M.findIndex(x=>x.id===mid),qi=Q.findIndex(x=>x[0]===qid);
+  mi=(mi+dm+M.length)%M.length;qi=(qi+dq+Q.length)%Q.length;go(M[mi].id+"-"+Q[qi][0])}
+
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-e],[data-m],[data-k]");if(!b)return;
+  if(b.dataset.k){metric=b.dataset.k;try{localStorage.setItem("wi-metric",metric)}catch(_){}drawMetric();drawGrid();return}
+  if(b.dataset.e){go(b.dataset.e,!b.classList.contains("card"));return}
+  if(b.dataset.m){go(b.dataset.m+"-"+cur.split("-")[1])}
+});
+document.addEventListener("keydown",e=>{if(e.target.closest("select,input,textarea"))return;
+  if(e.key==="ArrowRight")step(0,1);else if(e.key==="ArrowLeft")step(0,-1)});
+$("msel").onchange=e=>go(e.target.value+"-"+cur.split("-")[1]);
+window.addEventListener("hashchange",()=>{const k=location.hash.slice(1);if(by[k]&&k!==cur)go(k)});
+
+fetch("data.json").then(r=>r.json()).then(rows=>{
+  D=rows;for(const r of D){r.key=r.machine_id+"-"+r.question_id;by[r.key]=r;if(!M.find(m=>m.id===r.machine_id))M.push({id:r.machine_id,name:r.machine_bg})}
+  $("msel").innerHTML=M.map((m,i)=>`<option value="${m.id}">${i+1}. ${esc(m.name)}</option>`).join("");
+  $("strip").innerHTML=M.map((m,i)=>`<button class="thumb" data-m="${m.id}"><img loading="lazy" src="${img(m.id)}" alt=""><span>${i+1}. ${esc(m.name)}</span></button>`).join("");
+  const h=location.hash.slice(1);if(by[h])cur=h;
+  render();
+}).catch(()=>{$("det").textContent="Данните не се заредиха. Презареди страницата."});
+}
+</script>
+<script src="../consent.js" defer></script>
+</body>
+</html>
