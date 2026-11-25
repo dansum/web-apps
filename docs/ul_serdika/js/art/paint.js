@@ -1,19 +1,21 @@
 // Everything is painted with brush strokes on <canvas>, in the manner of Vincent van Gogh
 // (Arles and Saint-Rémy period: chrome yellow, ultramarine, cobalt, viridian, vermilion).
 // Facade textures stay light, so a per-building colour can tint the plaster.
-import * as THREE from '../../ul_serdika/js/three.module.min.js';
+import * as THREE from '../three.module.min.js';
+import { STYLE } from './style.js';
 
 let seed = 1;
-const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
-const R = (a, b) => a + rnd() * (b - a);
-const pick = (a) => a[Math.floor(rnd() * a.length) % a.length];
+export const setSeed = (v) => { seed = v; };
+export const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+export const R = (a, b) => a + rnd() * (b - a);
+export const pick = (a) => a[Math.floor(rnd() * a.length) % a.length];
 
-function canvas(w, h = w) {
+export function canvas(w, h = w) {
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
   return [c, c.getContext('2d')];
 }
-function tex(c, { repeat = true, srgb = true, aniso = 8 } = {}) {
+export function tex(c, { repeat = true, srgb = true, aniso = 8 } = {}) {
   const t = new THREE.CanvasTexture(c);
   if (repeat) t.wrapS = t.wrapT = THREE.RepeatWrapping;
   if (srgb) t.colorSpace = THREE.SRGBColorSpace;
@@ -23,7 +25,7 @@ function tex(c, { repeat = true, srgb = true, aniso = 8 } = {}) {
 }
 
 // colour with a little random variation in lightness and hue
-function jit(hex, amt = 0.08) {
+export function jit(hex, amt = 0.08) {
   const c = new THREE.Color(hex);
   const hsl = {}; c.getHSL(hsl);
   c.setHSL((hsl.h + R(-0.015, 0.015) + 1) % 1, Math.min(1, Math.max(0, hsl.s + R(-amt, amt))), Math.min(1, Math.max(0, hsl.l + R(-amt, amt))));
@@ -69,7 +71,7 @@ export function stroke(g, x, y, len, wid, ang, color, { bend = 0, W = 0, H = 0, 
 }
 
 // Covers a rectangle with strokes. angle may be a number or a function (x, y) → angle.
-function fill(g, x0, y0, w, h, colors, { len = 40, wid = 14, angle = 0, spread = 0.35, density = 1.5, bend = 0.12, W = 0, H = 0, ridge = 1, jitter = 0.07 } = {}) {
+export function fill(g, x0, y0, w, h, colors, { len = 40, wid = 14, angle = 0, spread = 0.35, density = 1.5, bend = 0.12, W = 0, H = 0, ridge = 1, jitter = 0.07 } = {}) {
   const n = Math.ceil(density * w * h / (len * wid));
   for (let i = 0; i < n; i++) {
     const x = x0 + rnd() * w, y = y0 + rnd() * h;
@@ -79,7 +81,7 @@ function fill(g, x0, y0, w, h, colors, { len = 40, wid = 14, angle = 0, spread =
 }
 
 // wobbly outline, as if drawn with a loaded brush
-function wobblyRect(g, x, y, w, h, color, lw) {
+export function wobblyRect(g, x, y, w, h, color, lw) {
   g.strokeStyle = color; g.lineWidth = lw; g.lineJoin = 'round'; g.lineCap = 'round';
   const pts = [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
   g.beginPath();
@@ -91,7 +93,7 @@ function wobblyRect(g, x, y, w, h, color, lw) {
   g.stroke();
 }
 
-function clipRect(g, x, y, w, h, fn) { g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip(); fn(); g.restore(); }
+export function clipRect(g, x, y, w, h, fn) { g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip(); fn(); g.restore(); }
 
 // ---------------------------------------------------------------- palettes
 const PLASTER_LIGHT = ['#fbf4de', '#f6ecd0', '#fff6cf', '#eef1fa', '#f5ead9', '#fdf1c2', '#f1f4e4', '#f6e6e0'];
@@ -274,7 +276,7 @@ function awning() {
   for (let x = 0; x < 512; x += 64) { g.beginPath(); g.arc(x + 32, 230, 32, 0, Math.PI); g.stroke(); }
   return c;
 }
-function halo() {
+export function halo() {
   // concentric rings of strokes, like the lamps and stars of the Arles paintings
   const S = 256; const [c, g] = canvas(S);
   g.clearRect(0, 0, S, S);
@@ -291,7 +293,7 @@ function halo() {
   return c;
 }
 
-function pool() {
+export function pool() {
   const S = 256; const [c, g] = canvas(S);
   const gr = g.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
   gr.addColorStop(0, 'rgba(255,214,110,0.95)'); gr.addColorStop(0.45, 'rgba(255,190,80,0.45)'); gr.addColorStop(1, 'rgba(255,170,60,0)');
@@ -332,7 +334,7 @@ export function textTexture(lines, { bg = '#14365f', fg = '#ffffff', font = '600
   const toHand = (f) => {
     const m = f.match(/(\d{3})?\s*(\d+)px/);
     const size = m ? parseInt(m[2], 10) : 64;
-    return `700 ${Math.round(size * 1.25)}px "Caveat", "Marck Script", cursive`;
+    return `${STYLE.fontWeight} ${Math.round(size * STYLE.fontScale)}px ${STYLE.font}`;
   };
   const arr = (Array.isArray(lines) ? lines : [lines]).map((l) => (typeof l === 'string' ? { t: l, f: font } : l)).map((l) => ({ t: l.t, f: toHand(l.f || font) }));
   const [, m] = canvas(8);
@@ -342,8 +344,14 @@ export function textTexture(lines, { bg = '#14365f', fg = '#ffffff', font = '600
   const Hh = h || Math.ceil(lh.reduce((a, b) => a + b, 0) + pad * 1.1);
   const [c, g] = canvas(W, Hh);
   g.fillStyle = bg; g.fillRect(0, 0, W, Hh);
-  fill(g, 0, 0, W, Hh, [bg, jit(bg, 0.06), jit(bg, 0.1)], { len: Math.min(60, W / 3), wid: 14, angle: 0, spread: 0.2, density: 1.8, ridge: 0.7 });
-  wobblyRect(g, 5, 5, W - 10, Hh - 10, border || OUTLINE, 7);
+  if (STYLE.id === 'maistora') {
+    g.strokeStyle = '#2a1712'; g.lineWidth = 6; g.strokeRect(3, 3, W - 6, Hh - 6);
+    g.fillStyle = fg;
+    for (let x = 14; x < W - 8; x += 18) { g.beginPath(); g.arc(x, 13, 3.2, 0, 7); g.arc(x, Hh - 13, 3.2, 0, 7); g.fill(); }
+  } else {
+    fill(g, 0, 0, W, Hh, [bg, jit(bg, 0.06), jit(bg, 0.1)], { len: Math.min(60, W / 3), wid: 14, angle: 0, spread: 0.2, density: 1.8, ridge: 0.7 });
+    wobblyRect(g, 5, 5, W - 10, Hh - 10, border || OUTLINE, 7);
+  }
   g.textAlign = 'center'; g.textBaseline = 'middle';
   let y = (Hh - lh.reduce((a, b) => a + b, 0)) / 2;
   arr.forEach((s, i) => {
@@ -362,15 +370,16 @@ export function textTexture(lines, { bg = '#14365f', fg = '#ffffff', font = '600
 // ---------------------------------------------------------------- crooked world
 // Walls lean and bow a little more the higher they go, like the houses at Auvers.
 // Applied to every material in world space, so neighbouring surfaces stay joined.
+const num = (v) => v.toFixed(4);
 export const WOBBLE_GLSL = `
 vec3 vgWobble(vec3 p) {
   float h = clamp(p.y, 0.0, 80.0);
-  float lean = h * 0.028;
+  float lean = h * ${num(STYLE.wobble.lean)};
   float f = smoothstep(0.0, 2.5, h);
   return vec3(
-    sin(p.z * 0.045 + p.x * 0.013) * lean + sin(p.y * 0.33 + p.x * 0.11 + p.z * 0.05) * 0.14 * f,
-    sin(p.x * 0.08 + p.z * 0.07) * 0.08 * f,
-    cos(p.x * 0.05 - p.z * 0.017) * lean + sin(p.y * 0.29 + p.z * 0.12 - p.x * 0.04) * 0.14 * f);
+    sin(p.z * 0.045 + p.x * 0.013) * lean + sin(p.y * 0.33 + p.x * 0.11 + p.z * 0.05) * ${num(STYLE.wobble.ripple)} * f,
+    sin(p.x * 0.08 + p.z * 0.07) * ${num(STYLE.wobble.ripple * 0.6)} * f,
+    cos(p.x * 0.05 - p.z * 0.017) * lean + sin(p.y * 0.29 + p.z * 0.12 - p.x * 0.04) * ${num(STYLE.wobble.ripple)} * f);
 }
 `;
 function patchVertex(sh) {
@@ -396,7 +405,7 @@ export function paintify(mat) {
   patched.add(mat);
   const prev = mat.onBeforeCompile;
   mat.onBeforeCompile = (sh, r) => { if (prev) prev(sh, r); patchVertex(sh); };
-  mat.customProgramCacheKey = () => 'vg-wobble';
+  mat.customProgramCacheKey = () => 'vg-wobble-' + STYLE.id;
   mat.needsUpdate = true;
   return mat;
 }

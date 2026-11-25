@@ -2,6 +2,7 @@ import * as THREE from './three.module.min.js';
 import { makeTextures } from './textures.js';
 import { geocode, fetchArea, parse, makeProjection, readCache, writeCache, clearCache, readSnapshot, LOAD_RADIUS, WALK_RADIUS } from './osm.js';
 import { buildWorld, paintTrees, displayStreet } from './world.js';
+import { mountSwitcher, readState, clearState } from './switcher.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -28,7 +29,6 @@ const I18N = {
     attribution: 'Данни © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">сътрудниците на OpenStreetMap</a>',
     lockHint: 'Щракни, за да оглеждаш с мишката',
     donate: 'Стани дарител', donateUrl: 'https://obr.education/stani-daritel/',
-    vg: 'Същата разходка, нарисувана като Ван Гог →',
   },
   en: {
     kicker: '3D walk · Sofia city centre',
@@ -51,7 +51,6 @@ const I18N = {
     attribution: 'Data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>',
     lockHint: 'Click to look around with the mouse',
     donate: 'Donate', donateUrl: 'https://obr.education/en/donate/',
-    vg: 'The same walk, painted like Van Gogh →',
   },
 };
 let lang = 'bg';
@@ -81,7 +80,7 @@ function applyLang() {
   $('btn-fs').title = $('btn-fs').ariaLabel = t().fullscreen;
   $('lock-hint').textContent = t().lockHint;
   $('donate').textContent = t().donate; $('donate').href = t().donateUrl;
-  $('vg').textContent = t().vg;
+  mountSwitcher('real', lang, saveState);
   if (world) { $('stats').textContent = t().stats(world.stats); $('source').textContent = t().source[center.source] || ''; }
   document.title = lang === 'bg' ? 'ул. „Сердика“ 20 · 3D разходка' : '20 Serdika St · 3D walk';
 }
@@ -263,6 +262,7 @@ async function load(force = false) {
     $('progress').hidden = true;
     $('go').disabled = false;
     applyLang();
+    if (pendingGo) { pendingGo = false; startWalk(); }
   } catch (e) {
     console.error(e);
     $('progress').hidden = true;
@@ -313,7 +313,28 @@ function build(data) {
   }
   if (world.insideBuilding(home.x, home.z, 0.2)) { home.x = 0; home.z = 0; }
   goHome();
+  applyState();
   drawStaticMap();
+}
+
+// ---------------------------------------------------------------- style switch: keep place, view, time and season
+let pendingGo = false;
+function saveState() {
+  if (!world) return null;
+  return { x: player.x.toFixed(2), z: player.z.toFixed(2), yaw: player.yaw.toFixed(3), pitch: player.pitch.toFixed(3), h: hour, s: $('season').value, go: started ? 1 : 0 };
+}
+function applyState() {
+  const st = readState();
+  if (!st) return;
+  clearState();
+  if (Math.hypot(st.x, st.z) <= WALK_RADIUS && !world.insideBuilding(st.x, st.z, 0.2)) {
+    player.x = st.x; player.z = st.z;
+    if (Number.isFinite(st.yaw)) player.yaw = st.yaw;
+    if (Number.isFinite(st.pitch)) player.pitch = THREE.MathUtils.clamp(st.pitch, -1.35, 1.35);
+  }
+  if (Number.isFinite(st.h)) { hour = THREE.MathUtils.clamp(st.h, +$('hour').min, +$('hour').max); $('hour').value = hour; applyTime(); }
+  if (st.s && [...$('season').options].some((o) => o.value === st.s)) { $('season').value = st.s; $('season').dispatchEvent(new Event('change')); }
+  pendingGo = st.go;
 }
 
 function goHome() { player.x = home.x; player.z = home.z; player.yaw = home.yaw; player.pitch = 0.06; }
@@ -403,7 +424,7 @@ function startWalk() {
   if (!ready) return;
   started = true; paused = false;
   $('start').hidden = true; $('hud').hidden = false;
-  if (canLock) canvas.requestPointerLock();
+  if (canLock) { try { const p = canvas.requestPointerLock(); if (p && p.catch) p.catch(() => {}); } catch { /* needs a click */ } }
   $('lock-hint').hidden = isTouch || canLock === false;
 }
 function pause() {

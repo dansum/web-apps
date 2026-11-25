@@ -65,3 +65,16 @@ node tools/fetch-osm.mjs
 | `js/three.module.min.js` | three.js r160 (MIT) |
 | `data/osm.json` | снимка на данните от OSM |
 | `tools/fetch-osm.mjs` | обновява снимката |
+
+## Стилове
+
+Разходката има три стила. Превключвателят „Стил“ е на началния екран и в настройките.
+Той пази мястото, посоката, часа и сезона.
+
+| Стил | Страница | Код |
+| --- | --- | --- |
+| Истински | `ul_serdika/` | `js/main.js`, `js/world.js`, `js/textures.js` |
+| По Ван Гог | `ul_serdika_vangogh/` | `js/art/` с `data-style="vangogh"` |
+| По Майстора | `ul_serdika_maistora/` | `js/art/` с `data-style="maistora"` |
+
+`js/switcher.js` е превключвателят, общ за трите страници.

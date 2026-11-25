@@ -1,8 +1,11 @@
-// The 20 Serdika St walk, painted in the manner of Van Gogh.
-// Based on ../../ul_serdika/js/main.js; the data, the OSM code and three.js are shared with the realistic walk.
-import * as THREE from '../../ul_serdika/js/three.module.min.js';
+// The 20 Serdika St walk as a painting: after Van Gogh or after Vladimir Dimitrov – the Master (see style.js).
+// Based on ../main.js (the realistic walk); the data, the OSM code and three.js are shared with it.
+import * as THREE from '../three.module.min.js';
 import { makeTextures, paintify, depthMaterialFor } from './paint.js';
-import { geocode, fetchArea, parse, makeProjection, readCache, writeCache, clearCache, LOAD_RADIUS, WALK_RADIUS } from '../../ul_serdika/js/osm.js';
+import { makeTexturesMaistora } from './maistora.js';
+import { STYLE } from './style.js';
+import { mountSwitcher, readState, clearState } from '../switcher.js';
+import { geocode, fetchArea, parse, makeProjection, readCache, writeCache, clearCache, LOAD_RADIUS, WALK_RADIUS } from '../osm.js';
 import { buildWorld, paintTrees } from './world.js';
 
 async function readSnapshot() {
@@ -19,10 +22,9 @@ const $ = (id) => document.getElementById(id);
 // ---------------------------------------------------------------- language
 const I18N = {
   bg: {
-    kicker: 'Разходка в 3D · по Ван Гог',
+    kicker: STYLE.text.bg.kicker,
     title: 'ул. „Сердика“ 20',
-    lede: 'Същите улици в радиус 200 метра около ул. „Сердика“ №20, но нарисувани с маслени бои, както би ги нарисувал Винсент ван Гог: накривени стени, вихрено небе, мазки по всичко, кипариси и кафенета с жълти тенти. Сградите, улиците и надписите са от реалните данни на OpenStreetMap. Плъзни часа към вечерта за звездна нощ.',
-    real: 'Към истинската версия →',
+    lede: STYLE.text.bg.lede,
     keys: [['W A S D / стрелки', 'ходене'], ['мишка', 'оглеждане (щракни в картината)'], ['Shift', 'по-бързо'], ['M', 'карта'], ['H', 'обратно пред №20'], ['Esc', 'пауза']],
     touch: 'На телефон: левият палец ходи, плъзгането вдясно оглежда.',
     start: 'Тръгни', resume: 'Продължи', loading: 'Зареждам…',
@@ -42,10 +44,9 @@ const I18N = {
     donate: 'Стани дарител', donateUrl: 'https://obr.education/stani-daritel/',
   },
   en: {
-    kicker: '3D walk · after Van Gogh',
+    kicker: STYLE.text.en.kicker,
     title: '20 Serdika Street',
-    lede: 'The same streets within 200 metres of 20 Serdika Street, painted in oils the way Vincent van Gogh might have painted them: leaning walls, a swirling sky, brush strokes on everything, cypresses and cafés with yellow awnings. Buildings, streets and signs come from real OpenStreetMap data. Slide the time towards evening for a starry night.',
-    real: 'To the realistic version →',
+    lede: STYLE.text.en.lede,
     keys: [['W A S D / arrows', 'walk'], ['mouse', 'look around (click the picture)'], ['Shift', 'faster'], ['M', 'map'], ['H', 'back to No. 20'], ['Esc', 'pause']],
     touch: 'On a phone: the left thumb walks, dragging on the right looks around.',
     start: 'Start walking', resume: 'Resume', loading: 'Loading…',
@@ -93,8 +94,8 @@ function applyLang() {
   $('lock-hint').textContent = t().lockHint;
   $('donate').textContent = t().donate; $('donate').href = t().donateUrl;
   if (world) { $('stats').textContent = t().stats(world.stats); $('source').textContent = t().source[center.source] || ''; }
-  $('real').textContent = t().real;
-  document.title = lang === 'bg' ? 'ул. „Сердика“ 20 · по Ван Гог' : '20 Serdika St · after Van Gogh';
+  mountSwitcher(STYLE.id, lang, saveState);
+  document.title = STYLE.text[lang].title;
 }
 
 // ---------------------------------------------------------------- renderer & scene
@@ -229,10 +230,95 @@ void main() {
   if (el < -0.01) c = horizon * 0.9;
   gl_FragColor = vec4(c, 1.0);
 }`;
+// The Master's sky: flat bands of turquoise and lime, round outlined clouds, a sun with petal rays,
+// and at night eight-pointed folk stars with a yellow crescent.
+const FOLK_FRAG = `
+uniform float time, night, dusk; uniform vec3 sunDir, moonDir, horizon;
+varying vec3 vP;
+float h1(float n) { return fract(sin(n * 127.1) * 43758.5453); }
+float h3(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+const vec3 INK = vec3(0.02, 0.008, 0.006);
+// local 2D coordinates around a direction c
+vec2 local(vec3 d, vec3 c) { vec3 u = normalize(cross(c, vec3(0.0, 1.0, 0.0)) + 1e-5), v = cross(u, c); return vec2(dot(d, u), dot(d, v)) / max(dot(d, c), 1e-3); }
+void main() {
+  vec3 d = normalize(vP);
+  float el = asin(clamp(d.y, -1.0, 1.0)), az = atan(d.x, -d.z);
+  // flat bands
+  float t = clamp(el / 1.3, 0.0, 1.0), q = floor(t * 7.0) / 7.0;
+  vec3 dayC = mix(vec3(0.55, 0.78, 0.14), vec3(0.03, 0.45, 0.42), smoothstep(0.0, 0.45, q));
+  dayC = mix(dayC, vec3(0.03, 0.13, 0.52), smoothstep(0.4, 1.0, q));
+  vec3 duskC = mix(vec3(0.95, 0.35, 0.03), vec3(0.75, 0.1, 0.18), smoothstep(0.0, 0.6, q));
+  vec3 nightC = mix(vec3(0.02, 0.05, 0.28), vec3(0.005, 0.01, 0.12), smoothstep(0.0, 0.8, q));
+  vec3 c = mix(mix(dayC, duskC, dusk * (1.0 - q)), nightC, night);
+  if (abs(fract(t * 7.0) - 0.5) > 0.47 && el > 0.02) c *= 0.93;   // thin seams between the bands
+  // clouds: round puffs with a dark outline, in two rows, drifting slowly
+  for (int row = 0; row < 2; row++) {
+    float rEl = row == 0 ? 0.32 : 0.62, N = row == 0 ? 9.0 : 7.0;
+    float cw = 6.2831853 / N, a = az + 3.14159 + time * 0.004 * (row == 0 ? 1.0 : -0.7);
+    float cell = floor(a / cw), fx = (fract(a / cw) - 0.5) * cw * cos(rEl) * 5.0, fy = (el - rEl) * 5.0;
+    float hc = h1(cell + float(row) * 17.0);
+    if (hc < 0.62) {
+      float dmin = 1e3;
+      for (int k = 0; k < 4; k++) {
+        float kx = (float(k) - 1.5) * 0.36, ky = k == 1 || k == 2 ? 0.14 : 0.0, rr = k == 1 || k == 2 ? 0.34 : 0.26;
+        dmin = min(dmin, length(vec2(fx - kx, max(fy - ky, -0.12 + ky) - 0.0)) - rr);
+      }
+      dmin = max(dmin, -fy - 0.12);
+      vec3 cloudC = mix(vec3(0.96, 0.88, 0.7), vec3(0.25, 0.3, 0.65), night);
+      if (dmin < 0.0) c = cloudC;
+      if (abs(dmin) < 0.035) c = INK;
+    }
+  }
+  // sun with petal rays
+  vec2 ls = local(d, normalize(sunDir));
+  if (night < 0.95 && dot(d, sunDir) > 0.0) {
+    float r = length(ls), ang = atan(ls.y, ls.x);
+    float pet = abs(fract(ang * 12.0 / 6.2831853) * 2.0 - 1.0);
+    float rayR = 0.11 + 0.08 * (1.0 - pet);
+    vec3 sc = c;
+    if (r < rayR) sc = mod(floor(ang * 12.0 / 6.2831853), 2.0) < 1.0 ? vec3(0.9, 0.25, 0.01) : vec3(0.68, 0.02, 0.03);
+    if (abs(r - rayR) < 0.006) sc = INK;
+    if (r < 0.09) sc = vec3(0.92, 0.55, 0.0);
+    if (abs(r - 0.09) < 0.006) sc = INK;
+    c = mix(c, sc, 1.0 - night);
+  }
+  if (night > 0.05) {
+    // crescent moon
+    vec2 lm = local(d, moonDir);
+    if (dot(d, moonDir) > 0.0) {
+      float rm = length(lm), rc = length(lm - vec2(0.03, 0.02));
+      vec3 mc = c;
+      if (rm < 0.07 && rc > 0.062) mc = vec3(0.95, 0.65, 0.03);
+      if (abs(rm - 0.07) < 0.005 && rc > 0.062) mc = INK;
+      c = mix(c, mc, night);
+    }
+    // eight-pointed stars
+    if (el > 0.12) {
+      vec3 s = d * 8.0, cell = floor(s);
+      if (h3(cell) > 0.6) {
+        vec3 sp = normalize(cell + vec3(h3(cell + 1.3), h3(cell + 2.1), h3(cell + 3.7)) * 0.5 + 0.25);
+        vec2 l = local(d, sp);
+        if (dot(d, sp) > 0.0) {
+          float r = length(l), ang = atan(l.y, l.x), big = 0.012 + 0.016 * h3(cell + 5.0);
+          float star = big * (0.45 + 0.55 * pow(abs(cos(ang * 4.0)), 3.0));
+          vec3 st = c;
+          if (r < star) st = vec3(1.0, 0.85, 0.3);
+          if (abs(r - star) < 0.0025) st = INK;
+          if (r < big * 0.25) st = vec3(0.68, 0.02, 0.03);
+          c = mix(c, st, night);
+        }
+      }
+    }
+  }
+  float hz = smoothstep(0.08, -0.02, el);
+  c = mix(c, horizon, hz * 0.7);
+  if (el < -0.01) c = horizon * 0.9;
+  gl_FragColor = vec4(c, 1.0);
+}`;
 const sky = new THREE.Mesh(new THREE.SphereGeometry(6000, 48, 24), new THREE.ShaderMaterial({
   side: THREE.BackSide, depthWrite: false, fog: false, uniforms: skyUniforms,
   vertexShader: 'varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
-  fragmentShader: SKY_FRAG,
+  fragmentShader: STYLE.sky === 'folk' ? FOLK_FRAG : SKY_FRAG,
 }));
 sky.frustumCulled = false;
 scene.add(sky);
@@ -246,7 +332,11 @@ renderer.getDrawingBufferSize(rtSize);
 const rt = new THREE.WebGLRenderTarget(rtSize.x, rtSize.y, { type: THREE.HalfFloatType, depthTexture: new THREE.DepthTexture(rtSize.x, rtSize.y) });
 const postUniforms = {
   tColor: { value: rt.texture }, tDepth: { value: rt.depthTexture }, res: { value: rtSize.clone() },
-  cameraNear: { value: 0.25 }, cameraFar: { value: 7000 }, night: { value: 0 }, brush: { value: 1.6 },
+  cameraNear: { value: 0.25 }, cameraFar: { value: 7000 }, night: { value: 0 }, brush: { value: STYLE.post.brush },
+  posterize: { value: STYLE.post.posterize }, edgeAmt: { value: STYLE.post.edge }, edgeLo: { value: STYLE.post.edgeLo }, edgeHi: { value: STYLE.post.edgeHi },
+  broken: { value: STYLE.post.broken }, edgeColor: { value: new THREE.Color(STYLE.post.edgeColor) }, sat: { value: STYLE.post.sat },
+  shadowTint: { value: new THREE.Vector3(...STYLE.post.shadow) }, shadowAmt: { value: STYLE.post.shadowAmt }, warmTint: { value: new THREE.Vector3(...STYLE.post.warm) },
+  weave: { value: STYLE.post.weave }, relief: { value: STYLE.post.relief },
 };
 const post = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({
   uniforms: postUniforms, depthTest: false, depthWrite: false,
@@ -254,6 +344,8 @@ const post = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMater
   fragmentShader: `
     #include <packing>
     uniform sampler2D tColor, tDepth; uniform vec2 res; uniform float cameraNear, cameraFar, night, brush;
+    uniform float posterize, edgeAmt, edgeLo, edgeHi, broken, sat, shadowAmt, weave, relief;
+    uniform vec3 edgeColor, shadowTint, warmTint;
     varying vec2 vUv;
     float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
     float noise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -288,21 +380,22 @@ const post = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMater
       float lL = lum(texture2D(tColor, vUv - vec2(p1.x * 1.5, 0.0)).rgb), lR = lum(texture2D(tColor, vUv + vec2(p1.x * 1.5, 0.0)).rgb);
       float lD = lum(texture2D(tColor, vUv - vec2(0.0, p1.y * 1.5)).rgb), lU = lum(texture2D(tColor, vUv + vec2(0.0, p1.y * 1.5)).rgb);
       float le = abs(lR - lL) + abs(lU - lD);
-      float edge = smoothstep(0.035, 0.12, de) + 0.55 * smoothstep(0.18, 0.45, le / (0.2 + lum(col)));
-      edge *= smoothstep(0.15, 0.55, noise(gl_FragCoord.xy * vec2(0.09, 0.13)));    // broken, brushy lines
+      float edge = smoothstep(edgeLo, edgeHi, de) + 0.55 * smoothstep(0.18, 0.45, le / (0.2 + lum(col)));
+      edge *= mix(1.0, smoothstep(0.15, 0.55, noise(gl_FragCoord.xy * vec2(0.09, 0.13))), broken);    // broken, brushy lines
       edge *= 1.0 - smoothstep(160.0, 380.0, d0);                                   // fade with distance
       gl_FragColor = vec4(col, 1.0);
       #include <tonemapping_fragment>
       #include <colorspace_fragment>
       vec3 c = gl_FragColor.rgb;
       float l = lum(c);
-      c = mix(vec3(l), c, 1.4);                                        // stronger colour
-      c = mix(c, c * vec3(0.72, 0.84, 1.3), (1.0 - l) * (0.35 + 0.25 * night));  // blue-violet shadows
-      c = mix(c, c * vec3(1.12, 1.05, 0.82), l * l * 0.35);           // warm, yellow light
-      c *= 1.0 + clamp((lL - lR + lU - lD) * 0.9, -0.1, 0.1);           // paint relief, lit from the upper left
-      c = mix(c, vec3(0.1, 0.15, 0.36), clamp(edge, 0.0, 1.0) * 0.8);  // ultramarine contour
+      c = mix(vec3(l), c, sat);                                        // stronger colour
+      c = mix(c, c * shadowTint, (1.0 - l) * (shadowAmt + 0.25 * night)); // tinted shadows
+      c = mix(c, c * warmTint, l * l * 0.35);                         // warm light
+      if (posterize > 0.0) c = floor(c * posterize + 0.5) / posterize; // flat fields of colour
+      c *= 1.0 + relief * clamp((lL - lR + lU - lD) * 0.9, -0.1, 0.1);  // paint relief, lit from the upper left
+      c = mix(c, edgeColor, clamp(edge, 0.0, 1.0) * edgeAmt);           // contour
       vec2 fc = gl_FragCoord.xy;
-      c += sin(fc.x * 1.9) * sin(fc.y * 2.1) * 0.022 + (noise(fc * 0.7) - 0.5) * 0.035;  // canvas weave
+      c += weave * (sin(fc.x * 1.9) * sin(fc.y * 2.1) * 0.022 + (noise(fc * 0.7) - 0.5) * 0.035);  // canvas or board
       vec2 q = vUv - 0.5; c *= 1.0 - dot(q, q) * 0.35;                // soft vignette
       gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
     }`,
@@ -388,7 +481,9 @@ function applyTime() {
   if (alt < 0.02) sunDir.y = Math.max(sunDir.y, 0.02);
   const day = THREE.MathUtils.clamp(alt / 0.35, 0, 1), dusk = THREE.MathUtils.clamp(1 - Math.abs(alt - 0.04) / 0.14, 0, 1);
   const night = THREE.MathUtils.clamp(-alt / 0.15, 0, 1);
-  const horC = new THREE.Color('#c9dcec').lerp(new THREE.Color('#f2b870'), dusk * 0.75).lerp(new THREE.Color('#2a3a78'), night);
+  const horC = STYLE.sky === 'folk'
+    ? new THREE.Color('#d8eba0').lerp(new THREE.Color('#f5b04a'), dusk * 0.75).lerp(new THREE.Color('#1f2f78'), night)
+    : new THREE.Color('#c9dcec').lerp(new THREE.Color('#f2b870'), dusk * 0.75).lerp(new THREE.Color('#2a3a78'), night);
   skyUniforms.horizon.value.copy(horC);
   skyUniforms.sunDir.value.copy(sunDir);
   skyUniforms.night.value = night;
@@ -397,9 +492,9 @@ function applyTime() {
   scene.fog.color.copy(horC);
   scene.fog.near = 120; scene.fog.far = 560 - night * 140;
   sun.color.set('#fff0c8').lerp(new THREE.Color('#ffa050'), dusk * 0.8);
-  sun.intensity = alt > 0 ? 0.8 + 2.4 * day : 0;
+  sun.intensity = (alt > 0 ? 0.8 + 2.4 * day : 0) * STYLE.light.sun;
   // Van Gogh's nights are blue, never black
-  hemi.intensity = 0.45 + 0.7 * day + 0.75 * night;
+  hemi.intensity = (0.45 + 0.7 * day + 0.75 * night) * STYLE.light.hemi;
   hemi.color.set('#d8e8ff').lerp(new THREE.Color('#ffd2a0'), dusk * 0.5).lerp(new THREE.Color('#5a78e0'), night);
   hemi.groundColor.set('#c8a878').lerp(new THREE.Color('#3a3a90'), night);
   // by night a blue moonlight casts the shadows
@@ -447,7 +542,7 @@ async function load(force = false) {
       writeCache(center, data);
     }
     setStatus(t().st.fonts);
-    try { await Promise.race([Promise.all([document.fonts.load('700 80px "Caveat"'), document.fonts.load('700 40px "Caveat"')]), new Promise((r) => setTimeout(r, 2500))]); } catch { /* fonts are optional */ }
+    try { await Promise.race([Promise.all([document.fonts.load(`${STYLE.fontWeight} 80px ${STYLE.font}`), document.fonts.load(`${STYLE.fontWeight} 40px ${STYLE.font}`)]), new Promise((r) => setTimeout(r, 2500))]); } catch { /* fonts are optional */ }
     setStatus(t().st.build);
     await new Promise((r) => setTimeout(r, 30));
     build(data);
@@ -455,6 +550,7 @@ async function load(force = false) {
     $('progress').hidden = true;
     $('go').disabled = false;
     applyLang();
+    if (pendingGo) { pendingGo = false; startWalk(); }
   } catch (e) {
     console.error(e);
     $('progress').hidden = true;
@@ -467,7 +563,7 @@ function build(data) {
   if (world) { scene.remove(world.group); world.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); }
   const proj = makeProjection(center.lat, center.lon);
   const F = parse(data, proj);
-  if (!textures) textures = makeTextures(renderer.capabilities.getMaxAnisotropy());
+  if (!textures) textures = (STYLE.id === 'maistora' ? makeTexturesMaistora : makeTextures)(renderer.capabilities.getMaxAnisotropy());
   world = buildWorld(F, { textures, target: center, loadRadius: LOAD_RADIUS });
   scene.add(world.group);
   // the crooked world: every surface bends with the same function, shadows too
@@ -493,7 +589,7 @@ function build(data) {
   spots.forEach((p, i) => pools.setMatrixAt(i, new THREE.Matrix4().compose(new THREE.Vector3(p[0], 0.06, p[1]), new THREE.Quaternion(), new THREE.Vector3(p[2], 1, p[2]))));
   pools.frustumCulled = false;
   scene.add(pools);
-  paintTrees(world.crowns, $('season').value);
+  paintTrees(world.crowns, $('season').value, textures);
   applyTime();
   // starting point: across the street from No. 20, looking at it
   home = { x: 0, z: 0, yaw: 0 };
@@ -528,7 +624,28 @@ function build(data) {
   }
   if (world.insideBuilding(home.x, home.z, 0.2)) { home.x = 0; home.z = 0; }
   goHome();
+  applyState();
   drawStaticMap();
+}
+
+// ---------------------------------------------------------------- style switch: keep place, view, time and season
+let pendingGo = false;
+function saveState() {
+  if (!world) return null;
+  return { x: player.x.toFixed(2), z: player.z.toFixed(2), yaw: player.yaw.toFixed(3), pitch: player.pitch.toFixed(3), h: hour, s: $('season').value, go: started ? 1 : 0 };
+}
+function applyState() {
+  const st = readState();
+  if (!st) return;
+  clearState();
+  if (Math.hypot(st.x, st.z) <= WALK_RADIUS && !world.insideBuilding(st.x, st.z, 0.2)) {
+    player.x = st.x; player.z = st.z;
+    if (Number.isFinite(st.yaw)) player.yaw = st.yaw;
+    if (Number.isFinite(st.pitch)) player.pitch = THREE.MathUtils.clamp(st.pitch, -1.35, 1.35);
+  }
+  if (Number.isFinite(st.h)) { hour = THREE.MathUtils.clamp(st.h, +$('hour').min, +$('hour').max); $('hour').value = hour; applyTime(); }
+  if (st.s && [...$('season').options].some((o) => o.value === st.s)) { $('season').value = st.s; $('season').dispatchEvent(new Event('change')); }
+  pendingGo = st.go;
 }
 
 function goHome() { player.x = home.x; player.z = home.z; player.yaw = home.yaw; player.pitch = 0.06; }
@@ -618,7 +735,7 @@ function startWalk() {
   if (!ready) return;
   started = true; paused = false;
   $('start').hidden = true; $('hud').hidden = false;
-  if (canLock) canvas.requestPointerLock();
+  if (canLock) { try { const p = canvas.requestPointerLock(); if (p && p.catch) p.catch(() => {}); } catch { /* needs a click */ } }
   $('lock-hint').hidden = isTouch || canLock === false;
 }
 function pause() {
@@ -639,7 +756,7 @@ $('btn-settings').addEventListener('click', () => { $('panel').hidden = !$('pane
 $('btn-help').addEventListener('click', pause);
 $('btn-fs').addEventListener('click', () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen?.().catch(() => {}); });
 $('hour').addEventListener('input', (e) => { hour = parseFloat(e.target.value); applyTime(); });
-$('season').addEventListener('change', (e) => { if (world) paintTrees(world.crowns, e.target.value); });
+$('season').addEventListener('change', (e) => { if (world) paintTrees(world.crowns, e.target.value, textures); });
 $('shadows').addEventListener('change', (e) => { renderer.shadowMap.enabled = e.target.checked; scene.traverse((o) => { if (o.material) o.material.needsUpdate = true; }); });
 document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => { $(b.dataset.close).hidden = true; }));
 $('minimap').addEventListener('click', toggleMap);
