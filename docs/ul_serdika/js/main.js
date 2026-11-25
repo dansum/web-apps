@@ -3,6 +3,10 @@ import { makeTextures } from './textures.js';
 import { geocode, fetchArea, parse, makeProjection, readCache, writeCache, clearCache, readSnapshot, LOAD_RADIUS, WALK_RADIUS } from './osm.js';
 import { buildWorld, paintTrees, displayStreet } from './world.js';
 import { mountSwitcher, readState, clearState } from './switcher.js';
+import { createLabels } from './labels.js';
+import { createTrams } from './trams.js';
+import { createRain } from './rain.js';
+import { createSound } from './sound.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -12,7 +16,7 @@ const I18N = {
     kicker: 'Разходка в 3D · София, център',
     title: 'ул. „Сердика“ 20',
     lede: 'Сградите, улиците, дърветата, магазините и адресите в радиус 200 метра около ул. „Сердика“ №20 са построени от реалните данни на OpenStreetMap. Височините идват от броя етажи в картата. Където етажите не са въведени, височината е приблизителна.',
-    keys: [['W A S D / стрелки', 'ходене'], ['мишка', 'оглеждане (щракни в картината)'], ['Shift', 'по-бързо'], ['M', 'карта'], ['H', 'обратно пред №20'], ['Esc', 'пауза']],
+    keys: [['W A S D / стрелки', 'ходене'], ['мишка', 'оглеждане (щракни в картината)'], ['Shift', 'по-бързо'], ['Интервал', 'скок'], ['N', 'адреси на сградите'], ['R', 'дъжд'], ['M', 'карта'], ['H', 'обратно пред №20'], ['Esc', 'пауза']],
     touch: 'На телефон: левият палец ходи, плъзгането вдясно оглежда.',
     start: 'Тръгни', resume: 'Продължи', loading: 'Зареждам…',
     st: { geo: 'Търся адреса в OpenStreetMap…', data: 'Тегля сградите и улиците наоколо…', build: 'Строя града…', fonts: 'Подготвям надписите…', snap: 'Чета запазените данни…', mirror: (h) => `Сървър: ${h}` },
@@ -28,13 +32,15 @@ const I18N = {
     source: { address: 'Адресът е намерен в OpenStreetMap.', street: 'Номер 20 липсва в OpenStreetMap, затова тръгваш от средата на ул. „Сердика“.', fallback: 'Адресът не беше намерен; тръгваш от ул. „Сердика“.' },
     attribution: 'Данни © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">сътрудниците на OpenStreetMap</a>',
     lockHint: 'Щракни, за да оглеждаш с мишката',
+    addresses: 'Адреси на сградите', rainL: 'Дъжд', soundL: 'Звуци', jumpL: 'Скок',
+    addrOn: 'Адресите са включени.', addrOff: 'Адресите са изключени.', rainOn: 'Вали.', rainOff: 'Спря да вали.',
     donate: 'Стани дарител', donateUrl: 'https://obr.education/stani-daritel/',
   },
   en: {
     kicker: '3D walk · Sofia city centre',
     title: '20 Serdika Street',
     lede: 'Buildings, streets, trees, shops and addresses within 200 metres of 20 Serdika Street are built from real OpenStreetMap data. Heights come from the number of floors in the map. Where floors are missing, the height is an estimate.',
-    keys: [['W A S D / arrows', 'walk'], ['mouse', 'look around (click the picture)'], ['Shift', 'faster'], ['M', 'map'], ['H', 'back to No. 20'], ['Esc', 'pause']],
+    keys: [['W A S D / arrows', 'walk'], ['mouse', 'look around (click the picture)'], ['Shift', 'faster'], ['Space', 'jump'], ['N', 'building addresses'], ['R', 'rain'], ['M', 'map'], ['H', 'back to No. 20'], ['Esc', 'pause']],
     touch: 'On a phone: the left thumb walks, dragging on the right looks around.',
     start: 'Start walking', resume: 'Resume', loading: 'Loading…',
     st: { geo: 'Looking up the address in OpenStreetMap…', data: 'Downloading the buildings and streets around it…', build: 'Building the city…', fonts: 'Preparing the signs…', snap: 'Reading saved data…', mirror: (h) => `Server: ${h}` },
@@ -50,6 +56,8 @@ const I18N = {
     source: { address: 'The address was found in OpenStreetMap.', street: 'No. 20 is not in OpenStreetMap, so you start in the middle of Serdika Street.', fallback: 'The address was not found; you start on Serdika Street.' },
     attribution: 'Data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>',
     lockHint: 'Click to look around with the mouse',
+    addresses: 'Building addresses', rainL: 'Rain', soundL: 'Sounds', jumpL: 'Jump',
+    addrOn: 'Addresses on.', addrOff: 'Addresses off.', rainOn: 'It is raining.', rainOff: 'The rain has stopped.',
     donate: 'Donate', donateUrl: 'https://obr.education/en/donate/',
   },
 };
@@ -71,6 +79,8 @@ function applyLang() {
   $('lbl-hour').textContent = t().hour;
   $('lbl-season').textContent = t().season;
   $('lbl-shadows').textContent = t().shadows;
+  $('lbl-addresses').textContent = t().addresses; $('lbl-rain').textContent = t().rainL; $('lbl-sound').textContent = t().soundL;
+  $('btn-jump').title = $('btn-jump').ariaLabel = t().jumpL;
   $('refresh').textContent = t().refresh;
   [...$('season').options].forEach((o) => { o.textContent = t().seasons[o.value]; });
   $('btn-home').title = $('btn-home').ariaLabel = t().home;
@@ -214,6 +224,8 @@ function applyTime() {
   sun.color.set(0xfff4e2).lerp(new THREE.Color(0xffa860), dusk * 0.8);
   sun.intensity = alt > 0 ? 0.6 + 2.4 * day : 0;
   hemi.intensity = 0.35 + 0.75 * day - 0.25 * night;
+  base = { sun: sun.intensity, hemi: hemi.intensity, near: scene.fog.near, far: scene.fog.far, fog: scene.fog.color.clone(), top: topC.clone(), hor: horC.clone(), sunCol: skyUniforms.sunCol.value.clone(), day, night };
+  lastRain = -1;
   hemi.color.set(0xdbe8f5).lerp(new THREE.Color(0xffd2a8), dusk * 0.5);
   renderer.toneMappingExposure = 1.05 + night * 0.4;
   if (world) {
@@ -227,7 +239,7 @@ function applyTime() {
 
 // ---------------------------------------------------------------- state
 let world = null, center = null, ready = false, started = false, paused = true;
-const player = { x: 0, z: 0, yaw: 0, pitch: -0.04, eye: 1.65, bob: 0 };
+const player = { x: 0, z: 0, yaw: 0, pitch: -0.04, eye: 1.65, bob: 0, vy: 0, jy: 0 };
 let home = { x: 0, z: 0, yaw: 0 };
 let textures = null;
 
@@ -312,16 +324,56 @@ function build(data) {
     if (lines.length) { const p = lines[0].pts[Math.floor(lines[0].pts.length / 2)]; home = { x: p[0], z: p[1], yaw: 0 }; }
   }
   if (world.insideBuilding(home.x, home.z, 0.2)) { home.x = 0; home.z = 0; }
+  if (trams) scene.remove(trams.group);
+  trams = createTrams(world, { onBell: (p) => sound.bell(Math.hypot(p.x - player.x, p.z - player.z)) });
+  world.group.add(trams.group);
+  $('labels').textContent = '';
+  labels = createLabels(world, $('labels'));
+  $('addresses').checked = labels.on;
   goHome();
   applyState();
   drawStaticMap();
 }
 
+// ---------------------------------------------------------------- rain, sounds, trams, addresses
+function rainSky(k) {
+  skyUniforms.top.value.copy(base.top).lerp(OVERCAST, 0.75 * k * (1 - base.night * 0.7));
+  skyUniforms.horizon.value.copy(base.hor).lerp(OVERCAST, 0.6 * k * (1 - base.night * 0.7));
+  skyUniforms.sunCol.value.copy(base.sunCol).multiplyScalar(1 - 0.9 * k);
+}
+const rain = createRain(scene);
+const sound = createSound();
+let trams = null, labels = null, base = null, lastRain = -1;
+const OVERCAST = new THREE.Color('#8c96a3');
+// the rain dims the sun, brings the fog closer and greys the sky; applyTime() stores the dry values in base
+function weather() {
+  const k = rain.amount;
+  if (!base || Math.abs(k - lastRain) < 0.002) return;
+  lastRain = k;
+  sun.intensity = base.sun * (1 - 0.8 * k);
+  hemi.intensity = base.hemi * (1 - 0.2 * k);
+  scene.fog.near = base.near * (1 - 0.6 * k); scene.fog.far = base.far * (1 - 0.55 * k);
+  scene.fog.color.copy(base.fog).lerp(OVERCAST, 0.6 * k * (1 - base.night * 0.7));
+  rainSky(k);
+}
+function toggleAddresses() { if (!labels) return; labels.set(!labels.on); $('addresses').checked = labels.on; toast(labels.on ? t().addrOn : t().addrOff); }
+function toggleRain() { rain.set(!rain.on); $('rain').checked = rain.on; toast(rain.on ? t().rainOn : t().rainOff); }
+function jump() { if (player.jy === 0 && player.vy === 0) player.vy = 4.2; }
+$('addresses').addEventListener('change', (e) => { if (labels) labels.set(e.target.checked); });
+$('rain').addEventListener('change', (e) => rain.set(e.target.checked));
+$('sound').addEventListener('change', (e) => { sound.start(); sound.set(e.target.checked); });
+$('btn-jump').addEventListener('pointerdown', (e) => { e.preventDefault(); sound.start(); jump(); });
+// browsers start sound only after a click or a key press
+addEventListener('pointerdown', () => sound.start());
+addEventListener('keydown', () => sound.start());
+$('rain').checked = rain.on;
+$('sound').checked = sound.on;
+
 // ---------------------------------------------------------------- style switch: keep place, view, time and season
 let pendingGo = false;
 function saveState() {
   if (!world) return null;
-  return { x: player.x.toFixed(2), z: player.z.toFixed(2), yaw: player.yaw.toFixed(3), pitch: player.pitch.toFixed(3), h: hour, s: $('season').value, go: started ? 1 : 0 };
+  return { x: player.x.toFixed(2), z: player.z.toFixed(2), yaw: player.yaw.toFixed(3), pitch: player.pitch.toFixed(3), h: hour, s: $('season').value, r: rain.on ? 1 : 0, go: started ? 1 : 0 };
 }
 function applyState() {
   const st = readState();
@@ -334,6 +386,7 @@ function applyState() {
   }
   if (Number.isFinite(st.h)) { hour = THREE.MathUtils.clamp(st.h, +$('hour').min, +$('hour').max); $('hour').value = hour; applyTime(); }
   if (st.s && [...$('season').options].some((o) => o.value === st.s)) { $('season').value = st.s; $('season').dispatchEvent(new Event('change')); }
+  if (st.r === '1' || st.r === '0') { rain.set(st.r === '1'); $('rain').checked = rain.on; }
   pendingGo = st.go;
 }
 
@@ -370,6 +423,9 @@ addEventListener('keydown', (e) => {
   if (!started) return;
   if (e.code === 'KeyM') toggleMap();
   if (e.code === 'KeyH') goHome();
+  if (e.code === 'KeyN') toggleAddresses();
+  if (e.code === 'KeyR') toggleRain();
+  if (e.code === 'Space' && !paused) jump();
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
 });
 addEventListener('keyup', (e) => keys.delete(e.code));
@@ -423,6 +479,7 @@ canvas.addEventListener('pointercancel', endTouch);
 function startWalk() {
   if (!ready) return;
   started = true; paused = false;
+  sound.start();
   $('start').hidden = true; $('hud').hidden = false;
   if (canLock) { try { const p = canvas.requestPointerLock(); if (p && p.catch) p.catch(() => {}); } catch { /* needs a click */ } }
   $('lock-hint').hidden = isTouch || canLock === false;
@@ -570,7 +627,7 @@ function toast(msg) { const el = $('toast'); el.textContent = msg; el.classList.
 function frame() {
   const dt = Math.min(clock.getDelta(), 0.05);
   if (world && started && !paused && !uiOpen()) {
-    let f = 0, s = 0;
+    let f = 0, s = 0, moving = 0;
     if (keys.has('KeyW') || keys.has('ArrowUp')) f += 1;
     if (keys.has('KeyS') || keys.has('ArrowDown')) f -= 1;
     if (keys.has('KeyD')) s += 1;
@@ -590,16 +647,28 @@ function frame() {
       if (!world.insideBuilding(nx, nz)) { player.x = nx; player.z = nz; }
       const r = Math.hypot(player.x, player.z);
       if (r > WALK_RADIUS) { player.x *= WALK_RADIUS / r; player.z *= WALK_RADIUS / r; if (toastT <= 0) toast(t().edge); }
-      player.bob += dt * speed * 4.2;
+      if (player.jy === 0) player.bob += dt * speed * 4.2;
+      moving = speed;
     }
+    // jump: up, then down with gravity
+    if (player.vy !== 0 || player.jy > 0) {
+      player.vy -= 9.81 * dt; player.jy += player.vy * dt;
+      if (player.jy <= 0) { player.jy = 0; player.vy = 0; }
+    }
+    if (trams) [player.x, player.z] = trams.push(player.x, player.z);
     hudTimer -= dt;
     if (hudTimer <= 0) { hudTimer = 0.25; updateHud(); }
+    if (labels) labels.update(player, camera, dt);
+    sound.update(dt, { day: base ? base.day : 1, night: base ? base.night : 0, rain: rain.amount, tram: trams && trams.nearest(player.x, player.z), speed: moving, bob: player.bob });
     drawMiniMap();
     $('compass').style.transform = `rotate(${player.yaw}rad)`;
   }
   if (toastT > 0) { toastT -= dt; if (toastT <= 0) $('toast').classList.remove('show'); }
+  if (trams) trams.update(dt);
+  rain.update(dt, camera.position);
+  weather();
   // camera
-  camera.position.set(player.x, player.eye + Math.sin(player.bob) * 0.035, player.z);
+  camera.position.set(player.x, player.eye + player.jy + Math.sin(player.bob) * 0.035, player.z);
   camera.rotation.set(player.pitch, player.yaw, 0);
   sky.position.copy(camera.position); mountains.position.set(camera.position.x, 0, camera.position.z);
   // shadow camera follows the player, snapped to texels to avoid shimmering
@@ -622,4 +691,4 @@ requestAnimationFrame(frame);
 load();
 
 // for automated checks
-window.__serdika = { get world() { return world; }, player, get ready() { return ready; }, goHome, setHour: (h) => { hour = h; applyTime(); } };
+window.__serdika = { get world() { return world; }, get trams() { return trams; }, get labels() { return labels; }, get rain() { return rain; }, player, get ready() { return ready; }, goHome, setHour: (h) => { hour = h; applyTime(); } };

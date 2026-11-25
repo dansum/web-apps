@@ -18,7 +18,8 @@ const VANGOGH = {
   sky: 'swirl',
   light: { sun: 1, hemi: 1 },
   // oil-paint filter
-  post: { brush: 1.6, posterize: 0, edge: 0.8, edgeLo: 0.035, edgeHi: 0.12, broken: 1, edgeColor: '#1a2660', sat: 1.4, shadow: [0.72, 0.84, 1.3], shadowAmt: 0.35, warm: [1.12, 1.05, 0.82], weave: 1, relief: 1 },
+  sunflowers: true,
+  post: { strokes: 1, brush: 1.6, posterize: 0, edge: 0.8, edgeLo: 0.035, edgeHi: 0.12, broken: 1, edgeColor: '#1a2660', sat: 1.4, shadow: [0.72, 0.84, 1.3], shadowAmt: 0.35, warm: [1.12, 1.05, 0.82], weave: 1, relief: 1 },
   text: {
     bg: {
       kicker: 'Разходка в 3D · по Ван Гог',
@@ -53,7 +54,7 @@ const MAISTORA = {
   // flat, even light: tempera has hardly any modelling
   light: { sun: 0.35, hemi: 1.7 },
   // flat colour fields with firm dark contours, like tempera on board
-  post: { brush: 1.0, posterize: 7, edge: 0.9, edgeLo: 0.025, edgeHi: 0.08, broken: 0, edgeColor: '#2a1712', sat: 1.45, shadow: [0.95, 0.85, 1.05], shadowAmt: 0.2, warm: [1.08, 1.04, 0.9], weave: 0.5, relief: 0.3 },
+  post: { strokes: 0, brush: 1.0, posterize: 7, edge: 0.9, edgeLo: 0.025, edgeHi: 0.08, broken: 0, edgeColor: '#2a1712', sat: 1.45, shadow: [0.95, 0.85, 1.05], shadowAmt: 0.2, warm: [1.08, 1.04, 0.9], weave: 0.5, relief: 0.3 },
   text: {
     bg: {
       kicker: 'Разходка в 3D · по Майстора',

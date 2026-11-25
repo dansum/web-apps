@@ -1162,6 +1162,10 @@ export function buildWorld(F, ctx) {
 
   return {
     group, info, buildingMeshes, colliders, insideBuilding, crowns, lampGlass, mapData, streetsForHud, stats,
+    labelSpots: bldgs.filter((r) => !r.isPart && r.owner != null && (info[r.owner].addr || info[r.owner].name))
+      .map((r) => ({ ring: r.outer, bb: r.bb, id: r.owner, H: r.wallTop || r.H, addr: info[r.owner].addr, name: info[r.owner].name })),
+    tramLines: trams.map((l) => ({ pts: l.pts, keys: l.keys })),
+    tramStops: F.nodes.filter((n) => n.tags.railway === 'tram_stop' || (n.tags.public_transport === 'stop_position' && n.tags.tram === 'yes')).map((n) => n.p),
     target: { index: targetIndex, front: targetFront, rec: targetIndex >= 0 ? bldgs[targetIndex] : null },
     streetLines: (name) => linesByName.get(normName(name)) || [],
   };

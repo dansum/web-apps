@@ -40,7 +40,7 @@ export function readState() {
   if (!h) return null;
   const p = new URLSearchParams(h);
   const num = (k) => parseFloat(p.get(k));
-  const st = { x: num('x'), z: num('z'), yaw: num('yaw'), pitch: num('pitch'), h: num('h'), s: p.get('s'), go: p.get('go') === '1' };
+  const st = { x: num('x'), z: num('z'), yaw: num('yaw'), pitch: num('pitch'), h: num('h'), s: p.get('s'), r: p.get('r'), go: p.get('go') === '1' };
   return Number.isFinite(st.x) && Number.isFinite(st.z) ? st : null;
 }
 

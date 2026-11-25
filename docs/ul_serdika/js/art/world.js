@@ -925,8 +925,53 @@ export function buildWorld(F, ctx) {
     return geo;
   });
   const crownMat = lam({ map: T.leaves, alphaTest: 0.5, side: THREE.DoubleSide });
+  crownMat.userData.sway = 0.012; // the wind moves the crowns a little
   const crowns = [];
   crownGeos.forEach((g, k) => { const m = instanced(g, crownMat, crownMx[k], { cast: true, colors: crownCol[k].map(() => new THREE.Color()) }); if (m) { m.userData.r = crownCol[k]; m.userData.cypress = k === 3; crowns.push(m); group.add(m); } });
+
+  // ---------- sunflowers in the parks (VG: Arles and Paris, 1887–1889)
+  const flowers = new THREE.Group();
+  if (STYLE.sunflowers && T.sunflower) {
+    const stemMx = [], headMx = [];
+    const paths = roads.filter((l) => !DRIVABLE.has(l.tags.highway)).map((l) => l.pts);
+    let total = 0;
+    for (const a of F.areas) {
+      const t = a.tags;
+      if (!(['park', 'garden'].includes(t.leisure) || t.landuse === 'grass' || t.landuse === 'flowerbed')) continue;
+      const area = Math.abs(ringArea(a.outer)); if (area < 40) continue;
+      const bb = a.outer.reduce((m, p) => [Math.min(m[0], p[0]), Math.min(m[1], p[1]), Math.max(m[2], p[0]), Math.max(m[3], p[1])], [1e9, 1e9, -1e9, -1e9]);
+      const rr = rng('sun' + a.id);
+      const clumps = Math.min(6, Math.ceil(area / 400));
+      for (let c = 0; c < clumps && total < 420; c++) {
+        let cx = 0, cz = 0, ok = false;
+        for (let tries = 0; tries < 20 && !ok; tries++) {
+          cx = bb[0] + rr() * (bb[2] - bb[0]); cz = bb[1] + rr() * (bb[3] - bb[1]);
+          ok = pointInRing([cx, cz], a.outer) && !a.holes.some((h) => pointInRing([cx, cz], h));
+        }
+        if (!ok) continue;
+        const n = 8 + Math.floor(rr() * 14);
+        for (let i = 0; i < n; i++) {
+          const x = cx + (rr() - 0.5) * 4.5, z = cz + (rr() - 0.5) * 4.5;
+          if (!pointInRing([x, z], a.outer) || insideBuilding(x, z, 0.5) || onRoad(x, z, 0.5)) continue;
+          if (paths.some((p) => polyDist([x, z], p).d < 1.4) || treeColliders.some((q) => Math.hypot(q[0] - x, q[1] - z) < 1.1)) continue;
+          const h = 1.3 + rr() * 0.9, s = 0.42 + rr() * 0.25;
+          stemMx.push(M4(x, 0, z, rr() * 6, 1, h, 1));
+          // heads look roughly south, towards the sun, each a little differently
+          headMx.push(new THREE.Matrix4().compose(new THREE.Vector3(x, h, z), new THREE.Quaternion().setFromEuler(new THREE.Euler((rr() - 0.5) * 0.5, (rr() - 0.5) * 1.4, (rr() - 0.5) * 0.4, 'YXZ')), new THREE.Vector3(s, s, s)));
+          total++;
+        }
+      }
+    }
+    const leaf = (y, a) => [new THREE.SphereGeometry(1, 8, 4), new THREE.Matrix4().compose(new THREE.Vector3(Math.cos(a) * 0.14, y, Math.sin(a) * 0.14), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, -a, 0.3)), new THREE.Vector3(0.16, 0.025, 0.08))];
+    const stemGeo = mergeGeos([[new THREE.CylinderGeometry(0.025, 0.04, 1, 6).translate(0, 0.5, 0)], leaf(0.35, 0), leaf(0.55, 2.4), leaf(0.75, 4.4)]);
+    const stemMat = lam({ color: 0x4f8a2a, map: T.grass }); stemMat.userData.sway = 0.06;
+    const headMat = lam({ map: T.sunflower, alphaTest: 0.4, side: THREE.DoubleSide }); headMat.userData.sway = 0.06;
+    const stems = instanced(stemGeo, stemMat, stemMx, { cast: true });
+    const heads = instanced(new THREE.PlaneGeometry(1, 1), headMat, headMx, { cast: true });
+    if (stems) flowers.add(stems);
+    if (heads) flowers.add(heads);
+    group.add(flowers);
+  }
 
   // ---------- street lamps
   const lampSpots = F.nodes.filter((n) => n.tags.highway === 'street_lamp').map((n) => n.p);
@@ -1104,7 +1149,11 @@ export function buildWorld(F, ctx) {
 
   return {
     group, info, buildingMeshes, colliders, insideBuilding, crowns, lampGlass, mapData, streetsForHud, stats,
-    nightMats, awningMat, lampSpots, cafeSpots, lampTop: 4.27,
+    labelSpots: bldgs.filter((r) => !r.isPart && r.owner != null && (info[r.owner].addr || info[r.owner].name))
+      .map((r) => ({ ring: r.outer, bb: r.bb, id: r.owner, H: r.wallTop || r.H, addr: info[r.owner].addr, name: info[r.owner].name })),
+    tramLines: trams.map((l) => ({ pts: l.pts, keys: l.keys })),
+    tramStops: F.nodes.filter((n) => n.tags.railway === 'tram_stop' || (n.tags.public_transport === 'stop_position' && n.tags.tram === 'yes')).map((n) => n.p),
+    nightMats, awningMat, lampSpots, cafeSpots, lampTop: 4.27, flowers,
     target: { index: targetIndex, front: targetFront, rec: targetIndex >= 0 ? bldgs[targetIndex] : null },
     streetLines: (name) => linesByName.get(normName(name)) || [],
   };
